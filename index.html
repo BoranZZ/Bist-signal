@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BIST Sinyal Panosu</title>
+<style>
+:root{--bg:#FAFAF8;--ink:#16181D;--muted:#6B7079;--line:#E6E7E4;--accent:#0E4D45;
+--al:#1B7F4B;--notr:#9A7A12;--sat:#B4362E;--pos:#1B7F4B;--neg:#B4362E;--panel:#FFF}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+font-feature-settings:"tnum" 1;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 20px 60px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;
+border-bottom:1px solid var(--line);padding-bottom:20px}
+h1{font-size:20px;letter-spacing:-.01em;margin:0;font-weight:650}
+.tarih{color:var(--muted);font-size:13px;margin-top:4px}
+.ozet{display:flex;gap:26px;text-align:right}
+.ozet .buyuk{font-size:42px;font-weight:680;line-height:1;color:var(--accent);letter-spacing:-.02em}
+.ozet .buyuk.g{color:var(--al)}
+.ozet .alt{color:var(--muted);font-size:12.5px;margin-top:3px}
+.banner{margin:16px 0 0;padding:10px 14px;border-radius:8px;font-size:13px}
+.banner.ornek{background:#FBF3E4;border:1px solid #EBD9B0;color:#7A5B10}
+.banner.uyari-b{background:#FBECEA;border:1px solid #E6C3BD;color:#8A2F26}
+.tablo-sar{margin-top:22px;overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:900px}
+th,td{padding:11px 12px;text-align:left;white-space:nowrap}
+th{position:sticky;top:0;background:var(--panel);color:var(--muted);font-weight:600;font-size:12px;
+border-bottom:1px solid var(--line);cursor:pointer;user-select:none}
+th:hover{color:var(--ink)}
+tbody tr{border-bottom:1px solid var(--line)}tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:#F6F6F3}
+.kod{font-weight:650}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.gerekce{color:var(--muted);white-space:normal;min-width:250px;font-size:12.5px}
+.stop{color:var(--sat)}.lot{font-weight:650}
+.pos{color:var(--pos)}.neg{color:var(--neg)}
+.pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:650}
+.pill.al{background:#E4F2E9;color:var(--al)}
+.pill.notr{background:#F1EFE8;color:var(--notr)}
+.pill.sat{background:#F7E7E5;color:var(--sat)}
+.yildiz{color:#C7962B;font-size:13px}
+.tag{font-size:10px;margin-left:5px}.tag.ucuz{color:var(--al)}.tag.pahali{color:var(--sat)}
+.aciklama{margin-top:36px;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}
+.kart{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.kart h3{margin:0 0 6px;font-size:14px}.kart p{margin:0;color:var(--muted);font-size:13px;line-height:1.55}
+.uyari{margin-top:34px;padding:14px 16px;border:1px solid var(--line);border-radius:10px;
+background:#fff;color:var(--muted);font-size:12.5px;line-height:1.6}
+@media(max-width:560px){.ozet .buyuk{font-size:32px}}
+</style></head><body><div class="wrap">
+<header><div><h1>BIST Sinyal Panosu</h1><div class="tarih">Son güncelleme: 14.09.2026 10:48</div></div>
+<div class="ozet">
+<div><div class="buyuk">8</div><div class="alt">/ 28 hissede AL</div></div>
+<div><div class="buyuk g">1</div><div class="alt">★ AL+ (teknik+temel)</div></div>
+</div></header>
+<div class="banner uyari-b">⚠️ Bugün 8 yeni AL sinyali var — bu çok. Hepsini almaya çalışma; en yüksek puanlı / AL+ olan birkaçına odaklan, aşırı işlem komisyonda eritir.</div>
+<div class="tablo-sar"><table id="t"><thead><tr>
+<th data-t="s">Hisse</th><th data-t="n">Fiyat</th><th data-t="n">Değişim</th>
+<th data-t="s">Sinyal</th><th data-t="n">RSI</th><th data-t="n">F/K</th>
+<th data-t="n">PD/DD</th><th data-t="n">Stop</th><th data-t="n">Öneri lot</th><th data-t="s">Gerekçe</th>
+</tr></thead><tbody><tr>
+  <td class="kod">SAHOL</td>
+  <td class="num">95.35</td>
+  <td class="num pos">+0.05%</td>
+  <td><span class="pill al">AL</span> <span class="yildiz" title="Teknik + temel birlikte güçlü">★</span></td>
+  <td class="num">61.9</td>
+  <td class="num">9.8<span class="tag ucuz">▼</span></td>
+  <td class="num">0.47<span class="tag ucuz">▼</span></td>
+  <td class="num stop">88.9</td>
+  <td class="num lot">155</td>
+  <td class="gerekce">Fiyat 50 günlük ortalama üstünde (yükseliş trendi) · 20 günlük ortalama 50'nin üstünde · MACD sinyal çizgisi üstünde (pozitif momentum) · RSI 62 (sağlıklı momentum bölgesi)</td>
+</tr><tr>
+  <td class="kod">AKBNK</td>
+  <td class="num">73.05</td>
+  <td class="num pos">+0.48%</td>
+  <td><span class="pill al">AL</span></td>
+  <td class="num">57.4</td>
+  <td class="num">5.7<span class="tag ucuz">▼</span></td>
+  <td class="num">1.17<span class="tag pahali">▲</span></td>
+  <td class="num stop">67.65</td>
+  <td class="num lot">185</td>
+  <td class="gerekce">Fiyat 50 günlük ortalama üstünde (yükseliş trendi) · 20 günlük ortalama 50'nin üstünde · MACD sinyal çizgisi üstünde (pozitif momentum) · RSI 57 (sağlıklı momentum bölgesi)</td>
+</tr><tr>
+  <td class="kod">BIMAS</td>
+  <td class="num">430.5</td>
+  <td class="num neg">-0.98%</td>
+  <td><span class="pill al">AL</span></td>
+  <td class="num">65.1</td>
+  <td class="num">20.8<span class="tag pahali">▲</span></td>
+  <td class="num">2.54<span class="tag pahali">▲</span></td>
+  <td class="num stop">396.06</td>
+  <td class="num lot">29</td>
+  <td class="gerekce">Fiyat 50 günlük ortalama üstünde (yükseliş trendi) · 20 günlük ortalama 50'nin üstünde · MACD sinyal çizgisi üstünde (pozitif momentum) · RSI 65 (sağlıklı momentum bölgesi)</td>
+</tr><tr>
+  <td class="kod">EKGYO</td>
+  <td class="num">20.84</td>
+  <td class="num neg">-0.38%</td>
+  <td><span class="pill al">AL</span></td>
+  <td class="num">56.1</td>
+  <td class="num">—<span class="tag "></span></td>
+  <td class="num">0.52<span class="tag ucuz">▼</span></td>
+  <td class="num stop">19.17</td>
+  <td class="num lot">598</td>
+  <td class="gerekce">Fiyat 50 günlük ortalama üstünde (yükseliş trendi) · 20 günlük ortalama 50'nin üstünde · MACD sinyal çizgisi üstünde (pozitif momentum) · RSI 56 (sağlıklı momentum bölgesi)</td>
+</tr><tr>
+  <td class="kod">GARAN</td>
+  <td class="num">134.6</td>
+  <td class="num pos">+0.3%</td>
+  <td><span class="pill al">AL</span></td>
+  <td class="num">57.3</td>
+  <td class="num">4.7<span class="tag ucuz">▼</span></td>
+  <td class="num">1.16<span class="tag pahali">▲</span></td>
+  <td class="num stop">129.0</td>
+  <td class="num lot">178</td>
+  <td class="gerekce">Fiyat 50 günlük ortalama üstünde (yükseliş trendi) · 20 günlük ortalama 50'nin üstünde · MACD sinyal çizgisi üstünde (pozitif momentum) · RSI 57 (sağlıklı momentum bölgesi)</td>
+</tr><tr>
+  <td class="kod">GUBRF</td>
+  <td class="num">485.5</td>
+  <td class="num neg">-3.38%</td>
+  <td><span class="pill al">AL</span></td>
+  <td class="num">54.2</td>
+  <td class="num">22.8<span class="tag pahali">▲</span></td>
+  <td class="num">4.58<span class="tag pahali">▲</span></td>
+  <td class="num stop">446.66</td>
+  <td class="num lot">25</td>
+  <td class="gerekce">Fiyat 50 günlük ortalama üstünde (yükseliş trendi) · 20 günlük ortalama 50'nin üstünde · MACD sinyal çizgisi üstünde (pozitif momentum) · RSI 54 (sağlıklı momentum bölgesi)</td>
+</tr><tr>
+  <td class="kod">KCHOL</td>
+  <td class="num">225.9</td>
+  <td class="num pos">+0.18%</td>
+  <td><span class="pill al">AL</span></td>
+  <td class="num">67.7</td>
+  <td class="num">24.6<span class="tag pahali">▲</span></td>
+  <td class="num">0.72<span class="tag ucuz">▼</span></td>
+  <td class="num stop">207.83</td>
+  <td class="num lot">55</td>
+  <td class="gerekce">Fiyat 50 günlük ortalama üstünde (yükseliş trendi) · 20 günlük ortalama 50'nin üstünde · MACD sinyal çizgisi üstünde (pozitif momentum) · RSI 68 (sağlıklı momentum bölgesi)</td>
+</tr><tr>
+  <td class="kod">PETKM</td>
+  <td class="num">24.02</td>
+  <td class="num neg">-2.67%</td>
+  <td><span class="pill al">AL</span></td>
+  <td class="num">64.2</td>
+  <td class="num">—<span class="tag "></span></td>
+  <td class="num">0.81<span class="tag ucuz">▼</span></td>
+  <td class="num stop">22.1</td>
+  <td class="num lot">520</td>
+  <td class="gerekce">Fiyat 50 günlük ortalama üstünde (yükseliş trendi) · 20 günlük ortalama 50'nin üstünde · MACD sinyal çizgisi üstünde (pozitif momentum) · RSI 64 (sağlıklı momentum bölgesi)</td>
+</tr><tr>
+  <td class="kod">ASELS</td>
+  <td class="num">378.0</td>
+  <td class="num neg">-4.0%</td>
+  <td><span class="pill notr">NÖTR</span></td>
+  <td class="num">45.6</td>
+  <td class="num">48.0<span class="tag pahali">▲</span></td>
+  <td class="num">5.62<span class="tag pahali">▲</span></td>
+  <td class="num stop">378.0</td>
+  <td class="num lot">—</td>
+  <td class="gerekce">Fiyat 50 günlük ortalama üstünde (yükseliş trendi) · 20 günlük ortalama 50'nin üstünde · RSI 46 (sağlıklı momentum bölgesi)</td>
+</tr><tr>
+  <td class="kod">ENKAI</td>
+  <td class="num">90.7</td>
+  <td class="num neg">-0.6%</td>
+  <td><span class="pill notr">NÖTR</span></td>
+  <td class="num">58.9</td>
+  <td class="num">13.0<span class="tag pahali">▲</span></td>
+  <td class="num">60.31<span class="tag pahali">▲</span></td>
+  <td class="num stop">83.44</td>
+  <td class="num lot">—</td>
+  <td class="gerekce">Fiyat 50 günlük ortalama üstünde (yükseliş trendi) · MACD sinyal çizgisi üstünde (pozitif momentum) · RSI 59 (sağlıklı momentum bölgesi)</td>
+</tr><tr>
+  <td class="kod">FROTO</td>
+  <td class="num">82.75</td>
+  <td class="num neg">-0.12%</td>
+  <td><span class="pill notr">NÖTR</span></td>
+  <td class="num">59.1</td>
+  <td class="num">10.7<span class="tag ucuz">▼</span></td>
+  <td class="num">1.62<span class="tag pahali">▲</span></td>
+  <td class="num stop">76.13</td>
+  <td class="num lot">—</td>
+  <td class="gerekce">Fiyat 50 günlük ortalama üstünde (yükseliş trendi) · MACD sinyal çizgisi üstünde (pozitif momentum) · RSI 59 (sağlıklı momentum bölgesi)</td>
+</tr><tr>
+  <td class="kod">ISCTR</td>
+  <td class="num">13.89</td>
+  <td class="num neg">-0.29%</td>
+  <td><span class="pill notr">NÖTR</span></td>
+  <td class="num">63.0</td>
+  <td class="num">5.1<span class="tag ucuz">▼</span></td>
+  <td class="num">0.76<span class="tag ucuz">▼</span></td>
+  <td class="num stop">12.78</td>
+  <td class="num lot">—</td>
+  <td class="gerekce">Fiyat 50 günlük ortalama üstünde (yükseliş trendi) · MACD sinyal çizgisi üstünde (pozitif momentum) · RSI 63 (sağlıklı momentum bölgesi)</td>
+</tr><tr>
+  <td class="kod">KRDMD</td>
+  <td class="num">45.44</td>
+  <td class="num neg">-1.22%</td>
+  <td><span class="pill notr">NÖTR</span></td>
+  <td class="num">53.7</td>
+  <td class="num">11.1<span class="tag ucuz">▼</span></td>
+  <td class="num">0.61<span class="tag ucuz">▼</span></td>
+  <td class="num stop">42.98</td>
+  <td class="num lot">—</td>
+  <td class="gerekce">Fiyat 50 günlük ortalama üstünde (yükseliş trendi) · 20 günlük ortalama 50'nin üstünde · RSI 54 (sağlıklı momentum bölgesi)</td>
+</tr><tr>
+  <td class="kod">OYAKC</td>
+  <td class="num">21.94</td>
+  <td class="num neg">-1.7%</td>
+  <td><span class="pill notr">NÖTR</span></td>
+  <td class="num">50.7</td>
+  <td class="num">17.3<span class="tag pahali">▲</span></td>
+  <td class="num">1.54<span class="tag pahali">▲</span></td>
+  <td class="num stop">21.06</td>
+  <td class="num lot">—</td>
+  <td class="gerekce">Fiyat 50 günlük ortalama üstünde (yükseliş trendi) · 20 günlük ortalama 50'nin üstünde · RSI 51 (sağlıklı momentum bölgesi)</td>
+</tr><tr>
+  <td class="kod">SISE</td>
+  <td class="num">44.02</td>
+  <td class="num neg">-2.13%</td>
+  <td><span class="pill notr">NÖTR</span></td>
+  <td class="num">59.5</td>
+  <td class="num">11.9<span class="tag pahali">▲</span></td>
+  <td class="num">0.33<span class="tag ucuz">▼</span></td>
+  <td class="num stop">40.5</td>
+  <td class="num lot">—</td>
+  <td class="gerekce">Fiyat 50 günlük ortalama üstünde (yükseliş trendi) · MACD sinyal çizgisi üstünde (pozitif momentum) · RSI 60 (sağlıklı momentum bölgesi)</td>
+</tr><tr>
+  <td class="kod">TOASO</td>
+  <td class="num">291.25</td>
+  <td class="num neg">-2.84%</td>
+  <td><span class="pill notr">NÖTR</span></td>
+  <td class="num">58.8</td>
+  <td class="num">11.6<span class="tag ucuz">▼</span></td>
+  <td class="num">2.22<span class="tag pahali">▲</span></td>
+  <td class="num stop">267.95</td>
+  <td class="num lot">—</td>
+  <td class="gerekce">Fiyat 50 günlük ortalama üstünde (yükseliş trendi) · MACD sinyal çizgisi üstünde (pozitif momentum) · RSI 59 (sağlıklı momentum bölgesi)</td>
+</tr><tr>
+  <td class="kod">TTKOM</td>
+  <td class="num">58.65</td>
+  <td class="num neg">-3.62%</td>
+  <td><span class="pill notr">NÖTR</span></td>
+  <td class="num">62.0</td>
+  <td class="num">7.7<span class="tag ucuz">▼</span></td>
+  <td class="num">0.84<span class="tag ucuz">▼</span></td>
+  <td class="num stop">53.96</td>
+  <td class="num lot">—</td>
+  <td class="gerekce">Fiyat 50 günlük ortalama üstünde (yükseliş trendi) · MACD sinyal çizgisi üstünde (pozitif momentum) · RSI 62 (sağlıklı momentum bölgesi)</td>
+</tr><tr>
+  <td class="kod">YKBNK</td>
+  <td class="num">36.48</td>
+  <td class="num neg">-0.6%</td>
+  <td><span class="pill notr">NÖTR</span></td>
+  <td class="num">53.4</td>
+  <td class="num">5.6<span class="tag ucuz">▼</span></td>
+  <td class="num">1.08<span class="tag pahali">▲</span></td>
+  <td class="num stop">34.8</td>
+  <td class="num lot">—</td>
+  <td class="gerekce">Fiyat 50 günlük ortalama üstünde (yükseliş trendi) · 20 günlük ortalama 50'nin üstünde · RSI 53 (sağlıklı momentum bölgesi)</td>
+</tr><tr>
+  <td class="kod">EREGL</td>
+  <td class="num">39.04</td>
+  <td class="num neg">-0.91%</td>
+  <td><span class="pill notr">NÖTR</span></td>
+  <td class="num">50.9</td>
+  <td class="num">33.9<span class="tag pahali">▲</span></td>
+  <td class="num">0.82<span class="tag ucuz">▼</span></td>
+  <td class="num stop">36.58</td>
+  <td class="num lot">—</td>
+  <td class="gerekce">Fiyat 50 günlük ortalama altında (zayıf trend) · MACD sinyal çizgisi üstünde (pozitif momentum) · RSI 51 (sağlıklı momentum bölgesi)</td>
+</tr><tr>
+  <td class="kod">HEKTS</td>
+  <td class="num">2.8</td>
+  <td class="num neg">-1.41%</td>
+  <td><span class="pill notr">NÖTR</span></td>
+  <td class="num">47.0</td>
+  <td class="num">—<span class="tag "></span></td>
+  <td class="num">1.43<span class="tag pahali">▲</span></td>
+  <td class="num stop">2.6</td>
+  <td class="num lot">—</td>
+  <td class="gerekce">Fiyat 50 günlük ortalama altında (zayıf trend) · MACD sinyal çizgisi üstünde (pozitif momentum) · RSI 47 (sağlıklı momentum bölgesi)</td>
+</tr><tr>
+  <td class="kod">PGSUS</td>
+  <td class="num">153.2</td>
+  <td class="num neg">-0.65%</td>
+  <td><span class="pill notr">NÖTR</span></td>
+  <td class="num">50.0</td>
+  <td class="num">—<span class="tag "></span></td>
+  <td class="num">0.68<span class="tag ucuz">▼</span></td>
+  <td class="num stop">147.0</td>
+  <td class="num lot">—</td>
+  <td class="gerekce">Fiyat 50 günlük ortalama altında (zayıf trend) · MACD sinyal çizgisi üstünde (pozitif momentum) · RSI 50 (sağlıklı momentum bölgesi)</td>
+</tr><tr>
+  <td class="kod">SASA</td>
+  <td class="num">2.87</td>
+  <td class="num pos">+1.77%</td>
+  <td><span class="pill notr">NÖTR</span></td>
+  <td class="num">70.7</td>
+  <td class="num">—<span class="tag "></span></td>
+  <td class="num">0.7<span class="tag ucuz">▼</span></td>
+  <td class="num stop">2.64</td>
+  <td class="num lot">—</td>
+  <td class="gerekce">Fiyat 50 günlük ortalama üstünde (yükseliş trendi) · MACD sinyal çizgisi üstünde (pozitif momentum)</td>
+</tr><tr>
+  <td class="kod">TCELL</td>
+  <td class="num">103.1</td>
+  <td class="num neg">-0.58%</td>
+  <td><span class="pill notr">NÖTR</span></td>
+  <td class="num">52.6</td>
+  <td class="num">12.6<span class="tag pahali">▲</span></td>
+  <td class="num">0.77<span class="tag ucuz">▼</span></td>
+  <td class="num stop">95.05</td>
+  <td class="num lot">—</td>
+  <td class="gerekce">Fiyat 50 günlük ortalama altında (zayıf trend) · MACD sinyal çizgisi üstünde (pozitif momentum) · RSI 53 (sağlıklı momentum bölgesi)</td>
+</tr><tr>
+  <td class="kod">TUPRS</td>
+  <td class="num">417.5</td>
+  <td class="num pos">+0.97%</td>
+  <td><span class="pill notr">NÖTR</span></td>
+  <td class="num">70.8</td>
+  <td class="num">11.9<span class="tag pahali">▲</span></td>
+  <td class="num">1.76<span class="tag pahali">▲</span></td>
+  <td class="num stop">384.1</td>
+  <td class="num lot">—</td>
+  <td class="gerekce">Fiyat 50 günlük ortalama üstünde (yükseliş trendi) · 20 günlük ortalama 50'nin üstünde</td>
+</tr><tr>
+  <td class="kod">ASTOR</td>
+  <td class="num">285.75</td>
+  <td class="num neg">-2.81%</td>
+  <td><span class="pill sat">SAT</span></td>
+  <td class="num">38.5</td>
+  <td class="num">29.0<span class="tag pahali">▲</span></td>
+  <td class="num">6.51<span class="tag pahali">▲</span></td>
+  <td class="num stop">285.25</td>
+  <td class="num lot">—</td>
+  <td class="gerekce">Fiyat 50 günlük ortalama altında (zayıf trend) · 20 günlük ortalama 50'nin üstünde</td>
+</tr><tr>
+  <td class="kod">KONTR</td>
+  <td class="num">3.5</td>
+  <td class="num pos">+0.0%</td>
+  <td><span class="pill sat">SAT</span></td>
+  <td class="num">41.4</td>
+  <td class="num">—<span class="tag "></span></td>
+  <td class="num">0.7<span class="tag ucuz">▼</span></td>
+  <td class="num stop">3.22</td>
+  <td class="num lot">—</td>
+  <td class="gerekce">Fiyat 50 günlük ortalama altında (zayıf trend) · MACD sinyal çizgisi üstünde (pozitif momentum)</td>
+</tr><tr>
+  <td class="kod">MGROS</td>
+  <td class="num">543.0</td>
+  <td class="num neg">-0.82%</td>
+  <td><span class="pill sat">SAT</span></td>
+  <td class="num">42.1</td>
+  <td class="num">15.6<span class="tag pahali">▲</span></td>
+  <td class="num">1.06<span class="tag ucuz">▼</span></td>
+  <td class="num stop">516.0</td>
+  <td class="num lot">—</td>
+  <td class="gerekce">Fiyat 50 günlük ortalama altında (zayıf trend) · MACD sinyal çizgisi üstünde (pozitif momentum)</td>
+</tr><tr>
+  <td class="kod">THYAO</td>
+  <td class="num">297.25</td>
+  <td class="num neg">-1.0%</td>
+  <td><span class="pill sat">SAT</span></td>
+  <td class="num">42.9</td>
+  <td class="num">—<span class="tag "></span></td>
+  <td class="num">18.73<span class="tag pahali">▲</span></td>
+  <td class="num stop">291.5</td>
+  <td class="num lot">—</td>
+  <td class="gerekce">Fiyat 50 günlük ortalama altında (zayıf trend) · MACD sinyal çizgisi üstünde (pozitif momentum)</td>
+</tr></tbody></table></div>
+<div class="aciklama">
+<div class="kart"><h3>AL / AL+ / NÖTR / SAT</h3><p>Trend, ortalama dizilimi, MACD kesişimi ve RSI momentumundan bir puan. <b>★ AL+</b>: teknik AL ile birlikte F/K ve PD/DD de grup medyanının altında — yani hem grafik hem değerleme olumlu.</p></div>
+<div class="kart"><h3>Öneri lot (risk yönetimi)</h3><p>Portföyünün belirlediğin küçük bir yüzdesini (örn. %1) riske atacak lot sayısı: (portföy × risk%) ÷ (fiyat − stop). Böylece stop yerse kaybın portföyünün sadece o yüzdesi kadar olur.</p></div>
+<div class="kart"><h3>RSI</h3><p>0–100 momentum. 30 altı aşırı satım, 70 üstü aşırı alım. Sağlıklı yükseliş 45–68 bandında.</p></div>
+<div class="kart"><h3>MACD</h3><p>İki ortalamanın farkı. MACD çizgisi sinyali yukarı keserse momentum boğaya döndü — klasik al tetiği.</p></div>
+<div class="kart"><h3>F/K</h3><p>Fiyat ÷ hisse başı yıllık kâr. ▼ grup medyanının altında (görece ucuz). Sektöre göre yorumlanır.</p></div>
+<div class="kart"><h3>PD/DD</h3><p>Borsa değeri ÷ defter (özkaynak) değeri. 1 = defter değerine eşit. ▼ görece ucuz.</p></div>
+<div class="kart"><h3>Stop</h3><p>Zarar-kes seviyesi. Fiyat buranın altına inerse duygusuz çık — sermayeni korur.</p></div>
+</div>
+<div class="uyari">Yatırım tavsiyesi değildir. Göstergeler geçmişe bakar, geleceği garanti etmez; bu araç yalnızca sistemli karar vermeye yardımcı olur. Temel oranlar veri sağlayıcıdan gelir, bazı hisselerde eksik/gecikmeli olabilir. Kararların sorumluluğu sana aittir.</div>
+</div>
+<script>
+const t=document.getElementById('t');
+t.querySelectorAll('th').forEach((th,i)=>{th.addEventListener('click',()=>{
+const tb=t.tBodies[0],rows=[...tb.rows],num=th.dataset.t==='n',asc=th._asc=!th._asc;
+rows.sort((a,b)=>{let x=a.cells[i].innerText.replace('%','').replace('+',''),y=b.cells[i].innerText.replace('%','').replace('+','');
+if(num){x=parseFloat(x)||-1e9;y=parseFloat(y)||-1e9;return asc?x-y:y-x;}
+return asc?x.localeCompare(y,'tr'):y.localeCompare(x,'tr');});
+rows.forEach(r=>tb.appendChild(r));});});
+</script></body></html>
