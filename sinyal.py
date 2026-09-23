@@ -1,101 +1,236 @@
+# -*- coding: utf-8 -*-
 """
-Gösterge ve sinyal çekirdeği.
-Tek kural seti; hem canlı tarama hem backtest aynı fonksiyonları kullanır
-(kurallar iki yerde farklı olmasın diye).
+Çoklu gösterge motoru. Her gösterge KENDİ sinyalini üretir (AL/SAT/NÖTR);
+genel sinyal bunların uyumundan (kaç gösterge AL diyor) çıkar. Şeffaf.
+Canlı tarama + backtest aynı fonksiyonları kullanır.
 """
 import numpy as np
 import pandas as pd
 
-
-def sma(series, period):
-    return series.rolling(period).mean()
-
-
-def rsi(series, period=14):
-    delta = series.diff()
-    gain = delta.clip(lower=0)
-    loss = -delta.clip(upper=0)
-    avg_gain = gain.ewm(alpha=1 / period, min_periods=period, adjust=False).mean()
-    avg_loss = loss.ewm(alpha=1 / period, min_periods=period, adjust=False).mean()
-    rs = avg_gain / avg_loss.replace(0, np.nan)
-    return 100 - (100 / (1 + rs))
+# oy veren yönlü göstergeler ve eşikler
+AL_ESIK = 4   # 5 göstergeden >=4 AL -> genel AL
+SAT_ESIK = 1  # <=1 AL -> genel SAT
 
 
-def macd(series, fast=12, slow=26, signal=9):
-    ema_fast = series.ewm(span=fast, adjust=False).mean()
-    ema_slow = series.ewm(span=slow, adjust=False).mean()
-    macd_line = ema_fast - ema_slow
-    signal_line = macd_line.ewm(span=signal, adjust=False).mean()
-    return macd_line, signal_line, macd_line - signal_line
+def sma(s, n): return s.rolling(n).mean()
+def ema(s, n): return s.ewm(span=n, adjust=False).mean()
+
+
+def rsi(s, n=14):
+    d = s.diff()
+    ag = d.clip(lower=0).ewm(alpha=1/n, min_periods=n, adjust=False).mean()
+    al = (-d.clip(upper=0)).ewm(alpha=1/n, min_periods=n, adjust=False).mean()
+    rs = ag / al.replace(0, np.nan)
+    return 100 - 100/(1+rs)
+
+
+def macd(s, f=12, sl=26, sg=9):
+    m = ema(s, f) - ema(s, sl)
+    sig = ema(m, sg)
+    return m, sig
+
+
+def _atr(df, n=10):
+    h, l, c = df["High"], df["Low"], df["Close"]
+    pc = c.shift(1)
+    tr = pd.concat([h-l, (h-pc).abs(), (l-pc).abs()], axis=1).max(axis=1)
+    return tr.ewm(alpha=1/n, min_periods=n, adjust=False).mean()
+
+
+def supertrend(df, n=10, mult=3.0):
+    """Döndürür: yön Serisi (1=AL/yeşil, -1=SAT/kırmızı) ve çizgi."""
+    c = df["Close"].to_numpy(dtype=float)
+    atr = _atr(df, n).to_numpy(dtype=float)
+    hl2 = ((df["High"] + df["Low"]) / 2).to_numpy(dtype=float)
+    ub = hl2 + mult * atr
+    lb = hl2 - mult * atr
+    N = len(c)
+    ubf = np.full(N, np.nan); lbf = np.full(N, np.nan)
+    dirn = np.ones(N, dtype=int); line = np.full(N, np.nan)
+    for i in range(N):
+        if np.isnan(ub[i]):                      # ATR henüz oluşmadı
+            continue
+        if i == 0 or np.isnan(ubf[i-1]):         # ilk geçerli bar: tohumla
+            ubf[i], lbf[i], dirn[i] = ub[i], lb[i], 1
+            line[i] = lbf[i]
+            continue
+        ubf[i] = ub[i] if (ub[i] < ubf[i-1] or c[i-1] > ubf[i-1]) else ubf[i-1]
+        lbf[i] = lb[i] if (lb[i] > lbf[i-1] or c[i-1] < lbf[i-1]) else lbf[i-1]
+        if c[i] > ubf[i-1]:
+            dirn[i] = 1
+        elif c[i] < lbf[i-1]:
+            dirn[i] = -1
+        else:
+            dirn[i] = dirn[i-1]
+        line[i] = lbf[i] if dirn[i] == 1 else ubf[i]
+    idx = df.index
+    return pd.Series(dirn, index=idx), pd.Series(line, index=idx)
+
+
+def stochastic(df, k=14, d=3):
+    ll = df["Low"].rolling(k).min()
+    hh = df["High"].rolling(k).max()
+    pk = 100*(df["Close"] - ll)/(hh - ll).replace(0, np.nan)
+    return pk, pk.rolling(d).mean()
+
+
+def adx(df, n=14):
+    h, l, c = df["High"], df["Low"], df["Close"]
+    up = h.diff(); dn = -l.diff()
+    plus = np.where((up > dn) & (up > 0), up, 0.0)
+    minus = np.where((dn > up) & (dn > 0), dn, 0.0)
+    pc = c.shift(1)
+    tr = pd.concat([h-l, (h-pc).abs(), (l-pc).abs()], axis=1).max(axis=1)
+    atr = tr.ewm(alpha=1/n, min_periods=n, adjust=False).mean()
+    pdi = 100*pd.Series(plus, index=c.index).ewm(alpha=1/n, min_periods=n, adjust=False).mean()/atr
+    mdi = 100*pd.Series(minus, index=c.index).ewm(alpha=1/n, min_periods=n, adjust=False).mean()/atr
+    dx = 100*(pdi-mdi).abs()/(pdi+mdi).replace(0, np.nan)
+    return dx.ewm(alpha=1/n, min_periods=n, adjust=False).mean()
+
+
+def bollinger(s, n=20, mult=2):
+    mid = s.rolling(n).mean()
+    sd = s.rolling(n).std()
+    up = mid + mult*sd; lo = mid - mult*sd
+    pctb = (s - lo)/(up - lo).replace(0, np.nan)
+    return up, mid, lo, pctb
+
+
+def _hl_var(df):
+    return "High" in df.columns and "Low" in df.columns
 
 
 def gostergeler(df):
-    """df ('Close' şart) -> göstergeler + her gün için puan ve sinyal sütunları."""
     d = df.copy()
     c = d["Close"]
-    d["SMA20"] = sma(c, 20)
-    d["SMA50"] = sma(c, 50)
-    d["SMA200"] = sma(c, 200)
+    d["SMA20"], d["SMA50"], d["SMA200"] = sma(c, 20), sma(c, 50), sma(c, 200)
+    d["EMA20"], d["EMA50"] = ema(c, 20), ema(c, 50)
     d["RSI"] = rsi(c, 14)
-    m, s, h = macd(c)
-    d["MACD"], d["MACD_SIGNAL"], d["MACD_HIST"] = m, s, h
+    m, sig = macd(c)
+    d["MACD"], d["MACD_SIGNAL"] = m, sig
+    d["STOP"] = np.maximum(c.rolling(20).min(), c*0.92)
 
-    # --- Puanlama (her satır için, vektörel) ---
-    puan = pd.Series(0.0, index=d.index)
-    puan += (c > d["SMA50"]).astype(float)                       # trend
-    puan += (d["SMA20"] > d["SMA50"]).astype(float)              # dizilim
-    kesisim = (m.shift(1) <= s.shift(1)) & (m > s)               # taze MACD kesişimi
-    puan += kesisim.astype(float) * 2
-    puan += ((~kesisim) & (m > s)).astype(float)                # pozitif momentum
-    puan += ((d["RSI"] >= 45) & (d["RSI"] <= 68)).astype(float)  # sağlıklı RSI
-    puan -= (d["RSI"] > 75).astype(float)                        # aşırı alım cezası
-    d["PUAN"] = puan
-    d["MACD_KESISIM"] = kesisim
+    hl = _hl_var(df)
+    if hl:
+        st_dir, st_line = supertrend(df)
+        d["ST_DIR"], d["ST_LINE"] = st_dir, st_line
+        pk, pd_ = stochastic(df)
+        d["STOCH_K"], d["STOCH_D"] = pk, pd_
+        d["ADX"] = adx(df)
+    else:
+        d["ST_DIR"] = np.where(c > d["EMA20"], 1, -1)  # HL yoksa yaklaşık
+        d["ST_LINE"] = np.nan
+        d["STOCH_K"] = d["STOCH_D"] = np.nan
+        d["ADX"] = np.nan
+    _, _, _, pctb = bollinger(c)
+    d["BOLL_B"] = pctb
 
-    d["SINYAL"] = np.where(puan >= 4, "AL", np.where(puan >= 2, "NÖTR", "SAT"))
-
-    # Stop: son 20 günün dibi ya da %8 altı (hangisi yüksekse = daha yakın koruma)
-    d["STOP"] = np.maximum(c.rolling(20).min(), c * 0.92)
+    # --- yönlü oylar (Series) ---
+    v_st = (d["ST_DIR"] == 1)
+    v_macd = (d["MACD"] > d["MACD_SIGNAL"])
+    v_ema = (d["EMA20"] > d["EMA50"])
+    v_rsi = (d["RSI"] > 52)
+    v_stoch = (d["STOCH_K"] > d["STOCH_D"]) & (d["STOCH_K"] < 80)
+    if not hl:
+        v_stoch = pd.Series(False, index=c.index)
+    oy = v_st.astype(int) + v_macd.astype(int) + v_ema.astype(int) + v_rsi.astype(int) + v_stoch.astype(int)
+    d["OY"] = oy
+    d["SINYAL"] = np.where(oy >= AL_ESIK, "AL", np.where(oy <= SAT_ESIK, "SAT", "NÖTR"))
     return d
 
 
+def _sig(b):
+    return "AL" if b else "SAT"
+
+
+def _detay(son, hl):
+    L = []
+    L.append({"ad": "SuperTrend", "sinyal": "AL" if son["ST_DIR"] == 1 else "SAT",
+              "aciklama": "Fiyat SuperTrend çizgisinin üstünde (yeşil)" if son["ST_DIR"] == 1
+              else "Fiyat SuperTrend çizgisinin altında (kırmızı)"})
+    L.append({"ad": "MACD", "sinyal": _sig(son["MACD"] > son["MACD_SIGNAL"]),
+              "aciklama": "MACD sinyal çizgisinin üstünde" if son["MACD"] > son["MACD_SIGNAL"]
+              else "MACD sinyal çizgisinin altında"})
+    L.append({"ad": "EMA 20/50", "sinyal": _sig(son["EMA20"] > son["EMA50"]),
+              "aciklama": "Kısa ortalama uzunun üstünde (yükseliş dizilimi)" if son["EMA20"] > son["EMA50"]
+              else "Kısa ortalama uzunun altında"})
+    r = son["RSI"]
+    L.append({"ad": "RSI", "sinyal": "AL" if (not pd.isna(r) and r > 52) else "SAT",
+              "aciklama": f"RSI {r:.0f}" + (" (aşırı alım)" if (not pd.isna(r) and r > 70) else
+                          " (aşırı satım)" if (not pd.isna(r) and r < 30) else "")})
+    if hl and not pd.isna(son["STOCH_K"]):
+        sb = son["STOCH_K"] > son["STOCH_D"] and son["STOCH_K"] < 80
+        L.append({"ad": "Stochastic", "sinyal": _sig(sb),
+                  "aciklama": f"%K {son['STOCH_K']:.0f}, %D {son['STOCH_D']:.0f}"})
+    # bağlam (oy vermez)
+    ek = []
+    if hl and not pd.isna(son["ADX"]):
+        a = son["ADX"]
+        ek.append(("ADX", f"{a:.0f} — " + ("güçlü trend" if a > 25 else "zayıf/yatay trend")))
+    if not pd.isna(son["BOLL_B"]):
+        b = son["BOLL_B"]
+        yer = "üst banda yakın (güçlü/aşırı)" if b > 0.9 else ("alt banda yakın (zayıf/tepki)" if b < 0.1 else "orta bantta")
+        ek.append(("Bollinger", yer))
+    return L, ek
+
+
+def _spark(d, n=90):
+    t = d.tail(n)
+    def arr(col):
+        return [None if (col not in t or pd.isna(x)) else round(float(x), 2) for x in (t[col] if col in t else [np.nan]*len(t))]
+    out = {"c": arr("Close"), "s20": arr("SMA20"), "s50": arr("SMA50"),
+           "t": [str(x.date()) for x in t.index]}
+    if "ST_LINE" in t:
+        out["st"] = arr("ST_LINE")
+    return out
+
+
 def analiz_et(df):
-    """Son gün için özet sözlük (canlı tarama için)."""
     c = df["Close"].dropna()
     if len(c) < 60:
         return None
     d = gostergeler(df)
     son, onceki = d.iloc[-1], d.iloc[-2]
-
+    hl = _hl_var(df)
+    detay, ek = _detay(son, hl)
+    al_oy = sum(1 for x in detay if x["sinyal"] == "AL")
     fiyat = float(son["Close"])
     rsi_val = None if pd.isna(son["RSI"]) else float(son["RSI"])
-    gerekce = []
-    if not pd.isna(son["SMA50"]):
-        gerekce.append("Fiyat 50 günlük ortalama üstünde (yükseliş trendi)"
-                       if fiyat > son["SMA50"] else "Fiyat 50 günlük ortalama altında (zayıf trend)")
-    if not pd.isna(son["SMA20"]) and not pd.isna(son["SMA50"]) and son["SMA20"] > son["SMA50"]:
-        gerekce.append("20 günlük ortalama 50'nin üstünde")
-    if bool(son["MACD_KESISIM"]):
-        gerekce.append("MACD yeni AL kesişimi verdi")
-    elif son["MACD"] > son["MACD_SIGNAL"]:
-        gerekce.append("MACD sinyal çizgisi üstünde (pozitif momentum)")
-    if rsi_val is not None:
-        if 45 <= rsi_val <= 68:
-            gerekce.append(f"RSI {rsi_val:.0f} (sağlıklı momentum bölgesi)")
-        elif rsi_val > 75:
-            gerekce.append(f"RSI {rsi_val:.0f} (aşırı alım — dikkat)")
-        elif rsi_val < 30:
-            gerekce.append(f"RSI {rsi_val:.0f} (aşırı satım)")
+    gerekce = [x["ad"] for x in detay if x["sinyal"] == "AL"]
+    degisim = (fiyat/float(onceki["Close"]) - 1)*100 if onceki["Close"] else None
 
-    degisim = (fiyat / float(onceki["Close"]) - 1) * 100 if onceki["Close"] else None
+    # --- sinyal ne zamandır sürüyor? ---
+    sig = list(d["SINYAL"].values)
+    cur = sig[-1]
+    run = 1
+    for i in range(len(sig)-2, -1, -1):
+        if sig[i] == cur:
+            run += 1
+        else:
+            break
+    start_idx = len(sig) - run
+    sinyal_tarih = str(d.index[start_idx].date())
+    bas_fiyat = float(d["Close"].iloc[start_idx])
+    sinyal_degisim = round((fiyat/bas_fiyat - 1)*100, 1) if bas_fiyat else None
+    yeni = run <= 1  # son barda döndü = bugün taze
+    stop = round(float(son["STOP"]), 2)
+    hedef = round(fiyat + 2*(fiyat - stop), 2) if (cur == "AL" and fiyat > stop) else None
+
     return {
         "fiyat": round(fiyat, 2),
         "degisim": round(degisim, 2) if degisim is not None else None,
         "rsi": round(rsi_val, 1) if rsi_val is not None else None,
-        "sma50": None if pd.isna(son["SMA50"]) else round(float(son["SMA50"]), 2),
-        "macd_kesisim": bool(son["MACD_KESISIM"]),
-        "puan": float(son["PUAN"]),
+        "puan": float(son["OY"]),
+        "uyum": f"{al_oy}/{len(detay)}",
         "sinyal": str(son["SINYAL"]),
+        "detay": detay,
+        "ek": [{"ad": a, "aciklama": b} for a, b in ek],
         "gerekce": gerekce,
-        "stop": round(float(son["STOP"]), 2),
+        "stop": stop,
+        "hedef": hedef,
+        "sinyal_gun": run,
+        "sinyal_tarih": sinyal_tarih,
+        "sinyal_degisim": sinyal_degisim,
+        "yeni": bool(yeni),
+        "spark": _spark(d),
     }
