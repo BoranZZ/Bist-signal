@@ -159,10 +159,26 @@ tbody tr{{border-bottom:1px solid var(--line)}}tbody tr:last-child{{border-botto
 </div></body></html>"""
 
 
-if __name__ == "__main__":
-    rng = np.random.default_rng(0)
+def _gercek_veri(kodlar, period="2y"):
+    import yfinance as yf
+    tickers = [k + ".IS" for k in kodlar]
+    print(f"Backtest için {len(tickers)} hisse indiriliyor ({period})...")
+    data = yf.download(tickers, period=period, interval="1d", group_by="ticker",
+                       auto_adjust=True, progress=False, threads=True)
     veri = {}
-    for i in range(12):
+    for k in kodlar:
+        try:
+            df = (data[k + ".IS"] if len(kodlar) > 1 else data).dropna(subset=["Close"])
+            if len(df) > 120:
+                veri[k] = df
+        except Exception:
+            pass
+    return veri
+
+
+def _sentetik_veri(n_hisse=12):
+    veri = {}
+    for i in range(n_hisse):
         r = np.random.default_rng(i + 1)
         n = 500
         c = np.abs(np.linspace(r.uniform(20, 60), r.uniform(25, 130), n) + np.cumsum(r.normal(0, 0.9, n))) + 5
@@ -170,7 +186,19 @@ if __name__ == "__main__":
             "Open": c * (1 + r.normal(0, 0.003, n)), "High": c * 1.02,
             "Low": c * 0.98, "Close": c, "Volume": 1e6,
         }, index=pd.bdate_range("2023-01-01", periods=n))
+    return veri
+
+
+if __name__ == "__main__":
+    import os
+    if os.environ.get("BT_TEST"):
+        veri = _sentetik_veri()
+        donem = "örnek/sentetik"
+    else:
+        from tarama import KODLAR
+        veri = _gercek_veri(KODLAR)
+        donem = "son 2 yıl (gerçek veri)"
     ozetler, genel = toplu_backtest(veri)
-    open("backtest.html", "w", encoding="utf-8").write(rapor_html(ozetler, genel, "2023-01 → 2024-11 (örnek)"))
-    print("genel:", genel)
-    print("örnek hisse:", ozetler[0])
+    with open("backtest.html", "w", encoding="utf-8") as f:
+        f.write(rapor_html(ozetler, genel, donem))
+    print("backtest.html yazıldı. Genel:", genel)
