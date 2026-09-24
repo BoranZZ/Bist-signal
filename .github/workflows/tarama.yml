@@ -2,11 +2,15 @@ name: BIST Sinyal Taraması
 
 on:
   schedule:
-    - cron: "30 15 * * 1-5"
+    - cron: "*/15 7-15 * * 1-5"
   workflow_dispatch:
 
 permissions:
   contents: write
+
+concurrency:
+  group: tarama
+  cancel-in-progress: false
 
 jobs:
   tarama:
@@ -29,6 +33,6 @@ jobs:
         run: |
           git config user.name "bist-bot"
           git config user.email "bot@users.noreply.github.com"
-          git add index.html durum.json
+          git add index.html durum.json gecmis.json gecmis.html oranlar.json
           git commit -m "Pano guncellendi" || echo "degisiklik yok"
           git push

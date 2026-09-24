@@ -1,0 +1,30 @@
+name: Backtest (elle)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Depoyu al
+        uses: actions/checkout@v4
+      - name: Python kur
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Kütüphaneleri kur
+        run: pip install -r requirements.txt
+      - name: Backtest'i çalıştır
+        run: python backtest.py
+      - name: Raporu kaydet
+        run: |
+          git config user.name "bist-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add backtest.html
+          git commit -m "Backtest guncellendi" || echo "degisiklik yok"
+          git pull --rebase
+          git push

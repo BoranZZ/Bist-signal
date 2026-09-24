@@ -11,40 +11,6 @@ def _med(xs):
     return xs[len(xs) // 2] if xs else None
 
 
-def _portfoy_html(portfoy):
-    if not portfoy:
-        return ('<div class="pfy bos">Portföyün boş. Eklemek için repo\'da <b>portoy.json</b> '
-                'dosyasını düzenle: <code>[{"kod":"THYAO","adet":100,"maliyet":300}]</code></div>')
-    top_kz = sum((p.get("kar_tl") or 0) for p in portfoy)
-    kzc = "pos" if top_kz >= 0 else "neg"
-    satir = []
-    for p in portfoy:
-        kz = p.get("kar_yuzde")
-        kzcls = "pos" if (kz or 0) >= 0 else "neg"
-        kzt = f"{'+' if (kz or 0) >= 0 else ''}{kz}%" if kz is not None else "—"
-        ktl = p.get("kar_tl")
-        ktlt = f"{'+' if (ktl or 0) >= 0 else ''}{int(ktl):,}".replace(",", ".") if ktl is not None else "—"
-        sn = p.get("sinyal", "—")
-        scls = "al" if sn == "AL" else ("sat" if sn == "SAT" else "notr")
-        uyar = ' <span class="pfuy">SAT — gözden geçir</span>' if sn == "SAT" else ""
-        satir.append(
-            f'<tr onclick="ac(\'{p["kod"]}\')"><td class="kod">{p["kod"]}</td>'
-            f'<td class="num">{p.get("adet","—")}</td><td class="num">{p.get("maliyet","—")}</td>'
-            f'<td class="num">{p.get("fiyat","—")}</td>'
-            f'<td class="num {kzcls}">{kzt}</td><td class="num {kzcls}">{ktlt} TL</td>'
-            f'<td><span class="pill {scls}">{sn}</span>{uyar}</td>'
-            f'<td class="num stop">{p.get("stop","—")}</td></tr>'
-        )
-    return (
-        '<div class="pfbas"><h2>Portföyüm</h2>'
-        f'<div class="pftop {kzc}">Toplam K/Z: {"+" if top_kz>=0 else ""}{int(top_kz):,}'.replace(",", ".") + ' TL</div></div>'
-        '<div class="sar"><table class="pf"><thead><tr>'
-        '<th>Hisse</th><th class="num">Adet</th><th class="num">Maliyet</th><th class="num">Güncel</th>'
-        '<th class="num">K/Z %</th><th class="num">K/Z TL</th><th>Sinyal</th><th class="num">Stop</th>'
-        '</tr></thead><tbody>' + "".join(satir) + '</tbody></table></div>'
-    )
-
-
 def pano_uret(sonuclar, ornek=False, uyari=None, portfoy=None):
     tarih = datetime.now().strftime("%d.%m.%Y %H:%M")
     al = sum(1 for s in sonuclar if s["sinyal"] == "AL")
