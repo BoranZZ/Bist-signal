@@ -1,0 +1,31 @@
+{
+  "kayitlar": [
+    {
+      "kod": "AGHOL",
+      "giris_tarih": "2026-09-24",
+      "giris_fiyat": 34.38,
+      "stop": 31.63,
+      "durum": "açık",
+      "guncel": 34.38,
+      "anlik": 0.0
+    },
+    {
+      "kod": "TKFEN",
+      "giris_tarih": "2026-09-24",
+      "giris_fiyat": 273.5,
+      "stop": 251.62,
+      "durum": "açık",
+      "guncel": 273.5,
+      "anlik": 0.0
+    },
+    {
+      "kod": "TUPRS",
+      "giris_tarih": "2026-09-24",
+      "giris_fiyat": 411.5,
+      "stop": 388.5,
+      "durum": "açık",
+      "guncel": 411.5,
+      "anlik": 0.0
+    }
+  ]
+}

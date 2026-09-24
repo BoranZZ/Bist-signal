@@ -1,0 +1,33 @@
+<!doctype html><html lang="tr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1"><title>Sinyal Geçmişi</title>
+<style>
+:root{--bg:#FAFAF8;--ink:#16181D;--muted:#6B7079;--line:#E6E7E4;--accent:#0E4D45;--pos:#1B7F4B;--neg:#B4362E;--panel:#FFF}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-feature-settings:"tnum" 1}
+.wrap{max-width:1000px;margin:0 auto;padding:26px 18px 60px}
+a.geri{color:var(--accent);text-decoration:none;font-weight:600;font-size:13px}
+h1{font-size:19px;margin:10px 0 2px}.tarih{color:var(--muted);font-size:12.5px}
+.kartlar{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:20px 0}
+.k{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.k .b{font-size:26px;font-weight:680}.k .l{color:var(--muted);font-size:12px;margin-top:3px}
+h2{font-size:15px;margin:22px 0 8px}
+.sar{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:560px}
+th,td{padding:9px 11px;text-align:left;white-space:nowrap}th{color:var(--muted);font-weight:600;font-size:11.5px;border-bottom:1px solid var(--line)}
+tbody tr{border-bottom:1px solid var(--line)}tbody tr:last-child{border-bottom:none}
+.kod{font-weight:650}.num{text-align:right;font-variant-numeric:tabular-nums}.stop{color:var(--neg)}.pos{color:var(--pos)}.neg{color:var(--neg)}
+.not{margin-top:22px;padding:13px 15px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--muted);font-size:12px;line-height:1.6}
+</style></head><body><div class="wrap">
+<a class="geri" href="index.html">← Panoya dön</a>
+<h1>Sinyal Geçmişi (canlı karne)</h1><div class="tarih">Güncelleme: 24.09.2026 14:50</div>
+<div class="kartlar">
+<div class="k"><div class="b">%0</div><div class="l">kapanan sinyallerde isabet</div></div>
+<div class="k"><div class="b">0</div><div class="l">kapanan sinyal sayısı</div></div>
+<div class="k"><div class="b">%0</div><div class="l">kapananların ortalama sonucu</div></div>
+<div class="k"><div class="b">3</div><div class="l">şu an açık takip</div></div>
+</div>
+<h2>Açık pozisyonlar (takipte)</h2>
+<div class="sar"><table><thead><tr><th>Hisse</th><th>Sinyal tarihi</th><th class="num">Giriş</th><th class="num">Güncel</th><th class="num">Anlık %</th><th class="num">Stop</th></tr></thead><tbody><tr><td class="kod">AGHOL</td><td>2026-09-24</td><td class="num">34.38</td><td class="num">34.38</td><td class="num pos">+0.0%</td><td class="num stop">31.63</td></tr><tr><td class="kod">TKFEN</td><td>2026-09-24</td><td class="num">273.5</td><td class="num">273.5</td><td class="num pos">+0.0%</td><td class="num stop">251.62</td></tr><tr><td class="kod">TUPRS</td><td>2026-09-24</td><td class="num">411.5</td><td class="num">411.5</td><td class="num pos">+0.0%</td><td class="num stop">388.5</td></tr></tbody></table></div>
+<h2>Kapanmış sinyaller</h2>
+<div class="sar"><table><thead><tr><th>Hisse</th><th>Giriş tarihi</th><th class="num">Giriş</th><th>Çıkış tarihi</th><th class="num">Çıkış</th><th class="num">Sonuç %</th><th>Sebep</th></tr></thead><tbody><tr><td colspan="7" style="color:#6B7079">Kayıt yok.</td></tr></tbody></table></div>
+<div class="not">Bu sayfa <b>ileriye dönük gerçek</b> karnedir: sistem AL dediği anki fiyatı kaydeder, sonra stop yerse ya da sinyal SAT'a dönerse kapatıp sonucu yazar. Backtest geçmişi simüle eder; bu sayfa ise sistemin <b>bugünden itibaren</b> gerçek performansını biriktirir. Yatırım tavsiyesi değildir.</div>
+</div></body></html>
