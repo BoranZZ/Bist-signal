@@ -66,7 +66,9 @@ def pano_uret(sonuclar, ornek=False, uyari=None, portfoy=None):
         pdm = "ucuz" if (s.get("pddd") and pddd_med and s["pddd"] < pddd_med) else ("pahali" if s.get("pddd") else "")
         ok = {"ucuz": "▼", "pahali": "▲", "": ""}
         yildiz = ' <span class="yildiz">★</span>' if s.get("guclu") else ""
-        yenirz = ' <span class="yeni">YENİ</span>' if (s.get("yeni") and s["sinyal"] == "AL") else ""
+        ycls = {"AL": "yal", "SAT": "ysat", "NÖTR": "ynotr"}[s["sinyal"]]
+        yenirz = f' <span class="yeni {ycls}">YENİ</span>' if s.get("yeni") else ""
+        diprz = ' <span class="dipb">DİP</span>' if s.get("dip") else ""
         lot = s.get("lot")
         lott = f"{lot}" if (lot and s["sinyal"] == "AL") else "—"
         sgun = s.get("sinyal_gun")
@@ -76,7 +78,7 @@ def pano_uret(sonuclar, ornek=False, uyari=None, portfoy=None):
             f'<td class="kod">{k}</td>'
             f'<td class="num">{s.get("fiyat","—")}</td>'
             f'<td class="num {dcls}">{dtxt}</td>'
-            f'<td><span class="pill {RENK[s["sinyal"]]}">{s["sinyal"]}</span>{yildiz}{yenirz}</td>'
+            f'<td><span class="pill {RENK[s["sinyal"]]}">{s["sinyal"]}</span>{yildiz}{yenirz}{diprz}</td>'
             f'<td class="num sgun">{sgunt}</td>'
             f'<td class="num uyum">{s.get("uyum","—")}</td>'
             f'<td class="num">{s.get("rsi") if s.get("rsi") is not None else "—"}</td>'
@@ -87,8 +89,9 @@ def pano_uret(sonuclar, ornek=False, uyari=None, portfoy=None):
         )
         veri[k] = {
             "kod": k, "fiyat": s.get("fiyat"), "degisim": deg, "sinyal": s["sinyal"],
-            "guclu": bool(s.get("guclu")), "yeni": bool(s.get("yeni")), "rsi": s.get("rsi"),
-            "fk": s.get("fk"), "pddd": s.get("pddd"), "stop": s.get("stop"), "lot": s.get("lot"),
+            "guclu": bool(s.get("guclu")), "yeni": bool(s.get("yeni")), "dip": bool(s.get("dip")),
+            "rsi": s.get("rsi"), "fk": s.get("fk"), "pddd": s.get("pddd"), "favok": s.get("favok"),
+            "stop": s.get("stop"), "giris_stop": s.get("giris_stop"), "lot": s.get("lot"),
             "hedef": s.get("hedef"), "sinyal_gun": s.get("sinyal_gun"),
             "sinyal_tarih": s.get("sinyal_tarih"), "sinyal_degisim": s.get("sinyal_degisim"),
             "uyum": s.get("uyum"), "detay": s.get("detay", []), "ek": s.get("ek", []),
@@ -105,7 +108,6 @@ def pano_uret(sonuclar, ornek=False, uyari=None, portfoy=None):
     html = _SABLON
     for a, b in [("__TARIH__", tarih), ("__AL__", str(al)), ("__GUCLU__", str(guclu)),
                  ("__TOPLAM__", str(len(sonuclar))), ("__BANNER__", banner),
-                 ("__PORTFOY__", _portfoy_html(portfoy)),
                  ("__ROWS__", "".join(rows)), ("__DATA__", json.dumps(veri, ensure_ascii=False))]:
         html = html.replace(a, b)
     return html
@@ -177,8 +179,21 @@ tbody tr:hover{background:#F2F5F3}
 .pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:650}
 .pill.al{background:#E4F2E9;color:var(--al)}.pill.notr{background:#F1EFE8;color:var(--notr)}.pill.sat{background:#F7E7E5;color:var(--sat)}
 .yildiz{color:#C7962B}.tag{font-size:10px;margin-left:5px}.tag.ucuz{color:var(--al)}.tag.pahali{color:var(--sat)}
-.yeni{background:#1B7F4B;color:#fff;font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:5px;margin-left:6px;letter-spacing:.03em}
+.yeni{color:#fff;font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:5px;margin-left:6px;letter-spacing:.03em}
+.yeni.yal{background:#1B7F4B}.yeni.ysat{background:#B4362E}.yeni.ynotr{background:#9A7A12}
+.dipb{background:#3A6EA5;color:#fff;font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:5px;margin-left:5px}
 .sgun{color:var(--muted)}
+.tvwrap{height:380px;margin:6px 0 14px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+#tvbox{height:100%}
+.tvyok{padding:16px;color:var(--muted);font-size:12.5px}
+.pfsag{display:flex;align-items:center;gap:12px}
+.pfekle{border:1px solid var(--accent);background:var(--accent);color:#fff;font-weight:600;font-size:12.5px;padding:6px 12px;border-radius:8px;cursor:pointer}
+.pfform{display:none;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.pfform input{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13px;font-family:inherit}
+.pfform #pfkod{width:150px}.pfform #pfadet,.pfform #pfmal{width:120px}
+.pfkaydet{border:none;background:var(--al);color:#fff;font-weight:600;padding:8px 14px;border-radius:8px;cursor:pointer}
+.pfipt{border:1px solid var(--line);background:#fff;color:var(--muted);padding:8px 12px;border-radius:8px;cursor:pointer}
+.pfsil{border:none;background:#F1EFEA;color:var(--sat);width:26px;height:26px;border-radius:6px;cursor:pointer;font-size:12px}
 .zaman{margin:12px 0 4px;background:#F3F7F5;border:1px solid #DCE8E2;border-radius:10px;padding:11px 14px;font-size:13px;line-height:1.55}
 .zaman .cikis{margin-top:6px;color:var(--muted);font-size:12.5px}
 .aciklama{margin-top:32px;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
@@ -220,7 +235,9 @@ table.pf{min-width:640px}
 .ekler{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
 .ekb{background:#FBF7EE;border:1px solid #EADFC7;border-radius:8px;padding:5px 9px;font-size:11.5px;color:#7A5B10}
 @media(max-width:560px){.ozet .b{font-size:30px}}
-</style></head><body><div class="wrap">
+</style>
+<script src="https://s3.tradingview.com/tv.js"></script>
+</head><body><div class="wrap">
 <header><div><h1>BIST Sinyal Panosu</h1><div class="tarih">Son güncelleme: __TARIH__</div></div>
 <div class="ozet">
 <div><div class="b">__AL__</div><div class="l">/ __TOPLAM__ hissede AL</div></div>
@@ -228,7 +245,18 @@ table.pf{min-width:640px}
 </div></header>
 <div class="ipucu">İncelemek için bir satıra tıkla → grafik, oranlar ve o hisseye özel yorum açılır. Sütun başlığına tıklayınca sıralanır. · <a class="glink" href="gecmis.html">Sinyal Geçmişi →</a></div>
 __BANNER__
-<div class="pfbox">__PORTFOY__</div>
+<div class="pfbox">
+  <div class="pfbas"><h2>Portföyüm</h2><div class="pfsag"><span id="pftop" class="pftop"></span><button class="pfekle" onclick="pfFormAc()">+ Ekle</button></div></div>
+  <div id="pfform" class="pfform">
+    <input id="pfkod" placeholder="Hisse (örn. THYAO)" list="pfkodlar" autocomplete="off">
+    <datalist id="pfkodlar"></datalist>
+    <input id="pfadet" type="number" min="1" placeholder="Adet">
+    <input id="pfmal" type="number" step="any" min="0" placeholder="Maliyet (TL)">
+    <button class="pfkaydet" onclick="pfKaydet()">Ekle</button>
+    <button class="pfipt" onclick="pfFormKapat()">İptal</button>
+  </div>
+  <div id="pflist"></div>
+</div>
 <div class="sar"><table id="t"><thead><tr>
 <th data-t="s">Hisse</th><th data-t="n">Fiyat</th><th data-t="n">Değişim</th><th data-t="s">Sinyal</th>
 <th data-t="n">Sinyalde</th><th data-t="n">Uyum</th><th data-t="n">RSI</th><th data-t="n">F/K</th><th data-t="n">PD/DD</th><th data-t="n">Stop</th><th data-t="n">Öneri lot</th>
@@ -291,7 +319,8 @@ function ac(k){
    const yenirz=(d.yeni&&d.sinyal==='AL')?' <span class="yeni">YENİ</span>':'';
    zaman='<div class="zaman"><div><b>'+d.sinyal+'</b> sinyali: '+d.sinyal_tarih+' ('+d.sinyal_gun+' gündür)'+yenirz+sdt+'</div>';
    if(d.sinyal==='AL'){
-     zaman+='<div class="cikis">Çıkış kuralı: sinyal <b>SAT</b>\'a dönerse ya da stop <b>'+d.stop+' TL</b> altına inerse.'+
+     const gs=(d.giris_stop!=null?d.giris_stop:d.stop);
+     zaman+='<div class="cikis">Çıkış kuralı: sinyal <b>SAT</b>\'a dönerse ya da <b>giriş stopu '+gs+' TL</b> altına inerse.'+
        (d.hedef?' · Örnek hedef (2R, mekanik referans): <b>'+d.hedef+' TL</b>':'')+'</div>';
    }
    zaman+='</div>';
@@ -301,15 +330,63 @@ function ac(k){
  '<div class="mfiyat">'+(d.fiyat!=null?d.fiyat+' TL':'')+' <span class="'+dcls+'">'+dtxt+'</span></div>'+
  zaman+
  '<div class="grafik">'+grafik(d.spark)+'<div class="leg"><span class="c1">Fiyat</span><span class="c2">SMA20</span><span class="c3">SMA50</span><span class="c4">SuperTrend</span></div></div>'+
- '<div class="metr">'+m('RSI',d.rsi)+m('F/K',d.fk)+m('PD/DD',d.pddd)+m('Stop',d.stop)+m('Öneri lot',lot)+'</div>'+
+ '<div class="tvwrap"><div id="tvbox"></div></div>'+
+ '<div class="metr">'+m('RSI',d.rsi)+m('F/K',d.fk)+m('PD/DD',d.pddd)+m('FD/FAVÖK',d.favok)+m('Giriş stopu',d.giris_stop!=null?d.giris_stop:d.stop)+m('Öneri lot',lot)+'</div>'+
  '<div class="gbas">Göstergeler</div><div class="gliste">'+gost+'</div>'+
  (ekh?'<div class="ekler">'+ekh+'</div>':'')+
  '<div class="yorum">'+(d.yorum||d.gerekce.join(' · '))+'</div>'+
- '<div class="btnler"><a class="btn p" href="'+tv+'" target="_blank" rel="noopener">TradingView\'de detaylı grafik ↗</a></div>';
+ '<div class="btnler"><a class="btn p" href="'+tv+'" target="_blank" rel="noopener">TradingView\'de tam ekran ↗</a></div>';
  document.getElementById('ust').classList.add('acik');
+ tvGoster(k);
 }
-function kapat(){document.getElementById('ust').classList.remove('acik');}
+function kapat(){document.getElementById('ust').classList.remove('acik');var b=document.getElementById('tvbox');if(b)b.innerHTML='';}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')kapat();});
+
+function tvGoster(k){
+ var box=document.getElementById('tvbox'); if(!box) return; box.innerHTML='';
+ if(typeof TradingView==='undefined'){box.innerHTML='<div class="tvyok">Etkileşimli grafik yüklenemedi (internet gerekiyor). Yukarıdaki hızlı grafiği ya da TradingView butonunu kullan.</div>';return;}
+ try{new TradingView.widget({autosize:true,symbol:'BIST:'+k,interval:'D',timezone:'Europe/Istanbul',theme:'light',style:'1',locale:'tr',allow_symbol_change:false,hide_side_toolbar:false,studies:['RSI@tv-basicstudies','MACD@tv-basicstudies'],container_id:'tvbox'});}
+ catch(e){box.innerHTML='<div class="tvyok">Grafik açılamadı.</div>';}
+}
+
+var PF_KEY='portfoyum_v1';
+function pfOku(){try{return JSON.parse(localStorage.getItem(PF_KEY))||[]}catch(e){return[]}}
+function pfYaz(a){try{localStorage.setItem(PF_KEY,JSON.stringify(a))}catch(e){}}
+function pfFormAc(){document.getElementById('pfform').style.display='flex';document.getElementById('pfkod').focus();}
+function pfFormKapat(){document.getElementById('pfform').style.display='none';}
+function pfKaydet(){
+ var k=(document.getElementById('pfkod').value||'').trim().toUpperCase();
+ var ad=parseFloat(document.getElementById('pfadet').value);
+ var ma=parseFloat(document.getElementById('pfmal').value);
+ if(!k||!(ad>0)||!(ma>0)){alert('Hisse kodu, adet ve maliyet gir.');return;}
+ var a=pfOku();a.push({kod:k,adet:ad,maliyet:ma});pfYaz(a);
+ document.getElementById('pfkod').value='';document.getElementById('pfadet').value='';document.getElementById('pfmal').value='';
+ pfFormKapat();pfRender();
+}
+function pfSil(i){var a=pfOku();a.splice(i,1);pfYaz(a);pfRender();}
+function pfRender(){
+ var a=pfOku(),liste=document.getElementById('pflist'),top=document.getElementById('pftop');
+ if(!a.length){liste.innerHTML='<div class="pfy bos">Henüz hisse yok. <b>+ Ekle</b> ile portföyünü oluştur (bu cihazda saklanır).</div>';top.textContent='';return;}
+ var toplam=0;
+ var r='<div class="sar"><table class="pf"><thead><tr><th>Hisse</th><th class="num">Adet</th><th class="num">Maliyet</th><th class="num">Güncel</th><th class="num">K/Z %</th><th class="num">K/Z TL</th><th>Sinyal</th><th></th></tr></thead><tbody>';
+ a.forEach(function(p,i){
+  var d=DATA[p.kod]||{},f=d.fiyat;
+  var kzy=(f!=null)?((f/p.maliyet-1)*100):null, kzt=(f!=null)?((f-p.maliyet)*p.adet):null;
+  if(kzt!=null)toplam+=kzt;
+  var sn=d.sinyal||'—',scls=sn==='AL'?'al':(sn==='SAT'?'sat':'notr');
+  var uy=(sn==='SAT')?' <span class="pfuy">SAT — gözden geçir</span>':'';
+  var kzc=(kzy||0)>=0?'pos':'neg';
+  r+='<tr onclick="ac(\''+p.kod+'\')"><td class="kod">'+p.kod+'</td><td class="num">'+p.adet+'</td><td class="num">'+p.maliyet+'</td>'+
+     '<td class="num">'+(f!=null?f:'—')+'</td>'+
+     '<td class="num '+kzc+'">'+(kzy!=null?((kzy>=0?'+':'')+kzy.toFixed(1)+'%'):'—')+'</td>'+
+     '<td class="num '+kzc+'">'+(kzt!=null?((kzt>=0?'+':'')+Math.round(kzt).toLocaleString('tr-TR')+' TL'):'—')+'</td>'+
+     '<td><span class="pill '+scls+'">'+sn+'</span>'+uy+'</td>'+
+     '<td class="num"><button class="pfsil" onclick="event.stopPropagation();pfSil('+i+')">✕</button></td></tr>';
+ });
+ r+='</tbody></table></div>';liste.innerHTML=r;
+ top.innerHTML='Toplam K/Z: <b class="'+(toplam>=0?'pos':'neg')+'">'+(toplam>=0?'+':'')+Math.round(toplam).toLocaleString('tr-TR')+' TL</b>';
+}
+(function(){var dl=document.getElementById('pfkodlar');if(dl){dl.innerHTML=Object.keys(DATA).sort().map(function(k){return '<option value="'+k+'"></option>';}).join('');}pfRender();})();
 </script></body></html>"""
 
 

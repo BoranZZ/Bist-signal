@@ -10,15 +10,9 @@ Hafta içi, piyasa saatlerinde **~15 dk'da bir** çalışır: BIST 100'ü tarar,
 ## Dosyalar
 `sinyal.py` (kurallar) · `tarama.py` (tarama+pano+Telegram, ayarlar en üstte) · `pano.py` (pano+geçmiş sayfası) · `backtest.py` · `portoy.json` (portföyün) · `requirements.txt` · `.github/workflows/tarama.yml` (15 dk) · `.github/workflows/backtest.yml` (elle)
 
-## Portföyün (`portoy.json`)
-Elindeki hisseleri buraya yaz; pano üstünde K/Z ve "artık SAT veriyor mu" uyarısı çıkar. Tüm hisseler yine taranır — bu sadece senin pozisyonların.
-```json
-[
-  {"kod": "THYAO", "adet": 100, "maliyet": 300.0},
-  {"kod": "ASELS", "adet": 50, "maliyet": 85.0}
-]
-```
-Eklemek/çıkarmak için GitHub'da `portoy.json`'u aç → kalem (✏️) → düzenle → Commit.
+## Portföyün (artık butonla)
+Panoda **Portföyüm → + Ekle** ile hisse/adet/maliyet girersin; **cihazında** saklanır (dosya düzenlemeye gerek yok). Her satırda kâr/zarar, güncel sinyal ve SAT uyarısı; ✕ ile silersin. Tüm hisseler yine taranır — bu sadece senin pozisyonların.
+
 
 ## Sinyal geçmişi (canlı karne)
 Sistem AL dediği anki fiyatı `gecmis.json`'a kaydeder; stop yerse ya da sinyal SAT'a dönerse kapatıp sonucu yazar. `gecmis.html`'de birikir. Bu **ileriye dönük gerçek** performanstır (bugünden itibaren). `gecmis.json` otomatik oluşur, elleme.

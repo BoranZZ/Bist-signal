@@ -171,7 +171,11 @@ def _detay(son, hl):
         b = son["BOLL_B"]
         yer = "üst banda yakın (güçlü/aşırı)" if b > 0.9 else ("alt banda yakın (zayıf/tepki)" if b < 0.1 else "orta bantta")
         ek.append(("Bollinger", yer))
-    return L, ek
+    # dip radarı (mean-reversion; riskli)
+    dip = (not pd.isna(son["RSI"]) and son["RSI"] < 35) or (not pd.isna(son["BOLL_B"]) and son["BOLL_B"] < 0.12)
+    if dip:
+        ek.append(("Dip radarı", "aşırı satım / dibe yakın — tepki gelebilir ama trend zayıf (riskli)"))
+    return L, ek, dip
 
 
 def _spark(d, n=90):
@@ -192,7 +196,7 @@ def analiz_et(df):
     d = gostergeler(df)
     son, onceki = d.iloc[-1], d.iloc[-2]
     hl = _hl_var(df)
-    detay, ek = _detay(son, hl)
+    detay, ek, dip = _detay(son, hl)
     al_oy = sum(1 for x in detay if x["sinyal"] == "AL")
     fiyat = float(son["Close"])
     rsi_val = None if pd.isna(son["RSI"]) else float(son["RSI"])
@@ -214,7 +218,8 @@ def analiz_et(df):
     sinyal_degisim = round((fiyat/bas_fiyat - 1)*100, 1) if bas_fiyat else None
     yeni = run <= 1  # son barda döndü = bugün taze
     stop = round(float(son["STOP"]), 2)
-    hedef = round(fiyat + 2*(fiyat - stop), 2) if (cur == "AL" and fiyat > stop) else None
+    giris_stop = round(float(d["STOP"].iloc[start_idx]), 2)  # AL başladığındaki sabit stop
+    hedef = round(fiyat + 2*(fiyat - giris_stop), 2) if (cur == "AL" and fiyat > giris_stop) else None
 
     return {
         "fiyat": round(fiyat, 2),
@@ -225,8 +230,10 @@ def analiz_et(df):
         "sinyal": str(son["SINYAL"]),
         "detay": detay,
         "ek": [{"ad": a, "aciklama": b} for a, b in ek],
+        "dip": bool(dip),
         "gerekce": gerekce,
         "stop": stop,
+        "giris_stop": giris_stop,
         "hedef": hedef,
         "sinyal_gun": run,
         "sinyal_tarih": sinyal_tarih,

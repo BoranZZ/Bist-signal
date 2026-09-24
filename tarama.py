@@ -47,11 +47,12 @@ def veri_cek(kodlar):
 def oran_cek_tek(kod):
     try:
         info = yf.Ticker(kod + ".IS").info
-        fk, pddd = info.get("trailingPE"), info.get("priceToBook")
+        fk, pddd, fav = info.get("trailingPE"), info.get("priceToBook"), info.get("enterpriseToEbitda")
         return [round(fk, 1) if isinstance(fk, (int, float)) and fk > 0 else None,
-                round(pddd, 2) if isinstance(pddd, (int, float)) and pddd > 0 else None]
+                round(pddd, 2) if isinstance(pddd, (int, float)) and pddd > 0 else None,
+                round(fav, 1) if isinstance(fav, (int, float)) and fav > 0 else None]
     except Exception:
-        return [None, None]
+        return [None, None, None]
 
 
 def oranlari_al(kodlar):
@@ -222,8 +223,11 @@ def main():
             if not a:
                 continue
             a["kod"] = kod
-            a["fk"], a["pddd"] = oranlar.get(kod, [None, None])
-            a["lot"] = lot_oner(a["fiyat"], a["stop"])
+            o = oranlar.get(kod, [None, None, None])
+            a["fk"] = o[0] if len(o) > 0 else None
+            a["pddd"] = o[1] if len(o) > 1 else None
+            a["favok"] = o[2] if len(o) > 2 else None
+            a["lot"] = lot_oner(a["fiyat"], a["giris_stop"])
             sonuclar.append(a)
         except Exception as e:
             print(f"Atlandı {kod}: {e}")
@@ -253,16 +257,13 @@ def main():
     by_kod = {s["kod"]: s for s in sonuclar}
     bugun_iso = pd.Timestamp.now(tz="Europe/Istanbul").strftime("%Y-%m-%d")
 
-    # Portföy görünümü (tüm hisseler yine taranır; bu sadece elindekiler)
-    portfoy = portfoy_hesapla(portfoy_yukle(), by_kod)
-
     # Sinyal geçmişi (canlı karne): yeni AL'leri kaydet, açıkları stop/SAT ile kapat
     acik, kapali, karne = gecmis_guncelle(by_kod, bugun_iso)
     with open("gecmis.html", "w", encoding="utf-8") as f:
         f.write(gecmis_uret(acik, kapali, karne))
 
     with open("index.html", "w", encoding="utf-8") as f:
-        f.write(pano_uret(sonuclar, ornek=False, uyari=uyari, portfoy=portfoy))
+        f.write(pano_uret(sonuclar, ornek=False, uyari=uyari))
     print(f"index.html: {len(sonuclar)} hisse, {len(bugun_al)} AL, {len(yeni)} yeni | "
           f"karne: {karne['kapanan']} kapanan, {karne['acik']} açık.")
 
