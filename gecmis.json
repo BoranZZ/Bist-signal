@@ -6,8 +6,8 @@
       "giris_fiyat": 34.38,
       "stop": 31.63,
       "durum": "açık",
-      "guncel": 33.82,
-      "anlik": -1.6
+      "guncel": 33.9,
+      "anlik": -1.4
     },
     {
       "kod": "TKFEN",
@@ -15,7 +15,7 @@
       "giris_fiyat": 273.5,
       "stop": 251.62,
       "durum": "açık",
-      "guncel": 278.0,
+      "guncel": 277.75,
       "anlik": 1.6
     },
     {
@@ -24,8 +24,8 @@
       "giris_fiyat": 411.5,
       "stop": 388.5,
       "durum": "açık",
-      "guncel": 406.5,
-      "anlik": -1.2
+      "guncel": 404.75,
+      "anlik": -1.6
     },
     {
       "kod": "KRDMD",
@@ -33,7 +33,7 @@
       "giris_fiyat": 46.2,
       "stop": 42.5,
       "durum": "açık",
-      "guncel": 46.82,
+      "guncel": 46.78,
       "anlik": 1.3
     },
     {
@@ -42,8 +42,8 @@
       "giris_fiyat": 5827.5,
       "stop": 5361.3,
       "durum": "açık",
-      "guncel": 5737.5,
-      "anlik": -1.5
+      "guncel": 5722.5,
+      "anlik": -1.8
     },
     {
       "kod": "TUKAS",
@@ -60,8 +60,8 @@
       "giris_fiyat": 44.34,
       "stop": 40.79,
       "durum": "açık",
-      "guncel": 44.32,
-      "anlik": -0.0
+      "guncel": 44.28,
+      "anlik": -0.1
     },
     {
       "kod": "ENERY",
@@ -69,7 +69,7 @@
       "giris_fiyat": 13.36,
       "stop": 12.29,
       "durum": "açık",
-      "guncel": 13.42,
+      "guncel": 13.41,
       "anlik": 0.4
     },
     {
@@ -96,8 +96,8 @@
       "giris_fiyat": 290.25,
       "stop": 267.03,
       "durum": "açık",
-      "guncel": 288.25,
-      "anlik": -0.7
+      "guncel": 288.5,
+      "anlik": -0.6
     },
     {
       "kod": "BIMAS",
@@ -105,7 +105,7 @@
       "giris_fiyat": 429.0,
       "stop": 403.06,
       "durum": "açık",
-      "guncel": 428.25,
+      "guncel": 428.0,
       "anlik": -0.2
     }
   ]
