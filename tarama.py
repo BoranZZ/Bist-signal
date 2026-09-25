@@ -7,7 +7,7 @@ Akış: fiyat çek -> sinyal + (günlük önbellekli) oran -> risk/lot -> AL+ ->
 import bisect, json, math, os, time
 import pandas as pd
 import yfinance as yf
-from bilanco import bilancolari_al, bilanco_ozet, bilanco_metni, bilanco_yakin, tarih_tr
+from bilanco import bilancolari_al, bilanco_ozet, bilanco_metni, bilanco_yakin, tarih_tr, temettu_ozet
 from sinyal import analiz_et, destek_direnc, TABAN_GETIRI, TABAN_GUN, IZ_STOP_ORAN
 from pano import pano_uret, gecmis_uret
 
@@ -711,6 +711,9 @@ def portfoy_ozeti(sonuclar, pf, piyasa=None, endeks=None):
         if bilanco_yakin(b, 7):
             ne = "" if b["sonraki"]["kaynak"] == "yahoo" else " en geç"
             notlar.append(f"📅 bilanço{ne} {tarih_tr(b['sonraki']['tarih'])} ({b['kalan_gun']} gün) — o gün fiyat sert oynayabilir")
+        tm = s.get("temettu")
+        if tm and tm.get("ex_kalan") is not None and tm["ex_kalan"] <= 7:
+            notlar.append(f"💰 temettü hak kullanım {tarih_tr(tm['ex_tarih'])} ({tm['ex_kalan']} gün) — o sabah fiyat temettü kadar düşük açılır, stop'a dikkat")
         ikon = "🔴" if s["sinyal"] == "SAT" else ("🟢" if s["sinyal"] == "AL" else "🟡")
         parca.append(f"{ikon} <b>{kod}</b> {s['fiyat']} TL — {sn}" + (" · " + " · ".join(notlar) if notlar else "")
                      + "\n     " + plan_metni(s, p)
@@ -830,6 +833,7 @@ def main():
             a["sektor"] = o[3] if len(o) > 3 else None
             a["endustri"] = o[4] if len(o) > 4 else None
             a["bilanco"] = bilanco_ozet(bilancolar.get(kod))
+            a["temettu"] = temettu_ozet(bilancolar.get(kod), a["fiyat"])
             a["lot"] = lot_oner(a["fiyat"], a["fiyat"] * (1 - IZ_STOP_ORAN))   # risk: iz stop başlangıcı
             sonuclar.append(a)
         except Exception as e:

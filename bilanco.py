@@ -45,14 +45,24 @@ def bilanco_cek_tek(kod):
             para = t.info.get("financialCurrency")
         except Exception:
             pass
-        takvim = None
+        takvim = ex_tarih = None
         try:
-            ed = (t.calendar or {}).get("Earnings Date")
+            cal = t.calendar or {}
+            ed = cal.get("Earnings Date")
             if ed:
                 takvim = str(pd.Timestamp(ed[0]).date())
+            if cal.get("Ex-Dividend Date"):
+                ex_tarih = str(pd.Timestamp(cal["Ex-Dividend Date"]).date())
         except Exception:
             pass
-        return {"para": para or "TRY", "ceyrek": ceyrek, "takvim": takvim}
+        temettu = []
+        try:
+            dv = t.dividends
+            dv = dv[dv.index >= dv.index.max() - pd.DateOffset(years=2)] if len(dv) else dv
+            temettu = [[str(i.date()), round(float(v), 4)] for i, v in dv.items()]
+        except Exception:
+            pass
+        return {"para": para or "TRY", "ceyrek": ceyrek, "takvim": takvim, "ex_tarih": ex_tarih, "temettu": temettu}
     except Exception:
         return None
 
@@ -71,7 +81,7 @@ def bilancolari_al(kodlar, bugun=None):
     simdi = pd.Timestamp.now(tz="Europe/Istanbul")
     if eski and veri and 9 * 60 + 30 <= simdi.hour * 60 + simdi.minute < 18 * 60 + 30:
         eski = False   # tam yenileme birkaç dakika sürer: seans içi taramaları yavaşlatmasın, kapanış sonrasına kalsın
-    eksik = list(kodlar) if eski else [k for k in kodlar if k not in veri]
+    eksik = list(kodlar) if eski else [k for k in kodlar if k not in veri or (veri[k] and "temettu" not in veri[k])]
     if not eksik:
         print("Bilanço verisi önbellekten.")
         return veri
@@ -145,6 +155,24 @@ def bilanco_ozet(ham, bugun=None):
 
 def _yuzde(x):
     return f"+%{x}" if x >= 0 else f"−%{-x}"
+
+
+def temettu_ozet(ham, fiyat, bugun=None):
+    """Son 12 ay nakit temettü (hisse başı, TL) ve fiyata göre verim; ileri tarihli hak kullanım günü (biliniyorsa).
+    yfinance BIST bedelsiz/bölünme kaydı tutmadığından bedelsiz sonrası verim şişebilir → %25 üstü 'şüpheli'."""
+    if not ham:
+        return None
+    bugun = pd.Timestamp(bugun or pd.Timestamp.now(tz="Europe/Istanbul").strftime("%Y-%m-%d"))
+    son12 = [x for x in (ham.get("temettu") or []) if pd.Timestamp(x[0]) >= bugun - pd.DateOffset(years=1)]
+    toplam = round(sum(x[1] for x in son12), 2)
+    ex = ham.get("ex_tarih")
+    ex = ex if ex and pd.Timestamp(ex) >= bugun else None
+    if not son12 and not ex:
+        return None
+    verim = round(toplam / fiyat * 100, 1) if (fiyat and fiyat == fiyat and toplam) else None
+    return {"son12": toplam, "adet": len(son12), "son_tarih": son12[-1][0] if son12 else None, "verim": verim,
+            "supheli": bool(verim and verim > 25), "ex_tarih": ex,
+            "ex_kalan": (pd.Timestamp(ex) - bugun).days if ex else None}
 
 
 def bilanco_metni(b):

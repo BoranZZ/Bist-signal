@@ -62,6 +62,9 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None, 
         if bil.get("kalan_gun") is not None and 0 <= bil["kalan_gun"] <= 7:
             ne = "Yahoo takvimi" if (bil.get("sonraki") or {}).get("kaynak") == "yahoo" else "SPK son teslim tarihi (daha erken açıklanabilir)"
             sdrz += f' <span class="bilb" title="Sonraki bilanço: {bil["sonraki"]["tarih"]} ({ne}) — açıklama günü fiyat sert oynayabilir">📅 bilanço</span>'
+        tm = s.get("temettu") or {}
+        if tm.get("ex_kalan") is not None and tm["ex_kalan"] <= 7:
+            sdrz += f' <span class="bilb" title="Temettü hak kullanım: {tm["ex_tarih"]} — o sabah fiyat temettü kadar düşük açılır">💰 temettü</span>'
         if s.get("bayrak"):
             sdrz += f' <span class="bayrakb" title="Boğa bayrağı kırılımı (direk %{s["bayrak"]["direk"]}, {s["bayrak"]["bayrak_gun"]} günlük bayrak)">🚩</span>'
         lot = s.get("lot")
@@ -101,7 +104,7 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None, 
             "spark": s.get("spark", {}),
             "al_stop": s.get("al_stop"), "al_tarih": s.get("al_tarih"), "hacim_kat": s.get("hacim_kat"),
             "hacim_teyit": bool(s.get("hacim_teyit")), "taban15": s.get("taban15"), "patlak": bool(s.get("patlak")),
-            "arz": s.get("arz"), "sektor": s.get("sektor"), "endustri": s.get("endustri"), "mom20": s.get("mom20"), "uv": s.get("uv"), "bayrak": s.get("bayrak"), "bilanco": s.get("bilanco"),
+            "arz": s.get("arz"), "sektor": s.get("sektor"), "endustri": s.get("endustri"), "mom20": s.get("mom20"), "uv": s.get("uv"), "bayrak": s.get("bayrak"), "bilanco": s.get("bilanco"), "temettu": s.get("temettu"),
         }
 
     banner = ""
@@ -494,13 +497,21 @@ function uvHtml(d){
 }
 function bilSayi(x,p){var a=Math.abs(x),t=a>=1e9?(a/1e9).toFixed(1)+' mlr':(a>=1e6?(a/1e6).toFixed(0)+' mn':Math.round(a)+'');return (x<0?'−':'')+t+' '+(p==='TRY'?'TL':p);}
 function bilYuz(x){return x>=0?'+%'+x:'−%'+(-x);}
+function temHtml(d){
+ var t=d.temettu;if(!t)return '';
+ var h='<div class="cikis">💰 <b>Temettü:</b> ';
+ if(t.son12)h+='son 12 ayda hisse başı <b>'+t.son12+' TL</b> ('+t.adet+' ödeme'+(t.verim!=null?', güncel fiyata göre verim <b>%'+t.verim+'</b>':'')+')'+(t.supheli?' <i>— verim çok yüksek görünüyor; arada bedelsiz olduysa veri şaşmış olabilir, KAP\'tan kontrol et</i>':'')+'.';
+ else h+='son 12 ayda ödeme yok.';
+ if(t.ex_tarih){var x=t.ex_tarih.split('-');h+=' Sonraki hak kullanım (Yahoo; KAP\'tan teyit et): <b>'+x[2]+'.'+x[1]+'.'+x[0]+'</b> ('+t.ex_kalan+' gün) — o sabah fiyat temettü kadar düşük açılır.';}
+ return h+'</div>';
+}
 function bilHtml(d){
- var b=d.bilanco;if(!b)return '';
+ var b=d.bilanco;if(!b)return d.temettu?'<div class="bilkutu">'+temHtml(d)+'</div>':'';
  var h='<div class="bilkutu">📊 <b>Bilanço ('+b.donem+')</b> — net kâr '+bilSayi(b.net,b.para);
  if(b.net_yuz!=null)h+=', geçen yılın aynı çeyreğine göre <b class="'+(b.net_yuz>=0?'pos':'neg')+'">'+bilYuz(b.net_yuz)+'</b>';
  else if(b.net_degisim)h+=' — <b class="'+(/kâra|azaldı/.test(b.net_degisim)?'pos':'neg')+'">'+b.net_degisim+'</b> (geçen yılın aynı çeyreğine göre)';
  if(b.satis_yuz!=null)h+=' · satış '+bilYuz(b.satis_yuz);
- h+='.';
+ h+='.'+temHtml(d);
  if(b.sonraki){var t=b.sonraki.tarih.split('-');h+='<div class="cikis">📅 Sonraki bilanço: <b>'+t[2]+'.'+t[1]+'.'+t[0]+'</b>'+(b.sonraki.kaynak==='yahoo'?' (Yahoo takvimi)':' (SPK son teslim günü — çoğu şirket daha erken açıklar)')+(b.kalan_gun!=null&&b.kalan_gun>=0?' · '+b.kalan_gun+' gün sonra':'')+'</div>';}
  if(b.gecikmis)h+='<div class="cikis">⚠ Son bilanço veri kaynağında görünmüyor (açıklanmamış ya da kaynak gecikmeli) — KAP\'tan kontrol et.</div>';
  var s=b.seri||[];
