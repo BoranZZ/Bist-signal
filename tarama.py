@@ -7,7 +7,7 @@ Akış: fiyat çek -> sinyal + (günlük önbellekli) oran -> risk/lot -> AL+ ->
 import json, math, os, time
 import pandas as pd
 import yfinance as yf
-from sinyal import analiz_et, TABAN_GETIRI, TABAN_GUN
+from sinyal import analiz_et, destek_direnc, TABAN_GETIRI, TABAN_GUN
 from pano import pano_uret, gecmis_uret
 
 # ================== AYARLAR ==================
@@ -322,10 +322,17 @@ def alarmlari_yukle():
     return temiz
 
 
+def _gizli(metin):
+    """durum.json herkese açık: portföyü ele verebilecek anahtarlar gizli bir anahtarla (TELEGRAM_TOKEN, Actions
+    secret'ı) HMAC'lenir. Anahtar bilinmeden 160 hisseyi deneyerek geri çözülemez."""
+    import hmac, hashlib
+    anahtar = (os.environ.get("TELEGRAM_TOKEN") or "yerel-test").encode()
+    return hmac.new(anahtar, metin.encode(), hashlib.sha256).hexdigest()[:16]
+
+
 def _alarm_anahtar(a):
-    # durum.json herkese açık: alarmın kendisi değil, özeti (hash) saklanır
-    import hashlib
-    return hashlib.sha1(f"{a['kod']}|{a['yon']}|{a['fiyat']}".encode()).hexdigest()[:12]
+    # durum.json herkese açık: alarmın kendisi değil, gizli özeti saklanır
+    return _gizli(f"alarm|{a['kod']}|{a['yon']}|{a['fiyat']}")
 
 
 def alarm_kontrol(alarmlar, by_kod, tetiklenen):
@@ -795,34 +802,40 @@ def main():
     yeni_sat = [s for s in yeni_sat if s["kod"] in pf]   # SAT mesajı sadece portföydekiler için
 
     # SAT 2. gün teyidi (portföy): her SAT dalgası için bir kez. İlk çalışmada sessizce başlangıç kaydı.
-    ilk_kez = "sat_teyit" not in durum
-    teyit = dict(durum.get("sat_teyit", {}))
+    # durum.json herkese açık: portföy hissesini ele veren anahtarlar gizli özetle (HMAC) saklanır
+    ilk_kez = "sat_teyit_g" not in durum
+    teyit = dict(durum.get("sat_teyit_g", {}))
     sat_teyit = []
     for s in (sonuclar if kapanis_sonrasi else []):
+        gk = _gizli(s["kod"])
         if (s["kod"] in pf and s["sinyal"] == "SAT" and (s.get("sinyal_gun") or 1) >= 2
-                and teyit.get(s["kod"]) != s["sinyal_tarih"]):
-            teyit[s["kod"]] = s["sinyal_tarih"]
+                and teyit.get(gk) != s["sinyal_tarih"]):
+            teyit[gk] = s["sinyal_tarih"]
             if not ilk_kez and s not in yeni_sat and not pf[s["kod"]].get("uzun"):   # uzun vadede "çık" teyidi yok
                 sat_teyit.append(s)
 
     # Uzun vade: karar çizgisi (ana destek) KAPANIŞLA kırılınca bir kez uyar. Karar çizgisi hep fiyatın altındaki
-    # en yakın destekten hesaplandığı için, bir önceki kapanışta kaydedilen çizgiyle kıyaslanır. Gün içi iğneler
-    # sayılmasın diye hem kontrol hem kayıt sadece kapanış sonrası taramalarda (KAPANIS_DAKIKA+) yapılır.
-    karar_kayit = dict(durum.get("karar_cizgisi", {}))
-    kirilim = dict(durum.get("karar_kirilim", {}))
+    # en yakın destekten hesaplandığı için, DÜNKÜ veriyle hesaplanan çizgiyle kıyaslanır (dosyaya fiyat yazılmaz:
+    # fiyat hisseyi ele verir). Uyarılan seviyeler gizli özetle tutulur. Sadece kesin kapanıştan sonra.
+    kirilim = set(durum.get("karar_kirilim_g", []))
     karar_kirilan = []
     if kapanis_zamani:
         for s in sonuclar:
             p = pf.get(s["kod"])
             if not (p and p.get("uzun")):
                 continue
-            onceki = karar_kayit.get(s["kod"])
-            if onceki and s["fiyat"] < onceki and kirilim.get(s["kod"]) != onceki:
-                kirilim[s["kod"]] = onceki
-                karar_kirilan.append((s, onceki))
-            yeni_karar = karar_cizgisi(s)
-            if yeni_karar:
-                karar_kayit[s["kod"]] = yeni_karar
+            try:
+                df = data[s["kod"] + ".IS"].dropna(subset=["Close"])
+                sd_dun = destek_direnc(df.iloc[:-1])
+            except Exception:
+                continue
+            if not sd_dun.get("destek"):
+                continue
+            dun_karar = round(sd_dun["destek"]["fiyat"] * (1 - sd_dun["tol"] / 100), 2)
+            gk = _gizli(f"{s['kod']}|{sd_dun['destek']['tarih']}|{sd_dun['destek']['fiyat']}")
+            if s["fiyat"] < dun_karar and gk not in kirilim:
+                kirilim.add(gk)
+                karar_kirilan.append((s, dun_karar))
 
     uyari = None
     if len(yeni) > ASIRI_ISLEM_ESIGI:
@@ -898,8 +911,8 @@ def main():
 
     with open(DURUM, "w", encoding="utf-8") as f:
         json.dump({"al": sorted(s["kod"] for s in bugun_al), "son": dict(sorted(son.items())),
-                   "sat_teyit": dict(sorted(teyit.items())), "ozet_tarih": ozet_tarih, "hafta_tarih": hafta_tarih,
-                   "karar_kirilim": dict(sorted(kirilim.items())), "karar_cizgisi": dict(sorted(karar_kayit.items())),
+                   "sat_teyit_g": dict(sorted(teyit.items())), "ozet_tarih": ozet_tarih, "hafta_tarih": hafta_tarih,
+                   "karar_kirilim_g": sorted(kirilim),
                    "alarm_tetik": sorted(tetiklenen), "on_sinyal": dict(sorted(on_sinyal.items())),
                    "uv_son": dict(sorted(uv_son.items()))},
                   f, ensure_ascii=False, indent=2)
