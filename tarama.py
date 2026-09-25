@@ -67,9 +67,12 @@ ENDEKS = "XU100"
 # Kapanış: sürekli işlem 18:00'de biter, kapanış seansı ~18:10; Yahoo verisi ~15 dk gecikmeli -> kesin kapanış
 # fiyatı ~18:25'te gelir. Kapanış sonrası işler (AL/SAT mesajları, günlük özet) 18:30'dan sonraki ilk taramada.
 KAPANIS_DAKIKA = 18 * 60 + 30
-# Gün içi yeni AL/SAT'ların ~%22'si kapanışta geçersiz oluyor (saatlik veriyle ölçüldü, 2026-09) ve backtest
-# kapanış sinyali + ertesi gün açılış girişi varsayıyor: AL/SAT mesajları sadece kapanış sonrası taramada gider.
-SADECE_KAPANIS_MESAJI = True
+# AL/SAT mesajları kapanıştan ~30 dk önce (17:30+, Yahoo gecikmesiyle ~17:15 fiyatı) değerlendirilir: kullanıcı
+# isterse o gün alabilsin. Saatlik veriyle ölçüldü (2026-09): bu saatte görülen yeni AL'lerin ~%88'i kapanışta
+# tutuyor (gün içi erken saatlerde ~%75); 17:00 fiyatından almak ile ertesi açılıştan almak arasında belirgin
+# fark yok. Kapanışta tutmayanlar için KAPANIS_DAKIKA'dan sonra "iptal" mesajı gider ve durum geri alınır.
+SINYAL_DAKIKA = 17 * 60 + 30
+SADECE_KAPANIS_MESAJI = True   # False: gün içi her taramada (eski davranış)
 MIN_GUN = 60      # sinyal için gereken en az işlem günü (sinyal.analiz_et)
 
 
@@ -471,7 +474,7 @@ def _al_satiri(s, pf):
     return t
 
 
-def telegram_mesaji(yeni_al, yeni_sat, sat_teyit, pf, uyari, piyasa=None, karar_kirilan=None):
+def telegram_mesaji(yeni_al, yeni_sat, sat_teyit, pf, uyari, piyasa=None, karar_kirilan=None, on_kapanis=False, iptal=None):
     tarih = pd.Timestamp.now(tz="Europe/Istanbul").strftime("%d.%m.%Y %H:%M")
     parca = [f"📊 <b>BIST Sinyal</b> — {tarih}"]
     if yeni_al:
@@ -483,6 +486,9 @@ def telegram_mesaji(yeni_al, yeni_sat, sat_teyit, pf, uyari, piyasa=None, karar_
         if kalan:
             satir.append(f"…ve {kalan} hisse daha (panoya bak)")
         bas = f"<b>Yeni AL ({len(yeni_al)})</b>"
+        if on_kapanis:
+            bas += ("\n⏰ <i>Kapanıştan önce (~17:15 fiyatlarıyla). Bu saatte gelen AL'lerin ~%88'i kapanışta tutuyor; "
+                    "tutmazsa 18:30'dan sonra iptal mesajı gelir.</i>")
         if piyasa and piyasa.get("zayif"):
             bas += ("\n⚠️ <i>Piyasa zayıf: BIST 100 50 günlük ortalamasının altında. Backtest'te bu dönemlerde "
                     "gelen AL'ler belirgin şekilde daha kötü sonuç verdi — temkinli ol.</i>")
@@ -504,6 +510,10 @@ def telegram_mesaji(yeni_al, yeni_sat, sat_teyit, pf, uyari, piyasa=None, karar_
         satir = [f"❗ <b>{s['kod']}</b>  {s['fiyat']} TL — 2. gün de SAT: <b>teyitlendi</b>, kurala göre çıkış zamanı.\n     "
                  + plan_metni(s, pf[s["kod"]]) for s in sat_teyit]
         parca.append("✅ <b>SAT teyidi (2. gün)</b>\n" + "\n".join(satir))
+    if iptal:
+        satir = [f"↩️ <b>{s['kod']}</b>: kapanıştan önce gelen <b>{eski}</b> sinyali kapanışta tutmadı "
+                 f"(şimdi {s['sinyal']}, {s['fiyat']} TL) — geçersiz say." for s, eski in iptal]
+        parca.append("↩️ <b>İptal: kapanışta tutmayan sinyaller</b>\n" + "\n".join(satir))
     if karar_kirilan:
         satir = [f"🧭 <b>{s['kod']}</b> (uzun vade): kapanış {s['fiyat']} TL, karar çizgin <b>{seviye} TL</b>'nin altında — "
                  f"ana destek kırıldı, pozisyonu gözden geçirme noktası.\n     " + plan_metni(s, pf[s["kod"]])
@@ -722,14 +732,36 @@ def main():
 
     bugun_al = [s for s in sonuclar if s["sinyal"] == "AL"]
     simdi = pd.Timestamp.now(tz="Europe/Istanbul")
-    kapanis_zamani = simdi.hour * 60 + simdi.minute >= KAPANIS_DAKIKA   # kesin kapanış fiyatı geldi
-    kapanis_sonrasi = kapanis_zamani or not SADECE_KAPANIS_MESAJI
+    dakika = simdi.hour * 60 + simdi.minute
+    kapanis_zamani = dakika >= KAPANIS_DAKIKA                              # kesin kapanış fiyatı geldi
+    kapanis_sonrasi = dakika >= SINYAL_DAKIKA or not SADECE_KAPANIS_MESAJI  # AL/SAT değerlendirme penceresi
+    on_kapanis = SADECE_KAPANIS_MESAJI and SINYAL_DAKIKA <= dakika < KAPANIS_DAKIKA
+    bugun_iso = simdi.strftime("%Y-%m-%d")
     durum = durum_oku()
     son = dict(durum.get("son", {}))
+    by_kod = {s["kod"]: s for s in sonuclar}
+    # kapanıştan önce verilen sinyaller: kapanışta tutmayanlar iptal edilir, durum geri alınır
+    on_sinyal = {k: v for k, v in durum.get("on_sinyal", {}).items() if v.get("tarih") == bugun_iso}
+    iptal = []
+    if kapanis_zamani:
+        for k, v in on_sinyal.items():
+            s = by_kod.get(k)
+            if s and s["sinyal"] != v["sinyal"]:
+                iptal.append((s, v["sinyal"]))
+                if v.get("onceki") is None:
+                    son.pop(k, None)
+                else:
+                    son[k] = v["onceki"]
+        on_sinyal = {}
+    son_once = dict(son)
     if kapanis_sonrasi:
         yeni, yeni_sat = sinyal_degisimleri(sonuclar, son)
     else:
-        yeni, yeni_sat = [], []   # 'son' değişmez: geçişler kapanışta, kesinleşmiş sinyalle değerlendirilir
+        yeni, yeni_sat = [], []   # 'son' değişmez: geçişler 17:30'dan sonra değerlendirilir
+    if on_kapanis:
+        for s in yeni + yeni_sat:
+            on_sinyal[s["kod"]] = {"sinyal": s["sinyal"], "onceki": son_once.get(s["kod"]), "tarih": bugun_iso}
+    iptal = [(s, eski) for s, eski in iptal if eski == "AL" or s["kod"] in pf]   # SAT iptali sadece portföy için
     patlak_al = [s for s in yeni if s.get("patlak")]
     yeni = [s for s in yeni if not s.get("patlak")]      # taban serisindeki hisseden AL mesajı gitmez
     yeni_sat = [s for s in yeni_sat if s["kod"] in pf]   # SAT mesajı sadece portföydekiler için
@@ -769,8 +801,6 @@ def main():
         uyari = (f"Bu taramada {len(yeni)} yeni AL var — çok fazla. Hepsini alma; en yüksek puanlı/AL+ "
                  f"birkaçına odaklan, aşırı işlem komisyonda eritir.")
 
-    by_kod = {s["kod"]: s for s in sonuclar}
-    bugun_iso = simdi.strftime("%Y-%m-%d")
 
     # Sinyal geçmişi (canlı karne): yeni AL'leri kaydet, açıkları stop/SAT ile kapat
     acik, kapali, karne = gecmis_guncelle(by_kod, bugun_iso, piyasa)
@@ -786,10 +816,10 @@ def main():
     if patlak_al:
         print(f"Taban serisindeki {len(patlak_al)} hissenin AL mesajı gönderilmedi.")
 
-    if yeni or yeni_sat or sat_teyit or karar_kirilan:
+    if yeni or yeni_sat or sat_teyit or karar_kirilan or iptal:
         print(f"Telegram: {len(yeni)} yeni AL, {len(yeni_sat)} portföy SAT, {len(sat_teyit)} SAT teyidi, "
-              f"{len(karar_kirilan)} karar çizgisi kırılımı.")
-        tg_gonder(telegram_mesaji(yeni, yeni_sat, sat_teyit, pf, uyari, piyasa, karar_kirilan))
+              f"{len(karar_kirilan)} karar çizgisi kırılımı, {len(iptal)} iptal.")
+        tg_gonder(telegram_mesaji(yeni, yeni_sat, sat_teyit, pf, uyari, piyasa, karar_kirilan, on_kapanis, iptal))
     else:
         print("Yeni AL / portföyde SAT yok, Telegram sessiz." if kapanis_sonrasi
               else "Gün içi tarama: AL/SAT mesajları kapanış sonrası taramada gönderilir.")
@@ -821,7 +851,7 @@ def main():
         json.dump({"al": sorted(s["kod"] for s in bugun_al), "son": dict(sorted(son.items())),
                    "sat_teyit": dict(sorted(teyit.items())), "ozet_tarih": ozet_tarih, "hafta_tarih": hafta_tarih,
                    "karar_kirilim": dict(sorted(kirilim.items())), "karar_cizgisi": dict(sorted(karar_kayit.items())),
-                   "alarm_tetik": sorted(tetiklenen)},
+                   "alarm_tetik": sorted(tetiklenen), "on_sinyal": dict(sorted(on_sinyal.items()))},
                   f, ensure_ascii=False, indent=2)
 
 

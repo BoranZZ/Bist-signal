@@ -76,9 +76,11 @@ isteğiyle faiz yüzünden düşen eski büyükler (KONTR vb.) KALDI — tüm ç
 - Dirence <%3 yakınken gelen AL'ler backtest'te en iyi grup (kırılım) → "Dirence yaklaşıyor" yeni AL için "uzak dur" değil.
 - AL eşiği (4/5) ve stop (%8+20g dip) zaten en dengeli; %10-15 stop farkı gürültü düzeyinde.
 - Kısmi kâr alma (dirençte ya da 2R'de yarısını sat) backtest'te belirgin şekilde KÖTÜ (düşük faiz +9.3 → −1.3; yüksek +2.5 → +0.2-0.4 endekse göre). Hedefleri "satış emri" diye sunma; izleme noktası.
-- Gün içi yeni AL/SAT'ların ~%22'si kapanışta geçersiz (saatlik veriyle ölçüldü): AL/SAT mesajları, SAT teyidi,
-  günlük/haftalık özet ve uzun vade kırılım kontrolü sadece `KAPANIS_DAKIKA` (18:30, Yahoo ~15 dk gecikmeli) sonrası.
-  Gün içi taramada `durum.json` → `son` DEĞİŞMEZ (yoksa kapanışta geçiş kaçar).
+- Zamanlama: AL/SAT geçişleri 17:30'dan (`SINYAL_DAKIKA`) sonra değerlendirilir; gün içi daha erken taramada
+  `durum.json` → `son` DEĞİŞMEZ. Saatlik veriyle: 17:00 civarı yeni AL'lerin ~%88'i kapanışta tutuyor (erken saatte
+  ~%75); 17:00 fiyatıyla ertesi açılış arasında belirgin fark yok. 17:30–18:30 arası verilen sinyaller `on_sinyal`'de
+  tutulur; 18:30 (`KAPANIS_DAKIKA`, kesin kapanış) sonrası tutmayanlar için "iptal" mesajı ve `son` geri alınır.
+  Günlük/haftalık özet ve uzun vade kırılım kontrolü 18:30 sonrası.
 - Uzun vade (`uzun: true` portföy kaydı): stop yerine karar çizgisi = fiyatın altındaki en yakın destek × (1−tol).
   Karar çizgisi hep fiyatın altından hesaplandığı için kırılım, bir önceki kapanışta kaydedilen çizgiyle
   (`karar_cizgisi`) kıyaslanır; aynı seviye için bir kez (`karar_kirilim`). Backtest: güçlü yükselişte büyük

@@ -49,7 +49,7 @@ Mesaj şu durumlarda gelir:
 - **Yeni AL:** Taranan tüm hisselerde. Hacmi yüksek AL'ler "📈 hacim" etiketiyle işaretlenir (bilgi amaçlı; backtest'te tek başına belirgin üstünlük sağlamadı). Piyasa zayıfsa (BIST 100 50 günlük ortalamasının altında) mesajda uyarı olur. Son 15 günde 4+ kez taban olan hisselerden AL mesajı gitmez.
 - **Portföyündeki hisselerde:** Satırın başında ❗ olur. Altında şunlar yazar: kâr/zararın, 📍 çıkış seviyesi (stop) ve 🎯 hedefler (en yakın direnç ve risk/ödül 2:1).
 - **Yeni SAT:** Sadece portföyündeki hisselerde. İlk gün "⏳ 1. gün, yarını bekle" diye gelir; ertesi gün de SAT kalırsa "✅ teyitlendi" mesajı gelir.
-- **Zamanlama:** AL/SAT mesajları kapanıştan sonra (18:30 sonrası ilk tarama) gelir; gün içindeki sinyallerin ~%22'si kapanışta değiştiği için.
+- **Zamanlama:** AL/SAT mesajları kapanıştan ~30 dk önce (17:30 sonrası) gelir; istersen o gün, istersen ertesi sabah işlem yaparsın. Bu saatte gelen sinyallerin ~%88'i kapanışta tutuyor; tutmazsa 18:30'dan sonra "↩️ İptal" mesajı gelir.
 - **Uzun vade:** Portföyde "Uzun vade" işaretli hisselerde SAT bilgi olarak gelir; çıkış yerine 🧭 karar çizgisi (ana destek) gösterilir, kapanışla kırılırsa tek seferlik uyarı gelir.
 - **Fiyat alarmı:** Hisseye tıkla → 🔔 Fiyat alarmı → fiyatı yaz → "Üstüne çıkınca" ya da "Altına inince". Fiyat oraya gelince Telegram'a bir kez mesaj gelir (Telegram'a bağlı cihazda kurulmalı).
 - **Haftalık özet:** Cuma kapanıştan sonra: haftanın AL'leri, canlı karne, portföyün haftalık değişimi.
