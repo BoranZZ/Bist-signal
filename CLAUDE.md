@@ -73,6 +73,13 @@ güncellenmeli; yfinance BIST bedelsiz/bölünme kaydı tutmuyor, arzdan beri ge
 Fon krizinde çöken şişirilmiş hisseler (TERA, SMRTG, GENIL, MIATK) listeden çıkarıldı; kullanıcı
 isteğiyle faiz yüzünden düşen eski büyükler (KONTR vb.) KALDI — tüm çökenleri çıkarma.
 
+## Veri kalitesi: kaydedilmemiş bedelsiz/bölünme
+yfinance BIST bölünmelerini çoğu zaman kaydetmiyor (5 yılda 125 hissede 12 olay: KONTR, FENER×3, CCOLA, HEKTS, TUKAS,
+BSOKE, EUREN, CVKMD...). BIST günlük sınırı ±%10 olduğundan tek gün ≤−%25 / ≥+%35 kapanış değişimi bölünme sayılır:
+`sinyal.bolunme_duzelt` önceki fiyatları düzeltir (analiz_et, backtest, karar çizgisi). Aksi halde göstergeler, iz stop
+ve 'çöken hisse' sınıflaması bozulur, bedelsiz günü yanlış 'iz stop kırıldı' gelir. Düzeltilmiş veriyle v3/v2 kıyası
+değişmedi. Son 30 günde bölünme olan portföy hissesinde 'maliyetini güncelle' notu (kullanıcının maliyeti eski fiyatla).
+
 ## v3 — 🚀 trend kırılımı (2026-09 gece araştırması, canlı AL kuralı)
 - AL mesajı artık gösterge oylamasından (SINYAL) DEĞİL: `sinyal.trend_kirilimi` — Minervini trend şablonu (fiyat > SMA50 >
   SMA150 > SMA200, SMA200 20 günde yükselmiş, 52h zirvesinin ≥%75'i, 52h dibinin ≥%30 üstü) iken önceki 20 günün en yüksek

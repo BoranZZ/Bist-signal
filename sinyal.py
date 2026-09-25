@@ -117,6 +117,33 @@ def _hl_var(df):
     return "High" in df.columns and "Low" in df.columns
 
 
+BOLUNME_ALT, BOLUNME_UST = -0.25, 0.35   # BIST günlük sınır ±%10: bundan büyük tek gün hareketi = kaydedilmemiş bölünme
+
+
+def bolunme_duzelt(df):
+    """yfinance BIST bedelsiz/bölünmeleri çoğu zaman kaydetmiyor: o gün fiyat %50-90 "düşmüş" görünür, göstergeler ve
+    iz stop bozulur (5 yılda 125 hissede 12 olay: KONTR, FENER, CCOLA, HEKTS, TUKAS...). Tek günlük ≤ −%25 / ≥ +%35
+    kapanış değişimi bölünme sayılır; önceki fiyatlar o oranla (hacim tersine) düzeltilir. df.attrs["bolunme"] = tarihler."""
+    if df is None or len(df) < 2 or "Close" not in df:
+        return df
+    c = df["Close"]
+    r = c / c.shift(1)
+    olay = r[(r - 1 <= BOLUNME_ALT) | (r - 1 >= BOLUNME_UST)].dropna()
+    if olay.empty:
+        return df
+    df = df.copy()
+    carpan = pd.Series(1.0, index=df.index)
+    for t, oran in olay.items():
+        carpan[df.index < t] *= float(oran)
+    for k in ("Open", "High", "Low", "Close"):
+        if k in df:
+            df[k] = df[k] * carpan
+    if "Volume" in df:
+        df["Volume"] = df["Volume"] / carpan
+    df.attrs["bolunme"] = [str(t.date()) for t in olay.index]
+    return df
+
+
 def gostergeler(df):
     d = df.copy()
     c = d["Close"]
@@ -385,6 +412,7 @@ def trend_kirilimi(d, xu_ust=None, islemler=False):
 
 
 def analiz_et(df, xu_ust=None):
+    df = bolunme_duzelt(df)
     c = df["Close"].dropna()
     if len(c) < 60:
         return None
@@ -498,6 +526,7 @@ def analiz_et(df, xu_ust=None):
         "mom20": mom20,
         "uv": uzun_vade(d),
         "tk": tk,
+        "bolunme": (df.attrs.get("bolunme") or [None])[-1],   # son (kaydedilmemiş) bedelsiz/bölünme tarihi
         "bayrak": bayrak_kirilimi(df),
         "patlak": taban >= PATLAK_TABAN,
         "sinyal_tarih": sinyal_tarih,

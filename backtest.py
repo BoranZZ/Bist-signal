@@ -18,7 +18,7 @@ Sonuçlar düşük faiz (2023 Haziran öncesi) ve yüksek faiz dönemine ayrıl�
 import numpy as np
 import pandas as pd
 
-from sinyal import gostergeler, sma, trend_kirilimi, IZ_STOP_ORAN, OYNAK_ESIK
+from sinyal import gostergeler, sma, trend_kirilimi, bolunme_duzelt, IZ_STOP_ORAN, OYNAK_ESIK
 
 KOMISYON = 0.002        # tek yön %0.2 (komisyon + kayma varsayımı)
 MAX_GUN = 40            # mevcut kural: bir pozisyonu en fazla bu kadar gün tut
@@ -35,6 +35,7 @@ def piyasa_ust(xu):
 
 def tek_hisse_backtest(df, kod="", kural="mevcut", xu_ust=None):
     """Bir hisse için işlemleri simüle eder, işlem listesi + özet döner."""
+    df = bolunme_duzelt(df)
     d = gostergeler(df).dropna(subset=["SMA50", "RSI", "MACD_SIGNAL"])
     if len(d) < 60:
         return [], None

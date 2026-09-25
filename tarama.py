@@ -9,7 +9,7 @@ import pandas as pd
 import yfinance as yf
 from kap import kap_guncelle, kap_mesaji
 from bilanco import bilancolari_al, bilanco_ozet, bilanco_metni, bilanco_yakin, tarih_tr, temettu_ozet
-from sinyal import analiz_et, destek_direnc, TABAN_GETIRI, TABAN_GUN, IZ_STOP_ORAN
+from sinyal import analiz_et, destek_direnc, bolunme_duzelt, TABAN_GETIRI, TABAN_GUN, IZ_STOP_ORAN
 from pano import pano_uret, gecmis_uret
 
 # ================== AYARLAR ==================
@@ -716,6 +716,8 @@ def portfoy_ozeti(sonuclar, pf, piyasa=None, endeks=None):
         if bilanco_yakin(b, 7):
             ne = "" if b["sonraki"]["kaynak"] == "yahoo" else " en geç"
             notlar.append(f"📅 bilanço{ne} {tarih_tr(b['sonraki']['tarih'])} ({b['kalan_gun']} gün) — o gün fiyat sert oynayabilir")
+        if s.get("bolunme") and (pd.Timestamp.now(tz="Europe/Istanbul").tz_localize(None) - pd.Timestamp(s["bolunme"])).days <= 30:
+            notlar.append(f"✂️ {tarih_tr(s['bolunme'])} bedelsiz/bölünme görünüyor — maliyetini aracı kurumdaki yeni maliyetle güncelle")
         tm = s.get("temettu")
         if tm and tm.get("ex_kalan") is not None and tm["ex_kalan"] <= 7:
             notlar.append(f"💰 temettü hak kullanım {tarih_tr(tm['ex_tarih'])} ({tm['ex_kalan']} gün) — o sabah fiyat temettü kadar düşük açılır, stop'a dikkat")
@@ -940,7 +942,7 @@ def main():
                 continue
             try:
                 df = data[s["kod"] + ".IS"].dropna(subset=["Close"])
-                sd_dun = destek_direnc(df.iloc[:-1])
+                sd_dun = destek_direnc(bolunme_duzelt(df).iloc[:-1])
             except Exception:
                 continue
             if not sd_dun.get("destek"):
