@@ -55,6 +55,7 @@ Mesaj şu durumlarda gelir:
 - **Uzun vade:** Portföyde "Uzun vade" işaretli hisselerde SAT bilgi olarak gelir; çıkış yerine 🧭 karar çizgisi (ana destek) gösterilir, kapanışla kırılırsa tek seferlik uyarı gelir.
 - **🌱 Uzun vade sinyali:** Yükselen trendde 50 günlük ortalamaya geri çekilip dönen hisse → Uzun vade AL (kapanıştan sonra mesaj). 2 gün üst üste 200 günlük ortalamanın altında kapanırsa Uzun vade SAT (portföyündekiler için). Günlük AL/SAT'tan bağımsız, daha yavaş (3-4 ay).
 - **🚩 Bayrak:** Boğa bayrağı kırılımı olan AL'lerde bilgi etiketi.
+- **Bilanço:** Hisseye tıkla → 📊 Bilanço kutusu: son çeyrek net kâr, geçen yılın aynı çeyreğine göre değişim, çeyreklik kâr grafiği ve sonraki bilanço tarihi. 7 gün içinde bilançosu olan hisselerde 📅 rozeti; portföy özetinde de uyarı gelir. Bilgi amaçlıdır, sinyali değiştirmez.
 - **Fiyat alarmı:** Hisseye tıkla → 🔔 Fiyat alarmı → fiyatı yaz → "Üstüne çıkınca" ya da "Altına inince". Fiyat oraya gelince Telegram'a bir kez mesaj gelir (Telegram'a bağlı cihazda kurulmalı).
 - **Haftalık özet:** Cuma kapanıştan sonra: haftanın AL'leri, canlı karne, portföyün haftalık değişimi.
 - **Günlük portföy özeti:** Hafta içi kapanıştan sonra (18:30+) bir kez. Sektör dağılımı ve tek sektöre yoğunlaşma uyarısı dahil. Her hisse için sinyal, K/Z, çıkış ve hedefler, dikkat notları (stop'a yakın, dirence yaklaşıyor, taban serisi).

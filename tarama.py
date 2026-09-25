@@ -7,6 +7,7 @@ Akış: fiyat çek -> sinyal + (günlük önbellekli) oran -> risk/lot -> AL+ ->
 import json, math, os, time
 import pandas as pd
 import yfinance as yf
+from bilanco import bilancolari_al, bilanco_ozet, bilanco_metni, bilanco_yakin, tarih_tr
 from sinyal import analiz_et, destek_direnc, TABAN_GETIRI, TABAN_GUN, IZ_STOP_ORAN
 from pano import pano_uret, gecmis_uret
 
@@ -642,9 +643,14 @@ def portfoy_ozeti(sonuclar, pf, piyasa=None):
             notlar.append("⚠️ dirence yaklaşıyor")
         if s.get("patlak"):
             notlar.append(f"⚠️ taban serisi ({s['taban15']} kez/15 gün)")
+        b = s.get("bilanco")
+        if bilanco_yakin(b, 7):
+            ne = "" if b["sonraki"]["kaynak"] == "yahoo" else " en geç"
+            notlar.append(f"📅 bilanço{ne} {tarih_tr(b['sonraki']['tarih'])} ({b['kalan_gun']} gün) — o gün fiyat sert oynayabilir")
         ikon = "🔴" if s["sinyal"] == "SAT" else ("🟢" if s["sinyal"] == "AL" else "🟡")
         parca.append(f"{ikon} <b>{kod}</b> {s['fiyat']} TL — {sn}" + (" · " + " · ".join(notlar) if notlar else "")
-                     + "\n     " + plan_metni(s, p))
+                     + "\n     " + plan_metni(s, p)
+                     + (f"\n     📊 {bilanco_metni(b)}" if b and bilanco_metni(b) else ""))
     parca.insert(1, f"Toplam K/Z: <b>{_tl(toplam)}</b>")
     dag = sektor_dagilimi(pf, by)
     if dag:
@@ -731,6 +737,7 @@ def main():
     data = veri_cek(KODLAR)
     piyasa = piyasa_durumu(data)
     oranlar = oranlari_al(KODLAR)
+    bilancolar = bilancolari_al(KODLAR)
     sonuclar, yeni_arzlar = [], []
     for kod in KODLAR:
         try:
@@ -751,6 +758,7 @@ def main():
             a["favok"] = o[2] if len(o) > 2 else None
             a["sektor"] = o[3] if len(o) > 3 else None
             a["endustri"] = o[4] if len(o) > 4 else None
+            a["bilanco"] = bilanco_ozet(bilancolar.get(kod))
             a["lot"] = lot_oner(a["fiyat"], a["fiyat"] * (1 - IZ_STOP_ORAN))   # risk: iz stop başlangıcı
             sonuclar.append(a)
         except Exception as e:

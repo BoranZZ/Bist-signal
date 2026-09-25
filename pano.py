@@ -58,6 +58,10 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None):
         uv = s.get("uv") or {}
         if uv.get("durum") == "AL":
             sdrz += f' <span class="uvsb" title="Uzun vade AL: {uv.get("tarih")} tarihinden beri">🌱 UV</span>'
+        bil = s.get("bilanco") or {}
+        if bil.get("kalan_gun") is not None and 0 <= bil["kalan_gun"] <= 7:
+            ne = "Yahoo takvimi" if (bil.get("sonraki") or {}).get("kaynak") == "yahoo" else "SPK son teslim tarihi (daha erken açıklanabilir)"
+            sdrz += f' <span class="bilb" title="Sonraki bilanço: {bil["sonraki"]["tarih"]} ({ne}) — açıklama günü fiyat sert oynayabilir">📅 bilanço</span>'
         if s.get("bayrak"):
             sdrz += f' <span class="bayrakb" title="Boğa bayrağı kırılımı (direk %{s["bayrak"]["direk"]}, {s["bayrak"]["bayrak_gun"]} günlük bayrak)">🚩</span>'
         lot = s.get("lot")
@@ -97,7 +101,7 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None):
             "spark": s.get("spark", {}),
             "al_stop": s.get("al_stop"), "al_tarih": s.get("al_tarih"), "hacim_kat": s.get("hacim_kat"),
             "hacim_teyit": bool(s.get("hacim_teyit")), "taban15": s.get("taban15"), "patlak": bool(s.get("patlak")),
-            "arz": s.get("arz"), "sektor": s.get("sektor"), "endustri": s.get("endustri"), "mom20": s.get("mom20"), "uv": s.get("uv"), "bayrak": s.get("bayrak"),
+            "arz": s.get("arz"), "sektor": s.get("sektor"), "endustri": s.get("endustri"), "mom20": s.get("mom20"), "uv": s.get("uv"), "bayrak": s.get("bayrak"), "bilanco": s.get("bilanco"),
         }
 
     banner = ""
@@ -228,6 +232,9 @@ tbody tr:hover{background:#F2F5F3}
 .uvb{background:#E8EEF7;color:#28507A;font-size:9.5px;font-weight:700;padding:2px 5px;border-radius:5px;margin-left:5px}
 .alkutu{margin-top:14px;border:1px solid var(--line);border-radius:10px;padding:10px 13px;background:#FCFCFB}
 .alsat{font-size:13px;margin:3px 0;display:flex;align-items:center;gap:8px}
+.bilb{background:#EEF1F8;color:#2F4A7A;font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:5px;margin-left:5px;white-space:nowrap}
+.bilkutu{margin:0 0 14px;border:1px solid var(--line);border-radius:10px;padding:10px 14px;font-size:13px;line-height:1.55}
+.bilkutu svg{display:block;width:100%;max-width:420px;height:auto;margin-top:6px}
 .uvsb{background:#E4F2E9;color:#14633A;font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:5px;margin-left:5px;white-space:nowrap}
 .bayrakb{font-size:11px;margin-left:4px}
 .uvkutu{margin:0 0 14px;border:1px solid #CFE3D6;background:#F4FAF6;border-radius:10px;padding:10px 14px;font-size:13px;line-height:1.55}
@@ -481,6 +488,31 @@ function uvHtml(d){
  if(d.bayrak)h+='<div class="cikis">🚩 <b>Bayrak kırılımı:</b> %'+d.bayrak.direk+' direkten sonra '+d.bayrak.bayrak_gun+' günlük bayrak yukarı kırıldı (bayrak dibi '+d.bayrak.bayrak_dip+' TL).</div>';
  return h+'</div>';
 }
+function bilSayi(x,p){var a=Math.abs(x),t=a>=1e9?(a/1e9).toFixed(1)+' mlr':(a>=1e6?(a/1e6).toFixed(0)+' mn':Math.round(a)+'');return (x<0?'−':'')+t+' '+(p==='TRY'?'TL':p);}
+function bilYuz(x){return x>=0?'+%'+x:'−%'+(-x);}
+function bilHtml(d){
+ var b=d.bilanco;if(!b)return '';
+ var h='<div class="bilkutu">📊 <b>Bilanço ('+b.donem+')</b> — net kâr '+bilSayi(b.net,b.para);
+ if(b.net_yuz!=null)h+=', geçen yılın aynı çeyreğine göre <b class="'+(b.net_yuz>=0?'pos':'neg')+'">'+bilYuz(b.net_yuz)+'</b>';
+ else if(b.net_degisim)h+=' — <b class="'+(/kâra|azaldı/.test(b.net_degisim)?'pos':'neg')+'">'+b.net_degisim+'</b> (geçen yılın aynı çeyreğine göre)';
+ if(b.satis_yuz!=null)h+=' · satış '+bilYuz(b.satis_yuz);
+ h+='.';
+ if(b.sonraki){var t=b.sonraki.tarih.split('-');h+='<div class="cikis">📅 Sonraki bilanço: <b>'+t[2]+'.'+t[1]+'.'+t[0]+'</b>'+(b.sonraki.kaynak==='yahoo'?' (Yahoo takvimi)':' (SPK son teslim günü — çoğu şirket daha erken açıklar)')+(b.kalan_gun!=null&&b.kalan_gun>=0?' · '+b.kalan_gun+' gün sonra':'')+'</div>';}
+ if(b.gecikmis)h+='<div class="cikis">⚠ Son bilanço veri kaynağında görünmüyor (açıklanmamış ya da kaynak gecikmeli) — KAP\'tan kontrol et.</div>';
+ var s=b.seri||[];
+ if(s.length>=2){
+  var W=420,H=120,ust=14,alt=18,mx=0;s.forEach(function(x){mx=Math.max(mx,Math.abs(x[1]));});
+  var neg=s.some(function(x){return x[1]<0;}),pos=s.some(function(x){return x[1]>0;});
+  var y0=neg&&pos?ust+(H-ust-alt)/2:(neg?ust:H-alt),olc=(neg&&pos?(H-ust-alt)/2:(H-ust-alt))/(mx||1),bw=W/s.length;
+  var g='<svg viewBox="0 0 '+W+' '+H+'"><line x1="0" x2="'+W+'" y1="'+y0+'" y2="'+y0+'" stroke="#bbb"/>';
+  s.forEach(function(x,i){var hh=Math.abs(x[1])*olc,y=x[1]>=0?y0-hh:y0,cx=i*bw+bw/2;
+   g+='<rect x="'+(i*bw+bw*0.2)+'" y="'+y+'" width="'+(bw*0.6)+'" height="'+Math.max(hh,1)+'" fill="'+(x[1]>=0?'#1B7F4B':'#B4362E')+'" rx="2"/>'+
+    '<text x="'+cx+'" y="'+(H-4)+'" font-size="10" text-anchor="middle" fill="#666">'+x[0]+'</text>'+
+    '<text x="'+cx+'" y="'+(x[1]>=0?Math.max(y-3,10):Math.min(y+hh+11,H-alt-2))+'" font-size="9" text-anchor="middle" fill="#333">'+bilSayi(x[1],'').trim()+'</text>';});
+  h+=g+'</svg><div class="pk sgun">Çeyreklik net kâr ('+(b.para==='TRY'?'TL':b.para)+').'+(b.para==='TRY'?' TL rakamlar enflasyon muhasebesiyle raporlanır; yıllık artışın bir kısmı enflasyondur.':' Şirket rakamlarını '+b.para+' ile raporluyor.')+' Bilgi amaçlı: kısa veri geçmişi yüzünden sinyale etkisi backtest edilemedi.</div>';
+ }
+ return h+'</div>';
+}
 function arzHtml(d){
  var z=d.arz;if(!z)return '';
  var g=z.getiri==null?'':' · arzdan beri <b class="'+(z.getiri>=0?'pos':'neg')+'">'+(z.getiri>=0?'+':'')+z.getiri+'%</b>';
@@ -525,7 +557,7 @@ function ac(k){
    (d.sektor?' <span class="sektorb">'+d.sektor+(d.endustri&&d.endustri!==d.sektor?' · '+d.endustri:'')+'</span>':'')+'</div>'+
  zaman+
  (d.patlak?'<div class="patlakkutu">⚠ <b>Taban serisi:</b> son 15 günde '+d.taban15+' kez ~%10 düştü. Fon krizi tipi çöküş olabilir; bu hisseden AL mesajı gönderilmez.</div>':'')+
- pozHtml(k,d)+arzHtml(d)+uvHtml(d)+
+ pozHtml(k,d)+arzHtml(d)+uvHtml(d)+bilHtml(d)+
  '<div class="grafik">'+grafik(d.spark,d.sd)+'<div class="leg"><span class="c1">Fiyat</span><span class="c2">SMA20</span><span class="c3">SMA50</span><span class="c4">SuperTrend</span>'+
    (d.sd&&d.sd.destek?'<span class="c5">Destek</span>':'')+(d.sd&&d.sd.direnc?'<span class="c6">Direnç</span>':'')+
    '<span style="color:#1B7F4B">▲ AL</span><span style="color:#B4362E">▼ SAT</span></div></div>'+
