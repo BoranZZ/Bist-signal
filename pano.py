@@ -216,6 +216,8 @@ tbody tr:hover{background:#F2F5F3}
 .pfsag{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:8px 12px}
 .sektorb{margin-left:8px;font-size:11.5px;background:#EEF1F5;color:#4A5568;padding:2px 8px;border-radius:999px}
 .pfdag{margin-top:8px;font-size:12.5px;color:var(--muted)}.pfdag.uyar{color:#8A2F26;background:#FBECEA;border:1px solid #E6C3BD;border-radius:8px;padding:8px 11px}
+.pfuv{display:flex;align-items:center;gap:5px;font-size:13px;color:var(--ink);cursor:pointer}
+.uvb{background:#E8EEF7;color:#28507A;font-size:9.5px;font-weight:700;padding:2px 5px;border-radius:5px;margin-left:5px}
 .pfbulut{font-size:12px;color:var(--muted);margin:-2px 0 8px}.pfbulut a{color:var(--accent);font-weight:600}
 .pfbulut.ok{color:var(--pos)}.pfbulut.hata{color:var(--neg)}.pfduz{color:var(--accent)!important}
 .kurlist{margin:8px 0;padding-left:20px;font-size:12.5px}.kurlist li{margin:3px 0}.pfform input:disabled{background:#F1F1EE}
@@ -288,6 +290,7 @@ __BANNER__
     <datalist id="pfkodlar"></datalist>
     <input id="pfadet" type="number" min="1" placeholder="Adet">
     <input id="pfmal" type="number" step="any" min="0" placeholder="Maliyet (TL)">
+    <label class="pfuv" title="Uzun vadeli tuttuğun hisse: kısa vadeli SAT sinyalleri bilgi olarak gelir, çıkış yerine karar çizgisi (ana destek) gösterilir"><input id="pfuzun" type="checkbox"> Uzun vade</label>
     <button id="pfkaydetbtn" class="pfkaydet" onclick="pfKaydet()">Ekle</button>
     <button class="pfipt" onclick="pfFormKapat()">İptal</button>
   </div>
@@ -373,8 +376,14 @@ function yenile(){location.href=location.pathname+'?t='+Date.now();}
 function yzd(x){return (x>=0?'+':'−')+Math.abs(x).toFixed(1)+'%';}
 function tlf(x){return (x>=0?'+':'−')+Math.round(Math.abs(x)).toLocaleString('tr-TR')+' TL';}
 // tarama.py pozisyon_plani() ile aynı mantık
+function kararCizgisi(d){var sd=d.sd;return (sd&&sd.destek)?Math.round(sd.destek.fiyat*(1-sd.tol/100)*100)/100:null;}
 function pozPlan(d,p){
- var f=d.fiyat,m=p.maliyet,a=p.adet,pl={f:f,m:m,a:a,kz:(f-m)*a,kzy:(f/m-1)*100,sat:d.sinyal==='SAT',stop:null,hedefler:[]};
+ var f=d.fiyat,m=p.maliyet,a=p.adet,pl={f:f,m:m,a:a,kz:(f-m)*a,kzy:(f/m-1)*100,sat:d.sinyal==='SAT',stop:null,hedefler:[],uzun:!!p.uzun};
+ if(pl.uzun){   // uzun vade: stop yerine karar çizgisi (ana destek); kısa vadeli sinyal bilgi amaçlı
+  pl.karar=kararCizgisi(d);if(pl.karar){pl.kararUzak=(pl.karar/f-1)*100;pl.kararAsildi=f<pl.karar;}
+  var dru=d.sd&&d.sd.direnc;if(dru&&dru.fiyat>f)pl.hedefler.push([dru.fiyat,'en yakın direnç ('+dru.tarih+' tepesi)']);
+  return pl;
+ }
  if(pl.sat)return pl;   // SAT'ta çıkış sebebi sinyalin kendisi
  var stop=d.al_stop||d.stop;pl.stop=stop;
  if(stop){pl.stopUzak=(stop/f-1)*100;pl.stopKz=(stop-m)*a;pl.asildi=f<=stop;}
@@ -386,8 +395,17 @@ function pozPlan(d,p){
 function pozHtml(k,d){
  var p=pfOku().filter(function(x){return x.kod===k;});if(!p.length||d.fiyat==null)return '';
  var ad=0,top=0;p.forEach(function(x){ad+=x.adet;top+=x.adet*x.maliyet;});
- var pl=pozPlan(d,{adet:ad,maliyet:top/ad}),h='<div class="pozkutu"><div class="pbas">💼 Senin pozisyonun</div>'+
+ var uzun=p.some(function(x){return x.uzun;});
+ var pl=pozPlan(d,{adet:ad,maliyet:top/ad,uzun:uzun}),h='<div class="pozkutu"><div class="pbas">💼 Senin pozisyonun'+(uzun?' · uzun vade':'')+'</div>'+
   '<div>'+ad+' adet, maliyet '+pl.m.toFixed(2)+' TL → şu an <b class="'+(pl.kz>=0?'pos':'neg')+'">'+yzd(pl.kzy)+' ('+tlf(pl.kz)+')</b></div>';
+ if(pl.uzun){
+  if(pl.sat)h+='<div class="pk">ℹ️ Kısa vadede trend aşağı (SAT). Uzun vade pozisyonun için bilgi amaçlı.</div>';
+  h+=pl.karar?(pl.kararAsildi?'<div class="pk neg">🧭 <b>Fiyat karar çizgisinin ('+pl.karar+' TL) altında</b> — ana destek kırıldı; pozisyonu gözden geçirme noktası.</div>'
+     :'<div class="pk">🧭 <b>Karar çizgisi: '+pl.karar+' TL</b> — '+yzd(pl.kararUzak)+' aşağıda. Ana destek ('+d.sd.destek.fiyat+' TL, '+d.sd.destek.test+' kez test edildi) bunun altında kapanışla kırılmış sayılır.</div>')
+    :'<div class="pk">🧭 Fiyatın altında belirgin bir destek yok (son 120 günün dibinde).</div>';
+  pl.hedefler.forEach(function(x){h+='<div class="pk">🎯 İzleme: <b>'+x[0]+' TL</b> — '+x[1]+', '+yzd((x[0]/pl.f-1)*100)+' yukarıda.</div>';});
+  return h+'<div class="pk sgun">Uzun vade: kısa vadeli AL/SAT sinyalleri bilgi amaçlıdır. Backtest\'te güçlü yükseliş dönemlerinde büyük hisselerde al-tut, sinyale göre girip çıkmaktan belirgin şekilde iyi sonuç verdi. Karar çizgisinin altında kapanış, pozisyonu yeniden düşünme noktasıdır.</div></div>';
+ }
  if(pl.sat)h+='<div class="pk">📍 <b>Çıkış: SAT sinyali</b> — kural: SAT 2 gün üst üste gelince çık.</div>';
  else if(pl.stop){
   h+=pl.asildi?'<div class="pk neg">📍 <b>Fiyat çıkış seviyesinin ('+pl.stop+' TL) altında</b> — sistemin kuralına göre çıkış zamanı.</div>'
@@ -464,7 +482,7 @@ function pfNot(t){var n=document.getElementById('pfnot');n.innerHTML=t||'';n.hid
 function pfFormAc(i){
  pfDuzenlenen=(typeof i==='number')?i:-1;var p=pfDuzenlenen>=0?pfOku()[i]:null;
  document.getElementById('pfkod').value=p?p.kod:'';document.getElementById('pfkod').disabled=!!p;
- document.getElementById('pfadet').value=p?p.adet:'';document.getElementById('pfmal').value=p?p.maliyet:'';
+ document.getElementById('pfadet').value=p?p.adet:'';document.getElementById('pfmal').value=p?p.maliyet:'';document.getElementById('pfuzun').checked=!!(p&&p.uzun);
  document.getElementById('pfkaydetbtn').textContent=p?'Kaydet':'Ekle';
  document.getElementById('pfform').style.display='flex';pfNot('');
  document.getElementById(p?'pfadet':'pfkod').focus();
@@ -476,14 +494,15 @@ function pfKaydet(){
  var ma=parseFloat(document.getElementById('pfmal').value);
  if(!k||!(ad>0)||!(ma>0)){pfNot('Hisse kodu, adet ve maliyet gir.');return;}
  var a=pfOku(),not='';
- if(pfDuzenlenen>=0){a[pfDuzenlenen]={kod:k,adet:ad,maliyet:ma};not=k+' güncellendi.';}
+ var uz=document.getElementById('pfuzun').checked;
+ if(pfDuzenlenen>=0){a[pfDuzenlenen]={kod:k,adet:ad,maliyet:ma,uzun:uz};not=k+' güncellendi.';}
  else{
   var j=a.findIndex(function(p){return p.kod===k;});
   if(j>=0){  // aynı hisseye ekleme: adet toplanır, maliyet ağırlıklı ortalama
    var p=a[j],top=p.adet+ad,ort=(p.adet*p.maliyet+ad*ma)/top;
-   a[j]={kod:k,adet:top,maliyet:Math.round(ort*100)/100};
+   a[j]={kod:k,adet:top,maliyet:Math.round(ort*100)/100,uzun:!!(p.uzun||uz)};
    not=k+' mevcut pozisyona eklendi: toplam '+top+' adet, ortalama maliyet '+a[j].maliyet.toFixed(2)+' TL.';
-  }else a.push({kod:k,adet:ad,maliyet:ma});
+  }else a.push({kod:k,adet:ad,maliyet:ma,uzun:uz});
  }
  pfYaz(a);pfFormKapat();pfRender();pfNot(not);
 }
@@ -562,14 +581,16 @@ function pfRender(){
   var kzy=(f!=null)?((f/p.maliyet-1)*100):null, kzt=(f!=null)?((f-p.maliyet)*p.adet):null;
   if(kzt!=null)toplam+=kzt;
   var sn=d.sinyal||'—',scls=d.sinyal?sinyalCls(d):'notr';
-  var uy=(sn==='SAT')?' <span class="pfuy">SAT — gözden geçir</span>':'';
+  var uy=(sn==='SAT'&&!p.uzun)?' <span class="pfuy">SAT — gözden geçir</span>':'';
   var kzc=(kzy||0)>=0?'pos':'neg';
-  r+='<tr onclick="ac(\''+p.kod+'\')"><td class="kod">'+p.kod+'</td><td class="num">'+p.adet+'</td><td class="num">'+p.maliyet+'</td>'+
+  r+='<tr onclick="ac(\''+p.kod+'\')"><td class="kod">'+p.kod+(p.uzun?'<span class="uvb" title="Uzun vade">UV</span>':'')+'</td><td class="num">'+p.adet+'</td><td class="num">'+p.maliyet+'</td>'+
      '<td class="num">'+(f!=null?f:'—')+'</td>'+
      '<td class="num '+kzc+'">'+(kzy!=null?((kzy>=0?'+':'')+kzy.toFixed(1)+'%'):'—')+'</td>'+
      '<td class="num '+kzc+'">'+(kzt!=null?((kzt>=0?'+':'')+Math.round(kzt).toLocaleString('tr-TR')+' TL'):'—')+'</td>'+
-     '<td><span class="pill '+scls+'">'+sn+'</span>'+uy+(sn==='SAT'&&(d.sinyal_gun||1)<=1?' <span class="gun1b">⏳ 1. gün</span>':'')+'</td>'+
+     '<td><span class="pill '+scls+'">'+sn+'</span>'+uy+(sn==='SAT'&&!p.uzun&&(d.sinyal_gun||1)<=1?' <span class="gun1b">⏳ 1. gün</span>':'')+'</td>'+
      (function(){if(f==null)return '<td class="num">—</td><td class="num">—</td>';var pl=pozPlan(d,p),h=pl.hedefler.length?pl.hedefler[0][0]:null;
+       if(pl.uzun)return '<td class="num stop">'+(pl.karar?(pl.kararAsildi?'<b>🧭 '+pl.karar+' ⚠</b>':'🧭 '+pl.karar+' <span class="sgun">'+yzd(pl.kararUzak)+'</span>'):'—')+'</td>'+
+              '<td class="num pos">'+(h?h+' <span class="sgun">'+yzd((h/f-1)*100)+'</span>':'—')+'</td>';
        if(pl.sat)return '<td class="num stop">SAT sinyali</td><td class="num">—</td>';
        return '<td class="num stop">'+(pl.stop?(pl.asildi?'<b>'+pl.stop+' ⚠</b>':pl.stop+' <span class="sgun">'+yzd(pl.stopUzak)+'</span>'):'—')+'</td>'+
               '<td class="num pos">'+(h?h+' <span class="sgun">'+yzd((h/f-1)*100)+'</span>':'—')+'</td>';})()+
