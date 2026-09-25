@@ -83,6 +83,12 @@ isteğiyle faiz yüzünden düşen eski büyükler (KONTR vb.) KALDI — tüm ç
   +%73/+%215); komşu ayarlar (0.70-0.80, 1.2-1.5, 10-40g kırılım) neredeyse aynı; 200 rastgele yarım listede v2'yi
   %77-97, XU100'ü %88-100 yeniyor. Düşük faizde işlem isabeti %74 (v2 %47). backtest.py'de "düşük faiz" satırında v2
   işlem başı önde görünür: v3 250 günlük ısınma yüzünden Tem-Eyl 2022 rallisini kaçırıyor (adil değil).
+- Örneklem dışı (2016-2021, 85 bugünkü hisse — hayatta kalan yanlılığı ikisine de eşit): sınırsız sepette v3 ≈ v2
+  (+%46/+%50, +%232/+%232), 10 yuvalı portföyde v3 4 kıyasın 3'ünde önde (+%80 vs +%32, +%232 vs +%205); ikisi de
+  BIST100'ü (+%29/+%109) yeniyor, eski canlı kurallar en kötü. v3 üstünlüğü son 4 yılda belirgin, eski dönemde küçük.
+- Pratik: sınırsız sepette aynı anda ~35-45 pozisyon; 10 eşit yuva (dolunca atla) sonuçları çok bozmuyor.
+- Aylık momentum rotasyonu (6 ay, üst %20): yüksek faizde çok güçlü, düşük faizde XU100 gerisinde; v3 ile yarı
+  yarıya 4 yılda +%717 / maks düşüş −%21 (v3 +%562 / −%25) — uygulanmadı, kullanıcıya seçenek.
 - Denenip v3'ten zayıf kalanlar: 55/100/250g zirve kırılımı, ADX/DI, Bollinger sıkışma, OBV, CMF, RSI 50, EMA10/30
   (yüksek faizde iyi, düşükte zayıf), Ichimoku (iyi ama Minervini'den geride), v2 VEYA Minervini birleşimi.
 - Telegram: 17:30+ kırılımlar (`tk_gonderilen`, günde bir kez), 18:30 sonrası kapanışta tutmayan için "↩️ iptal".
