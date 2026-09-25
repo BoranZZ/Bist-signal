@@ -37,6 +37,7 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           TELEGRAM_TEST: ${{ inputs.telegram_test }}
           PORTFOY: ${{ vars.PORTFOY }}   # panodan otomatik yazılır (kullanıcı onayıyla variable)
+          ALARMLAR: ${{ vars.ALARMLAR }}   # panodan kurulan fiyat alarmları
         run: python tarama.py
       - name: Panoyu kaydet
         run: |

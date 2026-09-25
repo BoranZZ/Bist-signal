@@ -55,7 +55,7 @@ tarih/fiyat), TradingView'i sadece "tam ekran aç" butonu olarak bırak.
 4. **FAVÖK açıklaması:** YAPILDI (açıklama kartı eklendi).
 5. **KAP/haber akışı:** hisse başına son bildirim/haber (ücretsiz kaynak); yorumlamayı
    abartma (haber çoğu zaman fiyata yansımıştır).
-6. Sektör dağılımı + yoğunlaşma uyarısı YAPILDI; haftalık Telegram özeti YAPILDI. Kalan: fiyat/seviye alarmı.
+6. Sektör dağılımı + yoğunlaşma uyarısı, haftalık Telegram özeti ve fiyat alarmı YAPILDI.
 
 ## Kullanıcının okumayı bilmediği şeyler (öğretilecek)
 RSI, MACD ve hacim panellerinin nasıl okunacağını sade anlat (grafik dersi).
@@ -86,6 +86,9 @@ isteğiyle faiz yüzünden düşen eski büyükler (KONTR vb.) KALDI — tüm ç
 - SAT + destekten tepki: SAT sürerken destek tepkilerinin ~%68'i 20 günde kırıldı → çelişki notu + karar çizgisi.
 - Stop yönetimi (başabaş, iz stop, zayıf piyasada hızlı çıkış) mevcut sabit stop'tan iyi değil — değiştirme.
 - Sektör: Yahoo sector/industry günlük oran önbelleğinde (5 elemanlı liste); `ENDUSTRI_TR` Türkçe karşılıklar.
+- Fiyat alarmı: panoda hisse penceresinden kurulur, `ALARMLAR` variable'ına (portföyle aynı anahtar) yazılır;
+  her taramada (gün içi de) kontrol, her alarm bir kez çalar. durum.json herkese açık olduğundan sadece
+  alarmın sha1 özeti (`alarm_tetik`) saklanır; silinen alarmın kaydı temizlenir.
 - Taban serisi: son 15 günde ≥4 kez ≤ −%9 → "⚠ taban serisi"; bu hisselerden AL mesajı gitmez.
 - SAT: 1. gün "⏳" işaretiyle gösterilir/bildirilir, 2. gün "✅ teyit" mesajı (portföy).
 - Portföy: çıkış = son AL başındaki sabit stop (`al_stop`), SAT'ta çıkış sebebi sinyal; hedefler

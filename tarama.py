@@ -298,6 +298,57 @@ def portfoy_yukle():
     return pf
 
 
+def alarmlari_yukle():
+    """Fiyat alarmları GitHub variable'ından (ALARMLAR) gelir; panoda hisse penceresinden kurulur.
+    DİKKAT: loglar herkese açık — alarm içeriğini print etme."""
+    try:
+        liste = json.loads(os.environ.get("ALARMLAR", "").strip() or "[]")
+    except Exception:
+        print("ALARMLAR okunamadı.")
+        return []
+    temiz = []
+    for a in liste if isinstance(liste, list) else []:
+        try:
+            kod, yon, fiyat = str(a["kod"]).strip().upper(), a["yon"], float(a["fiyat"])
+        except Exception:
+            continue
+        if yon in ("ust", "alt") and fiyat > 0:
+            temiz.append({"kod": kod, "yon": yon, "fiyat": fiyat})
+    if temiz:
+        print(f"Alarm: {len(temiz)} adet.")
+    return temiz
+
+
+def _alarm_anahtar(a):
+    # durum.json herkese açık: alarmın kendisi değil, özeti (hash) saklanır
+    import hashlib
+    return hashlib.sha1(f"{a['kod']}|{a['yon']}|{a['fiyat']}".encode()).hexdigest()[:12]
+
+
+def alarm_kontrol(alarmlar, by_kod, tetiklenen):
+    """Koşulu sağlanan ve daha önce bildirilmemiş alarmlar. Silinen alarmların kaydı temizlenir (yeniden kurulursa tekrar çalışır)."""
+    aktif = {_alarm_anahtar(a) for a in alarmlar}
+    tetiklenen &= aktif
+    yeni = []
+    for a in alarmlar:
+        s = by_kod.get(a["kod"])
+        if not s or not s.get("fiyat"):
+            continue
+        tuttu = s["fiyat"] >= a["fiyat"] if a["yon"] == "ust" else s["fiyat"] <= a["fiyat"]
+        k = _alarm_anahtar(a)
+        if tuttu and k not in tetiklenen:
+            tetiklenen.add(k)
+            yeni.append((a, s))
+    return yeni
+
+
+def alarm_mesaji(liste):
+    satir = [f"🔔 <b>{a['kod']}</b> {a['fiyat']:g} TL {'üstüne çıktı' if a['yon'] == 'ust' else 'altına indi'} — şu an {s['fiyat']} TL ({s['sinyal']})"
+             for a, s in liste]
+    return ("🔔 <b>Fiyat alarmı</b>\n" + "\n".join(satir) +
+            f"\n\n<a href=\"{PANO_URL}\">Panoyu aç</a> · Alarm bir kez çalar; panodan silebilir ya da yenisini kurabilirsin.")
+
+
 def sinyal_degisimleri(sonuclar, son):
     """son: kod -> son 'kesin' sinyal (AL/SAT). NÖTR ara geçişleri sayılmaz: AL→NÖTR→AL tekrar
     mesaj atmaz (15 dk'lık taramada gidip gelen hisse spam yapmasın), AL→SAT→AL atar.
@@ -741,6 +792,15 @@ def main():
         print("Yeni AL / portföyde SAT yok, Telegram sessiz." if kapanis_sonrasi
               else "Gün içi tarama: AL/SAT mesajları kapanış sonrası taramada gönderilir.")
 
+    # Fiyat alarmları: her taramada (gün içi de) kontrol edilir, her alarm bir kez çalar
+    tetiklenen = set(durum.get("alarm_tetik", []))
+    alarm_yeni = alarm_kontrol(alarmlari_yukle(), by_kod, tetiklenen)
+    if alarm_yeni:
+        print(f"Telegram: {len(alarm_yeni)} fiyat alarmı.")
+        if not tg_gonder(alarm_mesaji(alarm_yeni)):
+            for a, _ in alarm_yeni:
+                tetiklenen.discard(_alarm_anahtar(a))   # gönderilemediyse sonraki taramada yeniden dene
+
     # Günlük portföy özeti: hafta içi, kapanıştan sonraki ilk taramada bir kez
     ozet_tarih = durum.get("ozet_tarih")
     if pf and simdi.weekday() < 5 and kapanis_zamani and ozet_tarih != bugun_iso:
@@ -758,7 +818,8 @@ def main():
     with open(DURUM, "w", encoding="utf-8") as f:
         json.dump({"al": sorted(s["kod"] for s in bugun_al), "son": dict(sorted(son.items())),
                    "sat_teyit": dict(sorted(teyit.items())), "ozet_tarih": ozet_tarih, "hafta_tarih": hafta_tarih,
-                   "karar_kirilim": dict(sorted(kirilim.items())), "karar_cizgisi": dict(sorted(karar_kayit.items()))},
+                   "karar_kirilim": dict(sorted(kirilim.items())), "karar_cizgisi": dict(sorted(karar_kayit.items())),
+                   "alarm_tetik": sorted(tetiklenen)},
                   f, ensure_ascii=False, indent=2)
 
 

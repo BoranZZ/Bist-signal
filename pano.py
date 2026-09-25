@@ -218,6 +218,8 @@ tbody tr:hover{background:#F2F5F3}
 .pfdag{margin-top:8px;font-size:12.5px;color:var(--muted)}.pfdag.uyar{color:#8A2F26;background:#FBECEA;border:1px solid #E6C3BD;border-radius:8px;padding:8px 11px}
 .pfuv{display:flex;align-items:center;gap:5px;font-size:13px;color:var(--ink);cursor:pointer}
 .uvb{background:#E8EEF7;color:#28507A;font-size:9.5px;font-weight:700;padding:2px 5px;border-radius:5px;margin-left:5px}
+.alkutu{margin-top:14px;border:1px solid var(--line);border-radius:10px;padding:10px 13px;background:#FCFCFB}
+.alsat{font-size:13px;margin:3px 0;display:flex;align-items:center;gap:8px}
 .pfbulut{font-size:12px;color:var(--muted);margin:-2px 0 8px}.pfbulut a{color:var(--accent);font-weight:600}
 .pfbulut.ok{color:var(--pos)}.pfbulut.hata{color:var(--neg)}.pfduz{color:var(--accent)!important}
 .kurlist{margin:8px 0;padding-left:20px;font-size:12.5px}.kurlist li{margin:3px 0}.pfform input:disabled{background:#F1F1EE}
@@ -505,6 +507,7 @@ function ac(k){
  '<div class="gbas">Göstergeler</div><div class="gliste">'+gost+'</div>'+
  (ekh?'<div class="ekler">'+ekh+'</div>':'')+
  '<div class="yorum">'+(d.yorum||d.gerekce.join(' · '))+'</div>'+
+ alarmHtml(k,d)+
  '<div class="btnler"><a class="btn p" href="'+tv+'" target="_blank" rel="noopener">TradingView\'de tam ekran ↗</a></div>';
  document.getElementById('ust').classList.add('acik');
 }
@@ -580,6 +583,38 @@ function pfBulutOku(){  // GitHub'daki portföy doluysa o esas alınır (başka 
   });
  }).catch(function(){pfBulutDurum('hata');return false;});
 }
+// --- Fiyat alarmı: cihazda + GitHub'daki ALARMLAR variable'ında (portföyle aynı anahtar); tarama tetikleyince Telegram ---
+var AL_KEY='alarmlar_v1';
+function alOku(){try{return JSON.parse(localStorage.getItem(AL_KEY))||[]}catch(e){return[]}}
+function alYaz(a){try{localStorage.setItem(AL_KEY,JSON.stringify(a))}catch(e){}
+ if(!ghAnahtar())return Promise.resolve(false);
+ var v={name:'ALARMLAR',value:JSON.stringify(a)};
+ return ghIstek('PATCH','/actions/variables/ALARMLAR',v).then(function(r){return r.status===404?ghIstek('POST','/actions/variables',v):r;})
+  .then(function(r){return r.ok;}).catch(function(){return false;});
+}
+function alBulutOku(){
+ if(!ghAnahtar())return Promise.resolve(false);
+ return ghIstek('GET','/actions/variables/ALARMLAR').then(function(r){return r.ok?r.json():null;}).then(function(j){
+  if(!j)return false;var a=[];try{a=JSON.parse(j.value);}catch(e){}
+  if(Array.isArray(a)){try{localStorage.setItem(AL_KEY,JSON.stringify(a))}catch(e){}return true;}return false;
+ }).catch(function(){return false;});
+}
+function alarmHtml(k,d){
+ var liste='';alOku().forEach(function(x,i){if(x.kod!==k)return;
+  liste+='<div class="alsat">🔔 '+(x.yon==='ust'?'<b>'+x.fiyat+' TL</b> üstüne çıkınca':'<b>'+x.fiyat+' TL</b> altına inince')+
+   ' <button class="pfsil" title="Sil" onclick="alSil('+i+',\''+k+'\')">✕</button></div>';});
+ return '<div class="alkutu"><div class="gbas">🔔 Fiyat alarmı</div>'+liste+
+  '<div class="pfform" style="display:flex;margin:6px 0 0"><input id="alfiyat" type="number" step="any" min="0" placeholder="Fiyat (TL)" style="width:120px">'+
+  '<button class="pfipt" onclick="alEkle(\''+k+'\',\'ust\')">Üstüne çıkınca</button><button class="pfipt" onclick="alEkle(\''+k+'\',\'alt\')">Altına inince</button></div>'+
+  '<div class="cikis" id="alnot">'+(ghAnahtar()?'Alarm tetiklenince Telegram\'a bir kez mesaj gelir (her 15 dakikalık taramada kontrol edilir).'
+   :'Bu cihaz Telegram\'a bağlı değil: alarm sadece burada kayıtlı, bildirim gelmez. Portföyüm → <b>Telegram\'a bağla</b>.')+'</div></div>';
+}
+function alEkle(k,yon){
+ var f=parseFloat(document.getElementById('alfiyat').value);
+ if(!(f>0)){document.getElementById('alnot').textContent='Geçerli bir fiyat gir.';return;}
+ var a=alOku();a.push({kod:k,yon:yon,fiyat:f});alYaz(a);ac(k);
+}
+function alSil(i,k){var a=alOku();a.splice(i,1);alYaz(a);ac(k);}
 function ghKurulum(){
  var k=document.getElementById('pfkur');k.hidden=false;
  k.innerHTML='<b>Portföyünü Telegram\'a bağla</b> (her cihazda bir kez)'+
@@ -597,7 +632,7 @@ function ghKaydet(){
  try{localStorage.setItem(GH_KEY,t);}catch(e){s.textContent='Tarayıcı anahtarı kaydetmeye izin vermedi.';return;}
  s.textContent='Deneniyor…';
  pfBulutOku().then(function(ok){
-  if(ok){document.getElementById('pfkur').hidden=true;pfNot('✓ Bağlandı. Portföyündeki değişiklikler artık otomatik olarak Telegram mesajlarına yansıyacak.');}
+  if(ok){alBulutOku().then(function(v){if(!v)alYaz(alOku());});document.getElementById('pfkur').hidden=true;pfNot('✓ Bağlandı. Portföyündeki değişiklikler artık otomatik olarak Telegram mesajlarına yansıyacak.');}
   else{try{localStorage.removeItem(GH_KEY);}catch(e){}s.textContent='Olmadı: anahtar yanlış ya da "Variables: Read and write" yetkisi yok. Adımları kontrol edip tekrar dene.';pfBulutDurum('yerel');}
  });
 }
@@ -644,7 +679,7 @@ function pfRender(){
  liste.innerHTML=r;
  top.innerHTML='Toplam K/Z: <b class="'+(toplam>=0?'pos':'neg')+'">'+(toplam>=0?'+':'')+Math.round(toplam).toLocaleString('tr-TR')+' TL</b>';
 }
-(function(){var dl=document.getElementById('pfkodlar');if(dl){dl.innerHTML=Object.keys(DATA).sort().map(function(k){return '<option value="'+k+'"></option>';}).join('');}pfRender();pfBulutOku();})();
+(function(){var dl=document.getElementById('pfkodlar');if(dl){dl.innerHTML=Object.keys(DATA).sort().map(function(k){return '<option value="'+k+'"></option>';}).join('');}pfRender();pfBulutOku();alBulutOku();})();
 </script></body></html>"""
 
 
