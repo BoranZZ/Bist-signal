@@ -15,7 +15,7 @@ Panoda **Portföyüm → + Ekle** ile hisse/adet/maliyet girersin; **cihazında*
 
 
 ## Sinyal geçmişi (canlı karne)
-Sistem AL dediği anki fiyatı `gecmis.json`'a kaydeder; stop yerse ya da sinyal SAT'a dönerse kapatıp sonucu yazar. `gecmis.html`'de birikir. Bu **ileriye dönük gerçek** performanstır (bugünden itibaren). `gecmis.json` otomatik oluşur, elleme.
+Sistem, v2 kurallarına uyan AL'lerde (trend içinde, aşırı oynak değil, piyasa zayıf değil) o anki fiyatı `gecmis.json`'a kaydeder; fiyat kayıttan beri görülen en yüksek kapanışın %20 altına inerse (iz stop) kapatıp sonucu yazar. `gecmis.html`'de birikir. Bu **ileriye dönük gerçek** performanstır (bugünden itibaren). `gecmis.json` otomatik oluşur, elleme.
 
 ## Backtest (geçmiş simülasyonu)
 Actions → **Backtest (elle)** → **Run workflow**. Gerçek 2 yıllık veriyle çalışır, `backtest.html` üretir. Sinyal kapanışta oluşur, işleme ertesi gün girilir, çift yön %0.2 komisyon düşülür, al-tut ile kıyaslanır.
@@ -45,6 +45,8 @@ GitHub'ın kendi zamanlayıcısı ücretsiz hesapta saatlerce gecikebiliyor ya d
    - Kaydet → **Test run**. Sonuç **204** olmalı. Ardından GitHub'da Actions'ta yeni bir tarama başlar.
 
 ## Telegram
+**v2 kuralları (Eylül 2026):** AL mesajı sadece yükselen trenddeki (fiyat 200 günlük ortalamanın üstünde ve o yükseliyor), aşırı oynak olmayan hisselerde gelir; diğerleri "trend dışı" kısa listede. Çıkış kuralı **iz stop**: AL'den beri en yüksek kapanışın %20 altı, fiyat yükseldikçe yukarı taşınır; kapanış altına inerse portföyündeki hisse için "📉 İz stop kırıldı" mesajı gelir. SAT sinyali artık tek başına "çık" demek değil, bilgi olarak gelir. (Gece testleri: 5 yılda SAT'ta çıkmak yükseliş piyasasında kazancı eritiyordu; iz stop 2023'te −%6 yerine +%45.)
+
 Mesaj şu durumlarda gelir:
 - **Yeni AL:** Taranan tüm hisselerde. Hacmi yüksek AL'ler "📈 hacim" etiketiyle işaretlenir (bilgi amaçlı; backtest'te tek başına belirgin üstünlük sağlamadı). Piyasa zayıfsa (BIST 100 50 günlük ortalamasının altında) mesajda uyarı olur. Son 15 günde 4+ kez taban olan hisselerden AL mesajı gitmez.
 - **Portföyündeki hisselerde:** Satırın başında ❗ olur. Altında şunlar yazar: kâr/zararın, 📍 çıkış seviyesi (stop) ve 🎯 hedefler (en yakın direnç ve risk/ödül 2:1).

@@ -22,6 +22,11 @@ SD_TOL_MIN, SD_TOL_MAX = 0.01, 0.025   # "yakın" eşiğinin alt/üst sınırı
 HACIM_ESIK = 1.5       # AL'e dönüş günü hacmi / önceki 20 günün ortalaması
 # taban serisi (fon krizinde çöken şişirilmiş hisseler): son 15 günde en az 4 kez ~%10 düşüş
 TABAN_GETIRI, TABAN_GUN, PATLAK_TABAN = -0.09, 15, 4
+# v2 (gece testleri, 2026-09): çıkış = AL'den sonraki en yüksek kapanışın %20 altı (iz stop). Sınırsız sepet
+# simülasyonunda stop+SAT2'ye göre düşük faizde +%9 -> +%67, 2023'te -%6 -> +%45; %18/%22 komşuları tutarlı.
+# Giriş filtresi: trend (fiyat>SMA200 ve SMA200 yükseliyor) + aşırı oynak değil (60 günlük günlük oynaklık ≤ %5).
+IZ_STOP_ORAN = 0.20
+OYNAK_ESIK = 0.05
 
 
 def sma(s, n): return s.rolling(n).mean()
@@ -353,6 +358,25 @@ def analiz_et(df):
     # son AL'in başladığı gün ve o günkü stop (portföydeki pozisyonun çıkış seviyesi)
     al_bas = next((i for i in range(len(sig) - 1, -1, -1) if sig[i] == "AL" and (i == 0 or sig[i-1] != "AL")), None)
     al_stop = round(float(d["STOP"].iloc[al_bas]), 2) if al_bas is not None else None
+    # iz stop: son AL dönüşünden beri görülen en yüksek kapanışın IZ_STOP_ORAN altı
+    iz = None
+    if al_bas is not None:
+        # AL'den itibaren gün gün: tepe güncellenir; kapanış tepenin %20 altına ilk indiği gün pozisyon kapanmış sayılır
+        kap = d["Close"].iloc[al_bas:]
+        tepe, tepe_t, cikis_t = -1.0, None, None
+        for t, x in kap.items():
+            if x > tepe:
+                tepe, tepe_t = float(x), t
+            if x < tepe * (1 - IZ_STOP_ORAN):
+                cikis_t = t
+                break
+        iz = {"tepe": round(tepe, 2), "tepe_tarih": str(tepe_t.date()), "stop": round(tepe * (1 - IZ_STOP_ORAN), 2),
+              "cikti": cikis_t is not None, "cikis_tarih": str(cikis_t.date()) if cikis_t is not None else None,
+              "uzaklik": round((tepe * (1 - IZ_STOP_ORAN) / fiyat - 1) * 100, 1)}
+    vol60 = d["Close"].pct_change().tail(60).std()
+    oynak = bool(not pd.isna(vol60) and vol60 > OYNAK_ESIK)
+    s200 = d["SMA200"]
+    trend = bool(len(d) > 220 and not pd.isna(s200.iloc[-1]) and fiyat > s200.iloc[-1] and s200.iloc[-1] > s200.iloc[-21])
     al_tarih = str(d.index[al_bas].date()) if al_bas is not None else None
 
     # hacim teyidi: AL'e dönüş günü hacmi önceki 20 günün ortalamasının HACIM_ESIK katından fazla mı
@@ -387,6 +411,11 @@ def analiz_et(df):
         "sinyal_gun": run,
         "notr_kaynak": notr_kaynak,
         "al_stop": al_stop,
+        "iz": iz,
+        "oynak": oynak,
+        "vol60": None if pd.isna(vol60) else round(float(vol60) * 100, 1),
+        "trend": trend,
+        "v2_uygun": bool(trend and not oynak),   # v2 giriş filtresi (piyasa filtresi taramada)
         "al_tarih": al_tarih,
         "hacim_kat": hacim_kat,
         "hacim_teyit": bool(hacim_kat is not None and hacim_kat >= HACIM_ESIK),

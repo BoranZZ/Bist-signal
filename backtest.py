@@ -18,7 +18,7 @@ Sonuçlar düşük faiz (2023 Haziran öncesi) ve yüksek faiz dönemine ayrıl�
 import numpy as np
 import pandas as pd
 
-from sinyal import gostergeler, sma
+from sinyal import gostergeler, sma, IZ_STOP_ORAN, OYNAK_ESIK
 
 KOMISYON = 0.002        # tek yön %0.2 (komisyon + kayma varsayımı)
 MAX_GUN = 40            # mevcut kural: bir pozisyonu en fazla bu kadar gün tut
@@ -45,7 +45,12 @@ def tek_hisse_backtest(df, kod="", kural="mevcut", xu_ust=None):
     stop_ser = d["STOP"].values
     idx = d.index
     n = len(d)
-    aday = kural == "aday"
+    v2 = kural == "v2"
+    aday = kural == "aday" or v2
+    if v2:   # v2 giriş filtresi: trend (fiyat>SMA200, SMA200 20 günde yükselmiş) + aşırı oynak değil
+        s200 = d["SMA200"]
+        trend = ((d["Close"] > s200) & (s200 > s200.shift(20))).values
+        oynak = (d["Close"].pct_change().rolling(60).std() > OYNAK_ESIK).values
     if aday:
         ust = (xu_ust.reindex(idx, method="ffill").fillna(False).values if xu_ust is not None
                else np.ones(n, dtype=bool))
@@ -58,6 +63,8 @@ def tek_hisse_backtest(df, kod="", kural="mevcut", xu_ust=None):
     while i < n - 1:
         if aday:
             gir = sinyal[i] == "AL" and (i == 0 or sinyal[i - 1] != "AL") and bool(ust[i])
+            if v2:
+                gir = gir and bool(trend[i]) and not bool(oynak[i])
         else:
             gir = sinyal[i] == "AL"
         if not gir:
@@ -66,8 +73,14 @@ def tek_hisse_backtest(df, kod="", kural="mevcut", xu_ust=None):
         giris = float(o[i + 1])                              # ertesi gün açılış
         giris_stop = float(stop_ser[i])
         giris_tarih = idx[i + 1]
-        cikis, sat_say = None, 0
+        cikis, sat_say, tepe = None, 0, giris
         for j in range(i + 1, min(i + 1 + max_gun, n)):
+            if v2:   # v2 çıkış: kapanış, girişten beri tepe kapanışın %20 altına inerse
+                tepe = max(tepe, float(close[j]))
+                if float(close[j]) < tepe * (1 - IZ_STOP_ORAN):
+                    cikis, sebep, ct = float(close[j]), "iz stop", idx[j]
+                    break
+                continue
             if float(low[j]) <= giris_stop:                  # stop yendi (boşlukla açıldıysa açılıştan)
                 cikis, sebep, ct = min(giris_stop, float(o[j])), "stop", idx[j]
                 break
@@ -173,7 +186,7 @@ def _yuzde(x, isaret=True):
     return f"{'+' if (isaret and x >= 0) else ''}{x}%".replace("-", "−")
 
 
-def rapor_html(ozetler, genel, donem="", genel_aday=None, donem_satirlari=None):
+def rapor_html(ozetler, genel, donem="", genel_aday=None, donem_satirlari=None, genel_v2=None):
     ozetler = sorted(ozetler, key=lambda x: -(x.get("toplam") or -999))
     satir = []
     for o in ozetler:
@@ -236,7 +249,8 @@ tbody tr{{border-bottom:1px solid var(--line)}}tbody tr:last-child{{border-botto
 .not{{margin-top:14px;padding:14px 16px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--muted);font-size:12.5px;line-height:1.65}}
 </style></head><body><div class="wrap">
 <h1>Backtest Raporu — canlı kurallar vs eski kurallar</h1><div class="tarih">Dönem: {donem} · komisyon+kayma çift yön %{KOMISYON*100:g}</div>
-{kartlar(genel_aday, "Canlı kurallar (AL'e dönüş + piyasa filtresi; stop ya da 2 gün SAT'ta çık)") if genel_aday else ""}
+{kartlar(genel_v2, "v2 (AL'e dönüş + piyasa + trend, aşırı oynak hariç; %20 iz stop'ta çık)") if genel_v2 else ""}
+{kartlar(genel_aday, "Önceki canlı kurallar (AL'e dönüş + piyasa filtresi; stop ya da 2 gün SAT'ta çık)") if genel_aday else ""}
 {kartlar(genel, "Eski kurallar (AL olan her gün gir; stop, SAT ya da " + str(MAX_GUN) + " gün sonra çık)")}
 {dtablo}
 <h2>Hisse bazında (eski kurallar)</h2>
@@ -293,7 +307,8 @@ if __name__ == "__main__":
         donem = "son 5 yıl (gerçek veri)"
     ozetler, genel, isl_m = toplu_backtest(veri, "mevcut", xu)
     _, genel_a, isl_a = toplu_backtest(veri, "aday", xu)
-    setler = {"canlı": isl_a, "canlı + hacim etiketli": [t for t in isl_a if t["hacim"]], "eski": isl_m}
+    _, genel_v2, isl_v2 = toplu_backtest(veri, "v2", xu)
+    setler = {"v2 (trend + iz stop %20)": isl_v2, "canlı (stop / 2 gün SAT)": isl_a, "eski": isl_m}
     with open("backtest.html", "w", encoding="utf-8") as f:
-        f.write(rapor_html(ozetler, genel, donem, genel_a, donem_tablosu(setler, xu)))
+        f.write(rapor_html(ozetler, genel, donem, genel_a, donem_tablosu(setler, xu), genel_v2))
     print("backtest.html yazıldı.\n  eski: ", genel, "\n  canlı:", genel_a)

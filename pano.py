@@ -49,8 +49,8 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None):
             sdrz += ' <span class="sdb direnc" title="Fiyat geçmişte satış gelen bir tepe seviyesine yakın">Dirence yaklaşıyor</span>'
         if s.get("hacim_teyit"):
             sdrz += f' <span class="hacimb" title="AL günü hacmi 20 günlük ortalamanın {s.get("hacim_kat")} katı">📈 hacim</span>'
-        if s["sinyal"] == "SAT" and (s.get("sinyal_gun") or 1) <= 1:
-            sdrz += " <span class=\"gun1b\" title=\"SAT'ın 1. günü: teyit için yarını bekle\">⏳ 1. gün</span>"
+        if s.get("oynak"):
+            sdrz += f' <span class="patlakb" title="60 günlük günlük oynaklık %{s.get("vol60")} (> %5): aşırı oynak, AL mesajı gönderilmez">⚡ oynak</span>'
         if s.get("patlak"):
             sdrz += f' <span class="patlakb" title="Son 15 günde {s.get("taban15")} kez ~%10 düştü (taban serisi)">⚠ taban serisi</span>'
         if s.get("arz"):
@@ -67,6 +67,8 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None):
         ntit = {"AL": " title=\"AL'den NÖTR'e döndü\"", "SAT": " title=\"SAT'tan NÖTR'e döndü\""}.get(nk, "")
         sgun = s.get("sinyal_gun")
         sgunt = f"{sgun}g" if sgun else "—"
+        iz = s.get("iz") or {}
+        izs = iz.get("stop", "—") if (iz and not iz.get("cikti")) else "—"   # v2: iz stop (açık AL dalgası)
         rows.append(
             f'<tr onclick="ac(\'{k}\')">'
             f'<td class="kod">{k}</td>'
@@ -78,7 +80,7 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None):
             f'<td class="num">{s.get("rsi") if s.get("rsi") is not None else "—"}</td>'
             f'<td class="num">{s.get("fk") if s.get("fk") is not None else "—"}<span class="tag {fkm}">{ok[fkm]}</span></td>'
             f'<td class="num">{s.get("pddd") if s.get("pddd") is not None else "—"}<span class="tag {pdm}">{ok[pdm]}</span></td>'
-            f'<td class="num stop">{s.get("stop","—")}</td>'
+            f'<td class="num stop">{izs}</td>'
             f'<td class="num lot">{lott}</td></tr>'
         )
         veri[k] = {
@@ -86,7 +88,8 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None):
             "guclu": bool(s.get("guclu")), "yeni": bool(s.get("yeni")), "sd": s.get("sd"),
             "destek_tepki": bool(s.get("destek_tepki")), "direnc_yakin": bool(s.get("direnc_yakin")),
             "rsi": s.get("rsi"), "fk": s.get("fk"), "pddd": s.get("pddd"), "favok": s.get("favok"),
-            "stop": s.get("stop"), "giris_stop": s.get("giris_stop"), "lot": s.get("lot"),
+            "stop": s.get("stop"), "giris_stop": s.get("giris_stop"), "lot": s.get("lot"), "iz": s.get("iz"),
+            "oynak": bool(s.get("oynak")), "vol60": s.get("vol60"), "trend": bool(s.get("trend")), "v2_uygun": bool(s.get("v2_uygun")),
             "hedef": s.get("hedef"), "sinyal_gun": s.get("sinyal_gun"), "notr_kaynak": s.get("notr_kaynak"),
             "sinyal_tarih": s.get("sinyal_tarih"), "sinyal_degisim": s.get("sinyal_degisim"),
             "uyum": s.get("uyum"), "detay": s.get("detay", []), "ek": s.get("ek", []),
@@ -314,11 +317,11 @@ __BANNER__
 __ARZ__
 <div class="aciklama">
 <div class="kart"><h3>AL / AL+ / NÖTR / SAT</h3><p>Trend, ortalama dizilimi, MACD kesişimi ve RSI momentumundan bir puan. <b>★ AL+</b>: teknik AL ile birlikte F/K ve PD/DD de grup medyanının altında.</p></div>
-<div class="kart"><h3>📈 hacim · ⏳ 1. gün · ⚠ taban serisi</h3><p><b>📈 hacim</b>: AL günü işlem hacmi son 20 günün 1,5 katından fazla — ilgi arttığını gösterir; ama backtest'te tek başına belirgin bir üstünlük sağlamadı, bilgi amaçlıdır. <b>⏳ 1. gün</b>: SAT'ın ilk günü; tek günlük yanlış alarm olabilir, teyit için yarını bekle. <b>⚠ taban serisi</b>: son 15 günde 4+ kez ~%10 düştü (fon krizi tipi çöküş) — bu hisselerden AL mesajı gönderilmez.</p></div>
+<div class="kart"><h3>📈 hacim · ⚡ oynak · ⚠ taban serisi</h3><p><b>📈 hacim</b>: AL günü işlem hacmi son 20 günün 1,5 katından fazla — ilgi arttığını gösterir; ama backtest'te tek başına belirgin bir üstünlük sağlamadı, bilgi amaçlıdır. <b>⚡ oynak</b>: son 60 günde günlük oynaklık %5'ten fazla (spekülatif) — AL mesajı gönderilmez. <b>⚠ taban serisi</b>: son 15 günde 4+ kez ~%10 düştü (fon krizi tipi çöküş) — bu hisselerden AL mesajı gönderilmez.</p></div>
 <div class="kart"><h3>🌱 Uzun vade sinyali · 🚩 Bayrak</h3><p><b>🌱 UV AL</b>: yükselen trendde (fiyat 200 günlük ortalamanın üstünde ve o yükseliyor) 50 günlük ortalamaya geri çekilip dönen hisse. 2 gün üst üste 200 günlük ortalamanın altında kapanırsa SAT. Günlük sinyalden yavaş, 3-4 ay tutuş; backtest'te düşük faiz döneminde isabet %65. <b>🚩</b>: boğa bayrağı kırılımı (bilgi amaçlı).</p></div>
 <div class="kart"><h3>Piyasa filtresi</h3><p>BIST 100, 50 günlük ortalamasının altındaysa üstte "Piyasa zayıf" uyarısı çıkar. 5 yıllık backtest'te bu dönemlerde gelen AL'ler belirgin şekilde daha kötü sonuç verdi.</p></div>
-<div class="kart"><h3>Çıkış ve hedef (portföyün)</h3><p><b>📍 Çıkış (stop)</b>: fiyat bunun altına inerse sistemin kuralı "çık" der. <b>🎯 1. hedef</b>: en yakın direnç — geçmişte satış gelen tepe. <b>🎯 2. hedef</b>: risk/ödül 2:1 (maliyetinden stop'a olan mesafenin 2 katı yukarısı). Hedefler satış emri değil, izleme noktasıdır: 5 yıllık backtest'te hedefte kısmi satış, SAT/stop'a kadar tutmaktan belirgin şekilde kötü sonuç verdi.</p></div>
-<div class="kart"><h3>NÖTR: sarı mı turuncu mu?</h3><p><span class="pill notr notr-al">NÖTR</span> <b>Sarı = AL'den döndü.</b> Elindeyse tut; SAT gelirse ya da stop yerse çık. Yeni alım yapma.<br><span class="pill notr notr-sat">NÖTR</span> <b>Turuncu = SAT'tan döndü.</b> Düşüş yavaşladı ama henüz alım sinyali değil; AL'i bekle. (5 yıllık backtest: NÖTR'de satmak ya da turuncuda almak, beklemekten kötü sonuç verdi.)</p></div>
+<div class="kart"><h3>Çıkış (v2) ve hedef</h3><p><b>📍 İz stop</b>: AL'den beri görülen en yüksek kapanışın %20 altı; fiyat yükseldikçe yukarı taşınır, kapanış altına inerse "çık". SAT sinyali tek başına çıkış değildir (gece testleri: SAT'ta çıkmak yükseliş piyasasında kazancı eritiyordu; iz stop 2023'te −%6 yerine +%45). <b>🎯 1. hedef</b>: en yakın direnç — geçmişte satış gelen tepe. <b>🎯 2. hedef</b>: risk/ödül 2:1 (maliyetinden stop'a olan mesafenin 2 katı yukarısı). Hedefler satış emri değil, izleme noktasıdır: 5 yıllık backtest'te hedefte kısmi satış, SAT/stop'a kadar tutmaktan belirgin şekilde kötü sonuç verdi.</p></div>
+<div class="kart"><h3>NÖTR: sarı mı turuncu mu?</h3><p><span class="pill notr notr-al">NÖTR</span> <b>Sarı = AL'den döndü.</b> Elindeyse tut; iz stop kırılırsa çık. Yeni alım yapma.<br><span class="pill notr notr-sat">NÖTR</span> <b>Turuncu = SAT'tan döndü.</b> Düşüş yavaşladı ama henüz alım sinyali değil; AL'i bekle. (5 yıllık backtest: NÖTR'de satmak ya da turuncuda almak, beklemekten kötü sonuç verdi.)</p></div>
 <div class="kart"><h3>Öneri lot (risk yönetimi)</h3><p>Stop yerse portföyünün sadece belirlediğin yüzdeyi (örn. %1) kaybedeceğin lot sayısı: (portföy×risk%)÷(fiyat−stop).</p></div>
 <div class="kart"><h3>RSI</h3><p>0–100 momentum. 30 altı aşırı satım, 70 üstü aşırı alım. Sağlıklı yükseliş 45–68 bandında.</p></div>
 <div class="kart"><h3>MACD</h3><p>İki ortalamanın farkı. MACD sinyali yukarı keserse momentum boğaya döndü — klasik al tetiği.</p></div>
@@ -431,12 +434,14 @@ function pozPlan(d,p){
   var dru=d.sd&&d.sd.direnc;if(dru&&dru.fiyat>f)pl.hedefler.push([dru.fiyat,'en yakın direnç ('+dru.tarih+' tepesi)']);
   return pl;
  }
- if(pl.sat)return pl;   // SAT'ta çıkış sebebi sinyalin kendisi
- var stop=d.al_stop||d.stop;pl.stop=stop;
+ // v2: çıkış iz stop (AL'den beri tepe kapanışın %20 altı); SAT bilgi amaçlı
+ var iz=d.iz,stop;
+ if(iz&&iz.cikti){pl.izCikti=iz.cikis_tarih;stop=null;}
+ else if(iz){stop=iz.stop;pl.iz=true;pl.tepe=iz.tepe;}
+ else stop=d.al_stop||d.stop;
+ pl.stop=stop;
  if(stop){pl.stopUzak=(stop/f-1)*100;pl.stopKz=(stop-m)*a;pl.asildi=f<=stop;}
  var dr=d.sd&&d.sd.direnc;if(dr&&dr.fiyat>f)pl.hedefler.push([dr.fiyat,'en yakın direnç ('+dr.tarih+' tepesi)']);
- if(stop&&stop<f){var baz=stop<m?m:f,h2=Math.round((baz+2*(baz-stop))*100)/100;if(h2>f)pl.hedefler.push([h2,'risk/ödül 2:1 referansı']);}
- pl.hedefler.sort(function(x,y){return x[0]-y[0];});
  return pl;
 }
 function pozHtml(k,d){
@@ -453,7 +458,9 @@ function pozHtml(k,d){
   pl.hedefler.forEach(function(x){h+='<div class="pk">🎯 İzleme: <b>'+x[0]+' TL</b> — '+x[1]+', '+yzd((x[0]/pl.f-1)*100)+' yukarıda.</div>';});
   return h+'<div class="pk sgun">Uzun vade: kısa vadeli AL/SAT sinyalleri bilgi amaçlıdır. Backtest\'te güçlü yükseliş dönemlerinde büyük hisselerde al-tut, sinyale göre girip çıkmaktan belirgin şekilde iyi sonuç verdi. Karar çizgisinin altında kapanış, pozisyonu yeniden düşünme noktasıdır.</div></div>';
  }
- if(pl.sat)h+='<div class="pk">📍 <b>Çıkış: SAT sinyali</b> — kural: SAT 2 gün üst üste gelince çık.</div>';
+ if(pl.sat)h+='<div class="pk">ℹ️ Kısa vadeli SAT sinyali — v2\'de çıkış kuralı iz stop; SAT tek başına "çık" demek değil.</div>';
+ if(pl.izCikti)h+='<div class="pk neg">📍 <b>İz stop '+pl.izCikti+' tarihinde kırıldı</b> — v2 kuralına göre çıkış zamanı geçti.</div>';
+ else if(pl.stop&&pl.iz)h+='<div class="pk">📍 <b>İz stop: '+pl.stop+' TL</b> (AL\'den beri tepe '+pl.tepe+' TL\'nin %20 altı) — '+yzd(pl.stopUzak)+' aşağıda. Buraya inerse sonuç: <b class="'+(pl.stopKz>=0?'pos':'neg')+'">'+tlf(pl.stopKz)+'</b>'+(pl.stopKz>=0?' (yine kârda)':'')+'</div>';
  else if(pl.stop){
   h+=pl.asildi?'<div class="pk neg">📍 <b>Fiyat çıkış seviyesinin ('+pl.stop+' TL) altında</b> — sistemin kuralına göre çıkış zamanı.</div>'
    :'<div class="pk">📍 <b>Çıkış (stop): '+pl.stop+' TL</b> — '+yzd(pl.stopUzak)+' aşağıda. Buraya inerse sonuç: <b class="'+(pl.stopKz>=0?'pos':'neg')+'">'+tlf(pl.stopKz)+'</b>'+(pl.stopKz>=0?' (yine kârda)':'')+'</div>';
@@ -461,8 +468,7 @@ function pozHtml(k,d){
  pl.hedefler.forEach(function(x,i){h+='<div class="pk">🎯 <b>'+(i+1)+'. hedef: '+x[0]+' TL</b> — '+x[1]+', '+yzd((x[0]/pl.f-1)*100)+' yukarıda.'+
    (x[1].indexOf('direnç')>=0?' Burada satış baskısı gelebilir; aşarsa yükseliş hızlanabilir.':' (Tahmin değil, izleme noktası.)')+'</div>';});
  if(pl.hedefler.length)h+='<div class="pk sgun">ℹ️ Hedefler satış emri değil, izleme noktası. 5 yıllık backtest\'te hedefte kısmi satış yapmak, pozisyonu SAT/stop gelene kadar tutmaktan belirgin şekilde kötü sonuç verdi — büyük kazançlar erken kesildi.</div>';
- var kural=d.sinyal==='SAT'?((d.sinyal_gun||1)<=1?'⏳ SAT\'ın 1. günü: yarın da SAT kalırsa çık.':'✅ SAT '+d.sinyal_gun+' gündür sürüyor: kurala göre çıkış zamanı.')
-  :'Kural: SAT 2 gün üst üste gelirse ya da fiyat çıkış seviyesinin altına inerse çık.';
+ var kural='Kural (v2): kapanış iz stop\'un altına inerse çık. İz stop, fiyat yükseldikçe yukarı taşınır; SAT sinyali tek başına çıkış değildir.';
  return h+'<div class="pk">'+kural+'</div></div>';
 }
 function uvHtml(d){
@@ -500,13 +506,15 @@ function ac(k){
    const yenirz=(d.yeni&&d.sinyal==='AL')?' <span class="yeni">YENİ</span>':'';
    const nk=(d.sinyal==='NÖTR'&&d.notr_kaynak)?(' — <b>'+(d.notr_kaynak==='AL'?'AL\'den':'SAT\'tan')+' döndü</b>'):'';
    zaman='<div class="zaman"><div><b>'+d.sinyal+'</b> sinyali: '+d.sinyal_tarih+' ('+d.sinyal_gun+' gündür)'+nk+yenirz+sdt+'</div>';
-   if(d.sinyal==='NÖTR'&&d.notr_kaynak==='AL')zaman+='<div class="cikis">Elindeyse tut: SAT gelirse ya da stop yerse çık. Yeni alım için AL\'i bekle.</div>';
+   if(d.sinyal==='NÖTR'&&d.notr_kaynak==='AL')zaman+='<div class="cikis">Elindeyse tut: iz stop kırılırsa çık. Yeni alım için AL\'i bekle.</div>';
    if(d.sinyal==='NÖTR'&&d.notr_kaynak==='SAT')zaman+='<div class="cikis">Düşüş yavaşladı ama henüz alım sinyali değil; AL\'i bekle.</div>';
    if(d.sinyal==='AL'&&d.hacim_kat!=null)zaman+='<div class="cikis">'+(d.hacim_teyit?'📈 <b>Hacim teyitli</b>: ':'Hacim: ')+'AL günü hacmi 20 günlük ortalamanın <b>'+d.hacim_kat+' katı</b>'+(d.hacim_teyit?' — ilgi artmış (backtest\'te tek başına belirgin üstünlük sağlamadı).':' (teyit için 1,5 kat gerekir).')+'</div>';
-   if(d.sinyal==='SAT')zaman+='<div class="cikis">'+((d.sinyal_gun||1)<=1?'⏳ <b>1. gün</b>: tek günlük yanlış alarm olabilir; yarın da SAT kalırsa teyitlenir.':'✅ SAT <b>'+d.sinyal_gun+' gündür</b> sürüyor (teyitli).')+'</div>';
+   if(d.sinyal==='SAT')zaman+='<div class="cikis">ℹ️ Kısa vadeli SAT. v2\'de çıkış kuralı iz stop'+(d.iz&&!d.iz.cikti?' (<b>'+d.iz.stop+' TL</b>)':'')+'; elindeyse SAT tek başına "çık" demek değil.</div>';
    if(d.sinyal==='AL'){
      const gs=(d.giris_stop!=null?d.giris_stop:d.stop);
-     zaman+='<div class="cikis">Çıkış kuralı: sinyal <b>SAT</b>\'a dönerse ya da <b>giriş stopu '+gs+' TL</b> altına inerse.'+
+     const izs=(d.iz&&!d.iz.cikti)?d.iz.stop:Math.round(d.fiyat*0.8*100)/100;
+     zaman+='<div class="cikis">Çıkış kuralı (v2): kapanış <b>iz stop '+izs+' TL</b>\'nin altına inerse (AL\'den beri tepe kapanışın %20 altı; fiyat yükseldikçe yukarı taşınır).'+
+       (d.v2_uygun?'':' <i>Not: trend dışı ya da aşırı oynak — v2 filtresine takılıyor.</i>')+
        ((d.hedef&&!pfOku().some(function(x){return x.kod===k;}))?' · Örnek hedef (2R, mekanik referans): <b>'+d.hedef+' TL</b>':'')+'</div>';
    }
    zaman+='</div>';
@@ -522,7 +530,7 @@ function ac(k){
    (d.sd&&d.sd.destek?'<span class="c5">Destek</span>':'')+(d.sd&&d.sd.direnc?'<span class="c6">Direnç</span>':'')+
    '<span style="color:#1B7F4B">▲ AL</span><span style="color:#B4362E">▼ SAT</span></div></div>'+
  sdHtml(d)+
- '<div class="metr">'+m('RSI',d.rsi)+m('F/K',d.fk)+m('PD/DD',d.pddd)+m('FD/FAVÖK',d.favok)+m('Giriş stopu',d.giris_stop!=null?d.giris_stop:d.stop)+m('Öneri lot',lot)+'</div>'+
+ '<div class="metr">'+m('RSI',d.rsi)+m('F/K',d.fk)+m('PD/DD',d.pddd)+m('FD/FAVÖK',d.favok)+m('İz stop',d.iz&&!d.iz.cikti?d.iz.stop:'—')+m('Öneri lot',lot)+'</div>'+
  '<div class="gbas">Göstergeler</div><div class="gliste">'+gost+'</div>'+
  (ekh?'<div class="ekler">'+ekh+'</div>':'')+
  '<div class="yorum">'+(d.yorum||d.gerekce.join(' · '))+'</div>'+
@@ -672,17 +680,17 @@ function pfRender(){
   var kzy=(f!=null)?((f/p.maliyet-1)*100):null, kzt=(f!=null)?((f-p.maliyet)*p.adet):null;
   if(kzt!=null)toplam+=kzt;
   var sn=d.sinyal||'—',scls=d.sinyal?sinyalCls(d):'notr';
-  var uy=(sn==='SAT'&&!p.uzun)?' <span class="pfuy">SAT — gözden geçir</span>':'';
+  var uy=(d.iz&&d.iz.cikti&&!p.uzun)?' <span class="pfuy">iz stop kırıldı</span>':'';
   var kzc=(kzy||0)>=0?'pos':'neg';
   r+='<tr onclick="ac(\''+p.kod+'\')"><td class="kod">'+p.kod+(p.uzun?'<span class="uvb" title="Uzun vade">UV</span>':'')+'</td><td class="num">'+p.adet+'</td><td class="num">'+p.maliyet+'</td>'+
      '<td class="num">'+(f!=null?f:'—')+'</td>'+
      '<td class="num '+kzc+'">'+(kzy!=null?((kzy>=0?'+':'')+kzy.toFixed(1)+'%'):'—')+'</td>'+
      '<td class="num '+kzc+'">'+(kzt!=null?((kzt>=0?'+':'')+Math.round(kzt).toLocaleString('tr-TR')+' TL'):'—')+'</td>'+
-     '<td><span class="pill '+scls+'">'+sn+'</span>'+uy+(sn==='SAT'&&!p.uzun&&(d.sinyal_gun||1)<=1?' <span class="gun1b">⏳ 1. gün</span>':'')+'</td>'+
+     '<td><span class="pill '+scls+'">'+sn+'</span>'+uy+''+'</td>'+
      (function(){if(f==null)return '<td class="num">—</td><td class="num">—</td>';var pl=pozPlan(d,p),h=pl.hedefler.length?pl.hedefler[0][0]:null;
        if(pl.uzun)return '<td class="num stop">'+(pl.karar?(pl.kararAsildi?'<b>🧭 '+pl.karar+' ⚠</b>':'🧭 '+pl.karar+' <span class="sgun">'+yzd(pl.kararUzak)+'</span>'):'—')+'</td>'+
               '<td class="num pos">'+(h?h+' <span class="sgun">'+yzd((h/f-1)*100)+'</span>':'—')+'</td>';
-       if(pl.sat)return '<td class="num stop">SAT sinyali</td><td class="num">—</td>';
+       if(pl.izCikti)return '<td class="num stop"><b>kırıldı ⚠</b></td><td class="num">—</td>';
        return '<td class="num stop">'+(pl.stop?(pl.asildi?'<b>'+pl.stop+' ⚠</b>':pl.stop+' <span class="sgun">'+yzd(pl.stopUzak)+'</span>'):'—')+'</td>'+
               '<td class="num pos">'+(h?h+' <span class="sgun">'+yzd((h/f-1)*100)+'</span>':'—')+'</td>';})()+
      '<td class="num"><button class="pfsil pfduz" title="Düzenle" onclick="event.stopPropagation();pfFormAc('+i+')">✎</button> '+
@@ -733,5 +741,5 @@ tbody tr{border-bottom:1px solid var(--line)}tbody tr:last-child{border-bottom:n
 <div class="sar"><table><thead><tr><th>Hisse</th><th>Sinyal tarihi</th><th class="num">Giriş</th><th class="num">Güncel</th><th class="num">Anlık %</th><th class="num">Stop</th></tr></thead><tbody>__ACIKROWS__</tbody></table></div>
 <h2>Kapanmış sinyaller</h2>
 <div class="sar"><table><thead><tr><th>Hisse</th><th>Giriş tarihi</th><th class="num">Giriş</th><th>Çıkış tarihi</th><th class="num">Çıkış</th><th class="num">Sonuç %</th><th>Sebep</th></tr></thead><tbody>__KAPALIROWS__</tbody></table></div>
-<div class="not">Bu sayfa <b>ileriye dönük gerçek</b> karnedir ve canlıdaki kuralların aynısını uygular: sinyal AL'e döndüğü gün fiyatı kaydeder (taban serisindeki hisseler hariç), giriş stopu sabit kalır; fiyat stop'a inerse ya da SAT 2 gün üst üste gelirse kapatıp sonucu yazar. Aynı AL dalgası bir kez sayılır. (Eylül 2026 öncesi kayıtlar eski, daha gevşek kurallarla açılmıştı.) Backtest geçmişi simüle eder; bu sayfa ise sistemin <b>bugünden itibaren</b> gerçek performansını biriktirir. Yatırım tavsiyesi değildir.</div>
+<div class="not">Bu sayfa <b>ileriye dönük gerçek</b> karnedir ve canlıdaki (v2) kuralların aynısını uygular: sinyal AL'e döndüğü gün fiyatı kaydeder (trend içinde, aşırı oynak ya da taban serisinde olmayan hisseler; piyasa zayıfken kayıt açılmaz); fiyat, kayıttan beri görülen en yüksek kapanışın %20 altına inerse (iz stop) kapatıp sonucu yazar. SAT sinyali tek başına kapatmaz. Aynı AL dalgası bir kez sayılır. (Eylül 2026 öncesi kayıtlar eski, daha gevşek kurallarla açılmıştı.) Backtest geçmişi simüle eder; bu sayfa ise sistemin <b>bugünden itibaren</b> gerçek performansını biriktirir. Yatırım tavsiyesi değildir.</div>
 </div></body></html>"""
