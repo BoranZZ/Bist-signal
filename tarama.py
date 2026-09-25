@@ -396,14 +396,15 @@ def _kapa(r, fiyat, sebep, bugun):
     r["sebep"] = sebep
 
 
-def gecmis_guncelle(by_kod, bugun):
+def gecmis_guncelle(by_kod, bugun, piyasa=None):
+    """Canlı karne, canlıdaki kuralların aynısını ölçer: AL'e dönüşte gir (taban serisi hariç), giriş stopu
+    sabit; stop ya da 2 gün üst üste SAT'ta çık. Aynı AL dalgası bir kez kaydedilir (stop sonrası yeniden açılmaz)."""
     try:
         with open(GECMIS, encoding="utf-8") as f:
             kayitlar = json.load(f).get("kayitlar", [])
     except Exception:
         kayitlar = []
 
-    acik_basta = {r["kod"] for r in kayitlar if r["durum"] == "açık"}
     for r in kayitlar:
         if r["durum"] != "açık":
             continue
@@ -414,14 +415,19 @@ def gecmis_guncelle(by_kod, bugun):
         r["anlik"] = round((s["fiyat"] / r["giris_fiyat"] - 1) * 100, 1)
         if s["fiyat"] <= r["stop"]:
             _kapa(r, s["fiyat"], "stop", bugun)
-        elif s["sinyal"] == "SAT":
+        elif s["sinyal"] == "SAT" and (s.get("sinyal_gun") or 1) >= 2:
             _kapa(r, s["fiyat"], "sinyal", bugun)
 
+    acik = {r["kod"] for r in kayitlar if r["durum"] == "açık"}
+    kayitli = {(r["kod"], r.get("sinyal_tarih")) for r in kayitlar}
     for kod, s in by_kod.items():
-        if s["sinyal"] == "AL" and kod not in acik_basta and s.get("fiyat"):
+        if (s["sinyal"] == "AL" and (s.get("sinyal_gun") or 99) <= 2 and not s.get("patlak") and s.get("fiyat")
+                and kod not in acik and (kod, s.get("sinyal_tarih")) not in kayitli):
             kayitlar.append({"kod": kod, "giris_tarih": bugun, "giris_fiyat": s["fiyat"],
-                             "stop": s["stop"], "durum": "açık",
-                             "guncel": s["fiyat"], "anlik": 0.0})
+                             "stop": s["giris_stop"], "durum": "açık", "guncel": s["fiyat"], "anlik": 0.0,
+                             "sinyal_tarih": s.get("sinyal_tarih"),
+                             "piyasa": "zayıf" if (piyasa and piyasa.get("zayif")) else "normal",
+                             "hacim": bool(s.get("hacim_teyit"))})
 
     with open(GECMIS, "w", encoding="utf-8") as f:
         json.dump({"kayitlar": kayitlar}, f, ensure_ascii=False, indent=2)
@@ -517,7 +523,7 @@ def main():
     bugun_iso = simdi.strftime("%Y-%m-%d")
 
     # Sinyal geçmişi (canlı karne): yeni AL'leri kaydet, açıkları stop/SAT ile kapat
-    acik, kapali, karne = gecmis_guncelle(by_kod, bugun_iso)
+    acik, kapali, karne = gecmis_guncelle(by_kod, bugun_iso, piyasa)
     with open("gecmis.html", "w", encoding="utf-8") as f:
         f.write(gecmis_uret(acik, kapali, karne))
 
