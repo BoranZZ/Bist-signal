@@ -16,7 +16,7 @@ def _med(xs):
     return xs[len(xs) // 2] if xs else None
 
 
-def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None):
+def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None, endeks=None):
     tarih = _simdi()
     al = sum(1 for s in sonuclar if s["sinyal"] == "AL")
     guclu = sum(1 for s in sonuclar if s.get("guclu"))
@@ -135,6 +135,7 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None):
     for a, b in [("__TARIH__", tarih), ("__AL__", str(al)), ("__GUCLU__", str(guclu)),
                  ("__TOPLAM__", str(len(sonuclar))), ("__BANNER__", banner),
                  ("__ROWS__", "".join(rows)), ("__ARZ__", arzblok),
+                 ("__XU__", json.dumps(endeks)),
                  ("__DATA__", json.dumps(veri, ensure_ascii=False))]:
         html = html.replace(a, b)
     return html
@@ -244,6 +245,7 @@ tbody tr:hover{background:#F2F5F3}
 .pfekle{border:1px solid var(--accent);background:var(--accent);color:#fff;font-weight:600;font-size:12.5px;padding:6px 12px;border-radius:8px;cursor:pointer}
 .pfform{display:none;flex-wrap:wrap;gap:8px;margin-bottom:10px}
 .pfform input{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13px;font-family:inherit}
+.pfform #pfalis{width:150px}.pfkiyas{margin:10px 0 0;font-size:13px;line-height:1.55;border:1px solid var(--line);border-radius:10px;padding:9px 13px;background:var(--panel)}.pfxu{display:block;font-size:10.5px;color:var(--muted)}
 .pfform #pfkod{width:150px}.pfform #pfadet,.pfform #pfmal{width:120px}
 .pfkaydet{border:none;background:var(--al);color:#fff;font-weight:600;padding:8px 14px;border-radius:8px;cursor:pointer}
 .pfipt{border:1px solid var(--line);background:#fff;color:var(--muted);padding:8px 12px;border-radius:8px;cursor:pointer}
@@ -311,6 +313,7 @@ __BANNER__
     <datalist id="pfkodlar"></datalist>
     <input id="pfadet" type="number" min="1" placeholder="Adet">
     <input id="pfmal" type="number" step="any" min="0" placeholder="Maliyet (TL)">
+    <input id="pfalis" type="date" title="Alış tarihi (isteğe bağlı): girersen portföyün aynı parayla aynı gün BIST 100 almakla kıyaslanır">
     <label class="pfuv" title="Uzun vadeli tuttuğun hisse: kısa vadeli SAT sinyalleri bilgi olarak gelir, çıkış yerine karar çizgisi (ana destek) gösterilir"><input id="pfuzun" type="checkbox"> Uzun vade</label>
     <button id="pfkaydetbtn" class="pfkaydet" onclick="pfKaydet()">Ekle</button>
     <button class="pfipt" onclick="pfFormKapat()">İptal</button>
@@ -343,6 +346,7 @@ __ARZ__
 <div class="ust" id="ust" onclick="if(event.target===this)kapat()"><div class="modal" id="modal"></div></div>
 <script>
 const DATA=__DATA__;
+const XU=__XU__;  // BIST 100: son 2 yıl günlük, öncesi haftalık — portföy-endeks kıyası
 const t=document.getElementById('t');
 t.querySelectorAll('th').forEach((th,i)=>{th.addEventListener('click',()=>{
 const tb=t.tBodies[0],rows=[...tb.rows],num=th.dataset.t==='n',asc=th._asc=!th._asc;
@@ -581,7 +585,7 @@ function pfNot(t){var n=document.getElementById('pfnot');n.innerHTML=t||'';n.hid
 function pfFormAc(i){
  pfDuzenlenen=(typeof i==='number')?i:-1;var p=pfDuzenlenen>=0?pfOku()[i]:null;
  document.getElementById('pfkod').value=p?p.kod:'';document.getElementById('pfkod').disabled=!!p;
- document.getElementById('pfadet').value=p?p.adet:'';document.getElementById('pfmal').value=p?p.maliyet:'';document.getElementById('pfuzun').checked=!!(p&&p.uzun);
+ document.getElementById('pfadet').value=p?p.adet:'';document.getElementById('pfmal').value=p?p.maliyet:'';document.getElementById('pfuzun').checked=!!(p&&p.uzun);document.getElementById('pfalis').value=(p&&p.tarih)||'';
  document.getElementById('pfkaydetbtn').textContent=p?'Kaydet':'Ekle';
  document.getElementById('pfform').style.display='flex';pfNot('');
  document.getElementById(p?'pfadet':'pfkod').focus();
@@ -594,14 +598,21 @@ function pfKaydet(){
  if(!k||!(ad>0)||!(ma>0)){pfNot('Hisse kodu, adet ve maliyet gir.');return;}
  var a=pfOku(),not='';
  var uz=document.getElementById('pfuzun').checked;
- if(pfDuzenlenen>=0){a[pfDuzenlenen]={kod:k,adet:ad,maliyet:ma,uzun:uz};not=k+' güncellendi.';}
+ var ta=document.getElementById('pfalis').value||'',xb=null;
+ if(ta){var xv=xuDeger(ta);if(xv==null){pfNot('Alış tarihi endeks verisinden eski ya da ileri bir tarih; tarihi boş bırakabilirsin.');return;}xb=ad*ma/xv;}
+ if(pfDuzenlenen>=0){
+  var e=a[pfDuzenlenen],ayni=e&&e.adet===ad&&e.maliyet===ma&&(e.tarih||'')===ta;
+  a[pfDuzenlenen]={kod:k,adet:ad,maliyet:ma,uzun:uz};
+  if(ta){a[pfDuzenlenen].tarih=ta;a[pfDuzenlenen].xu_birim=(ayni&&e.xu_birim)?e.xu_birim:xb;}  // birleşik alımların birimi korunur
+  not=k+' güncellendi.';}
  else{
   var j=a.findIndex(function(p){return p.kod===k;});
   if(j>=0){  // aynı hisseye ekleme: adet toplanır, maliyet ağırlıklı ortalama
    var p=a[j],top=p.adet+ad,ort=(p.adet*p.maliyet+ad*ma)/top;
    a[j]={kod:k,adet:top,maliyet:Math.round(ort*100)/100,uzun:!!(p.uzun||uz)};
+   if(p.xu_birim&&xb){a[j].xu_birim=p.xu_birim+xb;a[j].tarih=(p.tarih&&p.tarih<ta)?p.tarih:ta;}  // ilk alış tarihi gösterilir
    not=k+' mevcut pozisyona eklendi: toplam '+top+' adet, ortalama maliyet '+a[j].maliyet.toFixed(2)+' TL.';
-  }else a.push({kod:k,adet:ad,maliyet:ma,uzun:uz});
+  }else{var y={kod:k,adet:ad,maliyet:ma,uzun:uz};if(ta){y.tarih=ta;y.xu_birim=xb;}a.push(y);}
  }
  pfYaz(a);pfFormKapat();pfRender();pfNot(not);
 }
@@ -698,6 +709,17 @@ function ghKaydet(){
 function ghKaldir(){try{localStorage.removeItem(GH_KEY);}catch(e){}document.getElementById('pfkur').hidden=true;pfBulutDurum('yerel');}
 
 // tarama.py sektor_dagilimi() ile aynı: güncel değere göre endüstri payları
+function xuDeger(t){  // t tarihindeki (ya da önceki son) BIST 100 kapanışı
+ if(!XU||!t)return null;var lo=0,hi=XU.t.length-1,i=-1;
+ if(t>new Date().toISOString().slice(0,10))return null;
+ while(lo<=hi){var m=(lo+hi)>>1;if(XU.t[m]<=t){i=m;lo=m+1;}else hi=m-1;}
+ return i>=0?XU.c[i]:null;
+}
+function pfKiyas(a){  // alış tarihi girilmiş pozisyonlar: portföy vs aynı para aynı günlerde BIST 100 (tarama.endeks_kiyas ile aynı)
+ if(!XU)return null;var xs=XU.c[XU.c.length-1],mal=0,deg=0,xd=0,n=0;
+ a.forEach(function(p){var d=DATA[p.kod];if(!p.xu_birim||!d||d.fiyat==null)return;n++;mal+=p.adet*p.maliyet;deg+=p.adet*d.fiyat;xd+=p.xu_birim*xs;});
+ if(!n||mal<=0)return null;var pf=(deg/mal-1)*100,xu=(xd/mal-1)*100;return {n:n,pf:pf,xu:xu,fark:pf-xu};
+}
 function pfDagilim(a){
  var top=0,pay={};a.forEach(function(p){var d=DATA[p.kod];if(!d||d.fiyat==null)return;var v=p.adet*d.fiyat,ad=d.endustri||d.sektor||'Bilinmiyor';pay[ad]=(pay[ad]||0)+v;top+=v;});
  return top?Object.keys(pay).map(function(k){return [k,pay[k]/top*100];}).sort(function(x,y){return y[1]-x[1];}):[];
@@ -716,7 +738,8 @@ function pfRender(){
   var kzc=(kzy||0)>=0?'pos':'neg';
   r+='<tr onclick="ac(\''+p.kod+'\')"><td class="kod">'+p.kod+(p.uzun?'<span class="uvb" title="Uzun vade">UV</span>':'')+'</td><td class="num">'+p.adet+'</td><td class="num">'+p.maliyet+'</td>'+
      '<td class="num">'+(f!=null?f:'—')+'</td>'+
-     '<td class="num '+kzc+'">'+(kzy!=null?((kzy>=0?'+':'')+kzy.toFixed(1)+'%'):'—')+'</td>'+
+     '<td class="num '+kzc+'">'+(kzy!=null?((kzy>=0?'+':'')+kzy.toFixed(1)+'%'):'—')+
+       (p.xu_birim&&XU?(function(){var xy=(p.xu_birim*XU.c[XU.c.length-1]/(p.adet*p.maliyet)-1)*100;return '<span class="pfxu" title="Aynı parayla '+p.tarih+' tarihinde BIST 100 alsaydın">XU100 '+(xy>=0?'+':'')+xy.toFixed(1)+'%</span>';})():'')+'</td>'+
      '<td class="num '+kzc+'">'+(kzt!=null?((kzt>=0?'+':'')+Math.round(kzt).toLocaleString('tr-TR')+' TL'):'—')+'</td>'+
      '<td><span class="pill '+scls+'">'+sn+'</span>'+uy+''+'</td>'+
      (function(){if(f==null)return '<td class="num">—</td><td class="num">—</td>';var pl=pozPlan(d,p),h=pl.hedefler.length?pl.hedefler[0][0]:null;
@@ -735,6 +758,11 @@ function pfRender(){
   r+='<div class="pfdag'+(ust?' uyar':'')+'">'+(ust?'⚠️ Portföyünün <b>%'+dag[0][1].toFixed(0)+'</b>\'i tek sektörde (<b>'+dag[0][0]+'</b>) — o sektördeki bir haber hepsini birlikte etkiler. ':'')+
      'Dağılım: '+dag.slice(0,5).map(function(x){return x[0]+' %'+x[1].toFixed(0);}).join(' · ')+'</div>';
  }
+ var ky=pfKiyas(a);
+ if(ky){
+  r+='<div class="pfkiyas">📈 <b>Endeksle kıyas</b>'+(ky.n<a.length?' (alış tarihi girilen '+ky.n+'/'+a.length+' hisse)':'')+': portföy <b class="'+(ky.pf>=0?'pos':'neg')+'">'+(ky.pf>=0?'+':'')+ky.pf.toFixed(1)+'%</b> · aynı parayla aynı günlerde BIST 100 alsaydın <b>'+(ky.xu>=0?'+':'')+ky.xu.toFixed(1)+'%</b> → endeksin <b class="'+(ky.fark>=0?'pos':'neg')+'">'+Math.abs(ky.fark).toFixed(1)+' puan '+(ky.fark>=0?'önünde':'gerisinde')+'</b>.'+
+     '<span class="pfxu">Temettüler iki tarafta da dahil değil. Kıyas için hisse eklerken/düzenlerken alış tarihini gir.</span></div>';
+ }else if(XU)r+='<div class="pfkiyas sgun">📈 Portföyünü BIST 100 ile kıyaslamak için hisseyi düzenle (✎) ve <b>alış tarihini</b> gir.</div>';
  liste.innerHTML=r;
  top.innerHTML='Toplam K/Z: <b class="'+(toplam>=0?'pos':'neg')+'">'+(toplam>=0?'+':'')+Math.round(toplam).toLocaleString('tr-TR')+' TL</b>';
 }

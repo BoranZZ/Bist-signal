@@ -4,7 +4,7 @@ BIST sinyal taraması — BIST100, ~15 dk'da bir güncellenir.
 Akış: fiyat çek -> sinyal + (günlük önbellekli) oran -> risk/lot -> AL+ -> yorum
 -> index.html -> Telegram (tüm hisselerde yeni AL, portföyde yeni SAT).
 """
-import json, math, os, time
+import bisect, json, math, os, time
 import pandas as pd
 import yfinance as yf
 from bilanco import bilancolari_al, bilanco_ozet, bilanco_metni, bilanco_yakin, tarih_tr
@@ -93,6 +93,65 @@ def piyasa_durumu(data):
         return {"endeks": round(son), "ort50": round(ort), "zayif": son < ort, "fark": round((son / ort - 1) * 100, 1)}
     except Exception:
         return None
+
+
+def endeks_serisi(data=None):
+    """Portföy-endeks kıyası için BIST 100 kapanışları: son 2 yıl günlük (taramanın indirdiği güncel veri), öncesi
+    (10 yıla kadar) haftalık. {"t": ["YYYY-MM-DD", ...], "c": [kapanış, ...]} ya da None."""
+    try:
+        xu = yf.download(ENDEKS + ".IS", period="10y", interval="1d", auto_adjust=True, progress=False)["Close"]
+        if isinstance(xu, pd.DataFrame):
+            xu = xu.iloc[:, 0]
+        xu = xu.dropna()
+        yakin = None
+        if data is not None:
+            try:
+                yakin = data[ENDEKS + ".IS"]["Close"].dropna()
+            except Exception:
+                yakin = None
+        if yakin is None or yakin.empty:
+            yakin = xu[xu.index >= xu.index[-1] - pd.DateOffset(years=2)]
+        eski = xu[xu.index < yakin.index[0]]
+        eski = eski.groupby(eski.index.to_period("W")).tail(1)   # haftanın son kapanışı
+        xu = pd.concat([eski, yakin])
+        return {"t": [str(t.date()) for t in xu.index], "c": [round(float(v), 2) for v in xu.values]}
+    except Exception as e:
+        print(f"Endeks serisi alınamadı: {e}")
+        return None
+
+
+def endeks_deger(seri, tarih):
+    """Serideki tarih'e eşit ya da ondan önceki son kapanış (yoksa None)."""
+    if not seri or not tarih:
+        return None
+    i = bisect.bisect_right(seri["t"], str(tarih)[:10]) - 1
+    return seri["c"][i] if i >= 0 else None
+
+
+def _yzd(x):
+    return f"+%{x:.1f}" if x >= 0 else f"−%{-x:.1f}"
+
+
+def endeks_kiyas(pf, by, seri):
+    """Alış tarihi girilmiş pozisyonlar (xu_birim) için: portföy getirisi vs aynı para aynı günlerde BIST 100.
+    {"n", "toplam_n", "pf_yuzde", "xu_yuzde", "fark"} ya da None."""
+    if not seri:
+        return None
+    xu_son = seri["c"][-1]
+    maliyet = deger = xu_deger = 0.0
+    n = 0
+    for kod, p in pf.items():
+        s = by.get(kod)
+        if not p.get("xu_birim") or not s:
+            continue
+        n += 1
+        maliyet += p["adet"] * p["maliyet"]
+        deger += p["adet"] * s["fiyat"]
+        xu_deger += p["xu_birim"] * xu_son
+    if not n or maliyet <= 0:
+        return None
+    pfy, xuy = (deger / maliyet - 1) * 100, (xu_deger / maliyet - 1) * 100
+    return {"n": n, "toplam_n": len(pf), "pf_yuzde": round(pfy, 1), "xu_yuzde": round(xuy, 1), "fark": round(pfy - xuy, 1)}
 
 
 def arz_bilgisi(kod, df):
@@ -293,12 +352,17 @@ def portfoy_yukle():
         if adet <= 0 or mal <= 0:
             continue
         uzun = bool(p.get("uzun"))
+        try:   # endeks kıyası: alış tarihindeki BIST 100 ile "aynı parayla alınabilecek endeks birimi" (panoda hesaplanır)
+            xub = float(p["xu_birim"]) if p.get("xu_birim") else None
+        except Exception:
+            xub = None
         if kod in pf:
             a0, m0 = pf[kod]["adet"], pf[kod]["maliyet"]
+            x0 = pf[kod]["xu_birim"]
             pf[kod] = {"adet": a0 + adet, "maliyet": (a0 * m0 + adet * mal) / (a0 + adet),
-                       "uzun": pf[kod]["uzun"] or uzun}
+                       "uzun": pf[kod]["uzun"] or uzun, "xu_birim": (x0 + xub) if (x0 and xub) else None}
         else:
-            pf[kod] = {"adet": adet, "maliyet": mal, "uzun": uzun}
+            pf[kod] = {"adet": adet, "maliyet": mal, "uzun": uzun, "xu_birim": xub}
     print(f"Portföy: {len(pf)} hisse.")
     return pf
 
@@ -614,7 +678,7 @@ def haftalik_ozet(sonuclar, pf, acik, kapali, simdi):
     return "\n\n".join(parca)
 
 
-def portfoy_ozeti(sonuclar, pf, piyasa=None):
+def portfoy_ozeti(sonuclar, pf, piyasa=None, endeks=None):
     """Günde bir kez (kapanıştan sonra) portföyün tamamı: sinyal, K/Z, çıkış ve hedefler, dikkat notları."""
     by = {s["kod"]: s for s in sonuclar}
     tarih = pd.Timestamp.now(tz="Europe/Istanbul").strftime("%d.%m.%Y")
@@ -652,6 +716,12 @@ def portfoy_ozeti(sonuclar, pf, piyasa=None):
                      + "\n     " + plan_metni(s, p)
                      + (f"\n     📊 {bilanco_metni(b)}" if b and bilanco_metni(b) else ""))
     parca.insert(1, f"Toplam K/Z: <b>{_tl(toplam)}</b>")
+    kiyas = endeks_kiyas(pf, by, endeks)
+    if kiyas:
+        kapsam = "" if kiyas["n"] == kiyas["toplam_n"] else f" (alış tarihi girilen {kiyas['n']}/{kiyas['toplam_n']} hisse)"
+        yon = "önünde" if kiyas["fark"] >= 0 else "gerisinde"
+        parca.insert(2, f"📈 Endeksle kıyas{kapsam}: portföy {_yzd(kiyas['pf_yuzde'])} · aynı parayla aynı günlerde BIST 100 "
+                        f"{_yzd(kiyas['xu_yuzde'])} → endeksin <b>{abs(kiyas['fark']):.1f} puan {yon}</b>")
     dag = sektor_dagilimi(pf, by)
     if dag:
         metin = ", ".join(f"{ad} %{pay:.0f}" for ad, pay in dag[:4])
@@ -736,6 +806,7 @@ def main():
 
     data = veri_cek(KODLAR)
     piyasa = piyasa_durumu(data)
+    endeks = endeks_serisi(data)
     oranlar = oranlari_al(KODLAR)
     bilancolar = bilancolari_al(KODLAR)
     sonuclar, yeni_arzlar = [], []
@@ -866,7 +937,7 @@ def main():
         f.write(gecmis_uret(acik, kapali, karne))
 
     with open("index.html", "w", encoding="utf-8") as f:
-        f.write(pano_uret(sonuclar, ornek=False, uyari=uyari, piyasa=piyasa, yeni_arzlar=yeni_arzlar))
+        f.write(pano_uret(sonuclar, ornek=False, uyari=uyari, piyasa=piyasa, yeni_arzlar=yeni_arzlar, endeks=endeks))
     print(f"index.html: {len(sonuclar)} hisse (+{len(yeni_arzlar)} yeni arz), {len(bugun_al)} AL, {len(yeni)} yeni | "
           f"taban serisi: {sum(1 for s in sonuclar if s.get('patlak'))} | "
           f"piyasa: {'zayıf' if piyasa and piyasa['zayif'] else 'normal'} | "
@@ -915,7 +986,7 @@ def main():
     # Günlük portföy özeti: hafta içi, kapanıştan sonraki ilk taramada bir kez
     ozet_tarih = durum.get("ozet_tarih")
     if pf and simdi.weekday() < 5 and kapanis_zamani and ozet_tarih != bugun_iso:
-        if tg_gonder(portfoy_ozeti(sonuclar, pf, piyasa)):
+        if tg_gonder(portfoy_ozeti(sonuclar, pf, piyasa, endeks)):
             ozet_tarih = bugun_iso
             print("Günlük portföy özeti gönderildi.")
 
