@@ -55,7 +55,7 @@ tarih/fiyat), TradingView'i sadece "tam ekran aç" butonu olarak bırak.
 4. **FAVÖK açıklaması:** YAPILDI (açıklama kartı eklendi).
 5. **KAP/haber akışı:** hisse başına son bildirim/haber (ücretsiz kaynak); yorumlamayı
    abartma (haber çoğu zaman fiyata yansımıştır).
-6. **Sektör dağılımı/çeşitlendirme uyarısı**, fiyat/seviye alarmı, haftalık Telegram özeti.
+6. Sektör dağılımı + yoğunlaşma uyarısı YAPILDI; haftalık Telegram özeti YAPILDI. Kalan: fiyat/seviye alarmı.
 
 ## Kullanıcının okumayı bilmediği şeyler (öğretilecek)
 RSI, MACD ve hacim panellerinin nasıl okunacağını sade anlat (grafik dersi).
@@ -76,6 +76,16 @@ isteğiyle faiz yüzünden düşen eski büyükler (KONTR vb.) KALDI — tüm ç
 - Dirence <%3 yakınken gelen AL'ler backtest'te en iyi grup (kırılım) → "Dirence yaklaşıyor" yeni AL için "uzak dur" değil.
 - AL eşiği (4/5) ve stop (%8+20g dip) zaten en dengeli; %10-15 stop farkı gürültü düzeyinde.
 - Kısmi kâr alma (dirençte ya da 2R'de yarısını sat) backtest'te belirgin şekilde KÖTÜ (düşük faiz +9.3 → −1.3; yüksek +2.5 → +0.2-0.4 endekse göre). Hedefleri "satış emri" diye sunma; izleme noktası.
+- Gün içi yeni AL/SAT'ların ~%22'si kapanışta geçersiz (saatlik veriyle ölçüldü): AL/SAT mesajları, SAT teyidi,
+  günlük/haftalık özet ve uzun vade kırılım kontrolü sadece `KAPANIS_DAKIKA` (18:30, Yahoo ~15 dk gecikmeli) sonrası.
+  Gün içi taramada `durum.json` → `son` DEĞİŞMEZ (yoksa kapanışta geçiş kaçar).
+- Uzun vade (`uzun: true` portföy kaydı): stop yerine karar çizgisi = fiyatın altındaki en yakın destek × (1−tol).
+  Karar çizgisi hep fiyatın altından hesaplandığı için kırılım, bir önceki kapanışta kaydedilen çizgiyle
+  (`karar_cizgisi`) kıyaslanır; aynı seviye için bir kez (`karar_kirilim`). Backtest: güçlü yükselişte büyük
+  hisselerde al-tut, sinyale göre girip çıkmaktan belirgin iyi (19 hisseden 15'i).
+- SAT + destekten tepki: SAT sürerken destek tepkilerinin ~%68'i 20 günde kırıldı → çelişki notu + karar çizgisi.
+- Stop yönetimi (başabaş, iz stop, zayıf piyasada hızlı çıkış) mevcut sabit stop'tan iyi değil — değiştirme.
+- Sektör: Yahoo sector/industry günlük oran önbelleğinde (5 elemanlı liste); `ENDUSTRI_TR` Türkçe karşılıklar.
 - Taban serisi: son 15 günde ≥4 kez ≤ −%9 → "⚠ taban serisi"; bu hisselerden AL mesajı gitmez.
 - SAT: 1. gün "⏳" işaretiyle gösterilir/bildirilir, 2. gün "✅ teyit" mesajı (portföy).
 - Portföy: çıkış = son AL başındaki sabit stop (`al_stop`), SAT'ta çıkış sebebi sinyal; hedefler
