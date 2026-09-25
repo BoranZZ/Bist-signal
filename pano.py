@@ -230,7 +230,8 @@ table.pf{min-width:640px}
 <div class="ipucu">İncelemek için bir satıra tıkla → grafik, oranlar ve o hisseye özel yorum açılır. Sütun başlığına tıklayınca sıralanır. · <a class="glink" href="gecmis.html">Sinyal Geçmişi →</a></div>
 __BANNER__
 <div class="pfbox">
-  <div class="pfbas"><h2>Portföyüm</h2><div class="pfsag"><span id="pftop" class="pftop"></span><button class="pfekle" onclick="pfFormAc()">+ Ekle</button></div></div>
+  <div class="pfbas"><h2>Portföyüm</h2><div class="pfsag"><span id="pftop" class="pftop"></span><button class="pfipt" onclick="pfKopyala()" title="Portföyünü Telegram mesajları için GitHub'a tanıt">Telegram için kopyala</button><button class="pfekle" onclick="pfFormAc()">+ Ekle</button></div></div>
+  <div id="pfkopya" class="zaman" hidden></div>
   <div id="pfform" class="pfform">
     <input id="pfkod" placeholder="Hisse (örn. THYAO)" list="pfkodlar" autocomplete="off">
     <datalist id="pfkodlar"></datalist>
@@ -373,6 +374,21 @@ function pfKaydet(){
  var a=pfOku();a.push({kod:k,adet:ad,maliyet:ma});pfYaz(a);
  document.getElementById('pfkod').value='';document.getElementById('pfadet').value='';document.getElementById('pfmal').value='';
  pfFormKapat();pfRender();
+}
+function pfKopyala(){
+ var a=pfOku(),kutu=document.getElementById('pfkopya');kutu.hidden=false;
+ if(!a.length){kutu.innerHTML='Önce <b>+ Ekle</b> ile portföyüne hisse ekle.';return;}
+ var t=JSON.stringify(a.map(function(p){return {kod:p.kod,adet:p.adet,maliyet:p.maliyet};}));
+ var yol='GitHub → <b>Bist-signal</b> → <b>Settings</b> → <b>Secrets and variables</b> → <b>Actions</b> → <b>PORTFOY</b> '+
+   '(ilk seferde <b>New repository secret</b>, adı <b>PORTFOY</b>) → yapıştır → <b>Save</b>. Portföyünü değiştirince tekrarla.';
+ kutu.innerHTML='<div id="pfkdurum"></div><div class="cikis">'+yol+'</div>'+
+   '<textarea id="pfkmetin" readonly style="width:100%;margin-top:8px;font-size:12px;font-family:monospace" rows="3"></textarea>'+
+   '<div class="cikis"><a href="#" onclick="document.getElementById(\'pfkopya\').hidden=true;return false">Kapat</a></div>';
+ var ta=document.getElementById('pfkmetin'),dr=document.getElementById('pfkdurum');ta.value=t;
+ var elle=function(){ta.focus();ta.select();dr.innerHTML='Aşağıdaki metni seçip kopyala (Ctrl+C / uzun bas → Kopyala):';};
+ if(navigator.clipboard&&navigator.clipboard.writeText){
+  navigator.clipboard.writeText(t).then(function(){dr.innerHTML='<b>✓ Kopyalandı.</b> Şimdi GitHub\'a yapıştır:';},elle);
+ }else elle();
 }
 function pfSil(i){var a=pfOku();a.splice(i,1);pfYaz(a);pfRender();}
 function pfRender(){

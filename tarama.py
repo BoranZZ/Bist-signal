@@ -2,7 +2,7 @@
 """
 BIST sinyal taraması — BIST100, ~15 dk'da bir güncellenir.
 Akış: fiyat çek -> sinyal + (günlük önbellekli) oran -> risk/lot -> AL+ -> yorum
--> index.html -> (yeni AL, izleme listesi) Telegram.
+-> index.html -> Telegram (tüm hisselerde yeni AL, portföyde yeni SAT).
 """
 import json, math, os, time
 import pandas as pd
@@ -11,28 +11,35 @@ from sinyal import analiz_et
 from pano import pano_uret, gecmis_uret
 
 # ================== AYARLAR ==================
-IZLEME_LISTEM = ["TUPRS","THYAO","ASELS","PGSUS","SASA","FROTO","KONTR","ASTOR"]
-
+# BIST 100 bileşimi, 1 Ekim - 31 Aralık 2026 dönemi (Borsa İstanbul 3 ayda bir günceller)
 BIST100 = [
- "AEFES","AGHOL","AKBNK","AKSA","AKSEN","ALARK","ALFAS","ARCLK","ASELS","ASTOR",
- "BERA","BIMAS","BRSAN","BRYAT","BUCIM","CCOLA","CIMSA","DOAS","DOHOL","ECILC",
- "EGEEN","EKGYO","ENJSA","ENKAI","EREGL","EUPWR","FROTO","GARAN","GESAN","GUBRF",
- "HALKB","HEKTS","ISCTR","ISMEN","ISGYO","KARSN","KCHOL","KLSER","KONTR","KONYA",
- "KORDS","KOZAA","KOZAL","KRDMD","MAVI","MGROS","MIATK","ODAS","OTKAR","OYAKC",
- "PETKM","PGSUS","QUAGR","SAHOL","SASA","SISE","SKBNK","SMRTG","SOKM","TAVHL",
- "TCELL","THYAO","TKFEN","TOASO","TSKB","TTKOM","TTRAK","TUKAS","TUPRS","ULKER",
- "VAKBN","VESTL","YKBNK","ZOREN","AGROT","CANTE","CWENE","GENIL","IPEKE","KAYSE",
- "KLKIM","PAPIL","REEDR","TABGD","YEOTK","BINHO","CVKMD","EUREN","GWIND","IZENR",
- "KMPUR","MPARK","OBAMS","PENTA","RGYAS","SDTTR","TERA","ULUUN","VESBE","ANSGR",
+ "AEFES","AGHOL","AHGAZ","AKBNK","AKCNS","AKFYE","AKSA","AKSEN","ALARK","ALBRK",
+ "ALTNY","ANHYT","ANSGR","ARCLK","ASELS","ASTOR","AYGAZ","BERA","BIMAS","BINHO",
+ "BRSAN","BRYAT","BSOKE","CANTE","CCOLA","CIMSA","CVKMD","CWENE","DOAS","DOHOL",
+ "ECILC","ECZYT","EGEEN","EGGUB","EKGYO","ENERY","ENJSA","ENKAI","ENTRA","EREGL",
+ "EUREN","FENER","FROTO","GARAN","GLRMK","GLYHO","GRSEL","GUBRF","GWIND","HALKB",
+ "HEKTS","ISCTR","ISDMR","ISMEN","KARSN","KATMR","KCAER","KCHOL","KORDS","KRDMD",
+ "LMKDC","MAVI","MGROS","MPARK","OBAMS","ODAS","OTKAR","OYAKC","PAHOL","PETKM",
+ "PGSUS","RGYAS","RYSAS","SAHOL","SASA","SISE","SNGYO","SOKM","TABGD","TAVHL",
+ "TCELL","TCKRC","THYAO","TKFEN","TOASO","TRALT","TRENJ","TRGYO","TRMET","TSKB",
+ "TTKOM","TTRAK","TUKAS","TUPRS","TURSG","ULKER","VAKBN","VESTL","YKBNK","ZOREN",
+]
+
+# Endekste olmayan ama taramaya devam edilen hisseler (portföy/geçmiş kopmasın diye)
+EK_HISSELER = [
+ "AGROT","ALFAS","BUCIM","EUPWR","GENIL","GESAN","ISGYO","IZENR","KAYSE","KLKIM",
+ "KLSER","KMPUR","KONTR","KONYA","MIATK","PAPIL","PENTA","QUAGR","REEDR","SDTTR",
+ "SKBNK","SMRTG","TERA","ULUUN","VESBE","YEOTK",
 ]
 
 PORTFOY_TL = 100_000
 RISK_YUZDESI = 1.0
 ASIRI_ISLEM_ESIGI = 8
-SADECE_IZLEME_ALARM = True
+PANO_URL = "https://boranzz.github.io/Bist-signal/"
+# Telegram: tüm hisselerde yeni AL; SAT sadece portföydekiler (PORTFOY secret'ı).
 # ============================================
 
-KODLAR = sorted(set(IZLEME_LISTEM + BIST100))
+KODLAR = sorted(set(BIST100 + EK_HISSELER))
 DURUM = "durum.json"
 ORAN_CACHE = "oranlar.json"
 
@@ -58,17 +65,20 @@ def oran_cek_tek(kod):
 def oranlari_al(kodlar):
     """Oranlar yavaş değişir; günde bir kez çekip önbelleğe alırız (intraday hızlı kalsın)."""
     bugun = pd.Timestamp.now(tz="Europe/Istanbul").strftime("%Y-%m-%d")
+    veri = {}
     try:
         with open(ORAN_CACHE, encoding="utf-8") as f:
             c = json.load(f)
         if c.get("tarih") == bugun:
-            print("Oranlar önbellekten.")
-            return c["veri"]
+            veri = c["veri"]
     except Exception:
         pass
-    print("Oranlar güncelleniyor (günde 1 kez)...")
-    veri = {}
-    for k in kodlar:
+    eksik = [k for k in kodlar if k not in veri]   # listeye yeni eklenen hisseler dahil
+    if not eksik:
+        print("Oranlar önbellekten.")
+        return veri
+    print(f"Oranlar güncelleniyor ({len(eksik)} hisse, günde 1 kez)...")
+    for k in eksik:
         veri[k] = oran_cek_tek(k)
         time.sleep(0.2)
     with open(ORAN_CACHE, "w", encoding="utf-8") as f:
@@ -108,55 +118,133 @@ def yorum_uret(s, fk_med, pddd_med):
 
 
 def tg_gonder(msg):
+    """Mesajı gönderir; başarılıysa True döner."""
     tok, chat = os.environ.get("TELEGRAM_TOKEN"), os.environ.get("TELEGRAM_CHAT_ID")
     if not tok or not chat:
-        print("Telegram bilgisi yok, atlandı.")
-        return
-    import urllib.request, urllib.parse
-    u = f"https://api.telegram.org/bot{tok}/sendMessage"
-    d = urllib.parse.urlencode({"chat_id": chat, "text": msg, "parse_mode": "HTML",
+        print("Telegram bilgisi yok, atlandı. (GitHub > Settings > Secrets and variables > Actions: "
+              "TELEGRAM_TOKEN ve TELEGRAM_CHAT_ID tanımlı mı?)")
+        return False
+    import urllib.request, urllib.parse, urllib.error
+    u = f"https://api.telegram.org/bot{tok.strip()}/sendMessage"
+    d = urllib.parse.urlencode({"chat_id": chat.strip(), "text": msg, "parse_mode": "HTML",
                                 "disable_web_page_preview": "true"}).encode()
     try:
         with urllib.request.urlopen(urllib.request.Request(u, data=d), timeout=20) as r:
             print("Telegram:", r.status)
+            return True
+    except urllib.error.HTTPError as e:
+        # Telegram hatanın sebebini gövdede yazar (ör. "chat not found", "Unauthorized")
+        print("Telegram hatası:", e.code, e.read().decode("utf-8", "replace"))
     except Exception as e:
         print("Telegram hatası:", e)
+    return False
 
 
-def onceki_al():
+def durum_oku():
     try:
         with open(DURUM, encoding="utf-8") as f:
-            return set(json.load(f).get("al", []))
+            return json.load(f)
     except Exception:
-        return set()
+        return {}
 
 
 GECMIS = "gecmis.json"
-PORTFOY = "portoy.json"
 
 
 def portfoy_yukle():
+    """Portföy GitHub secret'ından (PORTFOY) gelir; panodaki 'Telegram için kopyala' butonu bu
+    metni üretir. Aynı hisse birden çok girildiyse adetler toplanır, maliyet ağırlıklı ortalama olur.
+    DİKKAT: Actions logları herkese açık — portföy içeriğini asla print etme."""
+    ham = os.environ.get("PORTFOY", "").strip()
+    if not ham:
+        print("Portföy tanımlı değil (PORTFOY secret'ı boş).")
+        return {}
     try:
-        with open(PORTFOY, encoding="utf-8") as f:
-            return json.load(f)
+        liste = json.loads(ham)
     except Exception:
-        return []
+        print("PORTFOY secret'ı okunamadı: metin bozuk. Panodan tekrar kopyalayıp yapıştır.")
+        return {}
+    pf = {}
+    for p in liste:
+        try:
+            kod = str(p["kod"]).strip().upper()
+            adet, mal = float(p["adet"]), float(p["maliyet"])
+        except Exception:
+            continue
+        if adet <= 0 or mal <= 0:
+            continue
+        if kod in pf:
+            a0, m0 = pf[kod]["adet"], pf[kod]["maliyet"]
+            pf[kod] = {"adet": a0 + adet, "maliyet": (a0 * m0 + adet * mal) / (a0 + adet)}
+        else:
+            pf[kod] = {"adet": adet, "maliyet": mal}
+    print(f"Portföy: {len(pf)} hisse.")
+    return pf
 
 
-def portfoy_hesapla(portfoy, by_kod):
-    cikti = []
-    for p in portfoy:
-        kod = p.get("kod")
-        s = by_kod.get(kod, {})
-        fiyat = s.get("fiyat")
-        maliyet = p.get("maliyet")
-        adet = p.get("adet")
-        kar_y = round((fiyat / maliyet - 1) * 100, 1) if (fiyat and maliyet) else None
-        kar_tl = round((fiyat - maliyet) * adet, 0) if (fiyat and maliyet and adet) else None
-        cikti.append({"kod": kod, "adet": adet, "maliyet": maliyet, "fiyat": fiyat,
-                      "kar_yuzde": kar_y, "kar_tl": kar_tl,
-                      "sinyal": s.get("sinyal", "—"), "stop": s.get("stop")})
-    return cikti
+def sinyal_degisimleri(sonuclar, son):
+    """son: kod -> son 'kesin' sinyal (AL/SAT). NÖTR ara geçişleri sayılmaz: AL→NÖTR→AL tekrar
+    mesaj atmaz (15 dk'lık taramada gidip gelen hisse spam yapmasın), AL→SAT→AL atar.
+    Listeye yeni giren hisse ilk görüldüğünde mesaj atmaz."""
+    yeni_al, yeni_sat = [], []
+    for s in sonuclar:
+        k, sn = s["kod"], s["sinyal"]
+        if k not in son:
+            son[k] = sn
+        elif sn != "NÖTR" and son[k] != sn:
+            (yeni_al if sn == "AL" else yeni_sat).append(s)
+            son[k] = sn
+    return yeni_al, yeni_sat
+
+
+def _tl(x):
+    return f"{'+' if x >= 0 else '−'}{abs(round(x)):,.0f}".replace(",", ".") + " TL"
+
+
+def portfoy_notu(s, p, stop_goster=True):
+    f, m, a = s["fiyat"], p["maliyet"], p["adet"]
+    t = f"Portföyünde {a:g} adet, maliyet {m:.2f} → şu an %{(f / m - 1) * 100:+.1f} ({_tl((f - m) * a)})"
+    if stop_goster and s.get("stop"):
+        sk = (s["stop"] - m) * a
+        t += f"\n     Stop {s['stop']} TL'ye inerse: {_tl(sk)}" + (" (yine kârda çıkarsın)" if sk >= 0 else "")
+    return t
+
+
+MAX_AL_SATIR = 20  # Telegram mesajı 4096 karakterle sınırlı
+
+
+def telegram_mesaji(yeni_al, yeni_sat, pf, uyari):
+    tarih = pd.Timestamp.now(tz="Europe/Istanbul").strftime("%d.%m.%Y %H:%M")
+    parca = [f"📊 <b>BIST Sinyal</b> — {tarih}"]
+    if yeni_al:
+        sirali = sorted(yeni_al, key=lambda x: (x["kod"] not in pf, not x["guclu"], -x["puan"]))
+        gosterilen = [s for s in sirali if s["kod"] in pf] + [s for s in sirali if s["kod"] not in pf][:MAX_AL_SATIR]
+        satir = []
+        for s in gosterilen:
+            isaret = "❗" if s["kod"] in pf else "🟢"
+            y = " ★AL+" if s["guclu"] else ""
+            fk = f"F/K {s['fk']}" if s.get("fk") else "F/K —"
+            lot = f", öneri {s['lot']} lot" if s.get("lot") else ""
+            t = f"{isaret} <b>{s['kod']}</b>{y}  {s['fiyat']} TL  ({fk}, RSI {s['rsi']})\n     stop {s['stop']} TL{lot}"
+            if s["kod"] in pf:
+                t += "\n     " + portfoy_notu(s, pf[s["kod"]])
+            satir.append(t)
+        kalan = len(sirali) - len(gosterilen)
+        if kalan:
+            satir.append(f"…ve {kalan} hisse daha (panoya bak)")
+        parca.append(f"<b>Yeni AL ({len(yeni_al)})</b>\n" + "\n".join(satir))
+    if yeni_sat:
+        satir = []
+        for s in yeni_sat:
+            t = (f"❗ <b>{s['kod']}</b>  {s['fiyat']} TL  (RSI {s['rsi']})\n     "
+                 + portfoy_notu(s, pf[s["kod"]], stop_goster=False)
+                 + "\n     Sistemin çıkış kuralı: sinyal SAT'a dönünce çık — gözden geçir.")
+            satir.append(t)
+        parca.append("🔴 <b>Portföyünde SAT'a dönenler</b>\n" + "\n".join(satir))
+    if uyari:
+        parca.append(f"⚠️ {uyari}")
+    parca.append(f"<a href=\"{PANO_URL}\">Panoyu aç</a>\n<i>Yatırım tavsiyesi değildir. Sinyal, karar değildir.</i>")
+    return "\n\n".join(parca)
 
 
 def _kapa(r, fiyat, sebep, bugun):
@@ -210,6 +298,16 @@ def gecmis_guncelle(by_kod, bugun):
 
 
 def main():
+    if os.environ.get("TELEGRAM_TEST") == "true":   # Actions > Run workflow > "Telegram test" kutusu
+        zaman = pd.Timestamp.now(tz="Europe/Istanbul").strftime("%d.%m.%Y %H:%M")
+        if not tg_gonder(f"✅ BIST Sinyal: Telegram bağlantısı çalışıyor ({zaman})."):
+            raise SystemExit("Telegram test mesajı gönderilemedi — yukarıdaki hataya bak.")
+
+    pf = portfoy_yukle()
+    disarida = [k for k in pf if k not in KODLAR]
+    if disarida:   # kodları yazma: log herkese açık
+        print(f"Portföyde tarama listesinde olmayan {len(disarida)} hisse var; takip için EK_HISSELER'e ekle.")
+
     data = veri_cek(KODLAR)
     oranlar = oranlari_al(KODLAR)
     sonuclar = []
@@ -246,12 +344,14 @@ def main():
         s["yorum"] = yorum_uret(s, fk_med, pd_med)
 
     bugun_al = [s for s in sonuclar if s["sinyal"] == "AL"]
-    onceki = onceki_al()
-    yeni = [s for s in bugun_al if s["kod"] not in onceki]
+    durum = durum_oku()
+    son = dict(durum.get("son", {}))
+    yeni, yeni_sat = sinyal_degisimleri(sonuclar, son)
+    yeni_sat = [s for s in yeni_sat if s["kod"] in pf]   # SAT mesajı sadece portföydekiler için
 
     uyari = None
     if len(yeni) > ASIRI_ISLEM_ESIGI:
-        uyari = (f"Bugün {len(yeni)} yeni AL var — çok fazla. Hepsini alma; en yüksek puanlı/AL+ "
+        uyari = (f"Bu taramada {len(yeni)} yeni AL var — çok fazla. Hepsini alma; en yüksek puanlı/AL+ "
                  f"birkaçına odaklan, aşırı işlem komisyonda eritir.")
 
     by_kod = {s["kod"]: s for s in sonuclar}
@@ -267,25 +367,15 @@ def main():
     print(f"index.html: {len(sonuclar)} hisse, {len(bugun_al)} AL, {len(yeni)} yeni | "
           f"karne: {karne['kapanan']} kapanan, {karne['acik']} açık.")
 
-    tg = [s for s in yeni if (not SADECE_IZLEME_ALARM or s["kod"] in IZLEME_LISTEM)]
-    if tg:
-        tarih = pd.Timestamp.now(tz="Europe/Istanbul").strftime("%d.%m.%Y %H:%M")
-        satir = []
-        for s in sorted(tg, key=lambda x: (not x["guclu"], -x["puan"])):
-            y = " ★AL+" if s["guclu"] else ""
-            fk = f"F/K {s['fk']}" if s.get("fk") else "F/K —"
-            lot = f", öneri {s['lot']} lot" if s.get("lot") else ""
-            satir.append(f"🟢 <b>{s['kod']}</b>{y}  {s['fiyat']} TL  ({fk}, RSI {s['rsi']})\n     stop {s['stop']} TL{lot}")
-        msg = f"📊 <b>Yeni AL (izleme listen)</b> — {tarih}\n\n" + "\n".join(satir)
-        if uyari:
-            msg += f"\n\n⚠️ {uyari}"
-        msg += "\n\n<i>Yatırım tavsiyesi değildir. Sinyal, karar değildir.</i>"
-        tg_gonder(msg)
+    if yeni or yeni_sat:
+        print(f"Telegram: {len(yeni)} yeni AL, {len(yeni_sat)} portföy SAT.")
+        tg_gonder(telegram_mesaji(yeni, yeni_sat, pf, uyari))
     else:
-        print("İzleme listende yeni AL yok, Telegram sessiz.")
+        print("Yeni AL / portföyde yeni SAT yok, Telegram sessiz.")
 
     with open(DURUM, "w", encoding="utf-8") as f:
-        json.dump({"al": sorted(s["kod"] for s in bugun_al)}, f, ensure_ascii=False, indent=2)
+        json.dump({"al": sorted(s["kod"] for s in bugun_al), "son": dict(sorted(son.items()))},
+                  f, ensure_ascii=False, indent=2)
 
 
 if __name__ == "__main__":

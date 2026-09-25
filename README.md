@@ -1,6 +1,6 @@
 # BIST Sinyal Sistemi
 
-Hafta içi, piyasa saatlerinde **~15 dk'da bir** çalışır: BIST 100'ü tarar, panoyu günceller, izleme listendeki yeni AL'leri Telegram'a yollar. Ücretsiz (public repo + Actions + Pages). Veri ~15 dk gecikmeli olabilir.
+Hafta içi, piyasa saatlerinde **~15 dk'da bir** çalışır: BIST 100'ü tarar, panoyu günceller, yeni AL'leri (ve portföyündeki yeni SAT'ları) Telegram'a yollar. Ücretsiz (public repo + Actions + Pages). Veri ~15 dk gecikmeli olabilir.
 
 ## Sayfalar
 - **index.html** — ana pano: Portföyüm bölümü + tüm hisseler. Satıra tıkla → grafik + o hisseye özel yorum + TradingView.
@@ -8,10 +8,10 @@ Hafta içi, piyasa saatlerinde **~15 dk'da bir** çalışır: BIST 100'ü tarar,
 - **backtest.html** — geçmiş simülasyonu (elle çalıştırılır).
 
 ## Dosyalar
-`sinyal.py` (kurallar) · `tarama.py` (tarama+pano+Telegram, ayarlar en üstte) · `pano.py` (pano+geçmiş sayfası) · `backtest.py` · `portoy.json` (portföyün) · `requirements.txt` · `.github/workflows/tarama.yml` (15 dk) · `.github/workflows/backtest.yml` (elle)
+`sinyal.py` (kurallar) · `tarama.py` (tarama+pano+Telegram, ayarlar en üstte) · `pano.py` (pano+geçmiş sayfası) · `backtest.py` · `requirements.txt` · `.github/workflows/tarama.yml` (15 dk) · `.github/workflows/backtest.yml` (elle)
 
 ## Portföyün (artık butonla)
-Panoda **Portföyüm → + Ekle** ile hisse/adet/maliyet girersin; **cihazında** saklanır (dosya düzenlemeye gerek yok). Her satırda kâr/zarar, güncel sinyal ve SAT uyarısı; ✕ ile silersin. Tüm hisseler yine taranır — bu sadece senin pozisyonların.
+Panoda **Portföyüm → + Ekle** ile hisse/adet/maliyet girersin; **cihazında** saklanır (dosya düzenlemeye gerek yok). Her satırda kâr/zarar, güncel sinyal ve SAT uyarısı; ✕ ile silersin. Tüm hisseler yine taranır — bu sadece senin pozisyonların. Telegram'ın da bilmesi için aşağıdaki "Portföyü Telegram'a tanıtmak" adımına bak.
 
 
 ## Sinyal geçmişi (canlı karne)
@@ -21,10 +21,51 @@ Sistem AL dediği anki fiyatı `gecmis.json`'a kaydeder; stop yerse ya da sinyal
 Actions → **Backtest (elle)** → **Run workflow**. Gerçek 2 yıllık veriyle çalışır, `backtest.html` üretir. Sinyal kapanışta oluşur, işleme ertesi gün girilir, çift yön %0.2 komisyon düşülür, al-tut ile kıyaslanır.
 
 ## Ayarlar (`tarama.py` en üstü)
-`IZLEME_LISTEM` (Telegram sadece bunlara) · `BIST100` (panodaki liste, bileşim değişebilir) · `PORTFOY_TL`, `RISK_YUZDESI` (öneri lot) · `ASIRI_ISLEM_ESIGI` · `SADECE_IZLEME_ALARM`.
+`BIST100` (endeks listesi, 3 ayda bir güncellenmeli) · `EK_HISSELER` (endeks dışı ama taranan) · `PORTFOY_TL`, `RISK_YUZDESI` (öneri lot) · `ASIRI_ISLEM_ESIGI`.
+
+## Otomatik çalışma (cron-job.org)
+GitHub'ın kendi zamanlayıcısı ücretsiz hesapta saatlerce gecikebiliyor ya da hiç çalışmayabiliyor. Asıl tetikleyici ücretsiz **cron-job.org**; `tarama.yml`'deki zamanlama yedek olarak duruyor. Bir kez kurulur:
+1. **GitHub anahtarı:** GitHub → sağ üstte profil resmi → **Settings** → en altta **Developer settings** → **Personal access tokens** → **Fine-grained tokens** → **Generate new token**.
+   - Token name: `cron-job`
+   - Expiration: en uzun süre (bitmeden yenile)
+   - Repository access: **Only select repositories** → `Bist-signal`
+   - Permissions → Repository permissions → **Actions: Read and write**
+   - **Generate token**'a bas, çıkan anahtarı kopyala. Bir daha gösterilmez; kimseyle paylaşma.
+2. **cron-job.org:** Üye ol → **Create cronjob**.
+   - URL: `https://api.github.com/repos/BoranZZ/Bist-signal/actions/workflows/tarama.yml/dispatches`
+   - Execution schedule → **Custom**: dakika `0,15,30,45`; saat `10-18`; gün: Pazartesi–Cuma. Saat dilimi: `Europe/Istanbul`.
+   - **Advanced** sekmesi:
+     - Request method: **POST**
+     - Request body: `{"ref":"main"}`
+     - Headers (4 satır):
+       - `Accept: application/vnd.github+json`
+       - `Authorization: Bearer <kopyaladığın anahtar>`
+       - `X-GitHub-Api-Version: 2022-11-28`
+       - `Content-Type: application/json`
+   - Kaydet → **Test run**. Sonuç **204** olmalı. Ardından GitHub'da Actions'ta yeni bir tarama başlar.
+
+## Telegram
+Mesaj şu durumlarda gelir:
+- **Yeni AL:** Taranan tüm hisselerde. Portföyündeki hisselerde satırın başında ❗ olur, altında maliyetine göre kâr/zararın ve "stop yerse" hesabı yazar.
+- **Yeni SAT:** Sadece portföyündeki hisselerde, ❗ ile.
+
+AL ile NÖTR arasında gidip gelen hisse tekrar mesaj atmaz. Sinyalin önce SAT'a, sonra tekrar AL'e dönmesi gerekir. Listeye yeni eklenen hisse, ilk tarandığı turda mesaj atmaz.
+
+**Portföyü Telegram'a tanıtmak:** Panodaki "+ Ekle" sadece senin tarayıcında saklanır, GitHub onu göremez.
+1. Panoda **Telegram için kopyala**'ya bas.
+2. GitHub'da `Bist-signal` → **Settings** → **Secrets and variables** → **Actions** yolunu izle.
+3. **New repository secret**'a bas (daha önce eklediysen `PORTFOY`'un yanındaki kalem ✏️).
+4. Adı `PORTFOY` olsun. Kopyaladığın metni yapıştır, **Save**'e bas.
+
+Portföyünü değiştirdiğinde bu adımları tekrarla. Secret'ı sadece sen görürsün; sistem portföyünü loglara yazmaz.
+
+Bağlantıyı denemek için: Actions → **BIST Sinyal Taraması** → **Run workflow** → **"Telegram'a test mesajı gönder"** kutusunu işaretle → Run. Mesaj gelmezse tarama kırmızı biter; "Taramayı çalıştır" adımında Telegram'ın verdiği hata yazar:
+- *bilgi yok*: GitHub → Settings → Secrets and variables → Actions'ta `TELEGRAM_TOKEN` ve `TELEGRAM_CHAT_ID` tanımlı değil.
+- *401 Unauthorized*: Token yanlış. BotFather'dan aldığın anahtarı tekrar kopyala.
+- *400 chat not found*: Chat ID yanlış, ya da bota Telegram'dan hiç **/start** yazmadın.
 
 ## Mevcut repo'yu güncelleme
-1. **Add file → Upload files** → şunları sürükle (üzerine yazılır): `sinyal.py`, `tarama.py`, `pano.py`, `backtest.py`, `requirements.txt`, `README.md`, `portoy.json` → Commit.
+1. **Add file → Upload files** → şunları sürükle (üzerine yazılır): `sinyal.py`, `tarama.py`, `pano.py`, `backtest.py`, `requirements.txt`, `README.md` → Commit.
 2. `.github/workflows/tarama.yml`'i aç → ✏️ → içeriği yenisiyle değiştir → Commit.
 3. **Add file → Create new file** → ad: `.github/workflows/backtest.yml` → paketteki içeriği yapıştır → Commit.
 4. **Actions → BIST Sinyal Taraması → Run workflow** (bir kez elle).

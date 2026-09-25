@@ -12,12 +12,16 @@ komutlarını tek tek ver.
 - GitHub Pages `index.html`'i yayınlar: https://boranzz.github.io/Bist-signal/
 - `backtest.yml` elle çalışır → gerçek 2 yıl veriyle `backtest.html`.
 - Veri kaynağı: yfinance (`KOD.IS`), ~15 dk gecikmeli, ücretsiz.
+- GitHub'ın cron'u saatlerce gecikiyor/atlıyor; asıl tetik cron-job.org → workflow_dispatch (README).
+- Telegram: tüm hisselerde yeni AL; SAT sadece portföyde. NÖTR ara geçişleri sayılmaz
+  (`durum.json` → `son`). Portföy `PORTFOY` secret'ından gelir (panodaki localStorage'ı
+  sunucu göremez). **Actions logları herkese açık: portföy içeriğini/kodlarını asla print etme.**
 
 ## Dosyalar
 - `sinyal.py` — gösterge + sinyal çekirdeği. **Tek kural seti** (canlı tarama + backtest ortak).
   SuperTrend, MACD, EMA20/50, RSI, Stochastic oy verir; ADX/Bollinger bağlam. `analiz_et(df)`
   son gün özetini döndürür (sinyal, uyum, detay, sinyal_gun, giris_stop, hedef, spark...).
-- `tarama.py` — evren (BIST100 + izleme listesi), oran önbelleği (F/K, PD/DD, FD-FAVÖK günde 1),
+- `tarama.py` — evren (BIST100 + EK_HISSELER + izleme listesi), oran önbelleği (F/K, PD/DD, FD-FAVÖK günde 1),
   yorum üretimi, sinyal geçmişi (gecmis.json), Telegram. Ayarlar dosyanın başında.
 - `pano.py` — `index.html` ve `gecmis.html` üretir. Portföy istemci tarafında (localStorage),
   modalda kendi SVG grafiğimiz + TradingView butonu.
@@ -52,3 +56,8 @@ tarih/fiyat), TradingView'i sadece "tam ekran aç" butonu olarak bırak.
 
 ## Kullanıcının okumayı bilmediği şeyler (öğretilecek)
 RSI, MACD ve hacim panellerinin nasıl okunacağını sade anlat (grafik dersi).
+
+## Periyodik bakım
+`tarama.py`'deki `BIST100` listesi 1 Ekim – 31 Aralık 2026 dönemine göre. Borsa İstanbul bileşimi
+3 ayda bir değiştirir (sonraki: Ocak 2027). Endeksten çıkanları silme, `EK_HISSELER`'e taşı
+(portföy ve sinyal geçmişi kopmasın). Yeni kodları yfinance'ta şirket adıyla doğrula.
