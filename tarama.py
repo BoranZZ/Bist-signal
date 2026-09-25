@@ -464,7 +464,8 @@ def _al_satiri(s, pf):
     h = f" 📈hacim {s['hacim_kat']}x" if s.get("hacim_teyit") else ""
     fk = f"F/K {s['fk']}" if s.get("fk") else "F/K —"
     lot = f", öneri {s['lot']} lot" if s.get("lot") else ""
-    t = f"{isaret} <b>{s['kod']}</b>{y}{h}  {s['fiyat']} TL  ({fk}, RSI {s['rsi']})\n     stop {s['giris_stop']} TL{lot}"
+    m = f", 20 günde {_yz(s['mom20'])}" if s.get("mom20") is not None else ""
+    t = f"{isaret} <b>{s['kod']}</b>{y}{h}  {s['fiyat']} TL  ({fk}, RSI {s['rsi']}{m})\n     stop {s['giris_stop']} TL{lot}"
     if s["kod"] in pf:
         t += "\n     " + plan_metni(s, pf[s["kod"]])
     return t
@@ -474,7 +475,8 @@ def telegram_mesaji(yeni_al, yeni_sat, sat_teyit, pf, uyari, piyasa=None, karar_
     tarih = pd.Timestamp.now(tz="Europe/Istanbul").strftime("%d.%m.%Y %H:%M")
     parca = [f"📊 <b>BIST Sinyal</b> — {tarih}"]
     if yeni_al:
-        sirali = sorted(yeni_al, key=lambda x: (x["kod"] not in pf, not x.get("hacim_teyit"), not x["guclu"], -x["puan"]))
+        # portföydekiler önce; sonra son 20 günde az yükselmiş olan önce (portföy simülasyonunda en iyi öncelik kuralı)
+        sirali = sorted(yeni_al, key=lambda x: (x["kod"] not in pf, x["mom20"] if x.get("mom20") is not None else 0))
         gosterilen = [s for s in sirali if s["kod"] in pf] + [s for s in sirali if s["kod"] not in pf][:MAX_AL_SATIR]
         satir = [_al_satiri(s, pf) for s in gosterilen]
         kalan = len(sirali) - len(gosterilen)

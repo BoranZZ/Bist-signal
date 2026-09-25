@@ -316,6 +316,8 @@ def analiz_et(df):
 
     # taban serisi: son TABAN_GUN günde kaç kez ~%10 düştü
     taban = int((d["Close"].pct_change().tail(TABAN_GUN) <= TABAN_GETIRI).sum())
+    # son 20 günde ne kadar yükselmiş (portföy simülasyonu: aynı gün birden çok AL'de az yükselmiş olan daha iyi)
+    mom20 = round((fiyat / float(d["Close"].iloc[-21]) - 1) * 100, 1) if len(d) > 21 else None
 
     return {
         "fiyat": round(fiyat, 2),
@@ -340,6 +342,7 @@ def analiz_et(df):
         "hacim_kat": hacim_kat,
         "hacim_teyit": bool(hacim_kat is not None and hacim_kat >= HACIM_ESIK),
         "taban15": taban,
+        "mom20": mom20,
         "patlak": taban >= PATLAK_TABAN,
         "sinyal_tarih": sinyal_tarih,
         "sinyal_degisim": sinyal_degisim,
