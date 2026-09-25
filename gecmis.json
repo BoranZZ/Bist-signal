@@ -6,8 +6,8 @@
       "giris_fiyat": 34.38,
       "stop": 31.63,
       "durum": "açık",
-      "guncel": 33.76,
-      "anlik": -1.8
+      "guncel": 33.78,
+      "anlik": -1.7
     },
     {
       "kod": "TKFEN",
@@ -24,8 +24,8 @@
       "giris_fiyat": 411.5,
       "stop": 388.5,
       "durum": "açık",
-      "guncel": 404.5,
-      "anlik": -1.7
+      "guncel": 403.75,
+      "anlik": -1.9
     },
     {
       "kod": "KRDMD",
@@ -42,8 +42,8 @@
       "giris_fiyat": 5827.5,
       "stop": 5361.3,
       "durum": "açık",
-      "guncel": 5657.5,
-      "anlik": -2.9
+      "guncel": 5635.0,
+      "anlik": -3.3
     },
     {
       "kod": "TUKAS",
@@ -60,8 +60,8 @@
       "giris_fiyat": 44.34,
       "stop": 40.79,
       "durum": "açık",
-      "guncel": 44.3,
-      "anlik": -0.1
+      "guncel": 44.4,
+      "anlik": 0.1
     },
     {
       "kod": "ENERY",
@@ -69,8 +69,8 @@
       "giris_fiyat": 13.36,
       "stop": 12.29,
       "durum": "açık",
-      "guncel": 13.56,
-      "anlik": 1.5
+      "guncel": 13.57,
+      "anlik": 1.6
     },
     {
       "kod": "ISDMR",
@@ -78,8 +78,8 @@
       "giris_fiyat": 62.5,
       "stop": 57.5,
       "durum": "açık",
-      "guncel": 63.5,
-      "anlik": 1.6
+      "guncel": 63.65,
+      "anlik": 1.8
     },
     {
       "kod": "SOKM",
