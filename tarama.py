@@ -64,7 +64,12 @@ KODLAR = sorted(set(BIST100 + EK_HISSELER + list(HALKA_ARZ)))
 DURUM = "durum.json"
 ORAN_CACHE = "oranlar.json"
 ENDEKS = "XU100"
-OZET_SAATI = 18   # günlük portföy özeti bu saatten sonraki ilk taramada gider (İstanbul)
+# Kapanış: sürekli işlem 18:00'de biter, kapanış seansı ~18:10; Yahoo verisi ~15 dk gecikmeli -> kesin kapanış
+# fiyatı ~18:25'te gelir. Kapanış sonrası işler (AL/SAT mesajları, günlük özet) 18:30'dan sonraki ilk taramada.
+KAPANIS_DAKIKA = 18 * 60 + 30
+# Gün içi yeni AL/SAT'ların ~%22'si kapanışta geçersiz oluyor (saatlik veriyle ölçüldü, 2026-09) ve backtest
+# kapanış sinyali + ertesi gün açılış girişi varsayıyor: AL/SAT mesajları sadece kapanış sonrası taramada gider.
+SADECE_KAPANIS_MESAJI = True
 MIN_GUN = 60      # sinyal için gereken en az işlem günü (sinyal.analiz_et)
 
 
@@ -580,9 +585,14 @@ def main():
         s["yorum"] = yorum_uret(s, fk_med, pd_med)
 
     bugun_al = [s for s in sonuclar if s["sinyal"] == "AL"]
+    simdi = pd.Timestamp.now(tz="Europe/Istanbul")
+    kapanis_sonrasi = (simdi.hour * 60 + simdi.minute >= KAPANIS_DAKIKA) or not SADECE_KAPANIS_MESAJI
     durum = durum_oku()
     son = dict(durum.get("son", {}))
-    yeni, yeni_sat = sinyal_degisimleri(sonuclar, son)
+    if kapanis_sonrasi:
+        yeni, yeni_sat = sinyal_degisimleri(sonuclar, son)
+    else:
+        yeni, yeni_sat = [], []   # 'son' değişmez: geçişler kapanışta, kesinleşmiş sinyalle değerlendirilir
     patlak_al = [s for s in yeni if s.get("patlak")]
     yeni = [s for s in yeni if not s.get("patlak")]      # taban serisindeki hisseden AL mesajı gitmez
     yeni_sat = [s for s in yeni_sat if s["kod"] in pf]   # SAT mesajı sadece portföydekiler için
@@ -591,7 +601,7 @@ def main():
     ilk_kez = "sat_teyit" not in durum
     teyit = dict(durum.get("sat_teyit", {}))
     sat_teyit = []
-    for s in sonuclar:
+    for s in (sonuclar if kapanis_sonrasi else []):
         if (s["kod"] in pf and s["sinyal"] == "SAT" and (s.get("sinyal_gun") or 1) >= 2
                 and teyit.get(s["kod"]) != s["sinyal_tarih"]):
             teyit[s["kod"]] = s["sinyal_tarih"]
@@ -604,7 +614,6 @@ def main():
                  f"birkaçına odaklan, aşırı işlem komisyonda eritir.")
 
     by_kod = {s["kod"]: s for s in sonuclar}
-    simdi = pd.Timestamp.now(tz="Europe/Istanbul")
     bugun_iso = simdi.strftime("%Y-%m-%d")
 
     # Sinyal geçmişi (canlı karne): yeni AL'leri kaydet, açıkları stop/SAT ile kapat
@@ -625,11 +634,12 @@ def main():
         print(f"Telegram: {len(yeni)} yeni AL, {len(yeni_sat)} portföy SAT, {len(sat_teyit)} SAT teyidi.")
         tg_gonder(telegram_mesaji(yeni, yeni_sat, sat_teyit, pf, uyari, piyasa))
     else:
-        print("Yeni AL / portföyde SAT yok, Telegram sessiz.")
+        print("Yeni AL / portföyde SAT yok, Telegram sessiz." if kapanis_sonrasi
+              else "Gün içi tarama: AL/SAT mesajları kapanış sonrası taramada gönderilir.")
 
     # Günlük portföy özeti: hafta içi, kapanıştan sonraki ilk taramada bir kez
     ozet_tarih = durum.get("ozet_tarih")
-    if pf and simdi.weekday() < 5 and simdi.hour >= OZET_SAATI and ozet_tarih != bugun_iso:
+    if pf and simdi.weekday() < 5 and simdi.hour * 60 + simdi.minute >= KAPANIS_DAKIKA and ozet_tarih != bugun_iso:
         if tg_gonder(portfoy_ozeti(sonuclar, pf, piyasa)):
             ozet_tarih = bugun_iso
             print("Günlük portföy özeti gönderildi.")
