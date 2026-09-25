@@ -126,6 +126,10 @@ isteğiyle faiz yüzünden düşen eski büyükler (KONTR vb.) KALDI — tüm ç
 - Temettü (`bilanco.temettu_ozet`, aynı önbellek): son 12 ay nakit temettü/hisse + verim (>%25 'şüpheli': yfinance
   bedelsizi bilmez), Yahoo'da varsa ileri hak kullanım günü (az hissede var, tahmini olabilir). 7 gün içindeyse 💰 rozet +
   portföy özeti notu (o sabah fiyat temettü kadar düşük açılır). Bilgi amaçlı.
+- KAP (`kap.py`): kap.org.tr'nin kendi sitesinin kullandığı POST `api/disclosure/members/byCriteria` (ODA + FR,
+  son 7 gün, tek istekte tüm şirketler; en çok 2000 kayıt). Gürültü konular ayıklanır; `kap.json` 45 gün hisse başı.
+  Modalda son 5 bildirim. Telegram: portföy hisselerinin yeni bildirimleri (geri alım hariç), `durum.json` → `kap_son`
+  (genel bildirim sayacı, portföy bilgisi içermez); ilk çalışmada sessiz başlangıç. KAP'a ulaşılamazsa önbellekle devam.
 - Fiyat alarmı: panoda hisse penceresinden kurulur, `ALARMLAR` variable'ına (portföyle aynı anahtar) yazılır;
   her taramada (gün içi de) kontrol, her alarm bir kez çalar. durum.json herkese açık olduğundan sadece
   alarmın sha1 özeti (`alarm_tetik`) saklanır; silinen alarmın kaydı temizlenir.

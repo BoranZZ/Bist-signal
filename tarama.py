@@ -7,6 +7,7 @@ Akış: fiyat çek -> sinyal + (günlük önbellekli) oran -> risk/lot -> AL+ ->
 import bisect, json, math, os, time
 import pandas as pd
 import yfinance as yf
+from kap import kap_guncelle, kap_mesaji
 from bilanco import bilancolari_al, bilanco_ozet, bilanco_metni, bilanco_yakin, tarih_tr, temettu_ozet
 from sinyal import analiz_et, destek_direnc, TABAN_GETIRI, TABAN_GUN, IZ_STOP_ORAN
 from pano import pano_uret, gecmis_uret
@@ -812,6 +813,7 @@ def main():
     endeks = endeks_serisi(data)
     oranlar = oranlari_al(KODLAR)
     bilancolar = bilancolari_al(KODLAR)
+    kap_hisse, kap_yeni = kap_guncelle(KODLAR)
     sonuclar, yeni_arzlar = [], []
     for kod in KODLAR:
         try:
@@ -834,6 +836,7 @@ def main():
             a["endustri"] = o[4] if len(o) > 4 else None
             a["bilanco"] = bilanco_ozet(bilancolar.get(kod))
             a["temettu"] = temettu_ozet(bilancolar.get(kod), a["fiyat"])
+            a["kap"] = kap_hisse.get(kod)
             a["lot"] = lot_oner(a["fiyat"], a["fiyat"] * (1 - IZ_STOP_ORAN))   # risk: iz stop başlangıcı
             sonuclar.append(a)
         except Exception as e:
@@ -987,6 +990,18 @@ def main():
             for a, _ in alarm_yeni:
                 tetiklenen.discard(_alarm_anahtar(a))   # gönderilemediyse sonraki taramada yeniden dene
 
+    # KAP: portföy hisselerinin yeni bildirimleri (her taramada). kap_son = görülen en büyük bildirim no (genel sayaç,
+    # portföy bilgisi içermez); ilk çalışmada sessizce başlangıç kaydı.
+    kap_son = durum.get("kap_son") or 0
+    en_buyuk = max([b["id"] for L in kap_hisse.values() for b in L] + [kap_son])
+    if kap_son and pf:
+        m = kap_mesaji(kap_hisse, pf, kap_son)
+        if m:
+            print("Telegram: portföy KAP bildirimi.")
+            if not tg_gonder(m):
+                en_buyuk = kap_son   # gönderilemediyse sonraki taramada yeniden dene
+    kap_son = en_buyuk
+
     # Günlük portföy özeti: hafta içi, kapanıştan sonraki ilk taramada bir kez
     ozet_tarih = durum.get("ozet_tarih")
     if pf and simdi.weekday() < 5 and kapanis_zamani and ozet_tarih != bugun_iso:
@@ -1006,7 +1021,7 @@ def main():
                    "iz_kirilim_g": sorted(iz_kayit), "ozet_tarih": ozet_tarih, "hafta_tarih": hafta_tarih,
                    "karar_kirilim_g": sorted(kirilim),
                    "alarm_tetik": sorted(tetiklenen), "on_sinyal": dict(sorted(on_sinyal.items())),
-                   "uv_son": dict(sorted(uv_son.items()))},
+                   "uv_son": dict(sorted(uv_son.items())), "kap_son": kap_son},
                   f, ensure_ascii=False, indent=2)
 
 

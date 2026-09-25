@@ -104,7 +104,7 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None, 
             "spark": s.get("spark", {}),
             "al_stop": s.get("al_stop"), "al_tarih": s.get("al_tarih"), "hacim_kat": s.get("hacim_kat"),
             "hacim_teyit": bool(s.get("hacim_teyit")), "taban15": s.get("taban15"), "patlak": bool(s.get("patlak")),
-            "arz": s.get("arz"), "sektor": s.get("sektor"), "endustri": s.get("endustri"), "mom20": s.get("mom20"), "uv": s.get("uv"), "bayrak": s.get("bayrak"), "bilanco": s.get("bilanco"), "temettu": s.get("temettu"),
+            "arz": s.get("arz"), "sektor": s.get("sektor"), "endustri": s.get("endustri"), "mom20": s.get("mom20"), "uv": s.get("uv"), "bayrak": s.get("bayrak"), "bilanco": s.get("bilanco"), "temettu": s.get("temettu"), "kap": s.get("kap"),
         }
 
     banner = ""
@@ -528,6 +528,14 @@ function bilHtml(d){
  }
  return h+'</div>';
 }
+function kapHtml(d){
+ var L=d.kap;if(!L||!L.length)return '';
+ var h='<div class="bilkutu">📰 <b>Son KAP bildirimleri</b>';
+ L.forEach(function(b){var t=b.t.slice(8,10)+'.'+b.t.slice(5,7)+' '+b.t.slice(11);
+  var oz=(b.ozet&&b.ozet!==b.konu)?' — '+b.ozet.replace(/</g,'&lt;'):'';
+  h+='<div class="cikis"><span class="sgun">'+t+'</span> <a href="https://www.kap.org.tr/tr/Bildirim/'+b.id+'" target="_blank" rel="noopener"><b>'+b.konu.replace(/</g,'&lt;')+'</b></a>'+oz+'</div>';});
+ return h+'<div class="pk sgun">Haberler çoğu zaman fiyata hızla yansır; bağlam içindir, sinyal değildir.</div></div>';
+}
 function arzHtml(d){
  var z=d.arz;if(!z)return '';
  var g=z.getiri==null?'':' · arzdan beri <b class="'+(z.getiri>=0?'pos':'neg')+'">'+(z.getiri>=0?'+':'')+z.getiri+'%</b>';
@@ -572,7 +580,7 @@ function ac(k){
    (d.sektor?' <span class="sektorb">'+d.sektor+(d.endustri&&d.endustri!==d.sektor?' · '+d.endustri:'')+'</span>':'')+'</div>'+
  zaman+
  (d.patlak?'<div class="patlakkutu">⚠ <b>Taban serisi:</b> son 15 günde '+d.taban15+' kez ~%10 düştü. Fon krizi tipi çöküş olabilir; bu hisseden AL mesajı gönderilmez.</div>':'')+
- pozHtml(k,d)+arzHtml(d)+uvHtml(d)+bilHtml(d)+
+ pozHtml(k,d)+arzHtml(d)+uvHtml(d)+bilHtml(d)+kapHtml(d)+
  '<div class="grafik">'+grafik(d.spark,d.sd)+'<div class="leg"><span class="c1">Fiyat</span><span class="c2">SMA20</span><span class="c3">SMA50</span><span class="c4">SuperTrend</span>'+
    (d.sd&&d.sd.destek?'<span class="c5">Destek</span>':'')+(d.sd&&d.sd.direnc?'<span class="c6">Direnç</span>':'')+
    '<span style="color:#1B7F4B">▲ AL</span><span style="color:#B4362E">▼ SAT</span></div></div>'+

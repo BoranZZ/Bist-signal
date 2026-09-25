@@ -43,7 +43,7 @@ jobs:
         run: |
           git config user.name "bist-bot"
           git config user.email "bot@users.noreply.github.com"
-          git add index.html durum.json gecmis.json gecmis.html oranlar.json bilanco.json
+          git add index.html durum.json gecmis.json gecmis.html oranlar.json bilanco.json kap.json
           git commit -m "Pano guncellendi" || echo "degisiklik yok"
           # bu arada repoya başka commit geldiyse üstüne ekle; çakışmada yeni üretilen dosyalar kazanır
           git pull --rebase -X theirs
