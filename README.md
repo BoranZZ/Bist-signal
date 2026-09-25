@@ -46,8 +46,10 @@ GitHub'ın kendi zamanlayıcısı ücretsiz hesapta saatlerce gecikebiliyor ya d
 
 ## Telegram
 Mesaj şu durumlarda gelir:
-- **Yeni AL:** Taranan tüm hisselerde. Portföyündeki hisselerde satırın başında ❗ olur, altında maliyetine göre kâr/zararın ve "stop yerse" hesabı yazar.
-- **Yeni SAT:** Sadece portföyündeki hisselerde, ❗ ile.
+- **Yeni AL:** Taranan tüm hisselerde. Hacmi yüksek AL'ler "📈 hacim" etiketiyle öne çıkar. Piyasa zayıfsa (BIST 100 50 günlük ortalamasının altında) mesajda uyarı olur. Son 15 günde 4+ kez taban olan hisselerden AL mesajı gitmez.
+- **Portföyündeki hisselerde:** Satırın başında ❗ olur. Altında şunlar yazar: kâr/zararın, 📍 çıkış seviyesi (stop) ve 🎯 hedefler (en yakın direnç ve risk/ödül 2:1).
+- **Yeni SAT:** Sadece portföyündeki hisselerde. İlk gün "⏳ 1. gün, yarını bekle" diye gelir; ertesi gün de SAT kalırsa "✅ teyitlendi" mesajı gelir.
+- **Günlük portföy özeti:** Hafta içi 18:00'den sonra bir kez. Her hisse için sinyal, K/Z, çıkış ve hedefler, dikkat notları (stop'a yakın, dirence yaklaşıyor, taban serisi).
 
 AL ile NÖTR arasında gidip gelen hisse tekrar mesaj atmaz. Sinyalin önce SAT'a, sonra tekrar AL'e dönmesi gerekir. Listeye yeni eklenen hisse, ilk tarandığı turda mesaj atmaz.
 

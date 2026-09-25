@@ -18,6 +18,11 @@ SD_YENI = 10   # son 10 günde oluşan dip/tepeler seviye sayılmaz (henüz test
 SD_MIN_TEST = 2                        # etiket için seviye en az 2 kez test edilmiş olmalı
 SD_TOL_MIN, SD_TOL_MAX = 0.01, 0.025   # "yakın" eşiğinin alt/üst sınırı
 
+# hacim teyidi (5 yıllık backtest: AL günü hacmi yüksekse sinyal daha güçlü, özellikle düşük faizde)
+HACIM_ESIK = 1.5       # AL'e dönüş günü hacmi / önceki 20 günün ortalaması
+# taban serisi (fon krizinde çöken şişirilmiş hisseler): son 15 günde en az 4 kez ~%10 düşüş
+TABAN_GETIRI, TABAN_GUN, PATLAK_TABAN = -0.09, 15, 4
+
 
 def sma(s, n): return s.rolling(n).mean()
 def ema(s, n): return s.ewm(span=n, adjust=False).mean()
@@ -294,6 +299,22 @@ def analiz_et(df):
     giris_stop = round(float(d["STOP"].iloc[start_idx]), 2)  # AL başladığındaki sabit stop
     hedef = round(fiyat + 2*(fiyat - giris_stop), 2) if (cur == "AL" and fiyat > giris_stop) else None
 
+    # son AL'in başladığı gün ve o günkü stop (portföydeki pozisyonun çıkış seviyesi)
+    al_bas = next((i for i in range(len(sig) - 1, -1, -1) if sig[i] == "AL" and (i == 0 or sig[i-1] != "AL")), None)
+    al_stop = round(float(d["STOP"].iloc[al_bas]), 2) if al_bas is not None else None
+    al_tarih = str(d.index[al_bas].date()) if al_bas is not None else None
+
+    # hacim teyidi: AL'e dönüş günü hacmi önceki 20 günün ortalamasının HACIM_ESIK katından fazla mı
+    hacim_kat = None
+    if cur == "AL" and "Volume" in d:
+        v = d["Volume"].astype(float)
+        ort = v.iloc[max(0, start_idx - 20):start_idx].mean()
+        if ort and not pd.isna(ort):
+            hacim_kat = round(float(v.iloc[start_idx]) / float(ort), 1)
+
+    # taban serisi: son TABAN_GUN günde kaç kez ~%10 düştü
+    taban = int((d["Close"].pct_change().tail(TABAN_GUN) <= TABAN_GETIRI).sum())
+
     return {
         "fiyat": round(fiyat, 2),
         "degisim": round(degisim, 2) if degisim is not None else None,
@@ -312,6 +333,12 @@ def analiz_et(df):
         "hedef": hedef,
         "sinyal_gun": run,
         "notr_kaynak": notr_kaynak,
+        "al_stop": al_stop,
+        "al_tarih": al_tarih,
+        "hacim_kat": hacim_kat,
+        "hacim_teyit": bool(hacim_kat is not None and hacim_kat >= HACIM_ESIK),
+        "taban15": taban,
+        "patlak": taban >= PATLAK_TABAN,
         "sinyal_tarih": sinyal_tarih,
         "sinyal_degisim": sinyal_degisim,
         "yeni": bool(yeni),

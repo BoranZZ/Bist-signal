@@ -7,7 +7,7 @@ Akış: fiyat çek -> sinyal + (günlük önbellekli) oran -> risk/lot -> AL+ ->
 import json, math, os, time
 import pandas as pd
 import yfinance as yf
-from sinyal import analiz_et
+from sinyal import analiz_et, TABAN_GETIRI, TABAN_GUN
 from pano import pano_uret, gecmis_uret
 
 # ================== AYARLAR ==================
@@ -25,12 +25,33 @@ BIST100 = [
  "TTKOM","TTRAK","TUKAS","TUPRS","TURSG","ULKER","VAKBN","VESTL","YKBNK","ZOREN",
 ]
 
-# Endekste olmayan ama taramaya devam edilen hisseler (portföy/geçmiş kopmasın diye)
+# Endekste olmayan ama taramaya devam edilen hisseler (portföy/geçmiş kopmasın diye).
+# 2026-09: fon krizinde çöken şişirilmiş hisseler (TERA, SMRTG, GENIL, MIATK — son 3 haftada
+# 5+ kez taban) çıkarıldı. Faiz yüzünden düşen eski büyükler (ör. KONTR) bilerek listede.
 EK_HISSELER = [
- "AGROT","ALFAS","BUCIM","EUPWR","GENIL","GESAN","ISGYO","IZENR","KAYSE","KLKIM",
- "KLSER","KMPUR","KONTR","KONYA","MIATK","PAPIL","PENTA","QUAGR","REEDR","SDTTR",
- "SKBNK","SMRTG","TERA","ULUUN","VESBE","YEOTK",
+ "AGROT","ALFAS","BUCIM","EUPWR","GESAN","ISGYO","IZENR","KAYSE","KLKIM",
+ "KLSER","KMPUR","KONTR","KONYA","PAPIL","PENTA","QUAGR","REEDR","SDTTR",
+ "SKBNK","ULUUN","VESBE","YEOTK",
 ]
+
+# Son 12 ayın halka arzları: kod -> (borsada işlem başlangıcı, halka arz fiyatı TL). Kaynak: halkarz.com
+# (ENPRA kısmi bölünmeyle geldi, arz fiyatı yok). Yeni arzlar sinyal için ~60 işlem günü geçmiş ister.
+HALKA_ARZ = {
+ "ECOGR": ("2025-11-03", 10.40), "VAKFA": ("2025-11-20", 14.20), "PAHOL": ("2025-11-21", 1.50),
+ "ZERGY": ("2025-12-18", 13.00), "ARFYE": ("2026-01-05", 19.50), "MEYSU": ("2026-01-13", 7.50),
+ "FRMPL": ("2026-01-15", 30.24), "ZGYO": ("2026-01-16", 9.77), "UCAYM": ("2026-01-22", 18.00),
+ "NETCD": ("2026-02-05", 46.00), "AKHAN": ("2026-02-06", 21.50), "BESTE": ("2026-02-11", 14.70),
+ "ATATR": ("2026-02-19", 11.20), "EMPAE": ("2026-02-26", 22.00), "SVGYO": ("2026-03-06", 3.64),
+ "GENKM": ("2026-03-06", 11.00), "LXGYO": ("2026-03-10", 12.05), "MCARD": ("2026-03-11", 80.00),
+ "AAGYO": ("2026-04-09", 21.10), "ENPRA": ("2026-04-07", None), "EKDMR": ("2026-05-22", 45.00),
+ "BETAE": ("2026-07-01", 40.00), "SOHOE": ("2026-07-06", 15.00), "ORZAX": ("2026-07-07", 69.00),
+ "GOLDA": ("2026-07-08", 9.20), "EKIM": ("2026-07-09", 30.26), "ISVEA": ("2026-07-10", 20.90),
+ "SSAAT": ("2026-07-16", 56.00), "SARAE": ("2026-07-17", 70.00), "METEN": ("2026-07-28", 20.00),
+ "ALBTN": ("2026-07-29", 38.60), "MASFN": ("2026-07-30", 45.68), "KARCL": ("2026-07-31", 35.00),
+ "QUICK": ("2026-08-06", 76.60), "CITAS": ("2026-08-18", 73.70), "VEYAS": ("2026-08-20", 136.00),
+ "TKNKA": ("2026-08-20", 85.40), "KPEKS": ("2026-08-21", 94.00), "INTET": ("2026-09-01", 53.60),
+ "BKRGY": ("2026-09-02", 12.93), "NETGL": ("2026-09-17", 25.52),
+}
 
 PORTFOY_TL = 100_000
 RISK_YUZDESI = 1.0
@@ -39,16 +60,44 @@ PANO_URL = "https://boranzz.github.io/Bist-signal/"
 # Telegram: tüm hisselerde yeni AL; SAT sadece portföydekiler (PORTFOY variable'ı, panodan otomatik yazılır).
 # ============================================
 
-KODLAR = sorted(set(BIST100 + EK_HISSELER))
+KODLAR = sorted(set(BIST100 + EK_HISSELER + list(HALKA_ARZ)))
 DURUM = "durum.json"
 ORAN_CACHE = "oranlar.json"
+ENDEKS = "XU100"
+OZET_SAATI = 18   # günlük portföy özeti bu saatten sonraki ilk taramada gider (İstanbul)
+MIN_GUN = 60      # sinyal için gereken en az işlem günü (sinyal.analiz_et)
 
 
 def veri_cek(kodlar):
-    tickers = [k + ".IS" for k in kodlar]
+    tickers = [k + ".IS" for k in kodlar] + [ENDEKS + ".IS"]
     print(f"{len(tickers)} hisse indiriliyor...")
     return yf.download(tickers, period="1y", interval="1d", group_by="ticker",
                        auto_adjust=True, progress=False, threads=True)
+
+
+def piyasa_durumu(data):
+    """Piyasa filtresi: BIST 100 50 günlük ortalamasının altındaysa 'zayıf' (backtest: bu dönemdeki AL'ler kötü)."""
+    try:
+        xu = data[ENDEKS + ".IS"]["Close"].dropna()
+        ort = float(xu.rolling(50).mean().iloc[-1])
+        son = float(xu.iloc[-1])
+        return {"endeks": round(son), "ort50": round(ort), "zayif": son < ort, "fark": round((son / ort - 1) * 100, 1)}
+    except Exception:
+        return None
+
+
+def arz_bilgisi(kod, df):
+    """Son 12 ayın halka arzı ise: arz tarihi/fiyatı, arzdan beri getiri, taban serisi."""
+    if kod not in HALKA_ARZ:
+        return None
+    tarih, arz_fiyat = HALKA_ARZ[kod]
+    c = df["Close"]
+    son = float(c.iloc[-1])
+    return {"kod": kod, "tarih": tarih, "arz_fiyat": arz_fiyat, "fiyat": round(son, 2),
+            "getiri": round((son / arz_fiyat - 1) * 100, 1) if arz_fiyat else None,
+            "degisim": round((son / float(c.iloc[-2]) - 1) * 100, 2) if len(c) > 1 else None,
+            "gun": len(c), "eksik_gun": max(0, MIN_GUN - len(c)),
+            "taban15": int((c.pct_change().tail(TABAN_GUN) <= TABAN_GETIRI).sum())}
 
 
 def oran_cek_tek(kod):
@@ -201,49 +250,136 @@ def _tl(x):
     return f"{'+' if x >= 0 else '−'}{abs(round(x)):,.0f}".replace(",", ".") + " TL"
 
 
-def portfoy_notu(s, p, stop_goster=True):
+def _yz(x):
+    return f"%{x:+.1f}".replace("+-", "-").replace("-", "−")
+
+
+def pozisyon_plani(s, p):
+    """Portföydeki pozisyon için çıkış (stop) ve hedefler. pano.py'deki pozPlan() ile aynı mantık.
+    SAT'ta çıkış sebebi sinyalin kendisi: stop ve hedef verilmez."""
     f, m, a = s["fiyat"], p["maliyet"], p["adet"]
-    t = f"Portföyünde {a:g} adet, maliyet {m:.2f} → şu an %{(f / m - 1) * 100:+.1f} ({_tl((f - m) * a)})"
-    if stop_goster and s.get("stop"):
-        sk = (s["stop"] - m) * a
-        t += f"\n     Stop {s['stop']} TL'ye inerse: {_tl(sk)}" + (" (yine kârda çıkarsın)" if sk >= 0 else "")
-    return t
+    plan = {"fiyat": f, "maliyet": m, "adet": a, "kz": (f - m) * a, "kz_y": (f / m - 1) * 100,
+            "sat": s["sinyal"] == "SAT", "stop": None, "hedefler": []}
+    if plan["sat"]:
+        return plan
+    # çıkış seviyesi: son AL'in başındaki sabit stop (backtest'teki kural); AL hiç yoksa güncel stop
+    stop = s.get("al_stop") or s.get("stop")
+    plan["stop"] = stop
+    if stop:
+        plan["stop_uzak"] = (stop / f - 1) * 100
+        plan["stop_kz"] = (stop - m) * a
+        plan["stop_asildi"] = f <= stop
+    dr = (s.get("sd") or {}).get("direnc")
+    if dr and dr["fiyat"] > f:
+        plan["hedefler"].append((dr["fiyat"], f"en yakın direnç ({dr['tarih']} tepesi)"))
+    if stop and stop < f:
+        baz = m if stop < m else f            # stop maliyetin üstündeyse kâr kilitli; hedefi güncelden say
+        h2 = round(baz + 2 * (baz - stop), 2)
+        if h2 > f:
+            plan["hedefler"].append((h2, "risk/ödül 2:1 referansı"))
+    plan["hedefler"].sort()
+    return plan
+
+
+def plan_metni(s, p, girinti="     "):
+    """Telegram için sade pozisyon açıklaması."""
+    pl = pozisyon_plani(s, p)
+    t = [f"Senin pozisyonun: {pl['adet']:g} adet, maliyet {pl['maliyet']:.2f} → şu an {_yz(pl['kz_y'])} ({_tl(pl['kz'])})"]
+    if pl["sat"]:
+        t.append("📍 Çıkış: SAT sinyali — kural SAT 2 gün üst üste gelince çıkmak.")
+        return ("\n" + girinti).join(t)
+    if pl.get("stop"):
+        if pl["stop_asildi"]:
+            t.append(f"📍 Fiyat çıkış seviyesinin ({pl['stop']} TL) ALTINDA — sistemin kuralına göre çıkış zamanı.")
+        else:
+            t.append(f"📍 Çıkış (stop): {pl['stop']} TL — {_yz(pl['stop_uzak'])} aşağıda. Buraya inerse: {_tl(pl['stop_kz'])}"
+                     + (" (yine kârda)" if pl["stop_kz"] >= 0 else ""))
+    for i, (h, ne) in enumerate(pl["hedefler"], 1):
+        t.append(f"🎯 {i}. hedef: {h} TL — {ne}, {_yz((h / pl['fiyat'] - 1) * 100)} yukarıda")
+    return ("\n" + girinti).join(t)
 
 
 MAX_AL_SATIR = 20  # Telegram mesajı 4096 karakterle sınırlı
 
 
-def telegram_mesaji(yeni_al, yeni_sat, pf, uyari):
+def _al_satiri(s, pf):
+    isaret = "❗" if s["kod"] in pf else "🟢"
+    y = " ★AL+" if s["guclu"] else ""
+    h = f" 📈hacim {s['hacim_kat']}x" if s.get("hacim_teyit") else ""
+    fk = f"F/K {s['fk']}" if s.get("fk") else "F/K —"
+    lot = f", öneri {s['lot']} lot" if s.get("lot") else ""
+    t = f"{isaret} <b>{s['kod']}</b>{y}{h}  {s['fiyat']} TL  ({fk}, RSI {s['rsi']})\n     stop {s['giris_stop']} TL{lot}"
+    if s["kod"] in pf:
+        t += "\n     " + plan_metni(s, pf[s["kod"]])
+    return t
+
+
+def telegram_mesaji(yeni_al, yeni_sat, sat_teyit, pf, uyari, piyasa=None):
     tarih = pd.Timestamp.now(tz="Europe/Istanbul").strftime("%d.%m.%Y %H:%M")
     parca = [f"📊 <b>BIST Sinyal</b> — {tarih}"]
     if yeni_al:
-        sirali = sorted(yeni_al, key=lambda x: (x["kod"] not in pf, not x["guclu"], -x["puan"]))
+        sirali = sorted(yeni_al, key=lambda x: (x["kod"] not in pf, not x.get("hacim_teyit"), not x["guclu"], -x["puan"]))
         gosterilen = [s for s in sirali if s["kod"] in pf] + [s for s in sirali if s["kod"] not in pf][:MAX_AL_SATIR]
-        satir = []
-        for s in gosterilen:
-            isaret = "❗" if s["kod"] in pf else "🟢"
-            y = " ★AL+" if s["guclu"] else ""
-            fk = f"F/K {s['fk']}" if s.get("fk") else "F/K —"
-            lot = f", öneri {s['lot']} lot" if s.get("lot") else ""
-            t = f"{isaret} <b>{s['kod']}</b>{y}  {s['fiyat']} TL  ({fk}, RSI {s['rsi']})\n     stop {s['stop']} TL{lot}"
-            if s["kod"] in pf:
-                t += "\n     " + portfoy_notu(s, pf[s["kod"]])
-            satir.append(t)
+        satir = [_al_satiri(s, pf) for s in gosterilen]
         kalan = len(sirali) - len(gosterilen)
         if kalan:
             satir.append(f"…ve {kalan} hisse daha (panoya bak)")
-        parca.append(f"<b>Yeni AL ({len(yeni_al)})</b>\n" + "\n".join(satir))
+        bas = f"<b>Yeni AL ({len(yeni_al)})</b>"
+        if piyasa and piyasa.get("zayif"):
+            bas += ("\n⚠️ <i>Piyasa zayıf: BIST 100 50 günlük ortalamasının altında. Backtest'te bu dönemlerde "
+                    "gelen AL'ler belirgin şekilde daha kötü sonuç verdi — temkinli ol.</i>")
+        parca.append(bas + "\n" + "\n".join(satir))
     if yeni_sat:
         satir = []
         for s in yeni_sat:
-            t = (f"❗ <b>{s['kod']}</b>  {s['fiyat']} TL  (RSI {s['rsi']})\n     "
-                 + portfoy_notu(s, pf[s["kod"]], stop_goster=False)
-                 + "\n     Sistemin çıkış kuralı: sinyal SAT'a dönünce çık — gözden geçir.")
-            satir.append(t)
+            gun1 = (s.get("sinyal_gun") or 1) <= 1
+            durum = ("⏳ <b>1. gün</b> — teyit için yarını bekle: yarın da SAT kalırsa çık." if gun1
+                     else f"✅ <b>{s['sinyal_gun']} gündür SAT</b> — teyitli, kurala göre çıkış zamanı.")
+            satir.append(f"❗ <b>{s['kod']}</b>  {s['fiyat']} TL  (RSI {s['rsi']})\n     {durum}\n     "
+                         + plan_metni(s, pf[s["kod"]]))
         parca.append("🔴 <b>Portföyünde SAT'a dönenler</b>\n" + "\n".join(satir))
+    if sat_teyit:
+        satir = [f"❗ <b>{s['kod']}</b>  {s['fiyat']} TL — 2. gün de SAT: <b>teyitlendi</b>, kurala göre çıkış zamanı.\n     "
+                 + plan_metni(s, pf[s["kod"]]) for s in sat_teyit]
+        parca.append("✅ <b>SAT teyidi (2. gün)</b>\n" + "\n".join(satir))
     if uyari:
         parca.append(f"⚠️ {uyari}")
     parca.append(f"<a href=\"{PANO_URL}\">Panoyu aç</a>\n<i>Yatırım tavsiyesi değildir. Sinyal, karar değildir.</i>")
+    return "\n\n".join(parca)
+
+
+def portfoy_ozeti(sonuclar, pf, piyasa=None):
+    """Günde bir kez (kapanıştan sonra) portföyün tamamı: sinyal, K/Z, çıkış ve hedefler, dikkat notları."""
+    by = {s["kod"]: s for s in sonuclar}
+    tarih = pd.Timestamp.now(tz="Europe/Istanbul").strftime("%d.%m.%Y")
+    parca = [f"💼 <b>Portföy özeti</b> — {tarih}"]
+    toplam = 0.0
+    for kod in sorted(pf, key=lambda k: (by.get(k, {}).get("sinyal") != "SAT", k)):
+        s, p = by.get(kod), pf[kod]
+        if not s:
+            parca.append(f"❔ <b>{kod}</b>: taranan listede yok — takip için listeye eklenmeli.")
+            continue
+        toplam += (s["fiyat"] - p["maliyet"]) * p["adet"]
+        sn = s["sinyal"]
+        if sn == "NÖTR":
+            sn = "NÖTR (AL'den)" if s.get("notr_kaynak") == "AL" else ("NÖTR (SAT'tan)" if s.get("notr_kaynak") == "SAT" else "NÖTR")
+        if s["sinyal"] == "SAT":
+            sn += " ⏳1. gün" if (s.get("sinyal_gun") or 1) <= 1 else f" ✅{s['sinyal_gun']}. gün"
+        notlar = []
+        pl = pozisyon_plani(s, p)
+        if pl.get("stop") and not pl.get("stop_asildi") and pl["stop_uzak"] > -3:
+            notlar.append("⚠️ stop'a %3'ten yakın")
+        if s.get("direnc_yakin"):
+            notlar.append("⚠️ dirence yaklaşıyor")
+        if s.get("patlak"):
+            notlar.append(f"⚠️ taban serisi ({s['taban15']} kez/15 gün)")
+        ikon = "🔴" if s["sinyal"] == "SAT" else ("🟢" if s["sinyal"] == "AL" else "🟡")
+        parca.append(f"{ikon} <b>{kod}</b> {s['fiyat']} TL — {sn}" + (" · " + " · ".join(notlar) if notlar else "")
+                     + "\n     " + plan_metni(s, p))
+    parca.insert(1, f"Toplam K/Z: <b>{_tl(toplam)}</b>")
+    if piyasa and piyasa.get("zayif"):
+        parca.append("⚠️ Piyasa zayıf (BIST 100 50 günlük ortalamasının altında).")
+    parca.append(f"<a href=\"{PANO_URL}\">Panoyu aç</a>\n<i>Hedefler mekanik referanstır, tahmin değil. Yatırım tavsiyesi değildir.</i>")
     return "\n\n".join(parca)
 
 
@@ -309,18 +445,22 @@ def main():
         print(f"Portföyde tarama listesinde olmayan {len(disarida)} hisse var; takip için EK_HISSELER'e ekle.")
 
     data = veri_cek(KODLAR)
+    piyasa = piyasa_durumu(data)
     oranlar = oranlari_al(KODLAR)
-    sonuclar = []
+    sonuclar, yeni_arzlar = [], []
     for kod in KODLAR:
         try:
-            df = data[kod + ".IS"] if len(KODLAR) > 1 else data
-            df = df.dropna(subset=["Close"])
+            df = data[kod + ".IS"].dropna(subset=["Close"])
             if df.empty:
                 continue
+            arz = arz_bilgisi(kod, df)
             a = analiz_et(df)
             if not a:
+                if arz:
+                    yeni_arzlar.append(arz)   # sinyal için geçmiş henüz yetersiz
                 continue
             a["kod"] = kod
+            a["arz"] = arz
             o = oranlar.get(kod, [None, None, None])
             a["fk"] = o[0] if len(o) > 0 else None
             a["pddd"] = o[1] if len(o) > 1 else None
@@ -347,7 +487,20 @@ def main():
     durum = durum_oku()
     son = dict(durum.get("son", {}))
     yeni, yeni_sat = sinyal_degisimleri(sonuclar, son)
+    patlak_al = [s for s in yeni if s.get("patlak")]
+    yeni = [s for s in yeni if not s.get("patlak")]      # taban serisindeki hisseden AL mesajı gitmez
     yeni_sat = [s for s in yeni_sat if s["kod"] in pf]   # SAT mesajı sadece portföydekiler için
+
+    # SAT 2. gün teyidi (portföy): her SAT dalgası için bir kez. İlk çalışmada sessizce başlangıç kaydı.
+    ilk_kez = "sat_teyit" not in durum
+    teyit = dict(durum.get("sat_teyit", {}))
+    sat_teyit = []
+    for s in sonuclar:
+        if (s["kod"] in pf and s["sinyal"] == "SAT" and (s.get("sinyal_gun") or 1) >= 2
+                and teyit.get(s["kod"]) != s["sinyal_tarih"]):
+            teyit[s["kod"]] = s["sinyal_tarih"]
+            if not ilk_kez and s not in yeni_sat:
+                sat_teyit.append(s)
 
     uyari = None
     if len(yeni) > ASIRI_ISLEM_ESIGI:
@@ -355,7 +508,8 @@ def main():
                  f"birkaçına odaklan, aşırı işlem komisyonda eritir.")
 
     by_kod = {s["kod"]: s for s in sonuclar}
-    bugun_iso = pd.Timestamp.now(tz="Europe/Istanbul").strftime("%Y-%m-%d")
+    simdi = pd.Timestamp.now(tz="Europe/Istanbul")
+    bugun_iso = simdi.strftime("%Y-%m-%d")
 
     # Sinyal geçmişi (canlı karne): yeni AL'leri kaydet, açıkları stop/SAT ile kapat
     acik, kapali, karne = gecmis_guncelle(by_kod, bugun_iso)
@@ -363,18 +517,30 @@ def main():
         f.write(gecmis_uret(acik, kapali, karne))
 
     with open("index.html", "w", encoding="utf-8") as f:
-        f.write(pano_uret(sonuclar, ornek=False, uyari=uyari))
-    print(f"index.html: {len(sonuclar)} hisse, {len(bugun_al)} AL, {len(yeni)} yeni | "
+        f.write(pano_uret(sonuclar, ornek=False, uyari=uyari, piyasa=piyasa, yeni_arzlar=yeni_arzlar))
+    print(f"index.html: {len(sonuclar)} hisse (+{len(yeni_arzlar)} yeni arz), {len(bugun_al)} AL, {len(yeni)} yeni | "
+          f"taban serisi: {sum(1 for s in sonuclar if s.get('patlak'))} | "
+          f"piyasa: {'zayıf' if piyasa and piyasa['zayif'] else 'normal'} | "
           f"karne: {karne['kapanan']} kapanan, {karne['acik']} açık.")
+    if patlak_al:
+        print(f"Taban serisindeki {len(patlak_al)} hissenin AL mesajı gönderilmedi.")
 
-    if yeni or yeni_sat:
-        print(f"Telegram: {len(yeni)} yeni AL, {len(yeni_sat)} portföy SAT.")
-        tg_gonder(telegram_mesaji(yeni, yeni_sat, pf, uyari))
+    if yeni or yeni_sat or sat_teyit:
+        print(f"Telegram: {len(yeni)} yeni AL, {len(yeni_sat)} portföy SAT, {len(sat_teyit)} SAT teyidi.")
+        tg_gonder(telegram_mesaji(yeni, yeni_sat, sat_teyit, pf, uyari, piyasa))
     else:
-        print("Yeni AL / portföyde yeni SAT yok, Telegram sessiz.")
+        print("Yeni AL / portföyde SAT yok, Telegram sessiz.")
+
+    # Günlük portföy özeti: hafta içi, kapanıştan sonraki ilk taramada bir kez
+    ozet_tarih = durum.get("ozet_tarih")
+    if pf and simdi.weekday() < 5 and simdi.hour >= OZET_SAATI and ozet_tarih != bugun_iso:
+        if tg_gonder(portfoy_ozeti(sonuclar, pf, piyasa)):
+            ozet_tarih = bugun_iso
+            print("Günlük portföy özeti gönderildi.")
 
     with open(DURUM, "w", encoding="utf-8") as f:
-        json.dump({"al": sorted(s["kod"] for s in bugun_al), "son": dict(sorted(son.items()))},
+        json.dump({"al": sorted(s["kod"] for s in bugun_al), "son": dict(sorted(son.items())),
+                   "sat_teyit": dict(sorted(teyit.items())), "ozet_tarih": ozet_tarih},
                   f, ensure_ascii=False, indent=2)
 
 

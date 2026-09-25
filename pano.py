@@ -16,7 +16,7 @@ def _med(xs):
     return xs[len(xs) // 2] if xs else None
 
 
-def pano_uret(sonuclar, ornek=False, uyari=None, portfoy=None):
+def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None):
     tarih = _simdi()
     al = sum(1 for s in sonuclar if s["sinyal"] == "AL")
     guclu = sum(1 for s in sonuclar if s.get("guclu"))
@@ -44,6 +44,14 @@ def pano_uret(sonuclar, ornek=False, uyari=None, portfoy=None):
             sdrz += ' <span class="sdb destek" title="Fiyat geçmiş bir desteğe indi ve yukarı dönmeye başladı">Destekten tepki</span>'
         if s.get("direnc_yakin"):
             sdrz += ' <span class="sdb direnc" title="Fiyat geçmişte satış gelen bir tepe seviyesine yakın">Dirence yaklaşıyor</span>'
+        if s.get("hacim_teyit"):
+            sdrz += f' <span class="hacimb" title="AL günü hacmi 20 günlük ortalamanın {s.get("hacim_kat")} katı">📈 hacim</span>'
+        if s["sinyal"] == "SAT" and (s.get("sinyal_gun") or 1) <= 1:
+            sdrz += " <span class=\"gun1b\" title=\"SAT'ın 1. günü: teyit için yarını bekle\">⏳ 1. gün</span>"
+        if s.get("patlak"):
+            sdrz += f' <span class="patlakb" title="Son 15 günde {s.get("taban15")} kez ~%10 düştü (taban serisi)">⚠ taban serisi</span>'
+        if s.get("arz"):
+            sdrz += ' <span class="arzb" title="Son 12 ayın halka arzı">ARZ</span>'
         lot = s.get("lot")
         lott = f"{lot}" if (lot and s["sinyal"] == "AL") else "—"
         nk = s.get("notr_kaynak") if s["sinyal"] == "NÖTR" else None
@@ -76,18 +84,43 @@ def pano_uret(sonuclar, ornek=False, uyari=None, portfoy=None):
             "uyum": s.get("uyum"), "detay": s.get("detay", []), "ek": s.get("ek", []),
             "gerekce": s.get("gerekce", []), "yorum": s.get("yorum", ""),
             "spark": s.get("spark", {}),
+            "al_stop": s.get("al_stop"), "al_tarih": s.get("al_tarih"), "hacim_kat": s.get("hacim_kat"),
+            "hacim_teyit": bool(s.get("hacim_teyit")), "taban15": s.get("taban15"), "patlak": bool(s.get("patlak")),
+            "arz": s.get("arz"),
         }
 
     banner = ""
     if ornek:
         banner += '<div class="banner ornek">ÖRNEK VERİ — gerçek sürüm piyasa saatinde ~15 dk\'da bir güncellenir.</div>'
+    if piyasa and piyasa.get("zayif"):
+        banner += (f'<div class="banner uy">⚠️ <b>Piyasa zayıf:</b> BIST 100 ({piyasa["endeks"]:,}) 50 günlük ortalamasının '
+                   f"%{abs(piyasa['fark'])} altında. 5 yıllık backtest'te bu dönemlerde gelen AL'ler belirgin şekilde "
+                   f'daha kötü sonuç verdi — yeni alımlarda temkinli ol.</div>').replace(",", ".")
     if uyari:
         banner += f'<div class="banner uy">⚠️ {uyari}</div>'
+
+    arzrows = []
+    for z in sorted(yeni_arzlar or [], key=lambda z: z["tarih"], reverse=True):
+        g = z.get("getiri")
+        gcls = "pos" if (g or 0) >= 0 else "neg"
+        uyar = f' <span class="patlakb">⚠ {z["taban15"]} taban/15 gün</span>' if z["taban15"] >= 4 else ""
+        arzrows.append(
+            f'<tr><td class="kod">{z["kod"]}{uyar}</td><td>{z["tarih"]}</td>'
+            f'<td class="num">{z["arz_fiyat"] if z["arz_fiyat"] else "—"}</td><td class="num">{z["fiyat"]}</td>'
+            f'<td class="num {gcls}">{("+" if (g or 0) >= 0 else "") + str(g) + "%" if g is not None else "—"}</td>'
+            f'<td class="num sgun">{z["eksik_gun"]} işlem günü</td></tr>')
+    arzblok = ""
+    if arzrows:
+        arzblok = ('<h2 class="bolum">Yeni halka arzlar <span class="bolumalt">— sinyal için henüz yeterli geçmiş yok</span></h2>'
+                   '<div class="sar"><table class="pf"><thead><tr><th>Hisse</th><th>İşlem başlangıcı</th>'
+                   '<th class="num">Arz fiyatı</th><th class="num">Güncel</th><th class="num">Arzdan beri</th>'
+                   '<th class="num">Sinyale kalan</th></tr></thead><tbody>' + "".join(arzrows) + '</tbody></table></div>')
 
     html = _SABLON
     for a, b in [("__TARIH__", tarih), ("__AL__", str(al)), ("__GUCLU__", str(guclu)),
                  ("__TOPLAM__", str(len(sonuclar))), ("__BANNER__", banner),
-                 ("__ROWS__", "".join(rows)), ("__DATA__", json.dumps(veri, ensure_ascii=False))]:
+                 ("__ROWS__", "".join(rows)), ("__ARZ__", arzblok),
+                 ("__DATA__", json.dumps(veri, ensure_ascii=False))]:
         html = html.replace(a, b)
     return html
 
@@ -163,6 +196,14 @@ tbody tr:hover{background:#F2F5F3}
 .yeni.yal{background:#1B7F4B}.yeni.ysat{background:#B4362E}.yeni.ynotr{background:#9A7A12}
 .sdb{color:#fff;font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:5px;margin-left:5px}
 .sdb.destek{background:#3A6EA5}.sdb.direnc{background:#B7791F}
+.hacimb,.gun1b,.patlakb,.arzb{font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:5px;margin-left:5px;white-space:nowrap}
+.hacimb{background:#E4F2E9;color:#1B7F4B}.gun1b{background:#FDE1CC;color:#B0480C}.patlakb{background:#B4362E;color:#fff}
+.arzb{background:#EEE8F7;color:#5B3E96}
+.bolum{font-size:16px;margin:28px 0 0}.bolumalt{font-size:12.5px;color:var(--muted);font-weight:500}
+.pozkutu{margin:0 0 14px;border:2px solid var(--accent);border-radius:12px;padding:12px 15px;font-size:13.2px;line-height:1.6;background:#F6FAF8}
+.pozkutu .pbas{font-weight:700;color:var(--accent);margin-bottom:4px}.pozkutu .pk{margin-top:3px}
+.arzkutu{margin:0 0 14px;border:1px solid #D9CFEB;background:#F8F5FC;border-radius:10px;padding:10px 14px;font-size:13px;line-height:1.55}
+.patlakkutu{margin:0 0 14px;border:1px solid #E6C3BD;background:#FBECEA;color:#8A2F26;border-radius:10px;padding:10px 14px;font-size:13px}
 .sdkutu{margin:0 0 14px;border:1px solid var(--line);border-radius:10px;padding:11px 14px;font-size:13px;line-height:1.55}
 .sdsat+.sdsat{margin-top:4px}.sdnot{margin-top:8px;padding:8px 10px;border-radius:8px;font-size:12.5px}
 .sdnot.destek{background:#EAF1F8;color:#28507A}.sdnot.direnc{background:#FBF3E4;color:#7A5B10}
@@ -190,7 +231,7 @@ tbody tr:hover{background:#F2F5F3}
 .pfbox{margin-top:18px}
 .pfbas{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:8px}
 .pfbas h2{margin:0;font-size:16px}.pftop{font-weight:650;font-size:14px}.pftop.pos{color:var(--pos)}.pftop.neg{color:var(--neg)}
-table.pf{min-width:640px}
+table.pf{min-width:820px}
 .pfy.bos{padding:12px 14px;border:1px dashed var(--line);border-radius:10px;color:var(--muted);font-size:12.8px;background:#fff}
 .pfy.bos code{background:#F1F1EE;padding:2px 5px;border-radius:4px;font-size:12px}
 .pfuy{color:var(--sat);font-size:11px;font-weight:600;margin-left:6px}
@@ -251,8 +292,12 @@ __BANNER__
 <th data-t="s">Hisse</th><th class="num" data-t="n">Fiyat</th><th class="num" data-t="n">Değişim</th><th data-t="s">Sinyal</th>
 <th class="num" data-t="n">Sinyalde</th><th class="num" data-t="n">Uyum</th><th class="num" data-t="n">RSI</th><th class="num" data-t="n">F/K</th><th class="num" data-t="n">PD/DD</th><th class="num" data-t="n">Stop</th><th class="num" data-t="n">Öneri lot</th>
 </tr></thead><tbody>__ROWS__</tbody></table></div>
+__ARZ__
 <div class="aciklama">
 <div class="kart"><h3>AL / AL+ / NÖTR / SAT</h3><p>Trend, ortalama dizilimi, MACD kesişimi ve RSI momentumundan bir puan. <b>★ AL+</b>: teknik AL ile birlikte F/K ve PD/DD de grup medyanının altında.</p></div>
+<div class="kart"><h3>📈 hacim · ⏳ 1. gün · ⚠ taban serisi</h3><p><b>📈 hacim</b>: AL günü işlem hacmi son 20 günün 1,5 katından fazla — backtest'te daha güçlü sinyaller (özellikle düşük faiz döneminde). <b>⏳ 1. gün</b>: SAT'ın ilk günü; tek günlük yanlış alarm olabilir, teyit için yarını bekle. <b>⚠ taban serisi</b>: son 15 günde 4+ kez ~%10 düştü (fon krizi tipi çöküş) — bu hisselerden AL mesajı gönderilmez.</p></div>
+<div class="kart"><h3>Piyasa filtresi</h3><p>BIST 100, 50 günlük ortalamasının altındaysa üstte "Piyasa zayıf" uyarısı çıkar. 5 yıllık backtest'te bu dönemlerde gelen AL'ler belirgin şekilde daha kötü sonuç verdi.</p></div>
+<div class="kart"><h3>Çıkış ve hedef (portföyün)</h3><p><b>📍 Çıkış (stop)</b>: fiyat bunun altına inerse sistemin kuralı "çık" der. <b>🎯 1. hedef</b>: en yakın direnç — geçmişte satış gelen tepe. <b>🎯 2. hedef</b>: risk/ödül 2:1 (maliyetinden stop'a olan mesafenin 2 katı yukarısı). Hedefler tahmin değil, plan için referanstır.</p></div>
 <div class="kart"><h3>NÖTR: sarı mı turuncu mu?</h3><p><span class="pill notr notr-al">NÖTR</span> <b>Sarı = AL'den döndü.</b> Elindeyse tut; SAT gelirse ya da stop yerse çık. Yeni alım yapma.<br><span class="pill notr notr-sat">NÖTR</span> <b>Turuncu = SAT'tan döndü.</b> Düşüş yavaşladı ama henüz alım sinyali değil; AL'i bekle. (5 yıllık backtest: NÖTR'de satmak ya da turuncuda almak, beklemekten kötü sonuç verdi.)</p></div>
 <div class="kart"><h3>Öneri lot (risk yönetimi)</h3><p>Stop yerse portföyünün sadece belirlediğin yüzdeyi (örn. %1) kaybedeceğin lot sayısı: (portföy×risk%)÷(fiyat−stop).</p></div>
 <div class="kart"><h3>RSI</h3><p>0–100 momentum. 30 altı aşırı satım, 70 üstü aşırı alım. Sağlıklı yükseliş 45–68 bandında.</p></div>
@@ -317,6 +362,40 @@ function sdHtml(d){
  return h;
 }
 function yenile(){location.href=location.pathname+'?t='+Date.now();}
+function yzd(x){return (x>=0?'+':'−')+Math.abs(x).toFixed(1)+'%';}
+function tlf(x){return (x>=0?'+':'−')+Math.round(Math.abs(x)).toLocaleString('tr-TR')+' TL';}
+// tarama.py pozisyon_plani() ile aynı mantık
+function pozPlan(d,p){
+ var f=d.fiyat,m=p.maliyet,a=p.adet,pl={f:f,m:m,a:a,kz:(f-m)*a,kzy:(f/m-1)*100,sat:d.sinyal==='SAT',stop:null,hedefler:[]};
+ if(pl.sat)return pl;   // SAT'ta çıkış sebebi sinyalin kendisi
+ var stop=d.al_stop||d.stop;pl.stop=stop;
+ if(stop){pl.stopUzak=(stop/f-1)*100;pl.stopKz=(stop-m)*a;pl.asildi=f<=stop;}
+ var dr=d.sd&&d.sd.direnc;if(dr&&dr.fiyat>f)pl.hedefler.push([dr.fiyat,'en yakın direnç ('+dr.tarih+' tepesi)']);
+ if(stop&&stop<f){var baz=stop<m?m:f,h2=Math.round((baz+2*(baz-stop))*100)/100;if(h2>f)pl.hedefler.push([h2,'risk/ödül 2:1 referansı']);}
+ pl.hedefler.sort(function(x,y){return x[0]-y[0];});
+ return pl;
+}
+function pozHtml(k,d){
+ var p=pfOku().filter(function(x){return x.kod===k;});if(!p.length||d.fiyat==null)return '';
+ var ad=0,top=0;p.forEach(function(x){ad+=x.adet;top+=x.adet*x.maliyet;});
+ var pl=pozPlan(d,{adet:ad,maliyet:top/ad}),h='<div class="pozkutu"><div class="pbas">💼 Senin pozisyonun</div>'+
+  '<div>'+ad+' adet, maliyet '+pl.m.toFixed(2)+' TL → şu an <b class="'+(pl.kz>=0?'pos':'neg')+'">'+yzd(pl.kzy)+' ('+tlf(pl.kz)+')</b></div>';
+ if(pl.sat)h+='<div class="pk">📍 <b>Çıkış: SAT sinyali</b> — kural: SAT 2 gün üst üste gelince çık.</div>';
+ else if(pl.stop){
+  h+=pl.asildi?'<div class="pk neg">📍 <b>Fiyat çıkış seviyesinin ('+pl.stop+' TL) altında</b> — sistemin kuralına göre çıkış zamanı.</div>'
+   :'<div class="pk">📍 <b>Çıkış (stop): '+pl.stop+' TL</b> — '+yzd(pl.stopUzak)+' aşağıda. Buraya inerse sonuç: <b class="'+(pl.stopKz>=0?'pos':'neg')+'">'+tlf(pl.stopKz)+'</b>'+(pl.stopKz>=0?' (yine kârda)':'')+'</div>';
+ }
+ pl.hedefler.forEach(function(x,i){h+='<div class="pk">🎯 <b>'+(i+1)+'. hedef: '+x[0]+' TL</b> — '+x[1]+', '+yzd((x[0]/pl.f-1)*100)+' yukarıda.'+
+   (x[1].indexOf('direnç')>=0?' Burada satış baskısı gelebilir; bir kısmını satmayı düşünebilirsin.':' (Tahmin değil, plan referansı.)')+'</div>';});
+ var kural=d.sinyal==='SAT'?((d.sinyal_gun||1)<=1?'⏳ SAT\'ın 1. günü: yarın da SAT kalırsa çık.':'✅ SAT '+d.sinyal_gun+' gündür sürüyor: kurala göre çıkış zamanı.')
+  :'Kural: SAT 2 gün üst üste gelirse ya da fiyat çıkış seviyesinin altına inerse çık.';
+ return h+'<div class="pk">'+kural+'</div></div>';
+}
+function arzHtml(d){
+ var z=d.arz;if(!z)return '';
+ var g=z.getiri==null?'':' · arzdan beri <b class="'+(z.getiri>=0?'pos':'neg')+'">'+(z.getiri>=0?'+':'')+z.getiri+'%</b>';
+ return '<div class="arzkutu">🆕 <b>Halka arz:</b> '+z.tarih+' tarihinde işlem görmeye başladı'+(z.arz_fiyat?' · arz fiyatı <b>'+z.arz_fiyat+' TL</b>':' (bölünmeyle geldi, arz fiyatı yok)')+g+'</div>';
+}
 function ac(k){
  const d=DATA[k];if(!d)return;
  const dcls=(d.degisim||0)>=0?'pos':'neg';const dtxt=d.degisim==null?'—':((d.degisim>=0?'+':'')+d.degisim+'%');
@@ -339,10 +418,12 @@ function ac(k){
    zaman='<div class="zaman"><div><b>'+d.sinyal+'</b> sinyali: '+d.sinyal_tarih+' ('+d.sinyal_gun+' gündür)'+nk+yenirz+sdt+'</div>';
    if(d.sinyal==='NÖTR'&&d.notr_kaynak==='AL')zaman+='<div class="cikis">Elindeyse tut: SAT gelirse ya da stop yerse çık. Yeni alım için AL\'i bekle.</div>';
    if(d.sinyal==='NÖTR'&&d.notr_kaynak==='SAT')zaman+='<div class="cikis">Düşüş yavaşladı ama henüz alım sinyali değil; AL\'i bekle.</div>';
+   if(d.sinyal==='AL'&&d.hacim_kat!=null)zaman+='<div class="cikis">'+(d.hacim_teyit?'📈 <b>Hacim teyitli</b>: ':'Hacim: ')+'AL günü hacmi 20 günlük ortalamanın <b>'+d.hacim_kat+' katı</b>'+(d.hacim_teyit?' — backtest\'te daha güçlü sinyaller.':' (teyit için 1,5 kat gerekir).')+'</div>';
+   if(d.sinyal==='SAT')zaman+='<div class="cikis">'+((d.sinyal_gun||1)<=1?'⏳ <b>1. gün</b>: tek günlük yanlış alarm olabilir; yarın da SAT kalırsa teyitlenir.':'✅ SAT <b>'+d.sinyal_gun+' gündür</b> sürüyor (teyitli).')+'</div>';
    if(d.sinyal==='AL'){
      const gs=(d.giris_stop!=null?d.giris_stop:d.stop);
      zaman+='<div class="cikis">Çıkış kuralı: sinyal <b>SAT</b>\'a dönerse ya da <b>giriş stopu '+gs+' TL</b> altına inerse.'+
-       (d.hedef?' · Örnek hedef (2R, mekanik referans): <b>'+d.hedef+' TL</b>':'')+'</div>';
+       ((d.hedef&&!pfOku().some(function(x){return x.kod===k;}))?' · Örnek hedef (2R, mekanik referans): <b>'+d.hedef+' TL</b>':'')+'</div>';
    }
    zaman+='</div>';
  }
@@ -350,6 +431,8 @@ function ac(k){
  '<div class="mh"><div class="sol"><h2>'+k+'</h2>'+pill+uyum+'</div><button class="kapa" onclick="kapat()">✕</button></div>'+
  '<div class="mfiyat">'+(d.fiyat!=null?d.fiyat+' TL':'')+' <span class="'+dcls+'">'+dtxt+'</span></div>'+
  zaman+
+ (d.patlak?'<div class="patlakkutu">⚠ <b>Taban serisi:</b> son 15 günde '+d.taban15+' kez ~%10 düştü. Fon krizi tipi çöküş olabilir; bu hisseden AL mesajı gönderilmez.</div>':'')+
+ pozHtml(k,d)+arzHtml(d)+
  '<div class="grafik">'+grafik(d.spark,d.sd)+'<div class="leg"><span class="c1">Fiyat</span><span class="c2">SMA20</span><span class="c3">SMA50</span><span class="c4">SuperTrend</span>'+
    (d.sd&&d.sd.destek?'<span class="c5">Destek</span>':'')+(d.sd&&d.sd.direnc?'<span class="c6">Direnç</span>':'')+'</div></div>'+
  sdHtml(d)+
@@ -458,7 +541,7 @@ function pfRender(){
  var a=pfOku(),liste=document.getElementById('pflist'),top=document.getElementById('pftop');
  if(!a.length){liste.innerHTML='<div class="pfy bos">Henüz hisse yok. <b>+ Ekle</b> ile portföyünü oluştur.</div>';top.textContent='';return;}
  var toplam=0;
- var r='<div class="sar"><table class="pf"><thead><tr><th>Hisse</th><th class="num">Adet</th><th class="num">Maliyet</th><th class="num">Güncel</th><th class="num">K/Z %</th><th class="num">K/Z TL</th><th>Sinyal</th><th></th></tr></thead><tbody>';
+ var r='<div class="sar"><table class="pf"><thead><tr><th>Hisse</th><th class="num">Adet</th><th class="num">Maliyet</th><th class="num">Güncel</th><th class="num">K/Z %</th><th class="num">K/Z TL</th><th>Sinyal</th><th class="num">Çıkış (stop)</th><th class="num">Hedef</th><th></th></tr></thead><tbody>';
  a.forEach(function(p,i){
   var d=DATA[p.kod]||{},f=d.fiyat;
   var kzy=(f!=null)?((f/p.maliyet-1)*100):null, kzt=(f!=null)?((f-p.maliyet)*p.adet):null;
@@ -470,7 +553,11 @@ function pfRender(){
      '<td class="num">'+(f!=null?f:'—')+'</td>'+
      '<td class="num '+kzc+'">'+(kzy!=null?((kzy>=0?'+':'')+kzy.toFixed(1)+'%'):'—')+'</td>'+
      '<td class="num '+kzc+'">'+(kzt!=null?((kzt>=0?'+':'')+Math.round(kzt).toLocaleString('tr-TR')+' TL'):'—')+'</td>'+
-     '<td><span class="pill '+scls+'">'+sn+'</span>'+uy+'</td>'+
+     '<td><span class="pill '+scls+'">'+sn+'</span>'+uy+(sn==='SAT'&&(d.sinyal_gun||1)<=1?' <span class="gun1b">⏳ 1. gün</span>':'')+'</td>'+
+     (function(){if(f==null)return '<td class="num">—</td><td class="num">—</td>';var pl=pozPlan(d,p),h=pl.hedefler.length?pl.hedefler[0][0]:null;
+       if(pl.sat)return '<td class="num stop">SAT sinyali</td><td class="num">—</td>';
+       return '<td class="num stop">'+(pl.stop?(pl.asildi?'<b>'+pl.stop+' ⚠</b>':pl.stop+' <span class="sgun">'+yzd(pl.stopUzak)+'</span>'):'—')+'</td>'+
+              '<td class="num pos">'+(h?h+' <span class="sgun">'+yzd((h/f-1)*100)+'</span>':'—')+'</td>';})()+
      '<td class="num"><button class="pfsil pfduz" title="Düzenle" onclick="event.stopPropagation();pfFormAc('+i+')">✎</button> '+
      '<button class="pfsil" title="Sil" onclick="event.stopPropagation();pfSil('+i+')">✕</button></td></tr>';
  });
