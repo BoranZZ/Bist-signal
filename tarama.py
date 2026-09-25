@@ -199,8 +199,35 @@ def yorum_uret(s, fk_med, pddd_med):
     return " ".join(p)
 
 
+TG_SINIR = 3900   # Telegram mesaj sınırı 4096 karakter; HTML etiketleri için pay bırak
+
+
+def _parcala(msg, sinir=TG_SINIR):
+    """Uzun mesajı paragraf (boş satır), gerekirse satır sınırlarından böler; etiketler satır içinde kapandığı için bozulmaz."""
+    parcalar, cur = [], ""
+    for blok in msg.split("\n\n"):
+        satirlar = [blok] if len(blok) <= sinir else blok.split("\n")
+        for s in satirlar:
+            ayrac = "\n\n" if s is blok else "\n"
+            if cur and len(cur) + len(ayrac) + len(s) > sinir:
+                parcalar.append(cur)
+                cur = s
+            else:
+                cur = cur + ayrac + s if cur else s
+    if cur:
+        parcalar.append(cur)
+    return parcalar
+
+
 def tg_gonder(msg):
-    """Mesajı gönderir; başarılıysa True döner."""
+    """Mesajı gönderir (4096 sınırını aşarsa parçalara böler); hepsi gittiyse True döner."""
+    parcalar = _parcala(msg)
+    if len(parcalar) > 1:
+        return all([_tg_tek(p + f"\n\n<i>({i}/{len(parcalar)})</i>") for i, p in enumerate(parcalar, 1)])
+    return _tg_tek(msg)
+
+
+def _tg_tek(msg):
     tok, chat = os.environ.get("TELEGRAM_TOKEN"), os.environ.get("TELEGRAM_CHAT_ID")
     if not tok or not chat:
         print("Telegram bilgisi yok, atlandı. (GitHub > Settings > Secrets and variables > Actions: "
