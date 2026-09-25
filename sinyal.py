@@ -320,7 +320,71 @@ def bayrak_kirilimi(df):
     return None
 
 
-def analiz_et(df):
+KIRILIM_GUN = 20   # v3: trend şablonundayken önceki 20 günün en yüksek kapanışının üstüne ilk kapanış
+
+
+def trend_sablonu(d):
+    """Minervini trend şablonu (günlük seri): fiyat > SMA50 > SMA150 > SMA200, SMA200 20 günde yükselmiş,
+    fiyat 52 hafta zirvesinin en az %75'inde ve 52 hafta dibinin en az %30 üstünde."""
+    c = d["Close"]
+    s150 = c.rolling(150).mean()
+    mx, mn = c.rolling(250).max(), c.rolling(250).min()
+    return ((c > s150) & (s150 > d["SMA200"]) & (d["SMA200"] > d["SMA200"].shift(20)) & (d["SMA50"] > s150)
+            & (c > d["SMA50"]) & (c >= 0.75 * mx) & (c >= 1.30 * mn))
+
+
+def trend_kirilimi(d, xu_ust=None, islemler=False):
+    """🚀 v3 giriş/çıkış (5 yıllık backtest'te v2'den iyi, bkz. CLAUDE.md): trend şablonundayken 20 günlük zirvenin
+    ilk kırılımı (piyasa XU100 > SMA50, 60 gün oynaklık ≤ %5) → AL; ertesi açılıştan girilir, AL'den beri tepe
+    kapanışın IZ_STOP_ORAN altına kapanışta çıkılır. Pozisyon açıkken yeni kırılımlar sayılmaz (backtest'le aynı)."""
+    c = d["Close"]
+    sab = trend_sablonu(d)
+    kir = c > c.rolling(KIRILIM_GUN).max().shift(1)
+    gir = sab & kir & ~kir.shift(1, fill_value=False)
+    gir &= ~(c.pct_change().rolling(60).std() > OYNAK_ESIK)
+    if xu_ust is not None:
+        gir &= xu_ust.reindex(d.index, method="ffill").fillna(False).astype(bool)
+    g, o, cv, idx, n = gir.values, d["Open"].values, c.values, d.index, len(d)
+    tum, i, acik = [], 210, None
+    while i < n:
+        if not g[i]:
+            i += 1; continue
+        giris = o[i + 1] if i + 1 < n else cv[i]   # bugün sinyal: giriş yarın açılışta (şimdilik kapanış)
+        tepe, tepe_i, cik = giris, i, None
+        for j in range(i + 1, n):
+            if cv[j] > tepe:
+                tepe, tepe_i = cv[j], j
+            if cv[j] < tepe * (1 - IZ_STOP_ORAN):
+                cik = j; break
+        tum.append({"i": i, "giris": float(giris), "tepe": float(tepe), "tepe_i": tepe_i, "cik": cik})
+        if cik is None:
+            acik = tum[-1]; break
+        i = cik + 1
+    if islemler:
+        return [(idx[t["i"] + 1] if t["i"] + 1 < n else idx[t["i"]], idx[t["cik"]] if t["cik"] is not None else None,
+                 t["giris"], float(cv[t["cik"]]) if t["cik"] is not None else None) for t in tum]
+    fiyat = float(cv[-1])
+    sab_son = bool(sab.iloc[-1]) if len(sab) else False
+    hh = float(c.iloc[-KIRILIM_GUN - 1:-1].max()) if n > KIRILIM_GUN else None
+    son = tum[-1] if tum else None
+    out = {"sablon": sab_son, "bugun": bool(g[-1]) if n else False, "durum": None,
+           "kirilim_seviye": round(hh, 2) if hh else None,
+           "kirilima_uzak": round((hh / fiyat - 1) * 100, 1) if (hh and sab_son and not acik) else None}
+    if acik:
+        stop = acik["tepe"] * (1 - IZ_STOP_ORAN)
+        out.update({"durum": "AL", "giris_tarih": str(idx[acik["i"]].date()), "giris_fiyat": round(acik["giris"], 2),
+                    "gun": n - 1 - acik["i"], "degisim": round((fiyat / acik["giris"] - 1) * 100, 1),
+                    "tepe": round(acik["tepe"], 2), "tepe_tarih": str(idx[acik["tepe_i"]].date()),
+                    "stop": round(stop, 2), "uzaklik": round((stop / fiyat - 1) * 100, 1)})
+    elif son and son["cik"] is not None:
+        out.update({"durum": "CIKTI", "giris_tarih": str(idx[son["i"]].date()), "cikis_tarih": str(idx[son["cik"]].date()),
+                    "tepe": round(son["tepe"], 2), "tepe_tarih": str(idx[son["tepe_i"]].date()),
+                    "stop": round(son["tepe"] * (1 - IZ_STOP_ORAN), 2),
+                    "sonuc": round((float(cv[son["cik"]]) / son["giris"] - 1) * 100, 1), "cikis_gun": n - 1 - son["cik"]})
+    return out
+
+
+def analiz_et(df, xu_ust=None):
     c = df["Close"].dropna()
     if len(c) < 60:
         return None
@@ -392,6 +456,17 @@ def analiz_et(df):
     # son 20 günde ne kadar yükselmiş (portföy simülasyonu: aynı gün birden çok AL'de az yükselmiş olan daha iyi)
     mom20 = round((fiyat / float(d["Close"].iloc[-21]) - 1) * 100, 1) if len(d) > 21 else None
 
+    # v3: son giriş 🚀 trend kırılımıysa (gösterge AL'inden daha yeni) iz stop o girişten izlenir
+    tk = trend_kirilimi(d, xu_ust)
+    if tk.get("giris_tarih") and (al_tarih is None or tk["giris_tarih"] >= al_tarih):
+        al_tarih = tk["giris_tarih"]
+        if tk["durum"] == "AL":
+            iz = {"tepe": tk["tepe"], "tepe_tarih": tk["tepe_tarih"], "stop": tk["stop"], "cikti": False,
+                  "cikis_tarih": None, "uzaklik": tk["uzaklik"]}
+        else:
+            iz = {"tepe": tk["tepe"], "tepe_tarih": tk["tepe_tarih"], "stop": tk["stop"], "cikti": True,
+                  "cikis_tarih": tk["cikis_tarih"], "uzaklik": round((tk["stop"] / fiyat - 1) * 100, 1)}
+
     return {
         "fiyat": round(fiyat, 2),
         "degisim": round(degisim, 2) if degisim is not None else None,
@@ -422,6 +497,7 @@ def analiz_et(df):
         "taban15": taban,
         "mom20": mom20,
         "uv": uzun_vade(d),
+        "tk": tk,
         "bayrak": bayrak_kirilimi(df),
         "patlak": taban >= PATLAK_TABAN,
         "sinyal_tarih": sinyal_tarih,

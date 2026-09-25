@@ -55,6 +55,13 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None, 
             sdrz += f' <span class="patlakb" title="Son 15 günde {s.get("taban15")} kez ~%10 düştü (taban serisi)">⚠ taban serisi</span>'
         if s.get("arz"):
             sdrz += ' <span class="arzb" title="Son 12 ayın halka arzı">ARZ</span>'
+        tk = s.get("tk") or {}
+        if tk.get("bugun"):
+            sdrz += f' <span class="tkb yeni" title="Bugün trend şablonunda 20 günlük zirve kırıldı — v3 AL">🚀 KIRILIM</span>'
+        elif tk.get("durum") == "AL":
+            sdrz += f' <span class="tkb" title="v3 pozisyonu: {tk.get("giris_tarih")} kırılımından beri {tk.get("degisim")}% · iz stop {tk.get("stop")} TL">🚀 {tk.get("gun")}g</span>'
+        elif tk.get("sablon") and tk.get("kirilima_uzak") is not None and 0 < tk["kirilima_uzak"] <= 3:
+            sdrz += f' <span class="tkb izle" title="Trend şablonunda; 20 günlük zirveye (%{tk["kirilima_uzak"]} yukarıda, {tk.get("kirilim_seviye")} TL) yakın — kapanışla aşarsa v3 AL">👀 kırılıma %{tk["kirilima_uzak"]}</span>'
         uv = s.get("uv") or {}
         if uv.get("durum") == "AL":
             sdrz += f' <span class="uvsb" title="Uzun vade AL: {uv.get("tarih")} tarihinden beri">🌱 UV</span>'
@@ -104,7 +111,7 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None, 
             "spark": s.get("spark", {}),
             "al_stop": s.get("al_stop"), "al_tarih": s.get("al_tarih"), "hacim_kat": s.get("hacim_kat"),
             "hacim_teyit": bool(s.get("hacim_teyit")), "taban15": s.get("taban15"), "patlak": bool(s.get("patlak")),
-            "arz": s.get("arz"), "sektor": s.get("sektor"), "endustri": s.get("endustri"), "mom20": s.get("mom20"), "uv": s.get("uv"), "bayrak": s.get("bayrak"), "bilanco": s.get("bilanco"), "temettu": s.get("temettu"), "kap": s.get("kap"),
+            "arz": s.get("arz"), "sektor": s.get("sektor"), "endustri": s.get("endustri"), "mom20": s.get("mom20"), "uv": s.get("uv"), "bayrak": s.get("bayrak"), "bilanco": s.get("bilanco"), "temettu": s.get("temettu"), "kap": s.get("kap"), "tk": s.get("tk"),
         }
 
     banner = ""
@@ -236,6 +243,7 @@ tbody tr:hover{background:#F2F5F3}
 .uvb{background:#E8EEF7;color:#28507A;font-size:9.5px;font-weight:700;padding:2px 5px;border-radius:5px;margin-left:5px}
 .alkutu{margin-top:14px;border:1px solid var(--line);border-radius:10px;padding:10px 13px;background:#FCFCFB}
 .alsat{font-size:13px;margin:3px 0;display:flex;align-items:center;gap:8px}
+.tkb{background:#FFF1E0;color:#8A4B00;font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:5px;margin-left:5px;white-space:nowrap}.tkb.yeni{background:#8A4B00;color:#fff}.tkb.izle{background:#F3F3F1;color:#555}
 .bilb{background:#EEF1F8;color:#2F4A7A;font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:5px;margin-left:5px;white-space:nowrap}
 .bilkutu{margin:0 0 14px;border:1px solid var(--line);border-radius:10px;padding:10px 14px;font-size:13px;line-height:1.55}
 .bilkutu svg{display:block;width:100%;max-width:420px;height:auto;margin-top:6px}
@@ -333,7 +341,7 @@ __ARZ__
 <div class="kart"><h3>📈 hacim · ⚡ oynak · ⚠ taban serisi</h3><p><b>📈 hacim</b>: AL günü işlem hacmi son 20 günün 1,5 katından fazla — ilgi arttığını gösterir; ama backtest'te tek başına belirgin bir üstünlük sağlamadı, bilgi amaçlıdır. <b>⚡ oynak</b>: son 60 günde günlük oynaklık %5'ten fazla (spekülatif) — AL mesajı gönderilmez. <b>⚠ taban serisi</b>: son 15 günde 4+ kez ~%10 düştü (fon krizi tipi çöküş) — bu hisselerden AL mesajı gönderilmez.</p></div>
 <div class="kart"><h3>🌱 Uzun vade sinyali · 🚩 Bayrak</h3><p><b>🌱 UV AL</b>: yükselen trendde (fiyat 200 günlük ortalamanın üstünde ve o yükseliyor) 50 günlük ortalamaya geri çekilip dönen hisse. 2 gün üst üste 200 günlük ortalamanın altında kapanırsa SAT. Günlük sinyalden yavaş, 3-4 ay tutuş; backtest'te düşük faiz döneminde isabet %65. <b>🚩</b>: boğa bayrağı kırılımı (bilgi amaçlı).</p></div>
 <div class="kart"><h3>Piyasa filtresi</h3><p>BIST 100, 50 günlük ortalamasının altındaysa üstte "Piyasa zayıf" uyarısı çıkar. 5 yıllık backtest'te bu dönemlerde gelen AL'ler belirgin şekilde daha kötü sonuç verdi.</p></div>
-<div class="kart"><h3>Çıkış (v2) ve hedef</h3><p><b>📍 İz stop</b>: AL'den beri görülen en yüksek kapanışın %20 altı; fiyat yükseldikçe yukarı taşınır, kapanış altına inerse "çık". SAT sinyali tek başına çıkış değildir (gece testleri: SAT'ta çıkmak yükseliş piyasasında kazancı eritiyordu; iz stop 2023'te −%6 yerine +%45). <b>🎯 1. hedef</b>: en yakın direnç — geçmişte satış gelen tepe. <b>🎯 2. hedef</b>: risk/ödül 2:1 (maliyetinden stop'a olan mesafenin 2 katı yukarısı). Hedefler satış emri değil, izleme noktasıdır: 5 yıllık backtest'te hedefte kısmi satış, SAT/stop'a kadar tutmaktan belirgin şekilde kötü sonuç verdi.</p></div>
+<div class="kart"><h3>Çıkış ve hedef</h3><p><b>📍 İz stop</b>: AL'den beri görülen en yüksek kapanışın %20 altı; fiyat yükseldikçe yukarı taşınır, kapanış altına inerse "çık". SAT sinyali tek başına çıkış değildir (gece testleri: SAT'ta çıkmak yükseliş piyasasında kazancı eritiyordu; iz stop 2023'te −%6 yerine +%45). <b>🎯 1. hedef</b>: en yakın direnç — geçmişte satış gelen tepe. <b>🎯 2. hedef</b>: risk/ödül 2:1 (maliyetinden stop'a olan mesafenin 2 katı yukarısı). Hedefler satış emri değil, izleme noktasıdır: 5 yıllık backtest'te hedefte kısmi satış, SAT/stop'a kadar tutmaktan belirgin şekilde kötü sonuç verdi.</p></div>
 <div class="kart"><h3>NÖTR: sarı mı turuncu mu?</h3><p><span class="pill notr notr-al">NÖTR</span> <b>Sarı = AL'den döndü.</b> Elindeyse tut; iz stop kırılırsa çık. Yeni alım yapma.<br><span class="pill notr notr-sat">NÖTR</span> <b>Turuncu = SAT'tan döndü.</b> Düşüş yavaşladı ama henüz alım sinyali değil; AL'i bekle. (5 yıllık backtest: NÖTR'de satmak ya da turuncuda almak, beklemekten kötü sonuç verdi.)</p></div>
 <div class="kart"><h3>Öneri lot (risk yönetimi)</h3><p>Stop yerse portföyünün sadece belirlediğin yüzdeyi (örn. %1) kaybedeceğin lot sayısı: (portföy×risk%)÷(fiyat−stop).</p></div>
 <div class="kart"><h3>RSI</h3><p>0–100 momentum. 30 altı aşırı satım, 70 üstü aşırı alım. Sağlıklı yükseliş 45–68 bandında.</p></div>
@@ -472,8 +480,8 @@ function pozHtml(k,d){
   pl.hedefler.forEach(function(x){h+='<div class="pk">🎯 İzleme: <b>'+x[0]+' TL</b> — '+x[1]+', '+yzd((x[0]/pl.f-1)*100)+' yukarıda.</div>';});
   return h+'<div class="pk sgun">Uzun vade: kısa vadeli AL/SAT sinyalleri bilgi amaçlıdır. Backtest\'te güçlü yükseliş dönemlerinde büyük hisselerde al-tut, sinyale göre girip çıkmaktan belirgin şekilde iyi sonuç verdi. Karar çizgisinin altında kapanış, pozisyonu yeniden düşünme noktasıdır.</div></div>';
  }
- if(pl.sat)h+='<div class="pk">ℹ️ Kısa vadeli SAT sinyali — v2\'de çıkış kuralı iz stop; SAT tek başına "çık" demek değil.</div>';
- if(pl.izCikti)h+='<div class="pk neg">📍 <b>İz stop '+pl.izCikti+' tarihinde kırıldı</b> — v2 kuralına göre çıkış zamanı geçti.</div>';
+ if(pl.sat)h+='<div class="pk">ℹ️ Kısa vadeli SAT sinyali — çıkış kuralı iz stop; SAT tek başına "çık" demek değil.</div>';
+ if(pl.izCikti)h+='<div class="pk neg">📍 <b>İz stop '+pl.izCikti+' tarihinde kırıldı</b> — kurala göre çıkış zamanı geçti.</div>';
  else if(pl.stop&&pl.iz)h+='<div class="pk">📍 <b>İz stop: '+pl.stop+' TL</b> (AL\'den beri tepe '+pl.tepe+' TL\'nin %20 altı) — '+yzd(pl.stopUzak)+' aşağıda. Buraya inerse sonuç: <b class="'+(pl.stopKz>=0?'pos':'neg')+'">'+tlf(pl.stopKz)+'</b>'+(pl.stopKz>=0?' (yine kârda)':'')+'</div>';
  else if(pl.stop){
   h+=pl.asildi?'<div class="pk neg">📍 <b>Fiyat çıkış seviyesinin ('+pl.stop+' TL) altında</b> — sistemin kuralına göre çıkış zamanı.</div>'
@@ -482,8 +490,19 @@ function pozHtml(k,d){
  pl.hedefler.forEach(function(x,i){h+='<div class="pk">🎯 <b>'+(i+1)+'. hedef: '+x[0]+' TL</b> — '+x[1]+', '+yzd((x[0]/pl.f-1)*100)+' yukarıda.'+
    (x[1].indexOf('direnç')>=0?' Burada satış baskısı gelebilir; aşarsa yükseliş hızlanabilir.':' (Tahmin değil, izleme noktası.)')+'</div>';});
  if(pl.hedefler.length)h+='<div class="pk sgun">ℹ️ Hedefler satış emri değil, izleme noktası. 5 yıllık backtest\'te hedefte kısmi satış yapmak, pozisyonu SAT/stop gelene kadar tutmaktan belirgin şekilde kötü sonuç verdi — büyük kazançlar erken kesildi.</div>';
- var kural='Kural (v2): kapanış iz stop\'un altına inerse çık. İz stop, fiyat yükseldikçe yukarı taşınır; SAT sinyali tek başına çıkış değildir.';
+ var kural='Kural: kapanış iz stop\'un altına inerse çık. İz stop, fiyat yükseldikçe yukarı taşınır; SAT sinyali tek başına çıkış değildir.';
  return h+'<div class="pk">'+kural+'</div></div>';
+}
+function tkHtml(d){
+ var t=d.tk;if(!t)return '';
+ var h='<div class="uvkutu">🚀 <b>Trend kırılımı (v3 AL kuralı): ';
+ if(t.bugun)h+='BUGÜN KIRILIM</b> — trend şablonundayken 20 günlük zirve ('+t.kirilim_seviye+' TL) aşıldı. Giriş ertesi açılış; çıkış: tepe kapanışın %20 altı (iz stop).';
+ else if(t.durum==='AL')h+='pozisyon açık</b> — '+t.giris_tarih+' kırılımından beri '+t.gun+' işlem günü, '+(t.degisim>=0?'+':'')+t.degisim+'%. İz stop <b>'+t.stop+' TL</b> (tepe '+t.tepe+' TL, '+t.tepe_tarih+').';
+ else if(t.durum==='CIKTI'&&t.cikis_gun!=null&&t.cikis_gun<=20)h+='son işlem kapandı</b> — '+t.giris_tarih+' girişi, '+t.cikis_tarih+' iz stop ile çıktı ('+(t.sonuc>=0?'+':'')+t.sonuc+'%).';
+ else h+=(t.sablon?'şablonda, kırılım bekleniyor</b>':'yok</b> — trend şablonu sağlanmıyor.');
+ if(!t.bugun&&t.durum!=='AL'&&t.sablon&&t.kirilim_seviye)h+=' Kapanış <b>'+t.kirilim_seviye+' TL</b> üstüne çıkarsa AL'+(t.kirilima_uzak!=null?' (%'+t.kirilima_uzak+' yukarıda)':'')+'.';
+ h+='<div class="pk sgun">Şablon: fiyat > 50 > 150 > 200 günlük ortalama, 200 günlük yükseliyor, 52 hafta zirvesine en az %75 yakın, dibinden en az %30 yukarıda. 5 yıllık backtest\'te v2\'den iyi (200 rastgele denemenin %77-97\'sinde); yine de tavsiye değildir.</div>';
+ return h+'</div>';
 }
 function uvHtml(d){
  var u=d.uv;if(!u)return '';
@@ -564,12 +583,11 @@ function ac(k){
    if(d.sinyal==='NÖTR'&&d.notr_kaynak==='AL')zaman+='<div class="cikis">Elindeyse tut: iz stop kırılırsa çık. Yeni alım için AL\'i bekle.</div>';
    if(d.sinyal==='NÖTR'&&d.notr_kaynak==='SAT')zaman+='<div class="cikis">Düşüş yavaşladı ama henüz alım sinyali değil; AL\'i bekle.</div>';
    if(d.sinyal==='AL'&&d.hacim_kat!=null)zaman+='<div class="cikis">'+(d.hacim_teyit?'📈 <b>Hacim teyitli</b>: ':'Hacim: ')+'AL günü hacmi 20 günlük ortalamanın <b>'+d.hacim_kat+' katı</b>'+(d.hacim_teyit?' — ilgi artmış (backtest\'te tek başına belirgin üstünlük sağlamadı).':' (teyit için 1,5 kat gerekir).')+'</div>';
-   if(d.sinyal==='SAT')zaman+='<div class="cikis">ℹ️ Kısa vadeli SAT. v2\'de çıkış kuralı iz stop'+(d.iz&&!d.iz.cikti?' (<b>'+d.iz.stop+' TL</b>)':'')+'; elindeyse SAT tek başına "çık" demek değil.</div>';
+   if(d.sinyal==='SAT')zaman+='<div class="cikis">ℹ️ Kısa vadeli SAT. Çıkış kuralı iz stop'+(d.iz&&!d.iz.cikti?' (<b>'+d.iz.stop+' TL</b>)':'')+'; elindeyse SAT tek başına "çık" demek değil.</div>';
    if(d.sinyal==='AL'){
      const gs=(d.giris_stop!=null?d.giris_stop:d.stop);
      const izs=(d.iz&&!d.iz.cikti)?d.iz.stop:Math.round(d.fiyat*0.8*100)/100;
-     zaman+='<div class="cikis">Çıkış kuralı (v2): kapanış <b>iz stop '+izs+' TL</b>\'nin altına inerse (AL\'den beri tepe kapanışın %20 altı; fiyat yükseldikçe yukarı taşınır).'+
-       (d.v2_uygun?'':' <i>Not: trend dışı ya da aşırı oynak — v2 filtresine takılıyor.</i>')+
+     zaman+='<div class="cikis">ℹ️ Göstergeler (oylama) AL diyor — bilgi. <b>AL mesajı 🚀 trend kırılımında gelir</b> (aşağıdaki kutu). Elindeyse çıkış: kapanış <b>iz stop '+izs+' TL</b>\'nin altına inerse.'+
        ((d.hedef&&!pfOku().some(function(x){return x.kod===k;}))?' · Örnek hedef (2R, mekanik referans): <b>'+d.hedef+' TL</b>':'')+'</div>';
    }
    zaman+='</div>';
@@ -580,7 +598,7 @@ function ac(k){
    (d.sektor?' <span class="sektorb">'+d.sektor+(d.endustri&&d.endustri!==d.sektor?' · '+d.endustri:'')+'</span>':'')+'</div>'+
  zaman+
  (d.patlak?'<div class="patlakkutu">⚠ <b>Taban serisi:</b> son 15 günde '+d.taban15+' kez ~%10 düştü. Fon krizi tipi çöküş olabilir; bu hisseden AL mesajı gönderilmez.</div>':'')+
- pozHtml(k,d)+arzHtml(d)+uvHtml(d)+bilHtml(d)+kapHtml(d)+
+ pozHtml(k,d)+arzHtml(d)+tkHtml(d)+uvHtml(d)+bilHtml(d)+kapHtml(d)+
  '<div class="grafik">'+grafik(d.spark,d.sd)+'<div class="leg"><span class="c1">Fiyat</span><span class="c2">SMA20</span><span class="c3">SMA50</span><span class="c4">SuperTrend</span>'+
    (d.sd&&d.sd.destek?'<span class="c5">Destek</span>':'')+(d.sd&&d.sd.direnc?'<span class="c6">Direnç</span>':'')+
    '<span style="color:#1B7F4B">▲ AL</span><span style="color:#B4362E">▼ SAT</span></div></div>'+
@@ -820,5 +838,5 @@ tbody tr{border-bottom:1px solid var(--line)}tbody tr:last-child{border-bottom:n
 <div class="sar"><table><thead><tr><th>Hisse</th><th>Sinyal tarihi</th><th class="num">Giriş</th><th class="num">Güncel</th><th class="num">Anlık %</th><th class="num">Stop</th></tr></thead><tbody>__ACIKROWS__</tbody></table></div>
 <h2>Kapanmış sinyaller</h2>
 <div class="sar"><table><thead><tr><th>Hisse</th><th>Giriş tarihi</th><th class="num">Giriş</th><th>Çıkış tarihi</th><th class="num">Çıkış</th><th class="num">Sonuç %</th><th>Sebep</th></tr></thead><tbody>__KAPALIROWS__</tbody></table></div>
-<div class="not">Bu sayfa <b>ileriye dönük gerçek</b> karnedir ve canlıdaki (v2) kuralların aynısını uygular: sinyal AL'e döndüğü gün fiyatı kaydeder (trend içinde, aşırı oynak ya da taban serisinde olmayan hisseler; piyasa zayıfken kayıt açılmaz); fiyat, kayıttan beri görülen en yüksek kapanışın %20 altına inerse (iz stop) kapatıp sonucu yazar. SAT sinyali tek başına kapatmaz. Aynı AL dalgası bir kez sayılır. (Eylül 2026 öncesi kayıtlar eski, daha gevşek kurallarla açılmıştı.) Backtest geçmişi simüle eder; bu sayfa ise sistemin <b>bugünden itibaren</b> gerçek performansını biriktirir. Yatırım tavsiyesi değildir.</div>
+<div class="not">Bu sayfa <b>ileriye dönük gerçek</b> karnedir ve canlıdaki (v3) kuralların aynısını uygular: 🚀 trend kırılımı günü kapanış fiyatını kaydeder (trend şablonunda 20 günlük zirve kırılımı; aşırı oynak ya da taban serisinde olmayan hisseler; piyasa zayıfken kayıt açılmaz); fiyat, kayıttan beri görülen en yüksek kapanışın %20 altına inerse (iz stop) kapatıp sonucu yazar. SAT sinyali tek başına kapatmaz. Aynı AL dalgası bir kez sayılır. (Eylül 2026 öncesi kayıtlar eski, daha gevşek kurallarla açılmıştı.) Backtest geçmişi simüle eder; bu sayfa ise sistemin <b>bugünden itibaren</b> gerçek performansını biriktirir. Yatırım tavsiyesi değildir.</div>
 </div></body></html>"""

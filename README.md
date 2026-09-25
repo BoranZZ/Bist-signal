@@ -45,6 +45,8 @@ GitHub'ın kendi zamanlayıcısı ücretsiz hesapta saatlerce gecikebiliyor ya d
    - Kaydet → **Test run**. Sonuç **204** olmalı. Ardından GitHub'da Actions'ta yeni bir tarama başlar.
 
 ## Telegram
+**v3 kuralı — 🚀 trend kırılımı (Eylül 2026, gece araştırması):** AL mesajı artık göstergelerin oylamasından değil, "trend kırılımından" gelir: hisse güçlü bir yükseliş trendindeyken (fiyat 50, 150 ve 200 günlük ortalamaların üstünde ve sıralı, 52 hafta zirvesine yakın) son 20 günün zirvesini ilk kez aşarsa. Piyasa zayıfken ve aşırı oynak hisselerde AL gelmez. Çıkış aynı: tepe kapanışın %20 altı (iz stop). 13 farklı gösterge/strateji 5 yıllık veride denendi; bu kural hem düşük hem yüksek faiz döneminde, hem büyük hisselerde hem tüm listede en iyisiydi. Panoda 🚀 KIRILIM (bugün), 🚀 12g (12 gündür pozisyonda) ve 👀 kırılıma %2 (yakında AL olabilir) işaretleri; hisseye tıklayınca 🚀 kutusu. Göstergelerin AL/SAT'ı tabloda bilgi olarak durur.
+
 **v2 kuralları (Eylül 2026):** AL mesajı sadece yükselen trenddeki (fiyat 200 günlük ortalamanın üstünde ve o yükseliyor), aşırı oynak olmayan hisselerde gelir; diğerleri "trend dışı" kısa listede. Çıkış kuralı **iz stop**: AL'den beri en yüksek kapanışın %20 altı, fiyat yükseldikçe yukarı taşınır; kapanış altına inerse portföyündeki hisse için "📉 İz stop kırıldı" mesajı gelir. SAT sinyali artık tek başına "çık" demek değil, bilgi olarak gelir. (Gece testleri: 5 yılda SAT'ta çıkmak yükseliş piyasasında kazancı eritiyordu; iz stop 2023'te −%6 yerine +%45.)
 
 Mesaj şu durumlarda gelir:

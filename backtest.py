@@ -18,7 +18,7 @@ Sonuçlar düşük faiz (2023 Haziran öncesi) ve yüksek faiz dönemine ayrıl�
 import numpy as np
 import pandas as pd
 
-from sinyal import gostergeler, sma, IZ_STOP_ORAN, OYNAK_ESIK
+from sinyal import gostergeler, sma, trend_kirilimi, IZ_STOP_ORAN, OYNAK_ESIK
 
 KOMISYON = 0.002        # tek yön %0.2 (komisyon + kayma varsayımı)
 MAX_GUN = 40            # mevcut kural: bir pozisyonu en fazla bu kadar gün tut
@@ -60,6 +60,16 @@ def tek_hisse_backtest(df, kod="", kural="mevcut", xu_ust=None):
 
     islemler = []
     i = 0
+    if kural == "v3":   # 🚀 trend kırılımı: canlıdaki sinyal.trend_kirilimi ile birebir aynı işlemler
+        dd = gostergeler(df)
+        for gt, ct, g, cx in trend_kirilimi(dd, xu_ust, islemler=True):
+            sebep = "iz stop"
+            if ct is None:
+                ct, cx, sebep = dd.index[-1], float(dd["Close"].iloc[-1]), "süre"
+            islemler.append({"kod": kod, "giris_t": gt, "cikis_t": ct, "gun": (ct - gt).days, "giris": g, "cikis": cx,
+                             "brut": cx / g - 1, "net": (1 - KOMISYON) * (cx / g) * (1 - KOMISYON) - 1, "sebep": sebep,
+                             "hacim": False})
+        i = n
     while i < n - 1:
         if aday:
             gir = sinyal[i] == "AL" and (i == 0 or sinyal[i - 1] != "AL") and bool(ust[i])
@@ -186,7 +196,7 @@ def _yuzde(x, isaret=True):
     return f"{'+' if (isaret and x >= 0) else ''}{x}%".replace("-", "−")
 
 
-def rapor_html(ozetler, genel, donem="", genel_aday=None, donem_satirlari=None, genel_v2=None):
+def rapor_html(ozetler, genel, donem="", genel_aday=None, donem_satirlari=None, genel_v2=None, genel_v3=None):
     ozetler = sorted(ozetler, key=lambda x: -(x.get("toplam") or -999))
     satir = []
     for o in ozetler:
@@ -249,6 +259,7 @@ tbody tr{{border-bottom:1px solid var(--line)}}tbody tr:last-child{{border-botto
 .not{{margin-top:14px;padding:14px 16px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--muted);font-size:12.5px;line-height:1.65}}
 </style></head><body><div class="wrap">
 <h1>Backtest Raporu — canlı kurallar vs eski kurallar</h1><div class="tarih">Dönem: {donem} · komisyon+kayma çift yön %{KOMISYON*100:g}</div>
+{kartlar(genel_v3, "v3 — canlı kural (🚀 trend şablonu + 20 günlük zirve kırılımı, piyasa filtresi; %20 iz stop'ta çık)") if genel_v3 else ""}
 {kartlar(genel_v2, "v2 (AL'e dönüş + piyasa + trend, aşırı oynak hariç; %20 iz stop'ta çık)") if genel_v2 else ""}
 {kartlar(genel_aday, "Önceki canlı kurallar (AL'e dönüş + piyasa filtresi; stop ya da 2 gün SAT'ta çık)") if genel_aday else ""}
 {kartlar(genel, "Eski kurallar (AL olan her gün gir; stop, SAT ya da " + str(MAX_GUN) + " gün sonra çık)")}
@@ -308,7 +319,8 @@ if __name__ == "__main__":
     ozetler, genel, isl_m = toplu_backtest(veri, "mevcut", xu)
     _, genel_a, isl_a = toplu_backtest(veri, "aday", xu)
     _, genel_v2, isl_v2 = toplu_backtest(veri, "v2", xu)
-    setler = {"v2 (trend + iz stop %20)": isl_v2, "canlı (stop / 2 gün SAT)": isl_a, "eski": isl_m}
+    _, genel_v3, isl_v3 = toplu_backtest(veri, "v3", xu)
+    setler = {"v3 (🚀 kırılım + iz stop %20)": isl_v3, "v2 (trend + iz stop %20)": isl_v2, "eski canlı (stop / 2 gün SAT)": isl_a, "eski": isl_m}
     with open("backtest.html", "w", encoding="utf-8") as f:
-        f.write(rapor_html(ozetler, genel, donem, genel_a, donem_tablosu(setler, xu), genel_v2))
+        f.write(rapor_html(ozetler, genel, donem, genel_a, donem_tablosu(setler, xu), genel_v2, genel_v3))
     print("backtest.html yazıldı.\n  eski: ", genel, "\n  canlı:", genel_a)
