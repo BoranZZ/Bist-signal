@@ -89,7 +89,7 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None):
             "spark": s.get("spark", {}),
             "al_stop": s.get("al_stop"), "al_tarih": s.get("al_tarih"), "hacim_kat": s.get("hacim_kat"),
             "hacim_teyit": bool(s.get("hacim_teyit")), "taban15": s.get("taban15"), "patlak": bool(s.get("patlak")),
-            "arz": s.get("arz"),
+            "arz": s.get("arz"), "sektor": s.get("sektor"), "endustri": s.get("endustri"),
         }
 
     banner = ""
@@ -214,6 +214,8 @@ tbody tr:hover{background:#F2F5F3}
 .tarih a{color:var(--accent);font-weight:600;text-decoration:none}.tarih a:hover{text-decoration:underline}
 .sgun{color:var(--muted)}
 .pfsag{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:8px 12px}
+.sektorb{margin-left:8px;font-size:11.5px;background:#EEF1F5;color:#4A5568;padding:2px 8px;border-radius:999px}
+.pfdag{margin-top:8px;font-size:12.5px;color:var(--muted)}.pfdag.uyar{color:#8A2F26;background:#FBECEA;border:1px solid #E6C3BD;border-radius:8px;padding:8px 11px}
 .pfbulut{font-size:12px;color:var(--muted);margin:-2px 0 8px}.pfbulut a{color:var(--accent);font-weight:600}
 .pfbulut.ok{color:var(--pos)}.pfbulut.hata{color:var(--neg)}.pfduz{color:var(--accent)!important}
 .kurlist{margin:8px 0;padding-left:20px;font-size:12.5px}.kurlist li{margin:3px 0}.pfform input:disabled{background:#F1F1EE}
@@ -436,7 +438,8 @@ function ac(k){
  }
  document.getElementById('modal').innerHTML=
  '<div class="mh"><div class="sol"><h2>'+k+'</h2>'+pill+uyum+'</div><button class="kapa" onclick="kapat()">✕</button></div>'+
- '<div class="mfiyat">'+(d.fiyat!=null?d.fiyat+' TL':'')+' <span class="'+dcls+'">'+dtxt+'</span></div>'+
+ '<div class="mfiyat">'+(d.fiyat!=null?d.fiyat+' TL':'')+' <span class="'+dcls+'">'+dtxt+'</span>'+
+   (d.sektor?' <span class="sektorb">'+d.sektor+(d.endustri&&d.endustri!==d.sektor?' · '+d.endustri:'')+'</span>':'')+'</div>'+
  zaman+
  (d.patlak?'<div class="patlakkutu">⚠ <b>Taban serisi:</b> son 15 günde '+d.taban15+' kez ~%10 düştü. Fon krizi tipi çöküş olabilir; bu hisseden AL mesajı gönderilmez.</div>':'')+
  pozHtml(k,d)+arzHtml(d)+
@@ -544,6 +547,11 @@ function ghKaydet(){
 }
 function ghKaldir(){try{localStorage.removeItem(GH_KEY);}catch(e){}document.getElementById('pfkur').hidden=true;pfBulutDurum('yerel');}
 
+// tarama.py sektor_dagilimi() ile aynı: güncel değere göre endüstri payları
+function pfDagilim(a){
+ var top=0,pay={};a.forEach(function(p){var d=DATA[p.kod];if(!d||d.fiyat==null)return;var v=p.adet*d.fiyat,ad=d.endustri||d.sektor||'Bilinmiyor';pay[ad]=(pay[ad]||0)+v;top+=v;});
+ return top?Object.keys(pay).map(function(k){return [k,pay[k]/top*100];}).sort(function(x,y){return y[1]-x[1];}):[];
+}
 function pfRender(){
  var a=pfOku(),liste=document.getElementById('pflist'),top=document.getElementById('pftop');
  if(!a.length){liste.innerHTML='<div class="pfy bos">Henüz hisse yok. <b>+ Ekle</b> ile portföyünü oluştur.</div>';top.textContent='';return;}
@@ -568,7 +576,14 @@ function pfRender(){
      '<td class="num"><button class="pfsil pfduz" title="Düzenle" onclick="event.stopPropagation();pfFormAc('+i+')">✎</button> '+
      '<button class="pfsil" title="Sil" onclick="event.stopPropagation();pfSil('+i+')">✕</button></td></tr>';
  });
- r+='</tbody></table></div>';liste.innerHTML=r;
+ r+='</tbody></table></div>';
+ var dag=pfDagilim(a);
+ if(dag.length){
+  var ust=a.length>=2&&dag[0][1]>40;
+  r+='<div class="pfdag'+(ust?' uyar':'')+'">'+(ust?'⚠️ Portföyünün <b>%'+dag[0][1].toFixed(0)+'</b>\'i tek sektörde (<b>'+dag[0][0]+'</b>) — o sektördeki bir haber hepsini birlikte etkiler. ':'')+
+     'Dağılım: '+dag.slice(0,5).map(function(x){return x[0]+' %'+x[1].toFixed(0);}).join(' · ')+'</div>';
+ }
+ liste.innerHTML=r;
  top.innerHTML='Toplam K/Z: <b class="'+(toplam>=0?'pos':'neg')+'">'+(toplam>=0?'+':'')+Math.round(toplam).toLocaleString('tr-TR')+' TL</b>';
 }
 (function(){var dl=document.getElementById('pfkodlar');if(dl){dl.innerHTML=Object.keys(DATA).sort().map(function(k){return '<option value="'+k+'"></option>';}).join('');}pfRender();pfBulutOku();})();

@@ -100,15 +100,48 @@ def arz_bilgisi(kod, df):
             "taban15": int((c.pct_change().tail(TABAN_GUN) <= TABAN_GETIRI).sum())}
 
 
+SEKTOR_TR = {
+    "Industrials": "Sanayi", "Financial Services": "Finans", "Basic Materials": "Temel malzeme",
+    "Consumer Defensive": "Temel tüketim", "Consumer Cyclical": "Döngüsel tüketim", "Utilities": "Enerji dağıtım/üretim",
+    "Real Estate": "Gayrimenkul", "Technology": "Teknoloji", "Healthcare": "Sağlık",
+    "Communication Services": "İletişim", "Energy": "Enerji (petrol/gaz)",
+}
+ENDUSTRI_TR = {
+    "Banks - Regional": "Banka", "Conglomerates": "Holding", "Building Materials": "Çimento/yapı malz.",
+    "Utilities - Renewable": "Yenilenebilir enerji", "Packaged Foods": "Gıda", "Steel": "Çelik/demir",
+    "Engineering & Construction": "İnşaat/taahhüt", "Textile Manufacturing": "Tekstil", "REIT - Residential": "GYO (konut)",
+    "REIT - Diversified": "GYO", "Building Products & Equipment": "Yapı ürünleri", "Utilities - Regulated Gas": "Doğalgaz dağıtım",
+    "Utilities - Independent Power Producers": "Elektrik üretim", "Utilities - Regulated Electric": "Elektrik dağıtım",
+    "Beverages - Non-Alcoholic": "İçecek", "Aerospace & Defense": "Savunma", "Furnishings, Fixtures & Appliances": "Beyaz eşya/mobilya",
+    "Electrical Equipment & Parts": "Elektrik ekipmanı", "Specialty Chemicals": "Kimya", "Chemicals": "Kimya",
+    "Agricultural Inputs": "Gübre/tarım girdisi", "Auto Manufacturers": "Otomotiv", "Auto Parts": "Otomotiv yan sanayi",
+    "Farm & Heavy Construction Machinery": "Traktör/iş makinesi", "Airlines": "Havayolu", "Airports & Air Services": "Havalimanı",
+    "Solar": "Güneş enerjisi", "Grocery Stores": "Perakende (market)", "Insurance - Diversified": "Sigorta",
+    "Insurance - Life": "Hayat sigortası/emeklilik", "Insurance - Property & Casualty": "Sigorta", "Confectioners": "Şekerleme",
+    "Other Industrial Metals & Mining": "Madencilik", "Gold": "Altın madenciliği", "Electronics & Computer Distribution": "Elektronik dağıtım",
+    "Real Estate - Development": "Gayrimenkul geliştirme", "Telecom Services": "Telekom", "Travel Services": "Turizm",
+    "Auto & Truck Dealerships": "Otomotiv bayi", "Drug Manufacturers - Specialty & Generic": "İlaç", "Marine Shipping": "Denizcilik",
+    "Staffing & Employment Services": "İnsan kaynakları hizmet", "Railroads": "Demiryolu", "Information Technology Services": "BT hizmetleri",
+    "Capital Markets": "Aracı kurum", "Apparel Retail": "Giyim perakende", "Software - Infrastructure": "Yazılım",
+    "Software - Application": "Yazılım", "Medical Care Facilities": "Hastane", "Consumer Electronics": "Tüketici elektroniği",
+    "Integrated Freight & Logistics": "Lojistik", "Department Stores": "Mağazacılık", "Luxury Goods": "Lüks ürün",
+    "Restaurants": "Restoran", "Metal Fabrication": "Metal işleme", "Packaging & Containers": "Ambalaj",
+    "Oil & Gas Refining & Marketing": "Rafineri", "Credit Services": "Finansman/faktoring", "Entertainment": "Spor/eğlence",
+    "Real Estate Services": "Gayrimenkul hizmet",
+}
+
+
 def oran_cek_tek(kod):
     try:
         info = yf.Ticker(kod + ".IS").info
         fk, pddd, fav = info.get("trailingPE"), info.get("priceToBook"), info.get("enterpriseToEbitda")
+        sek, end = info.get("sector"), info.get("industry")
         return [round(fk, 1) if isinstance(fk, (int, float)) and fk > 0 else None,
                 round(pddd, 2) if isinstance(pddd, (int, float)) and pddd > 0 else None,
-                round(fav, 1) if isinstance(fav, (int, float)) and fav > 0 else None]
+                round(fav, 1) if isinstance(fav, (int, float)) and fav > 0 else None,
+                SEKTOR_TR.get(sek, sek), ENDUSTRI_TR.get(end, end)]
     except Exception:
-        return [None, None, None]
+        return [None, None, None, None, None]
 
 
 def oranlari_al(kodlar):
@@ -122,7 +155,7 @@ def oranlari_al(kodlar):
             veri = c["veri"]
     except Exception:
         pass
-    eksik = [k for k in kodlar if k not in veri]   # listeye yeni eklenen hisseler dahil
+    eksik = [k for k in kodlar if len(veri.get(k) or []) < 5]   # yeni hisseler + sektör bilgisi olmayan eski kayıtlar
     if not eksik:
         print("Oranlar önbellekten.")
         return veri
@@ -353,6 +386,23 @@ def telegram_mesaji(yeni_al, yeni_sat, sat_teyit, pf, uyari, piyasa=None):
     return "\n\n".join(parca)
 
 
+YOGUNLASMA_ESIGI = 40   # portföy değerinin %'si tek endüstrideyse uyar
+
+
+def sektor_dagilimi(pf, by):
+    """Portföyün güncel değerine göre endüstri payları: [(ad, yüzde), ...] büyükten küçüğe. pano.py pfDagilim() ile aynı."""
+    top, pay = 0.0, {}
+    for kod, p in pf.items():
+        s = by.get(kod)
+        if not s or not s.get("fiyat"):
+            continue
+        deger = p["adet"] * s["fiyat"]
+        ad = s.get("endustri") or s.get("sektor") or "Bilinmiyor"
+        pay[ad] = pay.get(ad, 0) + deger
+        top += deger
+    return sorted(((a, v / top * 100) for a, v in pay.items()), key=lambda x: -x[1]) if top else []
+
+
 def portfoy_ozeti(sonuclar, pf, piyasa=None):
     """Günde bir kez (kapanıştan sonra) portföyün tamamı: sinyal, K/Z, çıkış ve hedefler, dikkat notları."""
     by = {s["kod"]: s for s in sonuclar}
@@ -382,6 +432,12 @@ def portfoy_ozeti(sonuclar, pf, piyasa=None):
         parca.append(f"{ikon} <b>{kod}</b> {s['fiyat']} TL — {sn}" + (" · " + " · ".join(notlar) if notlar else "")
                      + "\n     " + plan_metni(s, p))
     parca.insert(1, f"Toplam K/Z: <b>{_tl(toplam)}</b>")
+    dag = sektor_dagilimi(pf, by)
+    if dag:
+        metin = ", ".join(f"{ad} %{pay:.0f}" for ad, pay in dag[:4])
+        if len(pf) >= 2 and dag[0][1] > YOGUNLASMA_ESIGI:
+            metin = f"⚠️ Portföyünün <b>%{dag[0][1]:.0f}</b>'i tek sektörde ({dag[0][0]}) — o sektördeki bir haber hepsini birlikte etkiler.\n     " + metin
+        parca.insert(2, "Dağılım: " + metin)
     if piyasa and piyasa.get("zayif"):
         parca.append("⚠️ Piyasa zayıf (BIST 100 50 günlük ortalamasının altında).")
     parca.append(f"<a href=\"{PANO_URL}\">Panoyu aç</a>\n<i>Hedefler satış emri değil, izleme noktası (backtest: hedefte satmak, SAT/stop'a kadar tutmaktan kötüydü). Yatırım tavsiyesi değildir.</i>")
@@ -476,6 +532,8 @@ def main():
             a["fk"] = o[0] if len(o) > 0 else None
             a["pddd"] = o[1] if len(o) > 1 else None
             a["favok"] = o[2] if len(o) > 2 else None
+            a["sektor"] = o[3] if len(o) > 3 else None
+            a["endustri"] = o[4] if len(o) > 4 else None
             a["lot"] = lot_oner(a["fiyat"], a["giris_stop"])
             sonuclar.append(a)
         except Exception as e:
