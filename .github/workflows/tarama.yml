@@ -36,7 +36,7 @@ jobs:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           TELEGRAM_TEST: ${{ inputs.telegram_test }}
-          PORTFOY: ${{ secrets.PORTFOY }}
+          PORTFOY: ${{ vars.PORTFOY }}   # panodan otomatik yazılır (kullanıcı onayıyla variable)
         run: python tarama.py
       - name: Panoyu kaydet
         run: |

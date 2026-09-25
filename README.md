@@ -51,13 +51,11 @@ Mesaj şu durumlarda gelir:
 
 AL ile NÖTR arasında gidip gelen hisse tekrar mesaj atmaz. Sinyalin önce SAT'a, sonra tekrar AL'e dönmesi gerekir. Listeye yeni eklenen hisse, ilk tarandığı turda mesaj atmaz.
 
-**Portföyü Telegram'a tanıtmak:** Panodaki "+ Ekle" sadece senin tarayıcında saklanır, GitHub onu göremez.
-1. Panoda **Telegram için kopyala**'ya bas.
-2. GitHub'da `Bist-signal` → **Settings** → **Secrets and variables** → **Actions** yolunu izle.
-3. **New repository secret**'a bas (daha önce eklediysen `PORTFOY`'un yanındaki kalem ✏️).
-4. Adı `PORTFOY` olsun. Kopyaladığın metni yapıştır, **Save**'e bas.
-
-Portföyünü değiştirdiğinde bu adımları tekrarla. Secret'ı sadece sen görürsün; sistem portföyünü loglara yazmaz.
+**Portföyü Telegram'a bağlamak (her cihazda bir kez):** Panoda Portföyüm'ün altındaki **Telegram'a bağla**'ya bas, ekrandaki adımlarla bir GitHub anahtarı oluştur ("Variables: Read and write" yetkili) ve yapıştır. Sonrasında:
+- **+ Ekle / ✎ / ✕** ile yaptığın her değişiklik GitHub'daki `PORTFOY` variable'ına otomatik kaydedilir, sonraki taramanın Telegram mesajları buna göre çıkar.
+- **Aynı hisseyi tekrar eklersen** adetler toplanır, maliyet ağırlıklı ortalama olur.
+- **Cihazlar arası eşitleme:** Anahtarı girdiğin başka bir cihaz portföyü GitHub'dan alır. Telefonda ve bilgisayarda aynı portföyü görürsün.
+- **Gizlilik:** `PORTFOY` herkese açık değil. Onu sadece sen ve anahtarlarını görebilir; sistem portföyünü loglara yazmaz. Anahtar sadece girdiğin cihazda saklanır, kaldırmak için "Bu cihazdaki bağlantıyı kaldır".
 
 Bağlantıyı denemek için: Actions → **BIST Sinyal Taraması** → **Run workflow** → **"Telegram'a test mesajı gönder"** kutusunu işaretle → Run. Mesaj gelmezse tarama kırmızı biter; "Taramayı çalıştır" adımında Telegram'ın verdiği hata yazar:
 - *bilgi yok*: GitHub → Settings → Secrets and variables → Actions'ta `TELEGRAM_TOKEN` ve `TELEGRAM_CHAT_ID` tanımlı değil.

@@ -36,7 +36,7 @@ PORTFOY_TL = 100_000
 RISK_YUZDESI = 1.0
 ASIRI_ISLEM_ESIGI = 8
 PANO_URL = "https://boranzz.github.io/Bist-signal/"
-# Telegram: tüm hisselerde yeni AL; SAT sadece portföydekiler (PORTFOY secret'ı).
+# Telegram: tüm hisselerde yeni AL; SAT sadece portföydekiler (PORTFOY variable'ı, panodan otomatik yazılır).
 # ============================================
 
 KODLAR = sorted(set(BIST100 + EK_HISSELER))
@@ -152,17 +152,17 @@ GECMIS = "gecmis.json"
 
 
 def portfoy_yukle():
-    """Portföy GitHub secret'ından (PORTFOY) gelir; panodaki 'Telegram için kopyala' butonu bu
+    """Portföy GitHub variable'ından (PORTFOY) gelir; pano her değişiklikte bu
     metni üretir. Aynı hisse birden çok girildiyse adetler toplanır, maliyet ağırlıklı ortalama olur.
     DİKKAT: Actions logları herkese açık — portföy içeriğini asla print etme."""
     ham = os.environ.get("PORTFOY", "").strip()
     if not ham:
-        print("Portföy tanımlı değil (PORTFOY secret'ı boş).")
+        print("Portföy tanımlı değil (panoda 'Telegram'a bağla' yapılmamış).")
         return {}
     try:
         liste = json.loads(ham)
     except Exception:
-        print("PORTFOY secret'ı okunamadı: metin bozuk. Panodan tekrar kopyalayıp yapıştır.")
+        print("PORTFOY variable'ı okunamadı: metin bozuk. Panoda portföyü bir kez kaydet.")
         return {}
     pf = {}
     for p in liste:

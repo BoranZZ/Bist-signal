@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Etkileşimli pano: satıra tıkla -> grafik + o hisseye özel yorum + TradingView."""
+"""Etkileşimli pano: satıra tıkla -> grafik + o hisseye özel yorum + TradingView linki."""
 import json
 import pandas as pd
 
@@ -165,10 +165,10 @@ tbody tr:hover{background:#F2F5F3}
 .sdyok{margin-top:6px;color:var(--muted);font-size:12.5px}.sdyontem{margin-top:8px;color:var(--muted);font-size:11.5px}
 .tarih a{color:var(--accent);font-weight:600;text-decoration:none}.tarih a:hover{text-decoration:underline}
 .sgun{color:var(--muted)}
-.tvwrap{height:380px;margin:6px 0 14px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
-#tvbox{height:100%}
-.tvyok{padding:16px;color:var(--muted);font-size:12.5px}
-.pfsag{display:flex;align-items:center;gap:12px}
+.pfsag{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:8px 12px}
+.pfbulut{font-size:12px;color:var(--muted);margin:-2px 0 8px}.pfbulut a{color:var(--accent);font-weight:600}
+.pfbulut.ok{color:var(--pos)}.pfbulut.hata{color:var(--neg)}.pfduz{color:var(--accent)!important}
+.kurlist{margin:8px 0;padding-left:20px;font-size:12.5px}.kurlist li{margin:3px 0}.pfform input:disabled{background:#F1F1EE}
 .pfekle{border:1px solid var(--accent);background:var(--accent);color:#fff;font-weight:600;font-size:12.5px;padding:6px 12px;border-radius:8px;cursor:pointer}
 .pfform{display:none;flex-wrap:wrap;gap:8px;margin-bottom:10px}
 .pfform input{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13px;font-family:inherit}
@@ -184,7 +184,7 @@ tbody tr:hover{background:#F2F5F3}
 .uyari{margin-top:28px;padding:13px 16px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--muted);font-size:12.2px;line-height:1.6}
 .glink{color:var(--accent);font-weight:600;text-decoration:none}.glink:hover{text-decoration:underline}
 .pfbox{margin-top:18px}
-.pfbas{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:8px}
+.pfbas{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:8px}
 .pfbas h2{margin:0;font-size:16px}.pftop{font-weight:650;font-size:14px}.pftop.pos{color:var(--pos)}.pftop.neg{color:var(--neg)}
 table.pf{min-width:640px}
 .pfy.bos{padding:12px 14px;border:1px dashed var(--line);border-radius:10px;color:var(--muted);font-size:12.8px;background:#fff}
@@ -220,7 +220,6 @@ table.pf{min-width:640px}
 .ekb{background:#FBF7EE;border:1px solid #EADFC7;border-radius:8px;padding:5px 9px;font-size:11.5px;color:#7A5B10}
 @media(max-width:560px){.ozet .b{font-size:30px}}
 </style>
-<script src="https://s3.tradingview.com/tv.js"></script>
 </head><body><div class="wrap">
 <header><div><h1>BIST Sinyal Panosu</h1><div class="tarih">Son güncelleme: __TARIH__ · <a href="#" onclick="yenile();return false" title="Sayfanın en son halini getirir (önbelleği atlar)">↻ Yenile</a> · <a href="https://github.com/BoranZZ/Bist-signal/actions/workflows/tarama.yml" target="_blank" rel="noopener" title="GitHub'da 'Run workflow' ile taramayı hemen başlat; 3-5 dk sonra Yenile'ye bas">Taramayı şimdi başlat ↗</a></div></div>
 <div class="ozet">
@@ -230,14 +229,16 @@ table.pf{min-width:640px}
 <div class="ipucu">İncelemek için bir satıra tıkla → grafik, oranlar ve o hisseye özel yorum açılır. Sütun başlığına tıklayınca sıralanır. · <a class="glink" href="gecmis.html">Sinyal Geçmişi →</a></div>
 __BANNER__
 <div class="pfbox">
-  <div class="pfbas"><h2>Portföyüm</h2><div class="pfsag"><span id="pftop" class="pftop"></span><button class="pfipt" onclick="pfKopyala()" title="Portföyünü Telegram mesajları için GitHub'a tanıt">Telegram için kopyala</button><button class="pfekle" onclick="pfFormAc()">+ Ekle</button></div></div>
-  <div id="pfkopya" class="zaman" hidden></div>
+  <div class="pfbas"><h2>Portföyüm</h2><div class="pfsag"><span id="pftop" class="pftop"></span><button class="pfekle" onclick="pfFormAc()">+ Ekle</button></div></div>
+  <div id="pfbulut" class="pfbulut"></div>
+  <div id="pfkur" class="zaman" hidden></div>
+  <div id="pfnot" class="zaman" hidden></div>
   <div id="pfform" class="pfform">
     <input id="pfkod" placeholder="Hisse (örn. THYAO)" list="pfkodlar" autocomplete="off">
     <datalist id="pfkodlar"></datalist>
     <input id="pfadet" type="number" min="1" placeholder="Adet">
     <input id="pfmal" type="number" step="any" min="0" placeholder="Maliyet (TL)">
-    <button class="pfkaydet" onclick="pfKaydet()">Ekle</button>
+    <button id="pfkaydetbtn" class="pfkaydet" onclick="pfKaydet()">Ekle</button>
     <button class="pfipt" onclick="pfFormKapat()">İptal</button>
   </div>
   <div id="pflist"></div>
@@ -342,58 +343,110 @@ function ac(k){
  '<div class="grafik">'+grafik(d.spark,d.sd)+'<div class="leg"><span class="c1">Fiyat</span><span class="c2">SMA20</span><span class="c3">SMA50</span><span class="c4">SuperTrend</span>'+
    (d.sd&&d.sd.destek?'<span class="c5">Destek</span>':'')+(d.sd&&d.sd.direnc?'<span class="c6">Direnç</span>':'')+'</div></div>'+
  sdHtml(d)+
- '<div class="tvwrap"><div id="tvbox"></div></div>'+
  '<div class="metr">'+m('RSI',d.rsi)+m('F/K',d.fk)+m('PD/DD',d.pddd)+m('FD/FAVÖK',d.favok)+m('Giriş stopu',d.giris_stop!=null?d.giris_stop:d.stop)+m('Öneri lot',lot)+'</div>'+
  '<div class="gbas">Göstergeler</div><div class="gliste">'+gost+'</div>'+
  (ekh?'<div class="ekler">'+ekh+'</div>':'')+
  '<div class="yorum">'+(d.yorum||d.gerekce.join(' · '))+'</div>'+
  '<div class="btnler"><a class="btn p" href="'+tv+'" target="_blank" rel="noopener">TradingView\'de tam ekran ↗</a></div>';
  document.getElementById('ust').classList.add('acik');
- tvGoster(k);
 }
-function kapat(){document.getElementById('ust').classList.remove('acik');var b=document.getElementById('tvbox');if(b)b.innerHTML='';}
+function kapat(){document.getElementById('ust').classList.remove('acik');}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')kapat();});
 
-function tvGoster(k){
- var box=document.getElementById('tvbox'); if(!box) return; box.innerHTML='';
- if(typeof TradingView==='undefined'){box.innerHTML='<div class="tvyok">Etkileşimli grafik yüklenemedi (internet gerekiyor). Yukarıdaki hızlı grafiği ya da TradingView butonunu kullan.</div>';return;}
- try{new TradingView.widget({autosize:true,symbol:'BIST:'+k,interval:'D',timezone:'Europe/Istanbul',theme:'light',style:'1',locale:'tr',allow_symbol_change:false,hide_side_toolbar:false,studies:['RSI@tv-basicstudies','MACD@tv-basicstudies'],container_id:'tvbox'});}
- catch(e){box.innerHTML='<div class="tvyok">Grafik açılamadı.</div>';}
-}
-
-var PF_KEY='portfoyum_v1';
+var PF_KEY='portfoyum_v1',GH_KEY='gh_anahtar_v1',GH_REPO='BoranZZ/Bist-signal',pfDuzenlenen=-1;
 function pfOku(){try{return JSON.parse(localStorage.getItem(PF_KEY))||[]}catch(e){return[]}}
-function pfYaz(a){try{localStorage.setItem(PF_KEY,JSON.stringify(a))}catch(e){}}
-function pfFormAc(){document.getElementById('pfform').style.display='flex';document.getElementById('pfkod').focus();}
-function pfFormKapat(){document.getElementById('pfform').style.display='none';}
+function pfYazYerel(a){try{localStorage.setItem(PF_KEY,JSON.stringify(a))}catch(e){}}
+function pfYaz(a){pfYazYerel(a);pfBulutYaz(a);}
+function pfNot(t){var n=document.getElementById('pfnot');n.innerHTML=t||'';n.hidden=!t;}
+function pfFormAc(i){
+ pfDuzenlenen=(typeof i==='number')?i:-1;var p=pfDuzenlenen>=0?pfOku()[i]:null;
+ document.getElementById('pfkod').value=p?p.kod:'';document.getElementById('pfkod').disabled=!!p;
+ document.getElementById('pfadet').value=p?p.adet:'';document.getElementById('pfmal').value=p?p.maliyet:'';
+ document.getElementById('pfkaydetbtn').textContent=p?'Kaydet':'Ekle';
+ document.getElementById('pfform').style.display='flex';pfNot('');
+ document.getElementById(p?'pfadet':'pfkod').focus();
+}
+function pfFormKapat(){document.getElementById('pfform').style.display='none';pfDuzenlenen=-1;}
 function pfKaydet(){
  var k=(document.getElementById('pfkod').value||'').trim().toUpperCase();
  var ad=parseFloat(document.getElementById('pfadet').value);
  var ma=parseFloat(document.getElementById('pfmal').value);
- if(!k||!(ad>0)||!(ma>0)){alert('Hisse kodu, adet ve maliyet gir.');return;}
- var a=pfOku();a.push({kod:k,adet:ad,maliyet:ma});pfYaz(a);
- document.getElementById('pfkod').value='';document.getElementById('pfadet').value='';document.getElementById('pfmal').value='';
- pfFormKapat();pfRender();
+ if(!k||!(ad>0)||!(ma>0)){pfNot('Hisse kodu, adet ve maliyet gir.');return;}
+ var a=pfOku(),not='';
+ if(pfDuzenlenen>=0){a[pfDuzenlenen]={kod:k,adet:ad,maliyet:ma};not=k+' güncellendi.';}
+ else{
+  var j=a.findIndex(function(p){return p.kod===k;});
+  if(j>=0){  // aynı hisseye ekleme: adet toplanır, maliyet ağırlıklı ortalama
+   var p=a[j],top=p.adet+ad,ort=(p.adet*p.maliyet+ad*ma)/top;
+   a[j]={kod:k,adet:top,maliyet:Math.round(ort*100)/100};
+   not=k+' mevcut pozisyona eklendi: toplam '+top+' adet, ortalama maliyet '+a[j].maliyet.toFixed(2)+' TL.';
+  }else a.push({kod:k,adet:ad,maliyet:ma});
+ }
+ pfYaz(a);pfFormKapat();pfRender();pfNot(not);
 }
-function pfKopyala(){
- var a=pfOku(),kutu=document.getElementById('pfkopya');kutu.hidden=false;
- if(!a.length){kutu.innerHTML='Önce <b>+ Ekle</b> ile portföyüne hisse ekle.';return;}
- var t=JSON.stringify(a.map(function(p){return {kod:p.kod,adet:p.adet,maliyet:p.maliyet};}));
- var yol='GitHub → <b>Bist-signal</b> → <b>Settings</b> → <b>Secrets and variables</b> → <b>Actions</b> → <b>PORTFOY</b> '+
-   '(ilk seferde <b>New repository secret</b>, adı <b>PORTFOY</b>) → yapıştır → <b>Save</b>. Portföyünü değiştirince tekrarla.';
- kutu.innerHTML='<div id="pfkdurum"></div><div class="cikis">'+yol+'</div>'+
-   '<textarea id="pfkmetin" readonly style="width:100%;margin-top:8px;font-size:12px;font-family:monospace" rows="3"></textarea>'+
-   '<div class="cikis"><a href="#" onclick="document.getElementById(\'pfkopya\').hidden=true;return false">Kapat</a></div>';
- var ta=document.getElementById('pfkmetin'),dr=document.getElementById('pfkdurum');ta.value=t;
- var elle=function(){ta.focus();ta.select();dr.innerHTML='Aşağıdaki metni seçip kopyala (Ctrl+C / uzun bas → Kopyala):';};
- if(navigator.clipboard&&navigator.clipboard.writeText){
-  navigator.clipboard.writeText(t).then(function(){dr.innerHTML='<b>✓ Kopyalandı.</b> Şimdi GitHub\'a yapıştır:';},elle);
- }else elle();
+function pfSil(i){var a=pfOku();a.splice(i,1);pfYaz(a);pfRender();pfNot('');}
+
+// --- GitHub eşitleme: portföy repo'nun PORTFOY değişkenine yazılır, tarama (Telegram) oradan okur ---
+function ghAnahtar(){try{return localStorage.getItem(GH_KEY)||''}catch(e){return''}}
+function ghIstek(yontem,yol,govde){
+ return fetch('https://api.github.com/repos/'+GH_REPO+yol,{method:yontem,headers:{'Authorization':'Bearer '+ghAnahtar(),
+  'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'},body:govde?JSON.stringify(govde):undefined});
 }
-function pfSil(i){var a=pfOku();a.splice(i,1);pfYaz(a);pfRender();}
+function pfBulutDurum(d,kod){
+ var el=document.getElementById('pfbulut'),bag=' · <a href="#" onclick="ghKurulum();return false">Telegram\'a bağla</a>';
+ var yetki=(kod===401||kod===403||kod===404);
+ var t={yerel:'Bu cihazda saklanıyor; Telegram görmüyor'+bag,kaydediliyor:'☁ Kaydediliyor…',
+  ok:'☁ Telegram ile eşit',
+  hata:'⚠ GitHub\'a kaydedilemedi'+(kod?' ('+kod+')':'')+(yetki?' — anahtar geçersiz ya da yetkisi eksik'+bag:' — sonra tekrar dene')}[d];
+ el.innerHTML=t;el.className='pfbulut '+d;
+}
+function pfBulutYaz(a){
+ if(!ghAnahtar()){pfBulutDurum('yerel');return Promise.resolve(false);}
+ var v={name:'PORTFOY',value:JSON.stringify(a)};pfBulutDurum('kaydediliyor');
+ return ghIstek('PATCH','/actions/variables/PORTFOY',v)
+  .then(function(r){return r.status===404?ghIstek('POST','/actions/variables',v):r;})
+  .then(function(r){pfBulutDurum(r.ok?'ok':'hata',r.ok?0:r.status);return r.ok;})
+  .catch(function(){pfBulutDurum('hata');return false;});
+}
+function pfBulutOku(){  // GitHub'daki portföy doluysa o esas alınır (başka cihazda yapılan değişiklikler gelsin)
+ if(!ghAnahtar()){pfBulutDurum('yerel');return Promise.resolve(false);}
+ pfBulutDurum('kaydediliyor');
+ return ghIstek('GET','/actions/variables/PORTFOY').then(function(r){
+  if(r.status===404){return pfBulutYaz(pfOku());}
+  if(!r.ok){pfBulutDurum('hata',r.status);return false;}
+  return r.json().then(function(j){
+   var a=[];try{a=JSON.parse(j.value);}catch(e){}
+   if(Array.isArray(a)&&a.length){pfYazYerel(a);pfRender();pfBulutDurum('ok');return true;}
+   return pfBulutYaz(pfOku());
+  });
+ }).catch(function(){pfBulutDurum('hata');return false;});
+}
+function ghKurulum(){
+ var k=document.getElementById('pfkur');k.hidden=false;
+ k.innerHTML='<b>Portföyünü Telegram\'a bağla</b> (her cihazda bir kez)'+
+  '<ol class="kurlist"><li>GitHub → profil resmi → <b>Settings</b> → <b>Developer settings</b> → <b>Personal access tokens</b> → <b>Fine-grained tokens</b> → <b>Generate new token</b></li>'+
+  '<li>Token name: <code>portfoy</code> · Repository access: <b>Only select repositories</b> → <b>Bist-signal</b></li>'+
+  '<li>Permissions → <b>Add permissions</b> → <b>Variables</b> → <b>Read and write</b> → <b>Generate token</b></li>'+
+  '<li>Çıkan anahtarı aşağıya yapıştır. Anahtar sadece bu cihazda saklanır.</li></ol>'+
+  '<div class="pfform" style="display:flex"><input id="ghgir" type="password" placeholder="github_pat_..." autocomplete="off" style="flex:1;min-width:200px">'+
+  '<button class="pfkaydet" onclick="ghKaydet()">Bağla</button><button class="pfipt" onclick="document.getElementById(\'pfkur\').hidden=true">Kapat</button></div>'+
+  '<div id="ghsonuc" class="cikis"></div>'+(ghAnahtar()?'<div class="cikis"><a href="#" onclick="ghKaldir();return false">Bu cihazdaki bağlantıyı kaldır</a></div>':'');
+}
+function ghKaydet(){
+ var t=(document.getElementById('ghgir').value||'').trim(),s=document.getElementById('ghsonuc');
+ if(!t){s.textContent='Anahtarı yapıştır.';return;}
+ try{localStorage.setItem(GH_KEY,t);}catch(e){s.textContent='Tarayıcı anahtarı kaydetmeye izin vermedi.';return;}
+ s.textContent='Deneniyor…';
+ pfBulutOku().then(function(ok){
+  if(ok){document.getElementById('pfkur').hidden=true;pfNot('✓ Bağlandı. Portföyündeki değişiklikler artık otomatik olarak Telegram mesajlarına yansıyacak.');}
+  else{try{localStorage.removeItem(GH_KEY);}catch(e){}s.textContent='Olmadı: anahtar yanlış ya da "Variables: Read and write" yetkisi yok. Adımları kontrol edip tekrar dene.';pfBulutDurum('yerel');}
+ });
+}
+function ghKaldir(){try{localStorage.removeItem(GH_KEY);}catch(e){}document.getElementById('pfkur').hidden=true;pfBulutDurum('yerel');}
+
 function pfRender(){
  var a=pfOku(),liste=document.getElementById('pflist'),top=document.getElementById('pftop');
- if(!a.length){liste.innerHTML='<div class="pfy bos">Henüz hisse yok. <b>+ Ekle</b> ile portföyünü oluştur (bu cihazda saklanır).</div>';top.textContent='';return;}
+ if(!a.length){liste.innerHTML='<div class="pfy bos">Henüz hisse yok. <b>+ Ekle</b> ile portföyünü oluştur.</div>';top.textContent='';return;}
  var toplam=0;
  var r='<div class="sar"><table class="pf"><thead><tr><th>Hisse</th><th class="num">Adet</th><th class="num">Maliyet</th><th class="num">Güncel</th><th class="num">K/Z %</th><th class="num">K/Z TL</th><th>Sinyal</th><th></th></tr></thead><tbody>';
  a.forEach(function(p,i){
@@ -408,12 +461,13 @@ function pfRender(){
      '<td class="num '+kzc+'">'+(kzy!=null?((kzy>=0?'+':'')+kzy.toFixed(1)+'%'):'—')+'</td>'+
      '<td class="num '+kzc+'">'+(kzt!=null?((kzt>=0?'+':'')+Math.round(kzt).toLocaleString('tr-TR')+' TL'):'—')+'</td>'+
      '<td><span class="pill '+scls+'">'+sn+'</span>'+uy+'</td>'+
-     '<td class="num"><button class="pfsil" onclick="event.stopPropagation();pfSil('+i+')">✕</button></td></tr>';
+     '<td class="num"><button class="pfsil pfduz" title="Düzenle" onclick="event.stopPropagation();pfFormAc('+i+')">✎</button> '+
+     '<button class="pfsil" title="Sil" onclick="event.stopPropagation();pfSil('+i+')">✕</button></td></tr>';
  });
  r+='</tbody></table></div>';liste.innerHTML=r;
  top.innerHTML='Toplam K/Z: <b class="'+(toplam>=0?'pos':'neg')+'">'+(toplam>=0?'+':'')+Math.round(toplam).toLocaleString('tr-TR')+' TL</b>';
 }
-(function(){var dl=document.getElementById('pfkodlar');if(dl){dl.innerHTML=Object.keys(DATA).sort().map(function(k){return '<option value="'+k+'"></option>';}).join('');}pfRender();})();
+(function(){var dl=document.getElementById('pfkodlar');if(dl){dl.innerHTML=Object.keys(DATA).sort().map(function(k){return '<option value="'+k+'"></option>';}).join('');}pfRender();pfBulutOku();})();
 </script></body></html>"""
 
 

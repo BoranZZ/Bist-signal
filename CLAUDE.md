@@ -14,8 +14,11 @@ komutlarını tek tek ver.
 - Veri kaynağı: yfinance (`KOD.IS`), ~15 dk gecikmeli, ücretsiz.
 - GitHub'ın cron'u saatlerce gecikiyor/atlıyor; asıl tetik cron-job.org → workflow_dispatch (README).
 - Telegram: tüm hisselerde yeni AL; SAT sadece portföyde. NÖTR ara geçişleri sayılmaz
-  (`durum.json` → `son`). Portföy `PORTFOY` secret'ından gelir (panodaki localStorage'ı
-  sunucu göremez). **Actions logları herkese açık: portföy içeriğini/kodlarını asla print etme.**
+  (`durum.json` → `son`). Portföy repo'nun `PORTFOY` **variable**'ından gelir (kullanıcı onayıyla
+  secret yerine variable: cihazlar arası eşitleme için). Pano, kullanıcının cihazındaki
+  fine-grained anahtarla (Variables: R/W) her değişiklikte yazar. Anahtar localStorage'da
+  olduğu için sayfaya üçüncü taraf script ekleme (TradingView tv.js bu yüzden kaldırıldı).
+  **Actions logları herkese açık: portföy içeriğini/kodlarını asla print etme.**
 
 ## Dosyalar
 - `sinyal.py` — gösterge + sinyal çekirdeği. **Tek kural seti** (canlı tarama + backtest ortak).
@@ -40,7 +43,7 @@ Plan: kendi SVG grafiğimizi asıl grafik yap (eksen değerleri, daha uzun geçm
 tarih/fiyat), TradingView'i sadece "tam ekran aç" butonu olarak bırak.
 
 ## BEKLEYEN İŞLER (öncelik sırası)
-1. **Grafik:** modaldaki gömülü TradingView'i kaldır; kendi SVG grafiğini büyüt, fiyat/tarih
+1. **Grafik:** (gömülü TradingView KALDIRILDI) kendi SVG grafiğini büyüt, fiyat/tarih
    eksen değerleri ekle, daha uzun geçmiş + hover tooltip. "Tam ekran aç" butonu kalsın.
 2. **Hacim/likidite filtresi:** düşük hacimli/az işlem gören hisseleri ele veya işaretle
    (yanıltıcı sinyalleri azaltır).
