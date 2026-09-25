@@ -3,6 +3,7 @@
     "AHGAZ",
     "ENERY",
     "ISDMR",
+    "KRDMD",
     "TKFEN",
     "TUKAS"
   ],
@@ -81,7 +82,7 @@
     "KONYA": "SAT",
     "KORDS": "SAT",
     "KRDMD": "AL",
-    "LMKDC": "NÖTR",
+    "LMKDC": "SAT",
     "MAVI": "NÖTR",
     "MGROS": "SAT",
     "MIATK": "SAT",
