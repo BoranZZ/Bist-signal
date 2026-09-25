@@ -8,9 +8,9 @@ Gerçekçi olması için:
 - Stop boşlukla (gap) aşılırsa çıkış stop fiyatından değil o günün açılışından yazılır.
 - Her işlem, aynı günlerde BIST 100 endeksini tutmakla kıyaslanır ("endekse göre fark").
 
-İki kural seti yan yana ölçülür:
-- mevcut: AL olan her gün (boştaysan) gir; stop / SAT / MAX_GUN gün sonra çık.
-- aday:   sadece AL'e DÖNÜŞ günü ve endeks 50 günlük ortalamasının üstündeyken gir;
+İki kural seti yan yana ölçülür (eski ve canlıdaki):
+- eski:   AL olan her gün (boştaysan) gir; stop / SAT / MAX_GUN gün sonra çık.
+- canlı:  (Eylül 2026'dan beri canlıdaki kurallar) sadece AL'e DÖNÜŞ günü ve endeks SMA50 üstündeyken gir;
           stop ya da 2 gün üst üste SAT gelince çık (süre sınırı yok, canlı sistem gibi).
           Giriş günü hacmi 20 günlük ortalamanın HACIM_ESIK katını aşan işlemler ayrıca raporlanır.
 Sonuçlar düşük faiz (2023 Haziran öncesi) ve yüksek faiz dönemine ayrılır.
@@ -235,11 +235,11 @@ tbody tr{{border-bottom:1px solid var(--line)}}tbody tr:last-child{{border-botto
 .kod{{font-weight:650}}.num{{font-variant-numeric:tabular-nums}}
 .not{{margin-top:14px;padding:14px 16px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--muted);font-size:12.5px;line-height:1.65}}
 </style></head><body><div class="wrap">
-<h1>Backtest Raporu — şu anki kurallar vs aday</h1><div class="tarih">Dönem: {donem} · komisyon+kayma çift yön %{KOMISYON*100:g}</div>
-{kartlar(genel, "Şu anki kurallar (AL'de gir; stop, SAT ya da " + str(MAX_GUN) + " gün sonra çık)")}
-{kartlar(genel_aday, "Aday (AL'e dönüş + piyasa filtresi; stop ya da 2 gün SAT'ta çık)") if genel_aday else ""}
+<h1>Backtest Raporu — canlı kurallar vs eski kurallar</h1><div class="tarih">Dönem: {donem} · komisyon+kayma çift yön %{KOMISYON*100:g}</div>
+{kartlar(genel_aday, "Canlı kurallar (AL'e dönüş + piyasa filtresi; stop ya da 2 gün SAT'ta çık)") if genel_aday else ""}
+{kartlar(genel, "Eski kurallar (AL olan her gün gir; stop, SAT ya da " + str(MAX_GUN) + " gün sonra çık)")}
 {dtablo}
-<h2>Hisse bazında (şu anki kurallar)</h2>
+<h2>Hisse bazında (eski kurallar)</h2>
 <div class="sar"><table><thead><tr>
 <th>Hisse</th><th>İşlem</th><th>İsabet</th><th>İşlem başı</th><th>Strateji %</th><th>Al-tut %</th><th>Fark</th><th>Maks düşüş</th><th>Ort süre</th>
 </tr></thead><tbody>{''.join(satir)}</tbody></table></div>
@@ -293,7 +293,7 @@ if __name__ == "__main__":
         donem = "son 5 yıl (gerçek veri)"
     ozetler, genel, isl_m = toplu_backtest(veri, "mevcut", xu)
     _, genel_a, isl_a = toplu_backtest(veri, "aday", xu)
-    setler = {"şu anki": isl_m, "aday": isl_a, "aday + hacim teyitli": [t for t in isl_a if t["hacim"]]}
+    setler = {"canlı": isl_a, "canlı + hacim etiketli": [t for t in isl_a if t["hacim"]], "eski": isl_m}
     with open("backtest.html", "w", encoding="utf-8") as f:
         f.write(rapor_html(ozetler, genel, donem, genel_a, donem_tablosu(setler, xu)))
-    print("backtest.html yazıldı.\n  şu anki:", genel, "\n  aday:   ", genel_a)
+    print("backtest.html yazıldı.\n  eski: ", genel, "\n  canlı:", genel_a)
