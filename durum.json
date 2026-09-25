@@ -1,7 +1,6 @@
 {
   "al": [
     "AHGAZ",
-    "BIMAS",
     "ENERY",
     "ISDMR",
     "TKFEN",
@@ -26,7 +25,7 @@
     "ARCLK": "SAT",
     "ASELS": "SAT",
     "ASTOR": "SAT",
-    "AYGAZ": "NÖTR",
+    "AYGAZ": "SAT",
     "BERA": "SAT",
     "BIMAS": "AL",
     "BINHO": "SAT",
