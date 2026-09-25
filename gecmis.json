@@ -6,7 +6,7 @@
       "giris_fiyat": 34.38,
       "stop": 31.63,
       "durum": "açık",
-      "guncel": 34.08,
+      "guncel": 34.06,
       "anlik": -0.9
     },
     {
@@ -15,8 +15,8 @@
       "giris_fiyat": 273.5,
       "stop": 251.62,
       "durum": "açık",
-      "guncel": 276.75,
-      "anlik": 1.2
+      "guncel": 276.0,
+      "anlik": 0.9
     },
     {
       "kod": "TUPRS",
@@ -42,8 +42,8 @@
       "giris_fiyat": 5827.5,
       "stop": 5361.3,
       "durum": "açık",
-      "guncel": 5747.5,
-      "anlik": -1.4
+      "guncel": 5750.0,
+      "anlik": -1.3
     },
     {
       "kod": "TUKAS",
@@ -51,8 +51,8 @@
       "giris_fiyat": 2.36,
       "stop": 2.17,
       "durum": "açık",
-      "guncel": 2.37,
-      "anlik": 0.4
+      "guncel": 2.36,
+      "anlik": 0.0
     },
     {
       "kod": "AHGAZ",
@@ -60,8 +60,8 @@
       "giris_fiyat": 44.34,
       "stop": 40.79,
       "durum": "açık",
-      "guncel": 44.3,
-      "anlik": -0.1
+      "guncel": 44.38,
+      "anlik": 0.1
     },
     {
       "kod": "ENERY",
@@ -69,8 +69,8 @@
       "giris_fiyat": 13.36,
       "stop": 12.29,
       "durum": "açık",
-      "guncel": 13.44,
-      "anlik": 0.6
+      "guncel": 13.43,
+      "anlik": 0.5
     },
     {
       "kod": "ISDMR",
@@ -78,8 +78,8 @@
       "giris_fiyat": 62.5,
       "stop": 57.5,
       "durum": "açık",
-      "guncel": 63.6,
-      "anlik": 1.8
+      "guncel": 64.15,
+      "anlik": 2.6
     },
     {
       "kod": "SOKM",
@@ -87,8 +87,8 @@
       "giris_fiyat": 58.2,
       "stop": 55.4,
       "durum": "açık",
-      "guncel": 58.25,
-      "anlik": 0.1
+      "guncel": 58.05,
+      "anlik": -0.3
     },
     {
       "kod": "TOASO",
