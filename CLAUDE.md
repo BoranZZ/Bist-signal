@@ -40,11 +40,12 @@ tarih/fiyat), TradingView'i sadece "tam ekran aç" butonu olarak bırak.
    eksen değerleri ekle, daha uzun geçmiş + hover tooltip. "Tam ekran aç" butonu kalsın.
 2. **Hacim/likidite filtresi:** düşük hacimli/az işlem gören hisseleri ele veya işaretle
    (yanıltıcı sinyalleri azaltır).
-3. **Destek/direnç + DİP mantığı:** şu anki DİP kabaca (RSI/Bollinger). Bunun yerine önceki
-   dip/tepelerden destek-direnç seviyeleri çıkar; fiyat desteğe yaklaşınca / düşen trend
-   çizgisini kırınca "olası dip" ver. Direnç bölgesine yaklaşınca uyar. Modalda açıkla.
-3b. Modalda **DİP açıklaması** göster (neden dip sinyali verdi).
-4. **FAVÖK açıklaması:** panonun altındaki açıklama kartlarına FD/FAVÖK (EV/EBITDA) kartı ekle.
+3. **Destek/direnç + DİP mantığı:** YAPILDI (`sinyal.destek_direnc`): son 120 günün
+   dip/tepelerinden "Destekten tepki" ve "Dirence yaklaşıyor" etiketleri, modalda seviye +
+   tarih açıklaması. Eski RSI/Bollinger DİP etiketi kaldırıldı. Eksik kalan: düşen trend
+   çizgisi kırılımı ile "olası dip".
+3b. Modalda **DİP açıklaması**: YAPILDI (destek/direnç kutusu).
+4. **FAVÖK açıklaması:** YAPILDI (açıklama kartı eklendi).
 5. **KAP/haber akışı:** hisse başına son bildirim/haber (ücretsiz kaynak); yorumlamayı
    abartma (haber çoğu zaman fiyata yansımıştır).
 6. **Sektör dağılımı/çeşitlendirme uyarısı**, fiyat/seviye alarmı, haftalık Telegram özeti.

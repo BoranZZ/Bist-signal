@@ -1,9 +1,14 @@
 # -*- coding: utf-8 -*-
 """Etkileşimli pano: satıra tıkla -> grafik + o hisseye özel yorum + TradingView."""
 import json
-from datetime import datetime
+import pandas as pd
 
 RENK = {"AL": "al", "NÖTR": "notr", "SAT": "sat"}
+
+
+def _simdi():
+    """Türkiye saati (Actions sunucusu UTC'de çalışır)."""
+    return pd.Timestamp.now(tz="Europe/Istanbul").strftime("%d.%m.%Y %H:%M")
 
 
 def _med(xs):
@@ -12,7 +17,7 @@ def _med(xs):
 
 
 def pano_uret(sonuclar, ornek=False, uyari=None, portfoy=None):
-    tarih = datetime.now().strftime("%d.%m.%Y %H:%M")
+    tarih = _simdi()
     al = sum(1 for s in sonuclar if s["sinyal"] == "AL")
     guclu = sum(1 for s in sonuclar if s.get("guclu"))
     fk_med = _med(s.get("fk") for s in sonuclar)
@@ -34,7 +39,11 @@ def pano_uret(sonuclar, ornek=False, uyari=None, portfoy=None):
         yildiz = ' <span class="yildiz">★</span>' if s.get("guclu") else ""
         ycls = {"AL": "yal", "SAT": "ysat", "NÖTR": "ynotr"}[s["sinyal"]]
         yenirz = f' <span class="yeni {ycls}">YENİ</span>' if s.get("yeni") else ""
-        diprz = ' <span class="dipb">DİP</span>' if s.get("dip") else ""
+        sdrz = ""
+        if s.get("destek_tepki"):
+            sdrz += ' <span class="sdb destek" title="Fiyat geçmiş bir desteğe indi ve yukarı dönmeye başladı">Destekten tepki</span>'
+        if s.get("direnc_yakin"):
+            sdrz += ' <span class="sdb direnc" title="Fiyat geçmişte satış gelen bir tepe seviyesine yakın">Dirence yaklaşıyor</span>'
         lot = s.get("lot")
         lott = f"{lot}" if (lot and s["sinyal"] == "AL") else "—"
         sgun = s.get("sinyal_gun")
@@ -44,7 +53,7 @@ def pano_uret(sonuclar, ornek=False, uyari=None, portfoy=None):
             f'<td class="kod">{k}</td>'
             f'<td class="num">{s.get("fiyat","—")}</td>'
             f'<td class="num {dcls}">{dtxt}</td>'
-            f'<td><span class="pill {RENK[s["sinyal"]]}">{s["sinyal"]}</span>{yildiz}{yenirz}{diprz}</td>'
+            f'<td><span class="pill {RENK[s["sinyal"]]}">{s["sinyal"]}</span>{yildiz}{yenirz}{sdrz}</td>'
             f'<td class="num sgun">{sgunt}</td>'
             f'<td class="num uyum">{s.get("uyum","—")}</td>'
             f'<td class="num">{s.get("rsi") if s.get("rsi") is not None else "—"}</td>'
@@ -55,7 +64,8 @@ def pano_uret(sonuclar, ornek=False, uyari=None, portfoy=None):
         )
         veri[k] = {
             "kod": k, "fiyat": s.get("fiyat"), "degisim": deg, "sinyal": s["sinyal"],
-            "guclu": bool(s.get("guclu")), "yeni": bool(s.get("yeni")), "dip": bool(s.get("dip")),
+            "guclu": bool(s.get("guclu")), "yeni": bool(s.get("yeni")), "sd": s.get("sd"),
+            "destek_tepki": bool(s.get("destek_tepki")), "direnc_yakin": bool(s.get("direnc_yakin")),
             "rsi": s.get("rsi"), "fk": s.get("fk"), "pddd": s.get("pddd"), "favok": s.get("favok"),
             "stop": s.get("stop"), "giris_stop": s.get("giris_stop"), "lot": s.get("lot"),
             "hedef": s.get("hedef"), "sinyal_gun": s.get("sinyal_gun"),
@@ -106,7 +116,7 @@ def gecmis_uret(acik, kapali, ozet):
         "__ISABET__": str(ozet.get("isabet", "—")), "__KAPANAN__": str(ozet.get("kapanan", 0)),
         "__ORT__": str(ozet.get("ort", "—")), "__ACIK__": str(ozet.get("acik", 0)),
         "__ACIKROWS__": satirlar(acik, True), "__KAPALIROWS__": satirlar(kapali, False),
-        "__TARIH__": datetime.now().strftime("%d.%m.%Y %H:%M"),
+        "__TARIH__": _simdi(),
     }
     for a, b in reps.items():
         html = html.replace(a, b)
@@ -147,7 +157,13 @@ tbody tr:hover{background:#F2F5F3}
 .yildiz{color:#C7962B}.tag{font-size:10px;margin-left:5px}.tag.ucuz{color:var(--al)}.tag.pahali{color:var(--sat)}
 .yeni{color:#fff;font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:5px;margin-left:6px;letter-spacing:.03em}
 .yeni.yal{background:#1B7F4B}.yeni.ysat{background:#B4362E}.yeni.ynotr{background:#9A7A12}
-.dipb{background:#3A6EA5;color:#fff;font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:5px;margin-left:5px}
+.sdb{color:#fff;font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:5px;margin-left:5px}
+.sdb.destek{background:#3A6EA5}.sdb.direnc{background:#B7791F}
+.sdkutu{margin:0 0 14px;border:1px solid var(--line);border-radius:10px;padding:11px 14px;font-size:13px;line-height:1.55}
+.sdsat+.sdsat{margin-top:4px}.sdnot{margin-top:8px;padding:8px 10px;border-radius:8px;font-size:12.5px}
+.sdnot.destek{background:#EAF1F8;color:#28507A}.sdnot.direnc{background:#FBF3E4;color:#7A5B10}
+.sdyok{margin-top:6px;color:var(--muted);font-size:12.5px}.sdyontem{margin-top:8px;color:var(--muted);font-size:11.5px}
+.tarih a{color:var(--accent);font-weight:600;text-decoration:none}.tarih a:hover{text-decoration:underline}
 .sgun{color:var(--muted)}
 .tvwrap{height:380px;margin:6px 0 14px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
 #tvbox{height:100%}
@@ -192,6 +208,8 @@ table.pf{min-width:640px}
 .leg{display:flex;gap:14px;font-size:11px;color:var(--muted);margin-top:4px;padding-left:8px}
 .leg span::before{content:"";display:inline-block;width:10px;height:2px;margin-right:5px;vertical-align:middle}
 .leg .c1::before{background:#16181D}.leg .c2::before{background:#0E4D45}.leg .c3::before{background:#C7962B}.leg .c4::before{background:#B4362E}
+.leg .c5::before{background:#3A6EA5}.leg .c6::before{background:#B7791F}
+.leg{flex-wrap:wrap}
 .uyum{font-weight:650;color:var(--accent)}
 .uyroz{background:#EEF4F1;color:var(--accent);font-size:11.5px;font-weight:650;padding:2px 8px;border-radius:999px}
 .gbas{font-size:13px;font-weight:650;margin:4px 0 8px}
@@ -204,7 +222,7 @@ table.pf{min-width:640px}
 </style>
 <script src="https://s3.tradingview.com/tv.js"></script>
 </head><body><div class="wrap">
-<header><div><h1>BIST Sinyal Panosu</h1><div class="tarih">Son güncelleme: __TARIH__</div></div>
+<header><div><h1>BIST Sinyal Panosu</h1><div class="tarih">Son güncelleme: __TARIH__ · <a href="#" onclick="yenile();return false" title="Sayfanın en son halini getirir (önbelleği atlar)">↻ Yenile</a> · <a href="https://github.com/BoranZZ/Bist-signal/actions/workflows/tarama.yml" target="_blank" rel="noopener" title="GitHub'da 'Run workflow' ile taramayı hemen başlat; 3-5 dk sonra Yenile'ye bas">Taramayı şimdi başlat ↗</a></div></div>
 <div class="ozet">
 <div><div class="b">__AL__</div><div class="l">/ __TOPLAM__ hissede AL</div></div>
 <div><div class="b g">__GUCLU__</div><div class="l">★ AL+ (teknik+temel)</div></div>
@@ -224,8 +242,8 @@ __BANNER__
   <div id="pflist"></div>
 </div>
 <div class="sar"><table id="t"><thead><tr>
-<th data-t="s">Hisse</th><th data-t="n">Fiyat</th><th data-t="n">Değişim</th><th data-t="s">Sinyal</th>
-<th data-t="n">Sinyalde</th><th data-t="n">Uyum</th><th data-t="n">RSI</th><th data-t="n">F/K</th><th data-t="n">PD/DD</th><th data-t="n">Stop</th><th data-t="n">Öneri lot</th>
+<th data-t="s">Hisse</th><th class="num" data-t="n">Fiyat</th><th class="num" data-t="n">Değişim</th><th data-t="s">Sinyal</th>
+<th class="num" data-t="n">Sinyalde</th><th class="num" data-t="n">Uyum</th><th class="num" data-t="n">RSI</th><th class="num" data-t="n">F/K</th><th class="num" data-t="n">PD/DD</th><th class="num" data-t="n">Stop</th><th class="num" data-t="n">Öneri lot</th>
 </tr></thead><tbody>__ROWS__</tbody></table></div>
 <div class="aciklama">
 <div class="kart"><h3>AL / AL+ / NÖTR / SAT</h3><p>Trend, ortalama dizilimi, MACD kesişimi ve RSI momentumundan bir puan. <b>★ AL+</b>: teknik AL ile birlikte F/K ve PD/DD de grup medyanının altında.</p></div>
@@ -234,6 +252,8 @@ __BANNER__
 <div class="kart"><h3>MACD</h3><p>İki ortalamanın farkı. MACD sinyali yukarı keserse momentum boğaya döndü — klasik al tetiği.</p></div>
 <div class="kart"><h3>F/K</h3><p>Fiyat ÷ yıllık kâr. Mutlak eşik yok; ▼ grup medyanının altında (görece ucuz). Enflasyonda yanıltıcı olabilir, tek başına karar değil.</p></div>
 <div class="kart"><h3>PD/DD</h3><p>Borsa değeri ÷ defter değeri. 1 = defter değerine eşit. ▼ görece ucuz.</p></div>
+<div class="kart"><h3>FD/FAVÖK</h3><p>Şirketin toplam değeri (FD) ÷ FAVÖK. Şirketin faaliyet kârına göre kaç kat pahalı/ucuz fiyatlandığını gösterir. Düşükse görece ucuz.</p></div>
+<div class="kart"><h3>Destek / Direnç</h3><p>Son 120 günün dip ve tepe noktaları. <b>Destekten tepki</b>: fiyat eski bir dibe indi ve yukarı dönüyor. <b>Dirence yaklaşıyor</b>: fiyat geçmişte satış gelen bir tepeye yakın, temkinli ol. Hisseye tıklayınca seviyeleri görürsün.</p></div>
 </div>
 <div class="uyari">Yatırım tavsiyesi değildir. Göstergeler geçmişe bakar, geleceği garanti etmez; bu araç yalnızca sistemli karar vermeye yardımcı olur. Veriler ~15 dk gecikmeli olabilir. Kararların sorumluluğu sana aittir.</div>
 </div>
@@ -254,17 +274,40 @@ function cizgi(vals,color,W,H,min,max,w){
   const x=(i/(n-1))*(W-8)+4;const y=H-4-((vals[i]-min)/(max-min))*(H-8);pts.push(x.toFixed(1)+','+y.toFixed(1));}
  return '<polyline fill="none" stroke="'+color+'" stroke-width="'+w+'" points="'+pts.join(' ')+'"/>';
 }
-function grafik(sp){
+function yatay(v,color,W,H,min,max){
+ const y=(H-4-((v-min)/(max-min))*(H-8)).toFixed(1);
+ return '<line x1="4" x2="'+(W-4)+'" y1="'+y+'" y2="'+y+'" stroke="'+color+'" stroke-width="1.2" stroke-dasharray="5 4"/>';
+}
+function grafik(sp,sd){
  if(!sp||!sp.c) return '<div style="color:#6B7079;font-size:13px">Grafik verisi yok.</div>';
- const W=580,H=180;const all=[...sp.c,...(sp.s20||[]),...(sp.s50||[])].filter(x=>x!=null);
+ const ds=sd&&sd.destek?sd.destek.fiyat:null,dr=sd&&sd.direnc?sd.direnc.fiyat:null;
+ const W=580,H=180;const all=[...sp.c,...(sp.s20||[]),...(sp.s50||[]),ds,dr].filter(x=>x!=null);
  const min=Math.min(...all),max=Math.max(...all);
  let g='<svg viewBox="0 0 '+W+' '+H+'" width="100%" preserveAspectRatio="none" style="display:block">';
+ if(ds!=null)g+=yatay(ds,'#3A6EA5',W,H,min,max);
+ if(dr!=null)g+=yatay(dr,'#B7791F',W,H,min,max);
  g+=cizgi(sp.c,'#16181D',W,H,min,max,1.6);
  if(sp.s20)g+=cizgi(sp.s20,'#0E4D45',W,H,min,max,1.2);
  if(sp.s50)g+=cizgi(sp.s50,'#C7962B',W,H,min,max,1.2);
  if(sp.st)g+=cizgi(sp.st,'#B4362E',W,H,min,max,1.4);
  g+='</svg>';return g;
 }
+function sdHtml(d){
+ const sd=d.sd;if(!sd)return '';
+ const sat=(ad,s,tur)=>{
+  if(!s)return '<div class="sdsat"><b>'+ad+':</b> son '+sd.gun+' günde fiyatın '+(tur==='dip'?'altında':'üstünde')+' belirgin bir '+tur+' yok.</div>';
+  const yon=s.uzaklik<0?'altında':'üstünde';
+  const test=s.test>1?' · bu bölge '+s.test+' kez test edildi ('+s.tarihler.join(', ')+')':'';
+  return '<div class="sdsat"><b>'+ad+': '+s.fiyat+' TL</b> — '+s.tarih+' tarihli '+tur+', fiyatın %'+Math.abs(s.uzaklik)+' '+yon+test+'</div>';
+ };
+ let h='<div class="sdkutu"><div class="gbas">Destek / Direnç</div>'+sat('Destek',sd.destek,'dip')+sat('Direnç',sd.direnc,'tepe');
+ if(sd.tepki)h+='<div class="sdnot destek"><b>Destekten tepki:</b> fiyat son 5 günde '+sd.destek.fiyat+' TL desteğine indi ve yukarı dönmeye başladı (bugünkü kapanış dünküden yüksek). Destek tutarsa olumlu; bu seviyenin altında kapanış gelirse bu okuma geçersiz olur.</div>';
+ if(sd.yaklas)h+='<div class="sdnot direnc"><b>Dirence yaklaşıyor:</b> fiyat '+sd.direnc.fiyat+' TL direncine %'+sd.tol+'\'den daha yakın. Geçmişte bu seviyede satış geldi; aşamazsa geri dönebilir. Kapanışla net aşarsa direnç desteğe dönüşebilir.</div>';
+ if(!sd.tepki&&!sd.yaklas)h+='<div class="sdyok">Fiyat şu an bir desteğe tepki vermiyor ve bir dirence yakın değil.</div>';
+ h+='<div class="sdyontem">Nasıl bulunur: son '+sd.gun+' günün dip ve tepe noktaları (iki yanındaki 5 günün en düşüğü/en yükseği). Son 10 günde oluşanlar sayılmaz. "Yakın" eşiği bu hisse için %'+sd.tol+' (hissenin oynaklığına göre).</div></div>';
+ return h;
+}
+function yenile(){location.href=location.pathname+'?t='+Date.now();}
 function ac(k){
  const d=DATA[k];if(!d)return;
  const dcls=(d.degisim||0)>=0?'pos':'neg';const dtxt=d.degisim==null?'—':((d.degisim>=0?'+':'')+d.degisim+'%');
@@ -295,7 +338,9 @@ function ac(k){
  '<div class="mh"><div class="sol"><h2>'+k+'</h2>'+pill+uyum+'</div><button class="kapa" onclick="kapat()">✕</button></div>'+
  '<div class="mfiyat">'+(d.fiyat!=null?d.fiyat+' TL':'')+' <span class="'+dcls+'">'+dtxt+'</span></div>'+
  zaman+
- '<div class="grafik">'+grafik(d.spark)+'<div class="leg"><span class="c1">Fiyat</span><span class="c2">SMA20</span><span class="c3">SMA50</span><span class="c4">SuperTrend</span></div></div>'+
+ '<div class="grafik">'+grafik(d.spark,d.sd)+'<div class="leg"><span class="c1">Fiyat</span><span class="c2">SMA20</span><span class="c3">SMA50</span><span class="c4">SuperTrend</span>'+
+   (d.sd&&d.sd.destek?'<span class="c5">Destek</span>':'')+(d.sd&&d.sd.direnc?'<span class="c6">Direnç</span>':'')+'</div></div>'+
+ sdHtml(d)+
  '<div class="tvwrap"><div id="tvbox"></div></div>'+
  '<div class="metr">'+m('RSI',d.rsi)+m('F/K',d.fk)+m('PD/DD',d.pddd)+m('FD/FAVÖK',d.favok)+m('Giriş stopu',d.giris_stop!=null?d.giris_stop:d.stop)+m('Öneri lot',lot)+'</div>'+
  '<div class="gbas">Göstergeler</div><div class="gliste">'+gost+'</div>'+

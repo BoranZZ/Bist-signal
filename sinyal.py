@@ -11,6 +11,11 @@ import pandas as pd
 AL_ESIK = 4   # 5 göstergeden >=4 AL -> genel AL
 SAT_ESIK = 1  # <=1 AL -> genel SAT
 
+# destek/direnç: son SD_GUN günün lokal dip/tepeleri
+SD_GUN = 120   # kaç günlük geçmişe bakılır
+PIVOT_K = 5    # dip/tepe, iki yanındaki 5 günün en düşüğü/en yükseği olmalı
+SD_YENI = 10   # son 10 günde oluşan dip/tepeler seviye sayılmaz (henüz test edilmedi)
+
 
 def sma(s, n): return s.rolling(n).mean()
 def ema(s, n): return s.ewm(span=n, adjust=False).mean()
@@ -171,11 +176,66 @@ def _detay(son, hl):
         b = son["BOLL_B"]
         yer = "üst banda yakın (güçlü/aşırı)" if b > 0.9 else ("alt banda yakın (zayıf/tepki)" if b < 0.1 else "orta bantta")
         ek.append(("Bollinger", yer))
-    # dip radarı (mean-reversion; riskli)
-    dip = (not pd.isna(son["RSI"]) and son["RSI"] < 35) or (not pd.isna(son["BOLL_B"]) and son["BOLL_B"] < 0.12)
-    if dip:
-        ek.append(("Dip radarı", "aşırı satım / dibe yakın — tepki gelebilir ama trend zayıf (riskli)"))
-    return L, ek, dip
+    return L, ek
+
+
+def _pivotlar(seri, k, tepe):
+    """Lokal tepe (tepe=True) ya da dip noktaları: [(konum, fiyat), ...]."""
+    v = seri.to_numpy(dtype=float)
+    out = []
+    for i in range(k, len(v) - k):
+        pencere = v[i-k:i+k+1]
+        if np.isnan(pencere).any():
+            continue
+        if v[i] == (pencere.max() if tepe else pencere.min()):
+            out.append((i, float(v[i])))
+    return out
+
+
+def destek_direnc(df):
+    """Fiyatın altındaki en yakın geçmiş dip (destek) ve üstündeki en yakın geçmiş tepe (direnç).
+    Etiketler: 'tepki' = desteğe indi ve yukarı dönüyor; 'yaklas' = dirence yakın."""
+    t = df.tail(SD_GUN)
+    hl = _hl_var(df)
+    close = t["Close"]
+    low = t["Low"] if hl else close
+    high = t["High"] if hl else close
+    fiyat = float(close.iloc[-1])
+
+    # yakınlık eşiği hissenin oynaklığına göre: 1.5×ATR, en az %2, en fazla %5
+    atr = _atr(df, 14).iloc[-1] if hl else df["Close"].diff().abs().rolling(14).mean().iloc[-1]
+    atr_pct = float(atr) / fiyat if not pd.isna(atr) else 0.0
+    tol = min(max(1.5 * atr_pct, 0.02), 0.05)
+
+    sinir = len(t) - 1 - SD_YENI
+    dipler = [p for p in _pivotlar(low, PIVOT_K, False) if p[0] <= sinir]
+    tepeler = [p for p in _pivotlar(high, PIVOT_K, True) if p[0] <= sinir]
+
+    alt = [p for p in dipler if p[1] <= fiyat]
+    ust = [p for p in tepeler if p[1] > fiyat]
+    destek = max(alt, key=lambda p: (p[1], p[0])) if alt else None    # en yakın, eşitse en yeni
+    direnc = min(ust, key=lambda p: (p[1], -p[0])) if ust else None
+
+    def seviye(p, liste):
+        f = p[1]
+        benzer = sorted(q[0] for q in liste if abs(q[1] - f) <= f * tol)  # aynı bölgeyi test edenler
+        return {"fiyat": round(f, 2), "tarih": str(t.index[p[0]].date()), "test": len(benzer),
+                "tarihler": [str(t.index[i].date()) for i in benzer],
+                "uzaklik": round((f / fiyat - 1) * 100, 1)}
+
+    tepki = False
+    if destek:
+        S = destek[1]
+        dokundu = float(low.tail(5).min()) <= S * (1 + tol)          # son 5 günde desteğe indi
+        donus = fiyat > float(close.iloc[-2])                         # yukarı dönüyor
+        yakin = fiyat <= S * (1 + 2 * tol)                            # henüz uzaklaşmadı
+        tepki = dokundu and donus and yakin
+    yaklas = bool(direnc and (direnc[1] - fiyat) / fiyat <= tol)
+
+    return {"destek": seviye(destek, dipler) if destek else None,
+            "direnc": seviye(direnc, tepeler) if direnc else None,
+            "tol": round(tol * 100, 1), "gun": SD_GUN,
+            "tepki": bool(tepki), "yaklas": yaklas}
 
 
 def _spark(d, n=90):
@@ -196,7 +256,8 @@ def analiz_et(df):
     d = gostergeler(df)
     son, onceki = d.iloc[-1], d.iloc[-2]
     hl = _hl_var(df)
-    detay, ek, dip = _detay(son, hl)
+    detay, ek = _detay(son, hl)
+    sd = destek_direnc(df)
     al_oy = sum(1 for x in detay if x["sinyal"] == "AL")
     fiyat = float(son["Close"])
     rsi_val = None if pd.isna(son["RSI"]) else float(son["RSI"])
@@ -230,7 +291,9 @@ def analiz_et(df):
         "sinyal": str(son["SINYAL"]),
         "detay": detay,
         "ek": [{"ad": a, "aciklama": b} for a, b in ek],
-        "dip": bool(dip),
+        "sd": sd,
+        "destek_tepki": sd["tepki"],
+        "direnc_yakin": sd["yaklas"],
         "gerekce": gerekce,
         "stop": stop,
         "giris_stop": giris_stop,
