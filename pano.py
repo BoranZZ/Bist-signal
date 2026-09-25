@@ -295,7 +295,7 @@ __BANNER__
 __ARZ__
 <div class="aciklama">
 <div class="kart"><h3>AL / AL+ / NÖTR / SAT</h3><p>Trend, ortalama dizilimi, MACD kesişimi ve RSI momentumundan bir puan. <b>★ AL+</b>: teknik AL ile birlikte F/K ve PD/DD de grup medyanının altında.</p></div>
-<div class="kart"><h3>📈 hacim · ⏳ 1. gün · ⚠ taban serisi</h3><p><b>📈 hacim</b>: AL günü işlem hacmi son 20 günün 1,5 katından fazla — backtest'te daha güçlü sinyaller (özellikle düşük faiz döneminde). <b>⏳ 1. gün</b>: SAT'ın ilk günü; tek günlük yanlış alarm olabilir, teyit için yarını bekle. <b>⚠ taban serisi</b>: son 15 günde 4+ kez ~%10 düştü (fon krizi tipi çöküş) — bu hisselerden AL mesajı gönderilmez.</p></div>
+<div class="kart"><h3>📈 hacim · ⏳ 1. gün · ⚠ taban serisi</h3><p><b>📈 hacim</b>: AL günü işlem hacmi son 20 günün 1,5 katından fazla — ilgi arttığını gösterir; ama backtest'te tek başına belirgin bir üstünlük sağlamadı, bilgi amaçlıdır. <b>⏳ 1. gün</b>: SAT'ın ilk günü; tek günlük yanlış alarm olabilir, teyit için yarını bekle. <b>⚠ taban serisi</b>: son 15 günde 4+ kez ~%10 düştü (fon krizi tipi çöküş) — bu hisselerden AL mesajı gönderilmez.</p></div>
 <div class="kart"><h3>Piyasa filtresi</h3><p>BIST 100, 50 günlük ortalamasının altındaysa üstte "Piyasa zayıf" uyarısı çıkar. 5 yıllık backtest'te bu dönemlerde gelen AL'ler belirgin şekilde daha kötü sonuç verdi.</p></div>
 <div class="kart"><h3>Çıkış ve hedef (portföyün)</h3><p><b>📍 Çıkış (stop)</b>: fiyat bunun altına inerse sistemin kuralı "çık" der. <b>🎯 1. hedef</b>: en yakın direnç — geçmişte satış gelen tepe. <b>🎯 2. hedef</b>: risk/ödül 2:1 (maliyetinden stop'a olan mesafenin 2 katı yukarısı). Hedefler tahmin değil, plan için referanstır.</p></div>
 <div class="kart"><h3>NÖTR: sarı mı turuncu mu?</h3><p><span class="pill notr notr-al">NÖTR</span> <b>Sarı = AL'den döndü.</b> Elindeyse tut; SAT gelirse ya da stop yerse çık. Yeni alım yapma.<br><span class="pill notr notr-sat">NÖTR</span> <b>Turuncu = SAT'tan döndü.</b> Düşüş yavaşladı ama henüz alım sinyali değil; AL'i bekle. (5 yıllık backtest: NÖTR'de satmak ya da turuncuda almak, beklemekten kötü sonuç verdi.)</p></div>
@@ -356,7 +356,8 @@ function sdHtml(d){
  };
  let h='<div class="sdkutu"><div class="gbas">Destek / Direnç</div>'+sat('Destek',sd.destek,'dip')+sat('Direnç',sd.direnc,'tepe');
  if(sd.tepki)h+='<div class="sdnot destek"><b>Destekten tepki:</b> fiyat son 5 günde '+sd.destek.fiyat+' TL desteğine indi ve yukarı dönmeye başladı (bugünkü kapanış dünküden yüksek). Destek tutarsa olumlu; bu seviyenin altında kapanış gelirse bu okuma geçersiz olur.</div>';
- if(sd.yaklas)h+='<div class="sdnot direnc"><b>Dirence yaklaşıyor:</b> fiyat '+sd.direnc.fiyat+' TL direncine %'+sd.tol+'\'den daha yakın. Geçmişte bu seviyede satış geldi; aşamazsa geri dönebilir. Kapanışla net aşarsa direnç desteğe dönüşebilir.</div>';
+ if(sd.yaklas)h+='<div class="sdnot direnc"><b>Dirence yaklaşıyor:</b> fiyat '+sd.direnc.fiyat+' TL direncine %'+sd.tol+'\'den daha yakın. Geçmişte bu seviyede satış geldi; aşamazsa geri dönebilir. Kapanışla net aşarsa direnç desteğe dönüşebilir.'+
+   (d.sinyal==='AL'?' <i>Not: 5 yıllık backtest\'te dirence yakınken gelen AL\'ler kötü sonuç vermedi — çoğu zaman kırılım denemesiydi.</i>':'')+'</div>';
  if(!sd.tepki&&!sd.yaklas)h+='<div class="sdyok">Fiyat şu an bir desteğe tepki vermiyor ve bir dirence yakın değil.</div>';
  h+='<div class="sdyontem">Nasıl bulunur: son '+sd.gun+' günün dip ve tepe noktaları (iki yanındaki 5 günün en düşüğü/en yükseği). Son 10 günde oluşanlar sayılmaz. Etiket için seviye en az '+(sd.min_test||2)+' kez test edilmiş olmalı. "Yakın" eşiği bu hisse için %'+sd.tol+' (hissenin oynaklığına göre).</div></div>';
  return h;
@@ -418,7 +419,7 @@ function ac(k){
    zaman='<div class="zaman"><div><b>'+d.sinyal+'</b> sinyali: '+d.sinyal_tarih+' ('+d.sinyal_gun+' gündür)'+nk+yenirz+sdt+'</div>';
    if(d.sinyal==='NÖTR'&&d.notr_kaynak==='AL')zaman+='<div class="cikis">Elindeyse tut: SAT gelirse ya da stop yerse çık. Yeni alım için AL\'i bekle.</div>';
    if(d.sinyal==='NÖTR'&&d.notr_kaynak==='SAT')zaman+='<div class="cikis">Düşüş yavaşladı ama henüz alım sinyali değil; AL\'i bekle.</div>';
-   if(d.sinyal==='AL'&&d.hacim_kat!=null)zaman+='<div class="cikis">'+(d.hacim_teyit?'📈 <b>Hacim teyitli</b>: ':'Hacim: ')+'AL günü hacmi 20 günlük ortalamanın <b>'+d.hacim_kat+' katı</b>'+(d.hacim_teyit?' — backtest\'te daha güçlü sinyaller.':' (teyit için 1,5 kat gerekir).')+'</div>';
+   if(d.sinyal==='AL'&&d.hacim_kat!=null)zaman+='<div class="cikis">'+(d.hacim_teyit?'📈 <b>Hacim teyitli</b>: ':'Hacim: ')+'AL günü hacmi 20 günlük ortalamanın <b>'+d.hacim_kat+' katı</b>'+(d.hacim_teyit?' — ilgi artmış (backtest\'te tek başına belirgin üstünlük sağlamadı).':' (teyit için 1,5 kat gerekir).')+'</div>';
    if(d.sinyal==='SAT')zaman+='<div class="cikis">'+((d.sinyal_gun||1)<=1?'⏳ <b>1. gün</b>: tek günlük yanlış alarm olabilir; yarın da SAT kalırsa teyitlenir.':'✅ SAT <b>'+d.sinyal_gun+' gündür</b> sürüyor (teyitli).')+'</div>';
    if(d.sinyal==='AL'){
      const gs=(d.giris_stop!=null?d.giris_stop:d.stop);
