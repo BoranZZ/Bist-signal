@@ -46,6 +46,9 @@ def pano_uret(sonuclar, ornek=False, uyari=None, portfoy=None):
             sdrz += ' <span class="sdb direnc" title="Fiyat geçmişte satış gelen bir tepe seviyesine yakın">Dirence yaklaşıyor</span>'
         lot = s.get("lot")
         lott = f"{lot}" if (lot and s["sinyal"] == "AL") else "—"
+        nk = s.get("notr_kaynak") if s["sinyal"] == "NÖTR" else None
+        ncls = {"AL": " notr-al", "SAT": " notr-sat"}.get(nk, "")
+        ntit = {"AL": " title=\"AL'den NÖTR'e döndü\"", "SAT": " title=\"SAT'tan NÖTR'e döndü\""}.get(nk, "")
         sgun = s.get("sinyal_gun")
         sgunt = f"{sgun}g" if sgun else "—"
         rows.append(
@@ -53,7 +56,7 @@ def pano_uret(sonuclar, ornek=False, uyari=None, portfoy=None):
             f'<td class="kod">{k}</td>'
             f'<td class="num">{s.get("fiyat","—")}</td>'
             f'<td class="num {dcls}">{dtxt}</td>'
-            f'<td><span class="pill {RENK[s["sinyal"]]}">{s["sinyal"]}</span>{yildiz}{yenirz}{sdrz}</td>'
+            f'<td><span class="pill {RENK[s["sinyal"]]}{ncls}"{ntit}>{s["sinyal"]}</span>{yildiz}{yenirz}{sdrz}</td>'
             f'<td class="num sgun">{sgunt}</td>'
             f'<td class="num uyum">{s.get("uyum","—")}</td>'
             f'<td class="num">{s.get("rsi") if s.get("rsi") is not None else "—"}</td>'
@@ -68,7 +71,7 @@ def pano_uret(sonuclar, ornek=False, uyari=None, portfoy=None):
             "destek_tepki": bool(s.get("destek_tepki")), "direnc_yakin": bool(s.get("direnc_yakin")),
             "rsi": s.get("rsi"), "fk": s.get("fk"), "pddd": s.get("pddd"), "favok": s.get("favok"),
             "stop": s.get("stop"), "giris_stop": s.get("giris_stop"), "lot": s.get("lot"),
-            "hedef": s.get("hedef"), "sinyal_gun": s.get("sinyal_gun"),
+            "hedef": s.get("hedef"), "sinyal_gun": s.get("sinyal_gun"), "notr_kaynak": s.get("notr_kaynak"),
             "sinyal_tarih": s.get("sinyal_tarih"), "sinyal_degisim": s.get("sinyal_degisim"),
             "uyum": s.get("uyum"), "detay": s.get("detay", []), "ek": s.get("ek", []),
             "gerekce": s.get("gerekce", []), "yorum": s.get("yorum", ""),
@@ -154,6 +157,7 @@ tbody tr:hover{background:#F2F5F3}
 .stop{color:var(--sat)}.lot{font-weight:650}.pos{color:var(--pos)}.neg{color:var(--neg)}
 .pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:650}
 .pill.al{background:#E4F2E9;color:var(--al)}.pill.notr{background:#F1EFE8;color:var(--notr)}.pill.sat{background:#F7E7E5;color:var(--sat)}
+.pill.notr-al{background:#FBF0C4;color:#7A5F00}.pill.notr-sat{background:#FDE1CC;color:#B0480C}
 .yildiz{color:#C7962B}.tag{font-size:10px;margin-left:5px}.tag.ucuz{color:var(--al)}.tag.pahali{color:var(--sat)}
 .yeni{color:#fff;font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:5px;margin-left:6px;letter-spacing:.03em}
 .yeni.yal{background:#1B7F4B}.yeni.ysat{background:#B4362E}.yeni.ynotr{background:#9A7A12}
@@ -249,6 +253,7 @@ __BANNER__
 </tr></thead><tbody>__ROWS__</tbody></table></div>
 <div class="aciklama">
 <div class="kart"><h3>AL / AL+ / NÖTR / SAT</h3><p>Trend, ortalama dizilimi, MACD kesişimi ve RSI momentumundan bir puan. <b>★ AL+</b>: teknik AL ile birlikte F/K ve PD/DD de grup medyanının altında.</p></div>
+<div class="kart"><h3>NÖTR: sarı mı turuncu mu?</h3><p><span class="pill notr notr-al">NÖTR</span> <b>Sarı = AL'den döndü.</b> Elindeyse tut; SAT gelirse ya da stop yerse çık. Yeni alım yapma.<br><span class="pill notr notr-sat">NÖTR</span> <b>Turuncu = SAT'tan döndü.</b> Düşüş yavaşladı ama henüz alım sinyali değil; AL'i bekle. (5 yıllık backtest: NÖTR'de satmak ya da turuncuda almak, beklemekten kötü sonuç verdi.)</p></div>
 <div class="kart"><h3>Öneri lot (risk yönetimi)</h3><p>Stop yerse portföyünün sadece belirlediğin yüzdeyi (örn. %1) kaybedeceğin lot sayısı: (portföy×risk%)÷(fiyat−stop).</p></div>
 <div class="kart"><h3>RSI</h3><p>0–100 momentum. 30 altı aşırı satım, 70 üstü aşırı alım. Sağlıklı yükseliş 45–68 bandında.</p></div>
 <div class="kart"><h3>MACD</h3><p>İki ortalamanın farkı. MACD sinyali yukarı keserse momentum boğaya döndü — klasik al tetiği.</p></div>
@@ -270,6 +275,8 @@ rows.sort((a,b)=>{let x=a.cells[i].innerText.replace('%','').replace('+',''),y=b
 if(num){x=parseFloat(x)||-1e9;y=parseFloat(y)||-1e9;return asc?x-y:y-x;}return asc?x.localeCompare(y,'tr'):y.localeCompare(x,'tr');});
 rows.forEach(r=>tb.appendChild(r));});});
 
+function sinyalCls(d){if(d.sinyal==='AL')return 'al';if(d.sinyal==='SAT')return 'sat';
+ return 'notr'+(d.notr_kaynak==='AL'?' notr-al':d.notr_kaynak==='SAT'?' notr-sat':'');}
 function cizgi(vals,color,W,H,min,max,w){
  const pts=[];const n=vals.length;
  for(let i=0;i<n;i++){if(vals[i]==null)continue;
@@ -313,7 +320,7 @@ function yenile(){location.href=location.pathname+'?t='+Date.now();}
 function ac(k){
  const d=DATA[k];if(!d)return;
  const dcls=(d.degisim||0)>=0?'pos':'neg';const dtxt=d.degisim==null?'—':((d.degisim>=0?'+':'')+d.degisim+'%');
- const pill='<span class="pill '+(d.sinyal==='AL'?'al':d.sinyal==='SAT'?'sat':'notr')+'">'+d.sinyal+'</span>'+(d.guclu?' <span class="yildiz">★</span>':'');
+ const pill='<span class="pill '+sinyalCls(d)+'">'+d.sinyal+'</span>'+(d.guclu?' <span class="yildiz">★</span>':'');
  const m=(l,v)=>'<div class="m"><div class="l">'+l+'</div><div class="v">'+(v==null?'—':v)+'</div></div>';
  const lot=(d.lot&&d.sinyal==='AL')?d.lot+' lot':'—';
  const tv='https://www.tradingview.com/chart/?symbol=BIST%3A'+k;
@@ -328,7 +335,10 @@ function ac(k){
    const sd=d.sinyal_degisim;const sdc=(sd||0)>=0?'pos':'neg';
    const sdt=sd==null?'':(' · başlangıçtan beri <span class="'+sdc+'">'+((sd>=0?'+':'')+sd+'%')+'</span>');
    const yenirz=(d.yeni&&d.sinyal==='AL')?' <span class="yeni">YENİ</span>':'';
-   zaman='<div class="zaman"><div><b>'+d.sinyal+'</b> sinyali: '+d.sinyal_tarih+' ('+d.sinyal_gun+' gündür)'+yenirz+sdt+'</div>';
+   const nk=(d.sinyal==='NÖTR'&&d.notr_kaynak)?(' — <b>'+(d.notr_kaynak==='AL'?'AL\'den':'SAT\'tan')+' döndü</b>'):'';
+   zaman='<div class="zaman"><div><b>'+d.sinyal+'</b> sinyali: '+d.sinyal_tarih+' ('+d.sinyal_gun+' gündür)'+nk+yenirz+sdt+'</div>';
+   if(d.sinyal==='NÖTR'&&d.notr_kaynak==='AL')zaman+='<div class="cikis">Elindeyse tut: SAT gelirse ya da stop yerse çık. Yeni alım için AL\'i bekle.</div>';
+   if(d.sinyal==='NÖTR'&&d.notr_kaynak==='SAT')zaman+='<div class="cikis">Düşüş yavaşladı ama henüz alım sinyali değil; AL\'i bekle.</div>';
    if(d.sinyal==='AL'){
      const gs=(d.giris_stop!=null?d.giris_stop:d.stop);
      zaman+='<div class="cikis">Çıkış kuralı: sinyal <b>SAT</b>\'a dönerse ya da <b>giriş stopu '+gs+' TL</b> altına inerse.'+
@@ -453,7 +463,7 @@ function pfRender(){
   var d=DATA[p.kod]||{},f=d.fiyat;
   var kzy=(f!=null)?((f/p.maliyet-1)*100):null, kzt=(f!=null)?((f-p.maliyet)*p.adet):null;
   if(kzt!=null)toplam+=kzt;
-  var sn=d.sinyal||'—',scls=sn==='AL'?'al':(sn==='SAT'?'sat':'notr');
+  var sn=d.sinyal||'—',scls=d.sinyal?sinyalCls(d):'notr';
   var uy=(sn==='SAT')?' <span class="pfuy">SAT — gözden geçir</span>':'';
   var kzc=(kzy||0)>=0?'pos':'neg';
   r+='<tr onclick="ac(\''+p.kod+'\')"><td class="kod">'+p.kod+'</td><td class="num">'+p.adet+'</td><td class="num">'+p.maliyet+'</td>'+

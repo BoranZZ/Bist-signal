@@ -284,6 +284,8 @@ def analiz_et(df):
         else:
             break
     start_idx = len(sig) - run
+    # NÖTR'e nereden gelindi? (sarı: AL'den, turuncu: SAT'tan)
+    notr_kaynak = sig[start_idx - 1] if (cur == "NÖTR" and start_idx > 0) else None
     sinyal_tarih = str(d.index[start_idx].date())
     bas_fiyat = float(d["Close"].iloc[start_idx])
     sinyal_degisim = round((fiyat/bas_fiyat - 1)*100, 1) if bas_fiyat else None
@@ -309,6 +311,7 @@ def analiz_et(df):
         "giris_stop": giris_stop,
         "hedef": hedef,
         "sinyal_gun": run,
+        "notr_kaynak": notr_kaynak,
         "sinyal_tarih": sinyal_tarih,
         "sinyal_degisim": sinyal_degisim,
         "yeni": bool(yeni),
