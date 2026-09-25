@@ -15,6 +15,8 @@ SAT_ESIK = 1  # <=1 AL -> genel SAT
 SD_GUN = 120   # kaç günlük geçmişe bakılır
 PIVOT_K = 5    # dip/tepe, iki yanındaki 5 günün en düşüğü/en yükseği olmalı
 SD_YENI = 10   # son 10 günde oluşan dip/tepeler seviye sayılmaz (henüz test edilmedi)
+SD_MIN_TEST = 2                        # etiket için seviye en az 2 kez test edilmiş olmalı
+SD_TOL_MIN, SD_TOL_MAX = 0.01, 0.025   # "yakın" eşiğinin alt/üst sınırı
 
 
 def sma(s, n): return s.rolling(n).mean()
@@ -202,10 +204,11 @@ def destek_direnc(df):
     high = t["High"] if hl else close
     fiyat = float(close.iloc[-1])
 
-    # yakınlık eşiği hissenin oynaklığına göre: 1.5×ATR, en az %2, en fazla %5
+    # yakınlık eşiği hissenin oynaklığına göre: 0.5×ATR, en az %1, en fazla %2.5
+    # (BIST'te günlük ATR medyanı ~%4; daha geniş eşik hisselerin yarısını etiketliyordu)
     atr = _atr(df, 14).iloc[-1] if hl else df["Close"].diff().abs().rolling(14).mean().iloc[-1]
     atr_pct = float(atr) / fiyat if not pd.isna(atr) else 0.0
-    tol = min(max(1.5 * atr_pct, 0.02), 0.05)
+    tol = min(max(0.5 * atr_pct, SD_TOL_MIN), SD_TOL_MAX)
 
     sinir = len(t) - 1 - SD_YENI
     dipler = [p for p in _pivotlar(low, PIVOT_K, False) if p[0] <= sinir]
@@ -223,19 +226,26 @@ def destek_direnc(df):
                 "tarihler": [str(t.index[i].date()) for i in benzer],
                 "uzaklik": round((f / fiyat - 1) * 100, 1)}
 
-    tepki = False
-    if destek:
+    ds = seviye(destek, dipler) if destek else None
+    dr = seviye(direnc, tepeler) if direnc else None
+
+    tepki = yaklas = False
+    if ds and ds["test"] >= SD_MIN_TEST:
         S = destek[1]
         dokundu = float(low.tail(5).min()) <= S * (1 + tol)          # son 5 günde desteğe indi
         donus = fiyat > float(close.iloc[-2])                         # yukarı dönüyor
-        yakin = fiyat <= S * (1 + 2 * tol)                            # henüz uzaklaşmadı
+        yakin = fiyat <= S * (1 + tol)                                # henüz uzaklaşmadı
         tepki = dokundu and donus and yakin
-    yaklas = bool(direnc and (direnc[1] - fiyat) / fiyat <= tol)
+    if dr and dr["test"] >= SD_MIN_TEST:
+        yaklas = (direnc[1] - fiyat) / fiyat <= tol
+    if tepki and yaklas:   # dar bantta ikisi birden çıkmasın: fiyat hangisine yakınsa o
+        if direnc[1] - fiyat < fiyat - destek[1]:
+            tepki = False
+        else:
+            yaklas = False
 
-    return {"destek": seviye(destek, dipler) if destek else None,
-            "direnc": seviye(direnc, tepeler) if direnc else None,
-            "tol": round(tol * 100, 1), "gun": SD_GUN,
-            "tepki": bool(tepki), "yaklas": yaklas}
+    return {"destek": ds, "direnc": dr, "tol": round(tol * 100, 1), "gun": SD_GUN,
+            "min_test": SD_MIN_TEST, "tepki": bool(tepki), "yaklas": bool(yaklas)}
 
 
 def _spark(d, n=90):
