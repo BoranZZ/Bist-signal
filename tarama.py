@@ -435,6 +435,41 @@ def sektor_dagilimi(pf, by):
     return sorted(((a, v / top * 100) for a, v in pay.items()), key=lambda x: -x[1]) if top else []
 
 
+def haftalik_ozet(sonuclar, pf, acik, kapali, simdi):
+    """Cuma kapanıştan sonra: haftanın AL'leri, canlı karnenin haftası, portföyün haftalık değişimi."""
+    pazartesi = (simdi - pd.Timedelta(days=simdi.weekday())).strftime("%Y-%m-%d")
+    parca = [f"🗓 <b>Haftalık özet</b> — {pazartesi} haftası"]
+    al = sorted((s for s in sonuclar if s["sinyal"] == "AL" and (s.get("sinyal_tarih") or "") >= pazartesi),
+                key=lambda s: -(s.get("sinyal_degisim") or 0))
+    if al:
+        parca.append(f"<b>Bu hafta AL'e dönen ({len(al)})</b>: " + ", ".join(
+            f"{s['kod']} ({_yz(s['sinyal_degisim'] or 0)})" for s in al[:10]) + (" …" if len(al) > 10 else ""))
+    else:
+        parca.append("Bu hafta AL'e dönen hisse yok.")
+    kap = [r for r in kapali if (r.get("cikis_tarih") or "") >= pazartesi and r.get("sonuc") is not None]
+    if kap:
+        kazanan = sum(1 for r in kap if r["sonuc"] > 0)
+        parca.append(f"<b>Canlı karne</b>: bu hafta {len(kap)} sinyal kapandı — {kazanan} kârda, ortalama "
+                     f"{_yz(sum(r['sonuc'] for r in kap) / len(kap))}. Açık takip: {len(acik)}.")
+    else:
+        parca.append(f"<b>Canlı karne</b>: bu hafta kapanan sinyal yok. Açık takip: {len(acik)}.")
+    if pf:
+        by = {s["kod"]: s for s in sonuclar}
+        satir, top = [], 0.0
+        for kod, p in pf.items():
+            c = [x for x in ((by.get(kod) or {}).get("spark") or {}).get("c", []) if x is not None]
+            if len(c) >= 6:
+                deg = p["adet"] * (c[-1] - c[-6])
+                top += deg
+                satir.append((kod, (c[-1] / c[-6] - 1) * 100))
+        if satir:
+            satir.sort(key=lambda x: -x[1])
+            parca.append(f"<b>Portföyün bu hafta</b>: {_tl(top)} · " + ", ".join(f"{k} {_yz(x)}" for k, x in satir))
+    parca.append(f"<a href=\"{PANO_URL}\">Panoyu aç</a> · <a href=\"{PANO_URL}gecmis.html\">Karne</a>\n"
+                 f"<i>Yatırım tavsiyesi değildir.</i>")
+    return "\n\n".join(parca)
+
+
 def portfoy_ozeti(sonuclar, pf, piyasa=None):
     """Günde bir kez (kapanıştan sonra) portföyün tamamı: sinyal, K/Z, çıkış ve hedefler, dikkat notları."""
     by = {s["kod"]: s for s in sonuclar}
@@ -644,9 +679,16 @@ def main():
             ozet_tarih = bugun_iso
             print("Günlük portföy özeti gönderildi.")
 
+    # Haftalık özet: cuma kapanıştan sonraki ilk taramada bir kez
+    hafta_tarih = durum.get("hafta_tarih")
+    if simdi.weekday() == 4 and simdi.hour * 60 + simdi.minute >= KAPANIS_DAKIKA and hafta_tarih != bugun_iso:
+        if tg_gonder(haftalik_ozet(sonuclar, pf, acik, kapali, simdi)):
+            hafta_tarih = bugun_iso
+            print("Haftalık özet gönderildi.")
+
     with open(DURUM, "w", encoding="utf-8") as f:
         json.dump({"al": sorted(s["kod"] for s in bugun_al), "son": dict(sorted(son.items())),
-                   "sat_teyit": dict(sorted(teyit.items())), "ozet_tarih": ozet_tarih},
+                   "sat_teyit": dict(sorted(teyit.items())), "ozet_tarih": ozet_tarih, "hafta_tarih": hafta_tarih},
                   f, ensure_ascii=False, indent=2)
 
 
