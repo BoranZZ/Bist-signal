@@ -1,12 +1,11 @@
 {
   "al": [
-    "AGHOL",
     "AHGAZ",
+    "BIMAS",
     "ENERY",
     "ISDMR",
     "SOKM",
     "TKFEN",
-    "TOASO",
     "TUKAS"
   ],
   "son": {
@@ -30,7 +29,7 @@
     "ASTOR": "SAT",
     "AYGAZ": "NÖTR",
     "BERA": "SAT",
-    "BIMAS": "NÖTR",
+    "BIMAS": "AL",
     "BINHO": "SAT",
     "BRSAN": "NÖTR",
     "BRYAT": "SAT",

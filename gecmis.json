@@ -6,8 +6,8 @@
       "giris_fiyat": 34.38,
       "stop": 31.63,
       "durum": "açık",
-      "guncel": 34.08,
-      "anlik": -0.9
+      "guncel": 33.9,
+      "anlik": -1.4
     },
     {
       "kod": "TKFEN",
@@ -15,8 +15,8 @@
       "giris_fiyat": 273.5,
       "stop": 251.62,
       "durum": "açık",
-      "guncel": 276.75,
-      "anlik": 1.2
+      "guncel": 275.5,
+      "anlik": 0.7
     },
     {
       "kod": "TUPRS",
@@ -33,8 +33,8 @@
       "giris_fiyat": 46.2,
       "stop": 42.5,
       "durum": "açık",
-      "guncel": 47.14,
-      "anlik": 2.0
+      "guncel": 47.02,
+      "anlik": 1.8
     },
     {
       "kod": "EGEEN",
@@ -42,8 +42,8 @@
       "giris_fiyat": 5827.5,
       "stop": 5361.3,
       "durum": "açık",
-      "guncel": 5770.0,
-      "anlik": -1.0
+      "guncel": 5775.0,
+      "anlik": -0.9
     },
     {
       "kod": "TUKAS",
@@ -51,8 +51,8 @@
       "giris_fiyat": 2.36,
       "stop": 2.17,
       "durum": "açık",
-      "guncel": 2.33,
-      "anlik": -1.3
+      "guncel": 2.34,
+      "anlik": -0.8
     },
     {
       "kod": "AHGAZ",
@@ -60,8 +60,8 @@
       "giris_fiyat": 44.34,
       "stop": 40.79,
       "durum": "açık",
-      "guncel": 44.34,
-      "anlik": 0.0
+      "guncel": 44.28,
+      "anlik": -0.1
     },
     {
       "kod": "ENERY",
@@ -96,7 +96,16 @@
       "giris_fiyat": 290.25,
       "stop": 267.03,
       "durum": "açık",
-      "guncel": 290.25,
+      "guncel": 288.5,
+      "anlik": -0.6
+    },
+    {
+      "kod": "BIMAS",
+      "giris_tarih": "2026-09-25",
+      "giris_fiyat": 429.0,
+      "stop": 403.06,
+      "durum": "açık",
+      "guncel": 429.0,
       "anlik": 0.0
     }
   ]
