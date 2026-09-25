@@ -6,7 +6,7 @@
       "giris_fiyat": 34.38,
       "stop": 31.63,
       "durum": "açık",
-      "guncel": 34.02,
+      "guncel": 34.04,
       "anlik": -1.0
     },
     {
@@ -15,8 +15,8 @@
       "giris_fiyat": 273.5,
       "stop": 251.62,
       "durum": "açık",
-      "guncel": 277.75,
-      "anlik": 1.6
+      "guncel": 278.75,
+      "anlik": 1.9
     },
     {
       "kod": "TUPRS",
@@ -24,8 +24,8 @@
       "giris_fiyat": 411.5,
       "stop": 388.5,
       "durum": "açık",
-      "guncel": 404.75,
-      "anlik": -1.6
+      "guncel": 407.0,
+      "anlik": -1.1
     },
     {
       "kod": "KRDMD",
@@ -33,8 +33,8 @@
       "giris_fiyat": 46.2,
       "stop": 42.5,
       "durum": "açık",
-      "guncel": 46.5,
-      "anlik": 0.6
+      "guncel": 46.64,
+      "anlik": 1.0
     },
     {
       "kod": "EGEEN",
@@ -42,8 +42,8 @@
       "giris_fiyat": 5827.5,
       "stop": 5361.3,
       "durum": "açık",
-      "guncel": 5787.5,
-      "anlik": -0.7
+      "guncel": 5802.5,
+      "anlik": -0.4
     },
     {
       "kod": "TUKAS",
