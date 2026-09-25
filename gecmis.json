@@ -6,8 +6,8 @@
       "giris_fiyat": 34.38,
       "stop": 31.63,
       "durum": "açık",
-      "guncel": 34.12,
-      "anlik": -0.8
+      "guncel": 34.04,
+      "anlik": -1.0
     },
     {
       "kod": "TKFEN",
@@ -15,8 +15,8 @@
       "giris_fiyat": 273.5,
       "stop": 251.62,
       "durum": "açık",
-      "guncel": 278.25,
-      "anlik": 1.7
+      "guncel": 275.75,
+      "anlik": 0.8
     },
     {
       "kod": "TUPRS",
@@ -24,7 +24,7 @@
       "giris_fiyat": 411.5,
       "stop": 388.5,
       "durum": "açık",
-      "guncel": 407.5,
+      "guncel": 407.25,
       "anlik": -1.0
     },
     {
@@ -33,8 +33,8 @@
       "giris_fiyat": 46.2,
       "stop": 42.5,
       "durum": "açık",
-      "guncel": 47.14,
-      "anlik": 2.0
+      "guncel": 47.1,
+      "anlik": 1.9
     },
     {
       "kod": "EGEEN",
@@ -42,7 +42,7 @@
       "giris_fiyat": 5827.5,
       "stop": 5361.3,
       "durum": "açık",
-      "guncel": 5765.0,
+      "guncel": 5762.5,
       "anlik": -1.1
     },
     {
@@ -60,8 +60,8 @@
       "giris_fiyat": 44.34,
       "stop": 40.79,
       "durum": "açık",
-      "guncel": 44.36,
-      "anlik": 0.0
+      "guncel": 44.38,
+      "anlik": 0.1
     },
     {
       "kod": "ENERY",
@@ -69,8 +69,8 @@
       "giris_fiyat": 13.36,
       "stop": 12.29,
       "durum": "açık",
-      "guncel": 13.42,
-      "anlik": 0.4
+      "guncel": 13.43,
+      "anlik": 0.5
     },
     {
       "kod": "ISDMR",
@@ -78,8 +78,8 @@
       "giris_fiyat": 62.5,
       "stop": 57.5,
       "durum": "açık",
-      "guncel": 62.9,
-      "anlik": 0.6
+      "guncel": 63.25,
+      "anlik": 1.2
     },
     {
       "kod": "SOKM",
@@ -87,8 +87,8 @@
       "giris_fiyat": 58.2,
       "stop": 55.4,
       "durum": "açık",
-      "guncel": 58.3,
-      "anlik": 0.2
+      "guncel": 58.0,
+      "anlik": -0.3
     },
     {
       "kod": "TOASO",
@@ -96,8 +96,8 @@
       "giris_fiyat": 290.25,
       "stop": 267.03,
       "durum": "açık",
-      "guncel": 288.75,
-      "anlik": -0.5
+      "guncel": 288.0,
+      "anlik": -0.8
     },
     {
       "kod": "BIMAS",
@@ -105,7 +105,7 @@
       "giris_fiyat": 429.0,
       "stop": 403.06,
       "durum": "açık",
-      "guncel": 429.5,
+      "guncel": 429.25,
       "anlik": 0.1
     }
   ]
