@@ -1,9 +1,11 @@
 {
   "al": [
     "AHGAZ",
+    "EGEEN",
     "ENERY",
     "ISDMR",
     "TKFEN",
+    "TOASO",
     "TUKAS"
   ],
   "son": {
@@ -42,7 +44,7 @@
     "DOHOL": "SAT",
     "ECILC": "SAT",
     "ECZYT": "SAT",
-    "EGEEN": "NÖTR",
+    "EGEEN": "AL",
     "EGGUB": "NÖTR",
     "EKGYO": "SAT",
     "ENERY": "AL",
