@@ -6,8 +6,8 @@
       "giris_fiyat": 34.38,
       "stop": 31.63,
       "durum": "açık",
-      "guncel": 34.06,
-      "anlik": -0.9
+      "guncel": 34.04,
+      "anlik": -1.0
     },
     {
       "kod": "TKFEN",
@@ -15,8 +15,8 @@
       "giris_fiyat": 273.5,
       "stop": 251.62,
       "durum": "açık",
-      "guncel": 276.0,
-      "anlik": 0.9
+      "guncel": 275.75,
+      "anlik": 0.8
     },
     {
       "kod": "TUPRS",
@@ -24,8 +24,8 @@
       "giris_fiyat": 411.5,
       "stop": 388.5,
       "durum": "açık",
-      "guncel": 408.0,
-      "anlik": -0.9
+      "guncel": 408.25,
+      "anlik": -0.8
     },
     {
       "kod": "KRDMD",
@@ -33,7 +33,7 @@
       "giris_fiyat": 46.2,
       "stop": 42.5,
       "durum": "açık",
-      "guncel": 47.12,
+      "guncel": 47.14,
       "anlik": 2.0
     },
     {
@@ -42,8 +42,8 @@
       "giris_fiyat": 5827.5,
       "stop": 5361.3,
       "durum": "açık",
-      "guncel": 5750.0,
-      "anlik": -1.3
+      "guncel": 5760.0,
+      "anlik": -1.2
     },
     {
       "kod": "TUKAS",
@@ -51,8 +51,8 @@
       "giris_fiyat": 2.36,
       "stop": 2.17,
       "durum": "açık",
-      "guncel": 2.36,
-      "anlik": 0.0
+      "guncel": 2.34,
+      "anlik": -0.8
     },
     {
       "kod": "AHGAZ",
@@ -69,8 +69,8 @@
       "giris_fiyat": 13.36,
       "stop": 12.29,
       "durum": "açık",
-      "guncel": 13.43,
-      "anlik": 0.5
+      "guncel": 13.42,
+      "anlik": 0.4
     },
     {
       "kod": "ISDMR",
@@ -87,8 +87,8 @@
       "giris_fiyat": 58.2,
       "stop": 55.4,
       "durum": "açık",
-      "guncel": 58.05,
-      "anlik": -0.3
+      "guncel": 58.1,
+      "anlik": -0.2
     },
     {
       "kod": "TOASO",
@@ -96,8 +96,8 @@
       "giris_fiyat": 290.25,
       "stop": 267.03,
       "durum": "açık",
-      "guncel": 289.0,
-      "anlik": -0.4
+      "guncel": 288.75,
+      "anlik": -0.5
     },
     {
       "kod": "BIMAS",
@@ -105,8 +105,8 @@
       "giris_fiyat": 429.0,
       "stop": 403.06,
       "durum": "açık",
-      "guncel": 429.75,
-      "anlik": 0.2
+      "guncel": 429.5,
+      "anlik": 0.1
     }
   ]
 }
