@@ -163,5 +163,10 @@
     "SASA": "2026-09-18",
     "THYAO": "2026-09-14"
   },
-  "ozet_tarih": "2026-09-25"
+  "ozet_tarih": "2026-09-25",
+  "hafta_tarih": "2026-09-25",
+  "karar_kirilim": {},
+  "karar_cizgisi": {},
+  "alarm_tetik": [],
+  "on_sinyal": {}
 }
