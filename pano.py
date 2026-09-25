@@ -300,7 +300,7 @@ __ARZ__
 <div class="kart"><h3>AL / AL+ / NÖTR / SAT</h3><p>Trend, ortalama dizilimi, MACD kesişimi ve RSI momentumundan bir puan. <b>★ AL+</b>: teknik AL ile birlikte F/K ve PD/DD de grup medyanının altında.</p></div>
 <div class="kart"><h3>📈 hacim · ⏳ 1. gün · ⚠ taban serisi</h3><p><b>📈 hacim</b>: AL günü işlem hacmi son 20 günün 1,5 katından fazla — ilgi arttığını gösterir; ama backtest'te tek başına belirgin bir üstünlük sağlamadı, bilgi amaçlıdır. <b>⏳ 1. gün</b>: SAT'ın ilk günü; tek günlük yanlış alarm olabilir, teyit için yarını bekle. <b>⚠ taban serisi</b>: son 15 günde 4+ kez ~%10 düştü (fon krizi tipi çöküş) — bu hisselerden AL mesajı gönderilmez.</p></div>
 <div class="kart"><h3>Piyasa filtresi</h3><p>BIST 100, 50 günlük ortalamasının altındaysa üstte "Piyasa zayıf" uyarısı çıkar. 5 yıllık backtest'te bu dönemlerde gelen AL'ler belirgin şekilde daha kötü sonuç verdi.</p></div>
-<div class="kart"><h3>Çıkış ve hedef (portföyün)</h3><p><b>📍 Çıkış (stop)</b>: fiyat bunun altına inerse sistemin kuralı "çık" der. <b>🎯 1. hedef</b>: en yakın direnç — geçmişte satış gelen tepe. <b>🎯 2. hedef</b>: risk/ödül 2:1 (maliyetinden stop'a olan mesafenin 2 katı yukarısı). Hedefler tahmin değil, plan için referanstır.</p></div>
+<div class="kart"><h3>Çıkış ve hedef (portföyün)</h3><p><b>📍 Çıkış (stop)</b>: fiyat bunun altına inerse sistemin kuralı "çık" der. <b>🎯 1. hedef</b>: en yakın direnç — geçmişte satış gelen tepe. <b>🎯 2. hedef</b>: risk/ödül 2:1 (maliyetinden stop'a olan mesafenin 2 katı yukarısı). Hedefler satış emri değil, izleme noktasıdır: 5 yıllık backtest'te hedefte kısmi satış, SAT/stop'a kadar tutmaktan belirgin şekilde kötü sonuç verdi.</p></div>
 <div class="kart"><h3>NÖTR: sarı mı turuncu mu?</h3><p><span class="pill notr notr-al">NÖTR</span> <b>Sarı = AL'den döndü.</b> Elindeyse tut; SAT gelirse ya da stop yerse çık. Yeni alım yapma.<br><span class="pill notr notr-sat">NÖTR</span> <b>Turuncu = SAT'tan döndü.</b> Düşüş yavaşladı ama henüz alım sinyali değil; AL'i bekle. (5 yıllık backtest: NÖTR'de satmak ya da turuncuda almak, beklemekten kötü sonuç verdi.)</p></div>
 <div class="kart"><h3>Öneri lot (risk yönetimi)</h3><p>Stop yerse portföyünün sadece belirlediğin yüzdeyi (örn. %1) kaybedeceğin lot sayısı: (portföy×risk%)÷(fiyat−stop).</p></div>
 <div class="kart"><h3>RSI</h3><p>0–100 momentum. 30 altı aşırı satım, 70 üstü aşırı alım. Sağlıklı yükseliş 45–68 bandında.</p></div>
@@ -392,7 +392,8 @@ function pozHtml(k,d){
    :'<div class="pk">📍 <b>Çıkış (stop): '+pl.stop+' TL</b> — '+yzd(pl.stopUzak)+' aşağıda. Buraya inerse sonuç: <b class="'+(pl.stopKz>=0?'pos':'neg')+'">'+tlf(pl.stopKz)+'</b>'+(pl.stopKz>=0?' (yine kârda)':'')+'</div>';
  }
  pl.hedefler.forEach(function(x,i){h+='<div class="pk">🎯 <b>'+(i+1)+'. hedef: '+x[0]+' TL</b> — '+x[1]+', '+yzd((x[0]/pl.f-1)*100)+' yukarıda.'+
-   (x[1].indexOf('direnç')>=0?' Burada satış baskısı gelebilir; bir kısmını satmayı düşünebilirsin.':' (Tahmin değil, plan referansı.)')+'</div>';});
+   (x[1].indexOf('direnç')>=0?' Burada satış baskısı gelebilir; aşarsa yükseliş hızlanabilir.':' (Tahmin değil, izleme noktası.)')+'</div>';});
+ if(pl.hedefler.length)h+='<div class="pk sgun">ℹ️ Hedefler satış emri değil, izleme noktası. 5 yıllık backtest\'te hedefte kısmi satış yapmak, pozisyonu SAT/stop gelene kadar tutmaktan belirgin şekilde kötü sonuç verdi — büyük kazançlar erken kesildi.</div>';
  var kural=d.sinyal==='SAT'?((d.sinyal_gun||1)<=1?'⏳ SAT\'ın 1. günü: yarın da SAT kalırsa çık.':'✅ SAT '+d.sinyal_gun+' gündür sürüyor: kurala göre çıkış zamanı.')
   :'Kural: SAT 2 gün üst üste gelirse ya da fiyat çıkış seviyesinin altına inerse çık.';
  return h+'<div class="pk">'+kural+'</div></div>';

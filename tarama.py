@@ -384,7 +384,7 @@ def portfoy_ozeti(sonuclar, pf, piyasa=None):
     parca.insert(1, f"Toplam K/Z: <b>{_tl(toplam)}</b>")
     if piyasa and piyasa.get("zayif"):
         parca.append("⚠️ Piyasa zayıf (BIST 100 50 günlük ortalamasının altında).")
-    parca.append(f"<a href=\"{PANO_URL}\">Panoyu aç</a>\n<i>Hedefler mekanik referanstır, tahmin değil. Yatırım tavsiyesi değildir.</i>")
+    parca.append(f"<a href=\"{PANO_URL}\">Panoyu aç</a>\n<i>Hedefler satış emri değil, izleme noktası (backtest: hedefte satmak, SAT/stop'a kadar tutmaktan kötüydü). Yatırım tavsiyesi değildir.</i>")
     return "\n\n".join(parca)
 
 
