@@ -6,8 +6,8 @@
       "giris_fiyat": 34.38,
       "stop": 31.63,
       "durum": "açık",
-      "guncel": 34.1,
-      "anlik": -0.8
+      "guncel": 34.2,
+      "anlik": -0.5
     },
     {
       "kod": "TKFEN",
@@ -15,8 +15,8 @@
       "giris_fiyat": 273.5,
       "stop": 251.62,
       "durum": "açık",
-      "guncel": 274.0,
-      "anlik": 0.2
+      "guncel": 280.0,
+      "anlik": 2.4
     },
     {
       "kod": "TUPRS",
@@ -24,8 +24,8 @@
       "giris_fiyat": 411.5,
       "stop": 388.5,
       "durum": "açık",
-      "guncel": 410.75,
-      "anlik": -0.2
+      "guncel": 413.0,
+      "anlik": 0.4
     },
     {
       "kod": "KRDMD",
@@ -33,7 +33,16 @@
       "giris_fiyat": 46.2,
       "stop": 42.5,
       "durum": "açık",
-      "guncel": 46.2,
+      "guncel": 46.8,
+      "anlik": 1.3
+    },
+    {
+      "kod": "EGEEN",
+      "giris_tarih": "2026-09-25",
+      "giris_fiyat": 5827.5,
+      "stop": 5361.3,
+      "durum": "açık",
+      "guncel": 5827.5,
       "anlik": 0.0
     }
   ]
