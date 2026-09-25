@@ -43,7 +43,7 @@ Plan: kendi SVG grafiğimizi asıl grafik yap (eksen değerleri, daha uzun geçm
 tarih/fiyat), TradingView'i sadece "tam ekran aç" butonu olarak bırak.
 
 ## BEKLEYEN İŞLER (öncelik sırası)
-1. **Grafik:** (gömülü TradingView KALDIRILDI) kendi SVG grafiğini büyüt, fiyat/tarih
+1. **Grafik:** YAPILDI (eksenler, 6 ay, AL/SAT dönüş işaretleri, fare/dokunma ile değer). Eski not: kendi SVG grafiğini büyüt, fiyat/tarih
    eksen değerleri ekle, daha uzun geçmiş + hover tooltip. "Tam ekran aç" butonu kalsın.
 2. **Hacim/likidite filtresi:** düşük hacimli/az işlem gören hisseleri ele veya işaretle
    (yanıltıcı sinyalleri azaltır).

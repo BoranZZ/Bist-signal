@@ -250,7 +250,8 @@ table.pf{min-width:820px}
 .mh .sol{display:flex;align-items:center;gap:10px}.mh h2{margin:0;font-size:20px}
 .kapa{border:none;background:#F1F1EE;width:32px;height:32px;border-radius:8px;font-size:18px;cursor:pointer;color:var(--muted)}
 .mfiyat{margin-top:6px;font-size:14px;color:var(--muted)}
-.grafik{margin:16px 0;border:1px solid var(--line);border-radius:10px;padding:8px;background:#FCFCFB}
+.grafik{position:relative;margin:16px 0;border:1px solid var(--line);border-radius:10px;padding:8px;background:#FCFCFB}
+.grbilgi{position:absolute;top:8px;background:rgba(255,255,255,.95);border:1px solid var(--line);border-radius:8px;padding:5px 9px;font-size:11.5px;line-height:1.45;pointer-events:none;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.06)}
 .metr{display:grid;grid-template-columns:repeat(auto-fit,minmax(95px,1fr));gap:10px;margin:6px 0 14px}
 .metr .m{background:#F7F7F4;border-radius:9px;padding:9px 11px}.metr .m .l{color:var(--muted);font-size:11px}.metr .m .v{font-weight:650;font-size:15px;margin-top:2px}
 .yorum{background:#F3F7F5;border:1px solid #DCE8E2;border-radius:10px;padding:13px 15px;font-size:13.5px;line-height:1.6}
@@ -330,30 +331,65 @@ rows.forEach(r=>tb.appendChild(r));});});
 
 function sinyalCls(d){if(d.sinyal==='AL')return 'al';if(d.sinyal==='SAT')return 'sat';
  return 'notr'+(d.notr_kaynak==='AL'?' notr-al':d.notr_kaynak==='SAT'?' notr-sat':'');}
-function cizgi(vals,color,W,H,min,max,w){
- const pts=[];const n=vals.length;
- for(let i=0;i<n;i++){if(vals[i]==null)continue;
-  const x=(i/(n-1))*(W-8)+4;const y=H-4-((vals[i]-min)/(max-min))*(H-8);pts.push(x.toFixed(1)+','+y.toFixed(1));}
+// Büyük grafik: fiyat/tarih eksenleri, AL/SAT dönüş işaretleri, destek/direnç çizgileri, fare/dokunma ile değer
+var GR={W:600,H:260,L:6,R:54,T:10,B:24},_gr=null;
+var AYLAR=['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
+function trTarih(s){var p=s.split('-');return (+p[2])+' '+AYLAR[+p[1]-1];}
+function grX(i,n){return GR.L+(n>1?i/(n-1):0)*(GR.W-GR.L-GR.R);}
+function grY(v,mn,mx){return GR.T+(1-(v-mn)/(mx-mn||1))*(GR.H-GR.T-GR.B);}
+function cizgi(vals,color,mn,mx,w){
+ var pts=[],n=vals.length;
+ for(var i=0;i<n;i++){if(vals[i]==null)continue;pts.push(grX(i,n).toFixed(1)+','+grY(vals[i],mn,mx).toFixed(1));}
  return '<polyline fill="none" stroke="'+color+'" stroke-width="'+w+'" points="'+pts.join(' ')+'"/>';
 }
-function yatay(v,color,W,H,min,max){
- const y=(H-4-((v-min)/(max-min))*(H-8)).toFixed(1);
- return '<line x1="4" x2="'+(W-4)+'" y1="'+y+'" y2="'+y+'" stroke="'+color+'" stroke-width="1.2" stroke-dasharray="5 4"/>';
+function yatay(v,color,mn,mx,ad){
+ var y=grY(v,mn,mx).toFixed(1);
+ return '<line x1="'+GR.L+'" x2="'+(GR.W-GR.R)+'" y1="'+y+'" y2="'+y+'" stroke="'+color+'" stroke-width="1.2" stroke-dasharray="5 4"/>'+
+  '<text x="'+(GR.W-GR.R+4)+'" y="'+(+y+3.5)+'" font-size="10" fill="'+color+'" font-weight="600">'+v+'</text>';
+}
+function adimlar(mn,mx){  // okunur eksen değerleri
+ var aralik=(mx-mn)/4,us=Math.pow(10,Math.floor(Math.log10(aralik||1))),k=[1,2,2.5,5,10].find(function(x){return x*us>=aralik;})*us;
+ var v=[],b=Math.ceil(mn/k)*k;for(var x=b;x<=mx+1e-9;x+=k)v.push(Math.round(x*100)/100);return v;
 }
 function grafik(sp,sd){
  if(!sp||!sp.c) return '<div style="color:#6B7079;font-size:13px">Grafik verisi yok.</div>';
- const ds=sd&&sd.destek?sd.destek.fiyat:null,dr=sd&&sd.direnc?sd.direnc.fiyat:null;
- const W=580,H=180;const all=[...sp.c,...(sp.s20||[]),...(sp.s50||[]),ds,dr].filter(x=>x!=null);
- const min=Math.min(...all),max=Math.max(...all);
- let g='<svg viewBox="0 0 '+W+' '+H+'" width="100%" preserveAspectRatio="none" style="display:block">';
- if(ds!=null)g+=yatay(ds,'#3A6EA5',W,H,min,max);
- if(dr!=null)g+=yatay(dr,'#B7791F',W,H,min,max);
- g+=cizgi(sp.c,'#16181D',W,H,min,max,1.6);
- if(sp.s20)g+=cizgi(sp.s20,'#0E4D45',W,H,min,max,1.2);
- if(sp.s50)g+=cizgi(sp.s50,'#C7962B',W,H,min,max,1.2);
- if(sp.st)g+=cizgi(sp.st,'#B4362E',W,H,min,max,1.4);
- g+='</svg>';return g;
+ var ds=sd&&sd.destek?sd.destek.fiyat:null,dr=sd&&sd.direnc?sd.direnc.fiyat:null,n=sp.c.length;
+ var hepsi=sp.c.concat(sp.s20||[],sp.s50||[],[ds,dr]).filter(function(x){return x!=null;});
+ var mn=Math.min.apply(null,hepsi),mx=Math.max.apply(null,hepsi),pay=(mx-mn)*0.04;mn-=pay;mx+=pay;
+ _gr={sp:sp,mn:mn,mx:mx,n:n};
+ var g='<svg id="grsvg" viewBox="0 0 '+GR.W+' '+GR.H+'" width="100%" style="display:block;touch-action:pan-y" onmousemove="grHover(event)" ontouchstart="grHover(event)" ontouchmove="grHover(event)" onmouseleave="grCik()">';
+ adimlar(mn,mx).forEach(function(v){var y=grY(v,mn,mx).toFixed(1);
+  g+='<line x1="'+GR.L+'" x2="'+(GR.W-GR.R)+'" y1="'+y+'" y2="'+y+'" stroke="#ECEDEA" stroke-width="1"/>'+
+     '<text x="'+(GR.W-GR.R+4)+'" y="'+(+y+3.5)+'" font-size="10" fill="#8A8F98">'+v+'</text>';});
+ for(var k=0;k<5;k++){var i=Math.round(k*(n-1)/4),x=grX(i,n);
+  g+='<text x="'+x.toFixed(1)+'" y="'+(GR.H-6)+'" font-size="10" fill="#8A8F98" text-anchor="'+(k===0?'start':k===4?'end':'middle')+'">'+trTarih(sp.t[i])+'</text>';}
+ if(ds!=null)g+=yatay(ds,'#3A6EA5',mn,mx);
+ if(dr!=null)g+=yatay(dr,'#B7791F',mn,mx);
+ if(sp.s50)g+=cizgi(sp.s50,'#C7962B',mn,mx,1.2);
+ if(sp.s20)g+=cizgi(sp.s20,'#0E4D45',mn,mx,1.2);
+ if(sp.st)g+=cizgi(sp.st,'#B4362E',mn,mx,1.3);
+ g+=cizgi(sp.c,'#16181D',mn,mx,1.8);
+ if(sp.sg){var sonK='';for(var j=0;j<n;j++){var a=sp.sg[j];if(a==='N'||a===sonK){continue;}var ilk=sonK==='';sonK=a;if(ilk||sp.c[j]==null)continue;  // Telegram gibi: NÖTR ara geçişleri sayılmaz
+  var xx=grX(j,n),yy=grY(sp.c[j],mn,mx);
+  g+=a==='A'?'<path d="M'+xx.toFixed(1)+' '+(yy+6).toFixed(1)+' l-5 9 h10 z" fill="#1B7F4B"><title>AL: '+trTarih(sp.t[j])+'</title></path>'
+            :'<path d="M'+xx.toFixed(1)+' '+(yy-6).toFixed(1)+' l-5 -9 h10 z" fill="#B4362E"><title>SAT: '+trTarih(sp.t[j])+'</title></path>';}}
+ g+='<line id="grcizgi" x1="0" x2="0" y1="'+GR.T+'" y2="'+(GR.H-GR.B)+'" stroke="#16181D" stroke-width="0.8" stroke-dasharray="3 3" visibility="hidden"/>'+
+    '<circle id="grnokta" r="3.5" fill="#16181D" visibility="hidden"/></svg><div id="grbilgi" class="grbilgi" hidden></div>';
+ return g;
 }
+function grHover(e){
+ if(!_gr)return;var svg=document.getElementById('grsvg');if(!svg)return;
+ var p=e.touches?e.touches[0]:e,r=svg.getBoundingClientRect(),x=(p.clientX-r.left)/r.width*GR.W;
+ var n=_gr.n,i=Math.max(0,Math.min(n-1,Math.round((x-GR.L)/(GR.W-GR.L-GR.R)*(n-1)))),sp=_gr.sp;if(sp.c[i]==null)return;
+ var xx=grX(i,n),yy=grY(sp.c[i],_gr.mn,_gr.mx),cz=document.getElementById('grcizgi'),nk=document.getElementById('grnokta'),b=document.getElementById('grbilgi');
+ cz.setAttribute('x1',xx);cz.setAttribute('x2',xx);cz.setAttribute('visibility','visible');
+ nk.setAttribute('cx',xx);nk.setAttribute('cy',yy);nk.setAttribute('visibility','visible');
+ var sg={A:'AL',S:'SAT',N:'NÖTR'}[(sp.sg||'')[i]]||'';
+ b.innerHTML='<b>'+trTarih(sp.t[i])+' '+sp.t[i].slice(0,4)+'</b> · '+sp.c[i]+' TL'+(sg?' · '+sg:'')+
+  (sp.s20&&sp.s20[i]!=null?'<br><span style="color:#0E4D45">SMA20 '+sp.s20[i]+'</span>':'')+(sp.s50&&sp.s50[i]!=null?' · <span style="color:#C7962B">SMA50 '+sp.s50[i]+'</span>':'');
+ b.hidden=false;b.style.left=Math.min(Math.max(xx/GR.W*100,2),70)+'%';
+}
+function grCik(){['grcizgi','grnokta'].forEach(function(id){var el=document.getElementById(id);if(el)el.setAttribute('visibility','hidden');});var b=document.getElementById('grbilgi');if(b)b.hidden=true;}
 function sdHtml(d){
  const sd=d.sd;if(!sd)return '';
  const sat=(ad,s,tur)=>{
@@ -462,7 +498,8 @@ function ac(k){
  (d.patlak?'<div class="patlakkutu">⚠ <b>Taban serisi:</b> son 15 günde '+d.taban15+' kez ~%10 düştü. Fon krizi tipi çöküş olabilir; bu hisseden AL mesajı gönderilmez.</div>':'')+
  pozHtml(k,d)+arzHtml(d)+
  '<div class="grafik">'+grafik(d.spark,d.sd)+'<div class="leg"><span class="c1">Fiyat</span><span class="c2">SMA20</span><span class="c3">SMA50</span><span class="c4">SuperTrend</span>'+
-   (d.sd&&d.sd.destek?'<span class="c5">Destek</span>':'')+(d.sd&&d.sd.direnc?'<span class="c6">Direnç</span>':'')+'</div></div>'+
+   (d.sd&&d.sd.destek?'<span class="c5">Destek</span>':'')+(d.sd&&d.sd.direnc?'<span class="c6">Direnç</span>':'')+
+   '<span style="color:#1B7F4B">▲ AL</span><span style="color:#B4362E">▼ SAT</span></div></div>'+
  sdHtml(d)+
  '<div class="metr">'+m('RSI',d.rsi)+m('F/K',d.fk)+m('PD/DD',d.pddd)+m('FD/FAVÖK',d.favok)+m('Giriş stopu',d.giris_stop!=null?d.giris_stop:d.stop)+m('Öneri lot',lot)+'</div>'+
  '<div class="gbas">Göstergeler</div><div class="gliste">'+gost+'</div>'+
@@ -471,7 +508,7 @@ function ac(k){
  '<div class="btnler"><a class="btn p" href="'+tv+'" target="_blank" rel="noopener">TradingView\'de tam ekran ↗</a></div>';
  document.getElementById('ust').classList.add('acik');
 }
-function kapat(){document.getElementById('ust').classList.remove('acik');}
+function kapat(){document.getElementById('ust').classList.remove('acik');_gr=null;}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')kapat();});
 
 var PF_KEY='portfoyum_v1',GH_KEY='gh_anahtar_v1',GH_REPO='BoranZZ/Bist-signal',pfDuzenlenen=-1;

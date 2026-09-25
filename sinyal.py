@@ -253,12 +253,14 @@ def destek_direnc(df):
             "min_test": SD_MIN_TEST, "tepki": bool(tepki), "yaklas": bool(yaklas)}
 
 
-def _spark(d, n=90):
+def _spark(d, n=130):
+    """Grafik verisi: son n gün (~6 ay) kapanış, ortalamalar, SuperTrend ve sinyal (A/S/N, AL/SAT dönüş işaretleri için)."""
     t = d.tail(n)
     def arr(col):
         return [None if (col not in t or pd.isna(x)) else round(float(x), 2) for x in (t[col] if col in t else [np.nan]*len(t))]
     out = {"c": arr("Close"), "s20": arr("SMA20"), "s50": arr("SMA50"),
-           "t": [str(x.date()) for x in t.index]}
+           "t": [str(x.date()) for x in t.index],
+           "sg": "".join({"AL": "A", "SAT": "S"}.get(x, "N") for x in t["SINYAL"])}
     if "ST_LINE" in t:
         out["st"] = arr("ST_LINE")
     return out
