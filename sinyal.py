@@ -394,7 +394,8 @@ def trend_kirilimi(d, xu_ust=None, islemler=False):
     sab_son = bool(sab.iloc[-1]) if len(sab) else False
     hh = float(c.iloc[-KIRILIM_GUN - 1:-1].max()) if n > KIRILIM_GUN else None
     son = tum[-1] if tum else None
-    out = {"sablon": sab_son, "bugun": bool(g[-1]) if n else False, "durum": None,
+    # bugün = bugün YENİ pozisyon açıldı (açık pozisyon sürerken gelen yeni zirve kırılımları sayılmaz — backtest'le aynı)
+    out = {"sablon": sab_son, "bugun": bool(acik is not None and acik["i"] == n - 1), "durum": None,
            "kirilim_seviye": round(hh, 2) if hh else None,
            "kirilima_uzak": round((hh / fiyat - 1) * 100, 1) if (hh and sab_son and not acik) else None}
     if acik:

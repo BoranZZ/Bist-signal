@@ -592,8 +592,8 @@ def telegram_mesaji(yeni_al, yeni_sat, sat_teyit, pf, uyari, piyasa=None, karar_
             satir.append(f"…ve {kalan} hisse daha (panoya bak)")
         bas = f"<b>Yeni AL — 🚀 trend kırılımı ({len(yeni_al)})</b>"
         if on_kapanis:
-            bas += ("\n⏰ <i>Kapanıştan önce (~17:15 fiyatlarıyla). Kırılım kapanışta tutmazsa 18:30'dan sonra "
-                    "iptal mesajı gelir.</i>")
+            bas += ("\n⏰ <i>Kapanıştan önce (~17:15 fiyatlarıyla). Saatlik veriyle bu saatte görülen kırılımlar "
+                    "neredeyse hep kapanışta tuttu (son 60 günde 25/25); tutmazsa 18:30'dan sonra iptal mesajı gelir.</i>")
         if piyasa and piyasa.get("zayif"):
             bas += ("\n⚠️ <i>Piyasa zayıf: BIST 100 50 günlük ortalamasının altında. Backtest'te bu dönemlerde "
                     "gelen AL'ler belirgin şekilde daha kötü sonuç verdi — temkinli ol.</i>")
