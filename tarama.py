@@ -287,6 +287,11 @@ def plan_metni(s, p, girinti="     "):
     t = [f"Senin pozisyonun: {pl['adet']:g} adet, maliyet {pl['maliyet']:.2f} → şu an {_yz(pl['kz_y'])} ({_tl(pl['kz'])})"]
     if pl["sat"]:
         t.append("📍 Çıkış: SAT sinyali — kural SAT 2 gün üst üste gelince çıkmak.")
+        sd = s.get("sd") or {}
+        if sd.get("tepki") and sd.get("destek"):
+            karar = round(sd["destek"]["fiyat"] * (1 - sd["tol"] / 100), 2)
+            t.append(f"⚠️ Destekte ({sd['destek']['fiyat']} TL) tepki var, ama backtest'te SAT sürerken destekler "
+                     f"~%68 oranında 20 günde kırıldı. Karar çizgisi: {karar} TL — altında kapanış = destek kırıldı.")
         return ("\n" + girinti).join(t)
     if pl.get("stop"):
         if pl["stop_asildi"]:

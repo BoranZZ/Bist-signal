@@ -40,7 +40,10 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None):
         ycls = {"AL": "yal", "SAT": "ysat", "NÖTR": "ynotr"}[s["sinyal"]]
         yenirz = f' <span class="yeni {ycls}">YENİ</span>' if s.get("yeni") else ""
         sdrz = ""
-        if s.get("destek_tepki"):
+        if s.get("destek_tepki") and s["sinyal"] == "SAT":
+            # SAT sürerken destek tepkileri backtest'te çoğunlukla (~%68) 20 günde kırıldı: olumlu gösterme
+            sdrz += ' <span class="sdb destekzayif" title="SAT sürerken destekte tepki — 5 yıllık backtest\'te bu desteklerin ~%68\'i 20 gün içinde kırıldı">Destekte (SAT sürüyor)</span>'
+        elif s.get("destek_tepki"):
             sdrz += ' <span class="sdb destek" title="Fiyat geçmiş bir desteğe indi ve yukarı dönmeye başladı">Destekten tepki</span>'
         if s.get("direnc_yakin"):
             sdrz += ' <span class="sdb direnc" title="Fiyat geçmişte satış gelen bir tepe seviyesine yakın">Dirence yaklaşıyor</span>'
@@ -195,7 +198,7 @@ tbody tr:hover{background:#F2F5F3}
 .yeni{color:#fff;font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:5px;margin-left:6px;letter-spacing:.03em}
 .yeni.yal{background:#1B7F4B}.yeni.ysat{background:#B4362E}.yeni.ynotr{background:#9A7A12}
 .sdb{color:#fff;font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:5px;margin-left:5px}
-.sdb.destek{background:#3A6EA5}.sdb.direnc{background:#B7791F}
+.sdb.destek{background:#3A6EA5}.sdb.direnc{background:#B7791F}.sdb.destekzayif{background:#8A94A6}
 .hacimb,.gun1b,.patlakb,.arzb{font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:5px;margin-left:5px;white-space:nowrap}
 .hacimb{background:#E4F2E9;color:#1B7F4B}.gun1b{background:#FDE1CC;color:#B0480C}.patlakb{background:#B4362E;color:#fff}
 .arzb{background:#EEE8F7;color:#5B3E96}
@@ -356,6 +359,8 @@ function sdHtml(d){
  };
  let h='<div class="sdkutu"><div class="gbas">Destek / Direnç</div>'+sat('Destek',sd.destek,'dip')+sat('Direnç',sd.direnc,'tepe');
  if(sd.tepki)h+='<div class="sdnot destek"><b>Destekten tepki:</b> fiyat son 5 günde '+sd.destek.fiyat+' TL desteğine indi ve yukarı dönmeye başladı (bugünkü kapanış dünküden yüksek). Destek tutarsa olumlu; bu seviyenin altında kapanış gelirse bu okuma geçersiz olur.</div>';
+ if(sd.tepki&&d.sinyal==='SAT')h+='<div class="sdnot direnc"><b>⚠ Çelişki — SAT sürerken destekte tepki:</b> 5 yıllık backtest\'te bu durumda desteklerin yaklaşık <b>%68\'i 20 gün içinde kırıldı</b>; düşüş trendinde destek tepkisi çoğu zaman kısa bir soluklanma oldu. '+
+   '<b>Karar çizgisi: '+(Math.round(sd.destek.fiyat*(1-sd.tol/100)*100)/100)+' TL</b> — bunun altında kapanış desteğin kırıldığını gösterir. Destek tutar ve sinyal AL\'e dönerse tablo değişir.</div>';
  if(sd.yaklas)h+='<div class="sdnot direnc"><b>Dirence yaklaşıyor:</b> fiyat '+sd.direnc.fiyat+' TL direncine %'+sd.tol+'\'den daha yakın. Geçmişte bu seviyede satış geldi; aşamazsa geri dönebilir. Kapanışla net aşarsa direnç desteğe dönüşebilir.'+
    (d.sinyal==='AL'?' <i>Not: 5 yıllık backtest\'te dirence yakınken gelen AL\'ler kötü sonuç vermedi — çoğu zaman kırılım denemesiydi.</i>':'')+'</div>';
  if(!sd.tepki&&!sd.yaklas)h+='<div class="sdyok">Fiyat şu an bir desteğe tepki vermiyor ve bir dirence yakın değil.</div>';
