@@ -6,7 +6,7 @@
       "giris_fiyat": 34.38,
       "stop": 31.63,
       "durum": "açık",
-      "guncel": 34.04,
+      "guncel": 34.02,
       "anlik": -1.0
     },
     {
@@ -33,7 +33,7 @@
       "giris_fiyat": 46.2,
       "stop": 42.5,
       "durum": "açık",
-      "guncel": 47.1,
+      "guncel": 47.06,
       "anlik": 1.9
     },
     {
@@ -78,8 +78,8 @@
       "giris_fiyat": 62.5,
       "stop": 57.5,
       "durum": "açık",
-      "guncel": 63.25,
-      "anlik": 1.2
+      "guncel": 63.3,
+      "anlik": 1.3
     },
     {
       "kod": "SOKM",
@@ -105,8 +105,8 @@
       "giris_fiyat": 429.0,
       "stop": 403.06,
       "durum": "açık",
-      "guncel": 429.25,
-      "anlik": 0.1
+      "guncel": 428.75,
+      "anlik": -0.1
     }
   ]
 }
