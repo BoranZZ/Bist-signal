@@ -266,6 +266,55 @@ def _spark(d, n=130):
     return out
 
 
+def uzun_vade(d):
+    """🌱 Uzun vade sinyali (günlük sinyalden bağımsız, yavaş): yükselen trendde (fiyat SMA200 üstü, SMA200 20 günde
+    yükselmiş) fiyat SMA50'ye (%2 yakınına) geri çekilip üstünde yükselişle kapanınca AL; 2 gün üst üste SMA200 altı
+    kapanışta SAT. Backtest (2021-26, çökenler hariç): düşük faizde işlem başı endekse göre +%10.7, isabet %65;
+    yüksek faizde +%3.4 — günlük sinyalden iyi (bkz. CLAUDE.md)."""
+    c, s50, s200 = d["Close"], d["SMA50"], d["SMA200"]
+    yukselen = (s200 > s200.shift(20)) & (c > s200)
+    al_gun = (yukselen & (d["Low"] <= s50 * 1.02) & (c > s50) & (c > c.shift(1))).values
+    cik_gun = ((c < s200) & (c.shift(1) < s200.shift(1))).values
+    durum, tarih, idx = None, None, d.index
+    for i in range(len(d)):
+        if durum != "AL" and al_gun[i]:
+            durum, tarih = "AL", i
+        elif durum == "AL" and cik_gun[i]:
+            durum, tarih = "SAT", i
+    son_s200 = s200.iloc[-1]
+    return {"durum": durum, "tarih": str(idx[tarih].date()) if tarih is not None else None,
+            "gun": (len(d) - tarih) if tarih is not None else None,
+            "degisim": round((float(c.iloc[-1]) / float(c.iloc[tarih]) - 1) * 100, 1) if tarih is not None else None,
+            "sma200": None if pd.isna(son_s200) else round(float(son_s200), 2),
+            "sma50": None if pd.isna(s50.iloc[-1]) else round(float(s50.iloc[-1]), 2),
+            "trend": bool(yukselen.iloc[-1])}   # şu an yükselen trendde mi (AL yoksa: geri çekilme bekleniyor)
+
+
+def bayrak_kirilimi(df):
+    """🚩 Boğa bayrağı kırılımı son günde mi: direk (≤10 günde ≥%15), bayrak (5-15 gün, geri çekilme ≤ direğin
+    yarısı, bayrakta yeni tepe yok, hacim direkten düşük), bugün kapanış bayrak tepesinin üstünde. Backtest: isabeti
+    yükseltiyor (%46) ama ayrı sinyal olarak ek getiri yok; kırılımların %70-85'i zaten AL ile aynı gün — bilgi etiketi."""
+    if len(df) < 40 or "Volume" not in df:
+        return None
+    h, l, c, v = df["High"].values, df["Low"].values, df["Close"].values, df["Volume"].values
+    i = len(df) - 1
+    for L in range(5, 16):
+        b0 = i - L
+        if b0 < 12:
+            break
+        dip, tepe = min(c[b0 - 11:b0]), c[b0 - 1]
+        if tepe / dip - 1 < 0.15:
+            continue
+        bh, bl = max(h[b0:i]), min(l[b0:i])
+        if (tepe - bl) / (tepe - dip) > 0.5 or bh > tepe * 1.03:
+            continue
+        if np.mean(v[b0:i]) >= np.mean(v[b0 - 10:b0]):
+            continue
+        if c[i] > bh:
+            return {"direk": round((tepe / dip - 1) * 100), "bayrak_gun": L, "bayrak_dip": round(float(bl), 2)}
+    return None
+
+
 def analiz_et(df):
     c = df["Close"].dropna()
     if len(c) < 60:
@@ -343,6 +392,8 @@ def analiz_et(df):
         "hacim_teyit": bool(hacim_kat is not None and hacim_kat >= HACIM_ESIK),
         "taban15": taban,
         "mom20": mom20,
+        "uv": uzun_vade(d),
+        "bayrak": bayrak_kirilimi(df),
         "patlak": taban >= PATLAK_TABAN,
         "sinyal_tarih": sinyal_tarih,
         "sinyal_degisim": sinyal_degisim,

@@ -51,6 +51,8 @@ Mesaj şu durumlarda gelir:
 - **Yeni SAT:** Sadece portföyündeki hisselerde. İlk gün "⏳ 1. gün, yarını bekle" diye gelir; ertesi gün de SAT kalırsa "✅ teyitlendi" mesajı gelir.
 - **Zamanlama:** AL/SAT mesajları kapanıştan ~30 dk önce (17:30 sonrası) gelir; istersen o gün, istersen ertesi sabah işlem yaparsın. Bu saatte gelen sinyallerin ~%88'i kapanışta tutuyor; tutmazsa 18:30'dan sonra "↩️ İptal" mesajı gelir.
 - **Uzun vade:** Portföyde "Uzun vade" işaretli hisselerde SAT bilgi olarak gelir; çıkış yerine 🧭 karar çizgisi (ana destek) gösterilir, kapanışla kırılırsa tek seferlik uyarı gelir.
+- **🌱 Uzun vade sinyali:** Yükselen trendde 50 günlük ortalamaya geri çekilip dönen hisse → Uzun vade AL (kapanıştan sonra mesaj). 2 gün üst üste 200 günlük ortalamanın altında kapanırsa Uzun vade SAT (portföyündekiler için). Günlük AL/SAT'tan bağımsız, daha yavaş (3-4 ay).
+- **🚩 Bayrak:** Boğa bayrağı kırılımı olan AL'lerde bilgi etiketi.
 - **Fiyat alarmı:** Hisseye tıkla → 🔔 Fiyat alarmı → fiyatı yaz → "Üstüne çıkınca" ya da "Altına inince". Fiyat oraya gelince Telegram'a bir kez mesaj gelir (Telegram'a bağlı cihazda kurulmalı).
 - **Haftalık özet:** Cuma kapanıştan sonra: haftanın AL'leri, canlı karne, portföyün haftalık değişimi.
 - **Günlük portföy özeti:** Hafta içi kapanıştan sonra (18:30+) bir kez. Sektör dağılımı ve tek sektöre yoğunlaşma uyarısı dahil. Her hisse için sinyal, K/Z, çıkış ve hedefler, dikkat notları (stop'a yakın, dirence yaklaşıyor, taban serisi).

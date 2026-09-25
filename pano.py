@@ -55,6 +55,11 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None):
             sdrz += f' <span class="patlakb" title="Son 15 günde {s.get("taban15")} kez ~%10 düştü (taban serisi)">⚠ taban serisi</span>'
         if s.get("arz"):
             sdrz += ' <span class="arzb" title="Son 12 ayın halka arzı">ARZ</span>'
+        uv = s.get("uv") or {}
+        if uv.get("durum") == "AL":
+            sdrz += f' <span class="uvsb" title="Uzun vade AL: {uv.get("tarih")} tarihinden beri">🌱 UV</span>'
+        if s.get("bayrak"):
+            sdrz += f' <span class="bayrakb" title="Boğa bayrağı kırılımı (direk %{s["bayrak"]["direk"]}, {s["bayrak"]["bayrak_gun"]} günlük bayrak)">🚩</span>'
         lot = s.get("lot")
         lott = f"{lot}" if (lot and s["sinyal"] == "AL") else "—"
         nk = s.get("notr_kaynak") if s["sinyal"] == "NÖTR" else None
@@ -89,7 +94,7 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None):
             "spark": s.get("spark", {}),
             "al_stop": s.get("al_stop"), "al_tarih": s.get("al_tarih"), "hacim_kat": s.get("hacim_kat"),
             "hacim_teyit": bool(s.get("hacim_teyit")), "taban15": s.get("taban15"), "patlak": bool(s.get("patlak")),
-            "arz": s.get("arz"), "sektor": s.get("sektor"), "endustri": s.get("endustri"), "mom20": s.get("mom20"),
+            "arz": s.get("arz"), "sektor": s.get("sektor"), "endustri": s.get("endustri"), "mom20": s.get("mom20"), "uv": s.get("uv"), "bayrak": s.get("bayrak"),
         }
 
     banner = ""
@@ -220,6 +225,9 @@ tbody tr:hover{background:#F2F5F3}
 .uvb{background:#E8EEF7;color:#28507A;font-size:9.5px;font-weight:700;padding:2px 5px;border-radius:5px;margin-left:5px}
 .alkutu{margin-top:14px;border:1px solid var(--line);border-radius:10px;padding:10px 13px;background:#FCFCFB}
 .alsat{font-size:13px;margin:3px 0;display:flex;align-items:center;gap:8px}
+.uvsb{background:#E4F2E9;color:#14633A;font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:5px;margin-left:5px;white-space:nowrap}
+.bayrakb{font-size:11px;margin-left:4px}
+.uvkutu{margin:0 0 14px;border:1px solid #CFE3D6;background:#F4FAF6;border-radius:10px;padding:10px 14px;font-size:13px;line-height:1.55}
 .pfbulut{font-size:12px;color:var(--muted);margin:-2px 0 8px}.pfbulut a{color:var(--accent);font-weight:600}
 .pfbulut.ok{color:var(--pos)}.pfbulut.hata{color:var(--neg)}.pfduz{color:var(--accent)!important}
 .kurlist{margin:8px 0;padding-left:20px;font-size:12.5px}.kurlist li{margin:3px 0}.pfform input:disabled{background:#F1F1EE}
@@ -307,6 +315,7 @@ __ARZ__
 <div class="aciklama">
 <div class="kart"><h3>AL / AL+ / NÖTR / SAT</h3><p>Trend, ortalama dizilimi, MACD kesişimi ve RSI momentumundan bir puan. <b>★ AL+</b>: teknik AL ile birlikte F/K ve PD/DD de grup medyanının altında.</p></div>
 <div class="kart"><h3>📈 hacim · ⏳ 1. gün · ⚠ taban serisi</h3><p><b>📈 hacim</b>: AL günü işlem hacmi son 20 günün 1,5 katından fazla — ilgi arttığını gösterir; ama backtest'te tek başına belirgin bir üstünlük sağlamadı, bilgi amaçlıdır. <b>⏳ 1. gün</b>: SAT'ın ilk günü; tek günlük yanlış alarm olabilir, teyit için yarını bekle. <b>⚠ taban serisi</b>: son 15 günde 4+ kez ~%10 düştü (fon krizi tipi çöküş) — bu hisselerden AL mesajı gönderilmez.</p></div>
+<div class="kart"><h3>🌱 Uzun vade sinyali · 🚩 Bayrak</h3><p><b>🌱 UV AL</b>: yükselen trendde (fiyat 200 günlük ortalamanın üstünde ve o yükseliyor) 50 günlük ortalamaya geri çekilip dönen hisse. 2 gün üst üste 200 günlük ortalamanın altında kapanırsa SAT. Günlük sinyalden yavaş, 3-4 ay tutuş; backtest'te düşük faiz döneminde isabet %65. <b>🚩</b>: boğa bayrağı kırılımı (bilgi amaçlı).</p></div>
 <div class="kart"><h3>Piyasa filtresi</h3><p>BIST 100, 50 günlük ortalamasının altındaysa üstte "Piyasa zayıf" uyarısı çıkar. 5 yıllık backtest'te bu dönemlerde gelen AL'ler belirgin şekilde daha kötü sonuç verdi.</p></div>
 <div class="kart"><h3>Çıkış ve hedef (portföyün)</h3><p><b>📍 Çıkış (stop)</b>: fiyat bunun altına inerse sistemin kuralı "çık" der. <b>🎯 1. hedef</b>: en yakın direnç — geçmişte satış gelen tepe. <b>🎯 2. hedef</b>: risk/ödül 2:1 (maliyetinden stop'a olan mesafenin 2 katı yukarısı). Hedefler satış emri değil, izleme noktasıdır: 5 yıllık backtest'te hedefte kısmi satış, SAT/stop'a kadar tutmaktan belirgin şekilde kötü sonuç verdi.</p></div>
 <div class="kart"><h3>NÖTR: sarı mı turuncu mu?</h3><p><span class="pill notr notr-al">NÖTR</span> <b>Sarı = AL'den döndü.</b> Elindeyse tut; SAT gelirse ya da stop yerse çık. Yeni alım yapma.<br><span class="pill notr notr-sat">NÖTR</span> <b>Turuncu = SAT'tan döndü.</b> Düşüş yavaşladı ama henüz alım sinyali değil; AL'i bekle. (5 yıllık backtest: NÖTR'de satmak ya da turuncuda almak, beklemekten kötü sonuç verdi.)</p></div>
@@ -456,6 +465,16 @@ function pozHtml(k,d){
   :'Kural: SAT 2 gün üst üste gelirse ya da fiyat çıkış seviyesinin altına inerse çık.';
  return h+'<div class="pk">'+kural+'</div></div>';
 }
+function uvHtml(d){
+ var u=d.uv;if(!u)return '';
+ var h='<div class="uvkutu">🌱 <b>Uzun vade sinyali: ';
+ if(u.durum==='AL')h+='AL</b> — '+u.tarih+' tarihinden beri ('+u.gun+' işlem günü, '+(u.degisim>=0?'+':'')+u.degisim+'%). Yükselen trendde 50 günlük ortalamaya geri çekilip dönmüştü. Çıkış: 2 gün üst üste 200 günlük ortalamanın ('+u.sma200+' TL) altında kapanış.';
+ else if(u.durum==='SAT')h+='SAT</b> — '+u.tarih+' tarihinde fiyat 200 günlük ortalamanın altına indi; uzun vadeli trend bozuk (200 günlük ort. '+u.sma200+' TL).';
+ else h+='yok</b>.';
+ if(u.durum!=='AL'&&u.trend)h+=' Trend yükselişte; uzun vade AL için 50 günlük ortalamaya ('+u.sma50+' TL) geri çekilme bekleniyor.';
+ if(d.bayrak)h+='<div class="cikis">🚩 <b>Bayrak kırılımı:</b> %'+d.bayrak.direk+' direkten sonra '+d.bayrak.bayrak_gun+' günlük bayrak yukarı kırıldı (bayrak dibi '+d.bayrak.bayrak_dip+' TL).</div>';
+ return h+'</div>';
+}
 function arzHtml(d){
  var z=d.arz;if(!z)return '';
  var g=z.getiri==null?'':' · arzdan beri <b class="'+(z.getiri>=0?'pos':'neg')+'">'+(z.getiri>=0?'+':'')+z.getiri+'%</b>';
@@ -498,7 +517,7 @@ function ac(k){
    (d.sektor?' <span class="sektorb">'+d.sektor+(d.endustri&&d.endustri!==d.sektor?' · '+d.endustri:'')+'</span>':'')+'</div>'+
  zaman+
  (d.patlak?'<div class="patlakkutu">⚠ <b>Taban serisi:</b> son 15 günde '+d.taban15+' kez ~%10 düştü. Fon krizi tipi çöküş olabilir; bu hisseden AL mesajı gönderilmez.</div>':'')+
- pozHtml(k,d)+arzHtml(d)+
+ pozHtml(k,d)+arzHtml(d)+uvHtml(d)+
  '<div class="grafik">'+grafik(d.spark,d.sd)+'<div class="leg"><span class="c1">Fiyat</span><span class="c2">SMA20</span><span class="c3">SMA50</span><span class="c4">SuperTrend</span>'+
    (d.sd&&d.sd.destek?'<span class="c5">Destek</span>':'')+(d.sd&&d.sd.direnc?'<span class="c6">Direnç</span>':'')+
    '<span style="color:#1B7F4B">▲ AL</span><span style="color:#B4362E">▼ SAT</span></div></div>'+

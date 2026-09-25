@@ -79,7 +79,7 @@ MIN_GUN = 60      # sinyal için gereken en az işlem günü (sinyal.analiz_et)
 def veri_cek(kodlar):
     tickers = [k + ".IS" for k in kodlar] + [ENDEKS + ".IS"]
     print(f"{len(tickers)} hisse indiriliyor...")
-    return yf.download(tickers, period="1y", interval="1d", group_by="ticker",
+    return yf.download(tickers, period="2y", interval="1d", group_by="ticker",   # 2 yıl: SMA200 tabanlı uzun vade sinyali için
                        auto_adjust=True, progress=False, threads=True)
 
 
@@ -426,6 +426,11 @@ def plan_metni(s, p, girinti="     "):
     t = [f"Senin pozisyonun{' (uzun vade)' if pl['uzun'] else ''}: {pl['adet']:g} adet, maliyet {pl['maliyet']:.2f} → "
          f"şu an {_yz(pl['kz_y'])} ({_tl(pl['kz'])})"]
     if pl["uzun"]:
+        uv = s.get("uv") or {}
+        if uv.get("durum") == "AL":
+            t.append(f"🌱 Uzun vade sinyali: AL ({uv['tarih']}'den beri {_yz(uv['degisim'])}) — trend sağlam.")
+        elif uv.get("durum") == "SAT":
+            t.append(f"🌱 Uzun vade sinyali: SAT ({uv['tarih']}) — fiyat 200 günlük ortalamanın ({uv['sma200']} TL) altında; uzun vadeli trend bozuk.")
         if pl["sat"]:
             t.append("ℹ️ Kısa vadede trend aşağı (SAT) — uzun vade pozisyonun için bilgi.")
         if pl.get("karar"):
@@ -465,6 +470,10 @@ def _al_satiri(s, pf):
     isaret = "❗" if s["kod"] in pf else "🟢"
     y = " ★AL+" if s["guclu"] else ""
     h = f" 📈hacim {s['hacim_kat']}x" if s.get("hacim_teyit") else ""
+    if s.get("bayrak"):
+        h += f" 🚩bayrak (direk %{s['bayrak']['direk']})"
+    if (s.get("uv") or {}).get("durum") == "AL":
+        h += " 🌱UV"
     fk = f"F/K {s['fk']}" if s.get("fk") else "F/K —"
     lot = f", öneri {s['lot']} lot" if s.get("lot") else ""
     m = f", 20 günde {_yz(s['mom20'])}" if s.get("mom20") is not None else ""
@@ -472,6 +481,25 @@ def _al_satiri(s, pf):
     if s["kod"] in pf:
         t += "\n     " + plan_metni(s, pf[s["kod"]])
     return t
+
+
+def uv_mesaji(uv_al, uv_sat, pf):
+    """🌱 Uzun vade sinyal değişimleri (kapanış sonrası): yeni AL'ler (tümü), SAT'lar (portföydekiler)."""
+    parca = [f"🌱 <b>Uzun vade sinyali</b> — {pd.Timestamp.now(tz='Europe/Istanbul').strftime('%d.%m.%Y')}"]
+    if uv_al:
+        satir = []
+        for s in sorted(uv_al, key=lambda x: (x["kod"] not in pf, x["kod"])):
+            isaret = "❗" if s["kod"] in pf else "🌱"
+            satir.append(f"{isaret} <b>{s['kod']}</b> {s['fiyat']} TL — yükselen trendde 50 günlük ortalamaya ({s['uv']['sma50']}) "
+                         f"geri çekilip döndü. Çıkış: 2 gün üst üste 200 günlük ortalamanın ({s['uv']['sma200']}) altında kapanış.")
+        parca.append(f"<b>Uzun vade AL ({len(uv_al)})</b>\n" + "\n".join(satir))
+    if uv_sat:
+        satir = [f"❗ <b>{s['kod']}</b> {s['fiyat']} TL — 2 gündür 200 günlük ortalamanın ({s['uv']['sma200']}) altında: uzun vadeli trend bozuldu."
+                 for s in uv_sat]
+        parca.append("<b>Portföyünde uzun vade SAT</b>\n" + "\n".join(satir))
+    parca.append(f"<a href=\"{PANO_URL}\">Panoyu aç</a>\n<i>Backtest: düşük faiz döneminde işlem başı endekse göre +%10.7, isabet %65 "
+                 f"(ortalama 3-4 ay tutuş). Yatırım tavsiyesi değildir.</i>")
+    return "\n\n".join(parca)
 
 
 def telegram_mesaji(yeni_al, yeni_sat, sat_teyit, pf, uyari, piyasa=None, karar_kirilan=None, on_kapanis=False, iptal=None):
@@ -824,6 +852,27 @@ def main():
         print("Yeni AL / portföyde SAT yok, Telegram sessiz." if kapanis_sonrasi
               else "Gün içi tarama: AL/SAT mesajları kapanış sonrası taramada gönderilir.")
 
+    # 🌱 Uzun vade sinyali: sadece kesin kapanışla (18:30+) değerlendirilir; ilk çalışmada sessiz başlangıç kaydı
+    uv_son = dict(durum.get("uv_son", {}))
+    if kapanis_zamani:
+        uv_ilk = "uv_son" not in durum
+        uv_al, uv_sat = [], []
+        for s in sonuclar:
+            u = (s.get("uv") or {}).get("durum")
+            if not u:
+                continue
+            onceki = uv_son.get(s["kod"])
+            uv_son[s["kod"]] = u
+            if uv_ilk or onceki is None or onceki == u:
+                continue
+            if u == "AL" and not s.get("patlak"):
+                uv_al.append(s)
+            elif u == "SAT" and s["kod"] in pf:
+                uv_sat.append(s)
+        if uv_al or uv_sat:
+            print(f"Telegram: {len(uv_al)} uzun vade AL, {len(uv_sat)} portföy uzun vade SAT.")
+            tg_gonder(uv_mesaji(uv_al, uv_sat, pf))
+
     # Fiyat alarmları: her taramada (gün içi de) kontrol edilir, her alarm bir kez çalar
     tetiklenen = set(durum.get("alarm_tetik", []))
     alarm_yeni = alarm_kontrol(alarmlari_yukle(), by_kod, tetiklenen)
@@ -851,7 +900,8 @@ def main():
         json.dump({"al": sorted(s["kod"] for s in bugun_al), "son": dict(sorted(son.items())),
                    "sat_teyit": dict(sorted(teyit.items())), "ozet_tarih": ozet_tarih, "hafta_tarih": hafta_tarih,
                    "karar_kirilim": dict(sorted(kirilim.items())), "karar_cizgisi": dict(sorted(karar_kayit.items())),
-                   "alarm_tetik": sorted(tetiklenen), "on_sinyal": dict(sorted(on_sinyal.items()))},
+                   "alarm_tetik": sorted(tetiklenen), "on_sinyal": dict(sorted(on_sinyal.items())),
+                   "uv_son": dict(sorted(uv_son.items()))},
                   f, ensure_ascii=False, indent=2)
 
 
