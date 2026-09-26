@@ -4,8 +4,9 @@
     "AHGAZ",
     "ENERY",
     "ISDMR",
+    "KRDMD",
     "TKFEN",
-    "TOASO"
+    "TUPRS"
   ],
   "son": {
     "AAGYO": "SAT",
@@ -156,17 +157,16 @@
     "ZGYO": "SAT",
     "ZOREN": "SAT"
   },
-  "sat_teyit": {
-    "EREGL": "2026-09-24",
-    "FROTO": "2026-09-16",
-    "PGSUS": "2026-09-23",
-    "SASA": "2026-09-18",
-    "THYAO": "2026-09-14"
-  },
+  "iz_kirilim_g": [],
   "ozet_tarih": "2026-09-25",
   "hafta_tarih": "2026-09-25",
-  "karar_kirilim": {},
-  "karar_cizgisi": {},
+  "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {}
+  "on_sinyal": {},
+  "uv_son": {},
+  "kap_son": 1668368,
+  "tk_gonderilen": {
+    "tarih": "2026-09-26",
+    "kodlar": []
+  }
 }

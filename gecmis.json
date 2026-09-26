@@ -4,109 +4,121 @@
       "kod": "AGHOL",
       "giris_tarih": "2026-09-24",
       "giris_fiyat": 34.38,
-      "stop": 31.63,
+      "stop": 27.5,
       "durum": "açık",
-      "guncel": 34.0,
-      "anlik": -1.1
+      "guncel": 34.1,
+      "anlik": -0.8,
+      "tepe": 34.38
     },
     {
       "kod": "TKFEN",
       "giris_tarih": "2026-09-24",
       "giris_fiyat": 273.5,
-      "stop": 251.62,
+      "stop": 219.2,
       "durum": "açık",
-      "guncel": 277.5,
-      "anlik": 1.5
+      "guncel": 274.0,
+      "anlik": 0.2,
+      "tepe": 274.0
     },
     {
       "kod": "TUPRS",
       "giris_tarih": "2026-09-24",
       "giris_fiyat": 411.5,
-      "stop": 388.5,
+      "stop": 329.2,
       "durum": "açık",
-      "guncel": 406.0,
-      "anlik": -1.3
+      "guncel": 410.75,
+      "anlik": -0.2,
+      "tepe": 411.5
     },
     {
       "kod": "KRDMD",
       "giris_tarih": "2026-09-24",
       "giris_fiyat": 46.2,
-      "stop": 42.5,
+      "stop": 36.96,
       "durum": "açık",
-      "guncel": 46.96,
-      "anlik": 1.6
+      "guncel": 46.2,
+      "anlik": 0.0,
+      "tepe": 46.2
     },
     {
       "kod": "EGEEN",
       "giris_tarih": "2026-09-25",
       "giris_fiyat": 5827.5,
-      "stop": 5361.3,
+      "stop": 4662.0,
       "durum": "açık",
-      "guncel": 5657.5,
-      "anlik": -2.9
+      "guncel": 5712.5,
+      "anlik": -2.0,
+      "tepe": 5827.5
     },
     {
       "kod": "TUKAS",
       "giris_tarih": "2026-09-25",
       "giris_fiyat": 2.36,
-      "stop": 2.17,
+      "stop": 1.89,
       "durum": "açık",
-      "guncel": 2.29,
-      "anlik": -3.0
+      "guncel": 2.33,
+      "anlik": -1.3,
+      "tepe": 2.36
     },
     {
       "kod": "AHGAZ",
       "giris_tarih": "2026-09-25",
       "giris_fiyat": 44.34,
-      "stop": 40.79,
+      "stop": 35.47,
       "durum": "açık",
-      "guncel": 44.26,
-      "anlik": -0.2
+      "guncel": 44.24,
+      "anlik": -0.2,
+      "tepe": 44.34
     },
     {
       "kod": "ENERY",
       "giris_tarih": "2026-09-25",
       "giris_fiyat": 13.36,
-      "stop": 12.29,
+      "stop": 10.69,
       "durum": "açık",
-      "guncel": 13.51,
-      "anlik": 1.1
+      "guncel": 13.04,
+      "anlik": -2.4,
+      "tepe": 13.36
     },
     {
       "kod": "ISDMR",
       "giris_tarih": "2026-09-25",
       "giris_fiyat": 62.5,
-      "stop": 57.5,
+      "stop": 50.0,
       "durum": "açık",
-      "guncel": 63.45,
-      "anlik": 1.5
+      "guncel": 62.45,
+      "anlik": -0.1,
+      "tepe": 62.5
     },
     {
       "kod": "SOKM",
       "giris_tarih": "2026-09-25",
       "giris_fiyat": 58.2,
-      "stop": 55.4,
+      "stop": 46.56,
       "durum": "açık",
-      "guncel": 57.25,
-      "anlik": -1.6
+      "guncel": 57.5,
+      "anlik": -1.2,
+      "tepe": 58.2
     },
     {
       "kod": "TOASO",
       "giris_tarih": "2026-09-25",
       "giris_fiyat": 290.25,
-      "stop": 267.03,
+      "stop": 232.2,
       "durum": "açık",
-      "guncel": 290.0,
-      "anlik": -0.1
+      "guncel": 279.5,
+      "anlik": -3.7,
+      "tepe": 290.25
     },
     {
       "kod": "BIMAS",
       "giris_tarih": "2026-09-25",
       "giris_fiyat": 429.0,
-      "stop": 403.06,
+      "stop": 343.2,
       "durum": "açık",
-      "guncel": 424.75,
-      "anlik": -1.0
+      "guncel": 422.75,
+      "anlik": -1.5,
+      "tepe": 429.0
     }
   ]
 }
