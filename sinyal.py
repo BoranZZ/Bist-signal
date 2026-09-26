@@ -475,6 +475,50 @@ def trend_tuzagi(d, son_gun=5):
     return None
 
 
+def guc_puani(d):
+    """💪 Güç puanı (0-7): gece testlerinde tek başına iyi çıkan 7 göstergeden kaçı şu an olumlu. Olay çalışması (2022-26,
+    125 ve 586 hisse): puan arttıkça SONRAKİ ~20 GÜNDE endekse göre getiri artıyor (iki faiz döneminde de; 7/7 ≈ +%2-6,
+    0/7 ≈ −%1…+%1); 60 günde tutarsız (düşük faizde tersine dönüyor) ve v3 AL'lerini seçmeye yaramıyor → kısa vadeli
+    güç BİLGİSİ, alım sinyali değil."""
+    c = d["Close"]
+    if len(c) < 60:
+        return None
+    hl = "High" in d and "Low" in d and d["High"].notna().any()
+    h = d["High"] if hl else c
+    l = d["Low"] if hl else c
+    v = d["Volume"].replace(0, np.nan) if "Volume" in d else None
+    son = lambda s: None if pd.isna(s.iloc[-1]) else s.iloc[-1]
+    tenkan = (h.rolling(9).max() + l.rolling(9).min()) / 2
+    kijun = (h.rolling(26).max() + l.rolling(26).min()) / 2
+    bulut = pd.concat([((tenkan + kijun) / 2).shift(26), ((h.rolling(52).max() + l.rolling(52).min()) / 2).shift(26)], axis=1).max(axis=1)
+    tr = pd.concat([h - l, (h - c.shift()).abs(), (l - c.shift()).abs()], axis=1).max(axis=1)
+    yuk, dus = h.diff(), -l.diff()
+    atr = tr.ewm(alpha=1 / 14, adjust=False).mean()
+    pdi = 100 * pd.Series(np.where((yuk > dus) & (yuk > 0), yuk, 0.0), index=c.index).ewm(alpha=1 / 14, adjust=False).mean() / atr
+    ndi = 100 * pd.Series(np.where((dus > yuk) & (dus > 0), dus, 0.0), index=c.index).ewm(alpha=1 / 14, adjust=False).mean() / atr
+    cmf = None
+    if v is not None and hl:
+        mfm = ((c - l) - (h - c)) / (h - l).replace(0, np.nan)
+        cmf = son((mfm * v).rolling(20).sum() / v.rolling(20).sum())
+    e10, e30 = ema(c, 10).iloc[-1], ema(c, 30).iloc[-1]
+    zir55 = c.tail(55).max()
+    adx_s, rsi_s = son(d["ADX"]) if "ADX" in d else None, son(d["RSI"]) if "RSI" in d else None
+    ogeler = [
+        ("Trend şablonu", bool(trend_sablonu(d).iloc[-1]), "fiyat 50/150/200 günlük ortalamaların üstünde ve sıralı, 52 hafta zirvesine yakın"),
+        ("Ichimoku", None if pd.isna(bulut.iloc[-1]) else bool(c.iloc[-1] > bulut.iloc[-1] and tenkan.iloc[-1] > kijun.iloc[-1]),
+         "fiyat bulutun üstünde ve kısa çizgi uzun çizginin üstünde"),
+        ("55 gün zirve bölgesi", bool(c.iloc[-1] >= 0.97 * zir55), f"fiyat son 55 günün zirvesine %3'ten yakın (zirve {zir55:.2f})"),
+        ("Para akışı (CMF)", None if cmf is None else bool(cmf > 0.05), "son 20 günde kapanışlar günün üst tarafında ve hacimle: para giriyor"
+         + ("" if cmf is None else f" (CMF {cmf:+.2f})")),
+        ("ADX yön", None if adx_s is None or pd.isna(pdi.iloc[-1]) else bool(adx_s > 25 and pdi.iloc[-1] > ndi.iloc[-1]),
+         "güçlü trend var (ADX > 25) ve yön yukarı" + ("" if adx_s is None else f" (ADX {adx_s:.0f})")),
+        ("EMA 10/30", bool(e10 > e30), "kısa vadeli ortalama (10 gün) uzun olanın (30 gün) üstünde"),
+        ("RSI 50", None if rsi_s is None else bool(rsi_s > 50), "RSI 50'nin üstünde: alıcılar baskın" + ("" if rsi_s is None else f" (RSI {rsi_s:.0f})")),
+    ]
+    detay = [{"ad": a, "durum": x, "aciklama": t} for a, x, t in ogeler]
+    return {"puan": sum(1 for x in detay if x["durum"]), "toplam": len(detay), "detay": detay}
+
+
 def analiz_et(df, xu_ust=None):
     df = bolunme_duzelt(df)
     c = df["Close"].dropna()
@@ -590,6 +634,9 @@ def analiz_et(df, xu_ust=None):
         "mom20": mom20,
         "uv": uzun_vade(d),
         "tk": tk,
+        "guc": guc_puani(d),
+        "mom6": round((float(d["Close"].iloc[-22]) / float(d["Close"].iloc[-127]) - 1) * 100, 1) if len(d) > 127 else None,
+        "s200_ust": bool(len(d) > 200 and not pd.isna(d["SMA200"].iloc[-1]) and fiyat > d["SMA200"].iloc[-1]),
         "bolunme": (df.attrs.get("bolunme") or [None])[-1],   # son (kaydedilmemiş) bedelsiz/bölünme tarihi
         "bayrak": bayrak_kirilimi(df),
         "patlak": taban >= PATLAK_TABAN,

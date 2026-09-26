@@ -62,7 +62,25 @@ PANO_URL = "https://boranzz.github.io/Bist-signal/"
 # Telegram: tüm hisselerde yeni AL; SAT sadece portföydekiler (PORTFOY variable'ı, panodan otomatik yazılır).
 # ============================================
 
-KODLAR = sorted(set(BIST100 + EK_HISSELER + list(HALKA_ARZ)))
+# Küçük/orta hisseler (2026-09): BIST100/EK dışında, son 60 gün medyan günlük işlem ≥ 50 milyon TL (KAP kod listesi +
+# yfinance). Tahtacı uyarıları (🎈 ⚠️ 🪤) bunlarda da görünsün diye. 3 ayda bir güncelle.
+KUCUK_HISSELER = [
+    "A1CAP", "ADEL", "ADESE", "AKENR", "AKFIS", "AKGRT", "AKSUE", "ALCTL", "ALGYO", "ALKLC", "ALVES", "ANELE", "ARDYZ",
+    "ARMGD", "ARSAN", "ATATP", "AVHOL", "AYDEM", "BAHKM", "BALSU", "BIGEN", "BIGTK", "BIOEN", "BJKAS", "BLUME", "BMSTL",
+    "BOBET", "BORLS", "BRLSM", "BTCIM", "BULGS", "BURCE", "BVSAN", "CATES", "CELHA", "CEMZY", "CGCAM", "CRDFA", "CRFSA",
+    "DAGI", "DAPGM", "DCTTR", "DITAS", "DMRGD", "DSTKF", "EDATA", "EFOR", "EGEGY", "EGEPO", "EMKEL", "ENDAE", "ENSRI",
+    "ESCAR", "ESCOM", "ESEN", "FONET", "FORTE", "FRIGO", "FZLGY", "GENIL", "GEREL", "GIPTA", "GMTAS", "GOKNR", "GRTHO",
+    "GSDDE", "GSDHO", "GSRAY", "GUNDG", "GZNMI", "HATSN", "HDFGS", "HEDEF", "HKTM", "HLGYO", "HOROZ", "HRKET", "HUNER",
+    "HURGZ", "ICUGS", "IEYHO", "IHAAS", "IHLAS", "INDES", "INFO", "ISGSY", "ISKPL", "IZFAS", "IZMDC", "KAREL", "KARTN",
+    "KBORU", "KGYO", "KLRHO", "KLYPV", "KOCMT", "KOPOL", "KRDMA", "KRDMB", "KTLEV", "KUYAS", "KZBGY", "LIDER", "LILAK",
+    "LINK", "LOGO", "LYDHO", "MAGEN", "MANAS", "MARTI", "MEGMT", "MERCN", "METRO", "MIATK", "MOBTL", "MOGAN", "MOPAS",
+    "MRGYO", "MRSHL", "NTHOL", "ODINE", "OFSYM", "ONCSM", "ONRYT", "ORGE", "OZATD", "OZSUB", "PASEU", "PATEK", "PCILT",
+    "PEKGY", "PKART", "PRZMA", "PSGYO", "RALYH", "RTALB", "RUBNS", "RYGYO", "SAFKR", "SANFM", "SARKY", "SAYAS", "SEGMN",
+    "SELEC", "SMRTG", "SMRVA", "SUNTK", "SURGY", "TARKM", "TATEN", "TEHOL", "TERA", "TGSAS", "TMPOL", "TNZTP", "TRHOL",
+    "TSPOR", "TUREX", "ULUSE", "USAK", "VBTYZ", "VSNMD", "YIGIT",
+]
+
+KODLAR = sorted(set(BIST100 + EK_HISSELER + KUCUK_HISSELER + list(HALKA_ARZ)))
 DURUM = "durum.json"
 ORAN_CACHE = "oranlar.json"
 ENDEKS = "XU100"
@@ -628,6 +646,35 @@ def _al_satiri(s, pf):
     return t
 
 
+MOMENTUM_PAY = 0.20   # aylık momentum listesi: taranan hisselerin en güçlü %20'si
+
+
+def momentum_listesi(sonuclar):
+    """📈 Ayın güçlüleri: 6 aylık getiri (son ay hariç) sıralamasında ilk %20, sadece fiyatı 200 günlük ortalamanın
+    üstündekiler. Gece testi (2022-26): her ay bu listeyi tutmak yüksek faizde çok güçlü, düşük faizde BIST100 gerisinde;
+    v3 ile yarı yarıya 4 yılda +%717 / maks düşüş −%21 (v3 tek başına +%562 / −%25). Bilgi, AL sinyali değil."""
+    tum = [s for s in sonuclar if s.get("mom6") is not None]
+    n = max(1, int(len(tum) * MOMENTUM_PAY))
+    aday = sorted((s for s in tum if s.get("s200_ust")), key=lambda s: -s["mom6"])
+    return [s["kod"] for s in aday[:n]]
+
+
+def momentum_mesaji(kodlar, by, ay, piyasa=None, onceki=None):
+    onceki = set(onceki or [])
+    satir = [f"{i}. <b>{k}</b> (6 ayda {_yz(by[k]['mom6'])})" + (" 🆕" if onceki and k not in onceki else "")
+             for i, k in enumerate(kodlar[:25], 1) if k in by]
+    parca = [f"📈 <b>Ayın güçlüleri — {ay}</b> (son 6 ayın en güçlü %{int(MOMENTUM_PAY * 100)}'si, {len(kodlar)} hisse)",
+             "\n".join(satir) + (f"\n…ve {len(kodlar) - 25} hisse daha (panoda 📈)" if len(kodlar) > 25 else "")]
+    cikan = sorted(onceki - set(kodlar))
+    if cikan:
+        parca.append("Listeden çıkanlar: " + ", ".join(cikan[:30]))
+    if piyasa and piyasa.get("zayif"):
+        parca.append("⚠️ Piyasa zayıf: testte bu durumda liste alınmadı (nakitte beklendi).")
+    parca.append("<i>Bilgi amaçlı, AL sinyali değil. Testte ayda bir bu listeyi tutmak yüksek faiz döneminde çok iyi, düşük faiz "
+                 "döneminde endeksin gerisindeydi. Yatırım tavsiyesi değildir.</i>")
+    return "\n\n".join(parca)
+
+
 def uv_mesaji(uv_al, uv_sat, pf):
     """🌱 Uzun vade sinyal değişimleri (kapanış sonrası): yeni AL'ler (tümü), SAT'lar (portföydekiler)."""
     parca = [f"🌱 <b>Uzun vade sinyali</b> — {pd.Timestamp.now(tz='Europe/Istanbul').strftime('%d.%m.%Y')}"]
@@ -1035,6 +1082,17 @@ def main():
                  f"birkaçına odaklan, aşırı işlem komisyonda eritir.")
 
 
+    # 📈 Ayın güçlüleri: ayın ilk kesin kapanış taramasında yeni liste + Telegram (ilk çalışmada sessiz)
+    mom = dict(durum.get("mom_ay") or {})
+    ay = simdi.strftime("%Y-%m")
+    if kapanis_zamani and simdi.weekday() < 5 and mom.get("ay") != ay:
+        yeni_liste = momentum_listesi(sonuclar)
+        if mom and tg_gonder(momentum_mesaji(yeni_liste, by_kod, simdi.strftime("%m.%Y"), piyasa, mom.get("kodlar"))):
+            print(f"Telegram: ayın güçlüleri ({len(yeni_liste)} hisse).")
+        mom = {"ay": ay, "kodlar": yeni_liste}
+    for s in sonuclar:
+        s["momentum"] = s["kod"] in set(mom.get("kodlar") or [])
+
     # Sinyal geçmişi (canlı karne): yeni AL'leri kaydet, açıkları stop/SAT ile kapat
     acik, kapali, karne = gecmis_guncelle(by_kod, bugun_iso, piyasa, kapanis_zamani)
     with open("gecmis.html", "w", encoding="utf-8") as f:
@@ -1119,7 +1177,7 @@ def main():
                    "karar_kirilim_g": sorted(kirilim),
                    "alarm_tetik": sorted(tetiklenen), "on_sinyal": dict(sorted(on_sinyal.items())),
                    "uv_son": dict(sorted(uv_son.items())), "kap_son": kap_son,
-                   "tk_gonderilen": {"tarih": bugun_iso, "kodlar": sorted(tk_gonderilen)}},
+                   "tk_gonderilen": {"tarih": bugun_iso, "kodlar": sorted(tk_gonderilen)}, "mom_ay": mom},
                   f, ensure_ascii=False, indent=2)
 
 

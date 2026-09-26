@@ -89,6 +89,15 @@ kapanışının %5+ altına döndü, %29'u +%20'ye ulaştı. Kırılımda alıp 
 sonrası 'dipten topla' sadece geriye bakınca iyi; gerçekçi limit emirle (kırılımın %5-15 altı) avantaj yok. → Sadece
 uyarı rozeti (son 5 gün), sinyal değil. Canlı fonksiyon olayları birebir buluyor (150/150).
 
+## Güç puanı, ayın güçlüleri, küçük hisseler, işaret sözlüğü (2026-09-26)
+- 💪 Güç (`sinyal.guc_puani`, 0-7): şablon, Ichimoku (bulut üstü + tenkan>kijun), 55g zirveye ≤%3, CMF>0.05, ADX>25 & +DI>-DI,
+  EMA10>EMA30, RSI>50. Test (bt/guc1.py; 125 ve 586 hisse): sonraki 20 günde endekse göre getiri puanla artıyor (iki faiz
+  döneminde); 60 günde düşük faizde ters; v3 girişlerini seçmiyor → tablo sütunu + modal, Telegram'a GİRMEZ.
+- 📈 Ayın güçlüleri (`tarama.momentum_listesi`): 6 ay getiri (son ay hariç) ilk %20, fiyat > SMA200. `durum.json` → `mom_ay`;
+  ayın ilk kesin kapanış taramasında Telegram listesi (ilk çalışma sessiz). Bilgi; gece testi: v3 ile yarı yarıya iyi.
+- `KUCUK_HISSELER`: BIST100/EK dışı, 60g medyan işlem ≥ 50 mn TL (163 hisse, KAP kod listesi) — tahtacı uyarıları görünsün diye.
+- Pano altında 'İşaretler ne demek?' sözlüğü (tüm rozetler tek yerde); eski tekrar eden 3 açıklama kartı kaldırıldı.
+
 ## Veri kalitesi: Yahoo günlük kapanışı yanlış / boş
 Yahoo'nun BIST günlük barlarında kapanış çoğu zaman resmi kapanıştan farklı (Eylül 2026: günlerin ~%30'unda >%0,3; THYAO
 24.09 günlük 288,5, resmi 289,5) ve son günün kapanışı NaN geliyor (dropna ile önceki gün gösteriliyordu: THYAO 288,5 vs

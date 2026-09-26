@@ -86,6 +86,10 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None, 
             sdrz += f' <span class="bilb" title="Temettü hak kullanım: {tm["ex_tarih"]} — o sabah fiyat temettü kadar düşük açılır">💰 temettü</span>'
         if s.get("bayrak"):
             sdrz += f' <span class="bayrakb" title="Boğa bayrağı kırılımı (direk %{s["bayrak"]["direk"]}, {s["bayrak"]["bayrak_gun"]} günlük bayrak)">🚩</span>'
+        g = s.get("guc") or {}
+        gucs = f'<span class="gucb g{g["puan"]}">{g["puan"]}/{g["toplam"]}</span>' if g else "—"
+        if s.get("momentum"):
+            sdrz += ' <span class="momb" title="Ayın güçlüleri: son 6 ayın en güçlü %20&#39;si (bilgi, AL sinyali değil)">📈 ayın güçlüsü</span>'
         lot = s.get("lot")
         lott = f"{lot}" if (lot and s["sinyal"] == "AL") else "—"
         nk = s.get("notr_kaynak") if s["sinyal"] == "NÖTR" else None
@@ -103,6 +107,7 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None, 
             f'<td><span class="pill {RENK[s["sinyal"]]}{ncls}"{ntit}>{s["sinyal"]}</span>{yildiz}{yenirz}{sdrz}</td>'
             f'<td class="num sgun">{sgunt}</td>'
             f'<td class="num uyum">{s.get("uyum","—")}</td>'
+            f'<td class="num">{gucs}</td>'
             f'<td class="num">{s.get("rsi") if s.get("rsi") is not None else "—"}</td>'
             f'<td class="num">{s.get("fk") if s.get("fk") is not None else "—"}<span class="tag {fkm}">{ok[fkm]}</span></td>'
             f'<td class="num">{s.get("pddd") if s.get("pddd") is not None else "—"}<span class="tag {pdm}">{ok[pdm]}</span></td>'
@@ -123,7 +128,7 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None, 
             "spark": s.get("spark", {}),
             "al_stop": s.get("al_stop"), "al_tarih": s.get("al_tarih"), "hacim_kat": s.get("hacim_kat"),
             "hacim_teyit": bool(s.get("hacim_teyit")), "taban15": s.get("taban15"), "patlak": bool(s.get("patlak")), "tahta": s.get("tahta"), "tuzak": s.get("tuzak"),
-            "arz": s.get("arz"), "sektor": s.get("sektor"), "endustri": s.get("endustri"), "mom20": s.get("mom20"), "uv": s.get("uv"), "bayrak": s.get("bayrak"), "bilanco": s.get("bilanco"), "temettu": s.get("temettu"), "kap": s.get("kap"), "tk": s.get("tk"), "bolunme": s.get("bolunme"),
+            "arz": s.get("arz"), "sektor": s.get("sektor"), "endustri": s.get("endustri"), "mom20": s.get("mom20"), "uv": s.get("uv"), "bayrak": s.get("bayrak"), "bilanco": s.get("bilanco"), "temettu": s.get("temettu"), "kap": s.get("kap"), "tk": s.get("tk"), "guc": s.get("guc"), "momentum": bool(s.get("momentum")), "mom6": s.get("mom6"), "bolunme": s.get("bolunme"),
         }
 
     banner = ""
@@ -255,6 +260,10 @@ tbody tr:hover{background:#F2F5F3}
 .uvb{background:#E8EEF7;color:#28507A;font-size:9.5px;font-weight:700;padding:2px 5px;border-radius:5px;margin-left:5px}
 .alkutu{margin-top:14px;border:1px solid var(--line);border-radius:10px;padding:10px 13px;background:#FCFCFB}
 .alsat{font-size:13px;margin:3px 0;display:flex;align-items:center;gap:8px}
+.momb{background:#E8F0FB;color:#1F4E8C;font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:5px;margin-left:5px;white-space:nowrap}
+.gucb{display:inline-block;min-width:30px;text-align:center;font-size:11px;font-weight:700;padding:2px 5px;border-radius:5px;background:#F1F1EE;color:#555}.gucb.g5,.gucb.g6,.gucb.g7{background:#E4F2E9;color:#14633A}.gucb.g0,.gucb.g1,.gucb.g2{background:#FBECEA;color:#8A2F26}
+.sozluk{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin:12px 0 18px}.szgrup{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 15px}.szgrup h3{margin:0 0 8px;font-size:13.5px}.sz{display:flex;gap:9px;align-items:baseline;font-size:12.6px;line-height:1.5;margin:0 0 7px;color:var(--muted)}.sz>span:first-child,.sz>b{flex:0 0 auto;min-width:112px;color:var(--ink)}.sz>span:first-child{margin-left:0}
+.guckutu .gs{display:flex;gap:8px;font-size:12.8px;line-height:1.5;margin:2px 0}.guckutu .gs b{min-width:150px}
 .tkb{background:#FFF1E0;color:#8A4B00;font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:5px;margin-left:5px;white-space:nowrap}.tkb.yeni{background:#8A4B00;color:#fff}.tkb.izle{background:#F3F3F1;color:#555}
 .bilb{background:#EEF1F8;color:#2F4A7A;font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:5px;margin-left:5px;white-space:nowrap}
 .bilkutu{margin:0 0 14px;border:1px solid var(--line);border-radius:10px;padding:10px 14px;font-size:13px;line-height:1.55}
@@ -345,13 +354,49 @@ __BANNER__
 </div>
 <div class="sar"><table id="t"><thead><tr>
 <th data-t="s">Hisse</th><th class="num" data-t="n">Fiyat</th><th class="num" data-t="n">Değişim</th><th data-t="s">Sinyal</th>
-<th class="num" data-t="n">Sinyalde</th><th class="num" data-t="n">Uyum</th><th class="num" data-t="n">RSI</th><th class="num" data-t="n">F/K</th><th class="num" data-t="n">PD/DD</th><th class="num" data-t="n">Stop</th><th class="num" data-t="n">Öneri lot</th>
+<th class="num" data-t="n">Sinyalde</th><th class="num" data-t="n">Uyum</th><th class="num" data-t="n" title="7 iyi göstergeden kaçı olumlu (kısa vadeli güç)">Güç</th><th class="num" data-t="n">RSI</th><th class="num" data-t="n">F/K</th><th class="num" data-t="n">PD/DD</th><th class="num" data-t="n">Stop</th><th class="num" data-t="n">Öneri lot</th>
 </tr></thead><tbody>__ROWS__</tbody></table></div>
 __ARZ__
+<h2 class="bolum">İşaretler ne demek? <span class="bolumalt">— tablodaki ve hisse penceresindeki tüm rozetler</span></h2>
+<div class="sozluk">
+<div class="szgrup"><h3>Alım sinyali (v3)</h3>
+<div class="sz"><span class="tkb yeni">🚀 KIRILIM</span><span>Bugün AL: hisse güçlü trenddeyken (fiyat 50/150/200 günlük ortalamaların üstünde, 52 hafta zirvesine yakın) son 20 günün zirvesini ilk kez aştı. Telegram'a gelen AL budur. Çıkış: tepe kapanışın %20 altı (iz stop).</span></div>
+<div class="sz"><span class="tkb">🚀 AL 3g önce</span><span>AL birkaç gün önce geldi. Testte ilk 5 gün içinde almak, sinyal günüyle neredeyse aynı sonucu verdi.</span></div>
+<div class="sz"><span class="tkb izle">trendde · 25g</span><span>Eski AL hâlâ sürüyor ama <b>yeni alım sinyali değil</b>: 20+ gün sonra girmek testte belirgin kötüydü. Elindeyse iz stop'a kadar tut.</span></div>
+<div class="sz"><span class="tkb izle">👀 kırılıma %2</span><span>Trend şablonunda, 20 günlük zirveye yakın: yakında AL gelebilir (bunların ~%76'sı 10 gün içinde kırıyor). Beklemeden almak ek fayda sağlamadı.</span></div>
+</div>
+<div class="szgrup"><h3>Uyarılar (dikkat)</h3>
+<div class="sz"><span class="patlakb">🎈 şişme</span><span>Tahtacı şişirmesi olabilir: kısa sürede çok tavan / fiyat ikiye katlandı / aşırı şişkin ve oynak. 20 günde %25+ çakılma olasılığı normalin 7-8 katı. AL mesajı gönderilmez.</span></div>
+<div class="sz"><span class="gun1b">⚠️ dağıtım</span><span>Hacim patlarken fiyat 10 günlük zirvenin %8+ altında: büyük satıcı malı dağıtıyor olabilir (çakılma olasılığı ~4 kat).</span></div>
+<div class="sz"><span class="gun1b">🪤 tuzak riski</span><span>Dipteki hisse düşen trendi %4+ yükselişle kırdı. Grafikte "AL" gibi görünür ama tüm borsada bu kırılımların %56'sı 15 günde geri düştü; kırılımda almak rastgele günden kötüydü.</span></div>
+<div class="sz"><span class="patlakb">⚠ taban serisi</span><span>Son 15 günde 4+ kez ~%10 düştü (fon krizi tipi çöküş). AL mesajı gönderilmez.</span></div>
+<div class="sz"><span class="patlakb">⚡ oynak</span><span>Son 60 günde günlük oynaklık %5'ten fazla (spekülatif). v3 AL vermez.</span></div>
+<div class="sz"><span class="sdb direnc">Dirence yaklaşıyor</span><span>Fiyat geçmişte satış gelen bir tepeye yakın.</span></div>
+<div class="sz"><span class="sdb destekzayif">Destekte (SAT sürüyor)</span><span>SAT sürerken desteğe geldi; bu desteklerin ~%68'i 20 günde kırıldı.</span></div>
+</div>
+<div class="szgrup"><h3>Bilgi</h3>
+<div class="sz"><span class="momb">📈 ayın güçlüsü</span><span>Son 6 ayın en güçlü %20'si (fiyat 200 günlük ortalamanın üstünde). Her ay yenilenir, Telegram'a liste gelir. AL sinyali değil; v3 ile yarı yarıya kullanım testte iyiydi.</span></div>
+<div class="sz"><span class="gucb g5">5/7</span><span><b>Güç</b> sütunu: 7 iyi göstergeden kaçı olumlu (şablon, Ichimoku, 55 gün zirve, para akışı, ADX, EMA 10/30, RSI). Yüksek puan sonraki ~1 ayda endeksten iyi gitmeye işaret etti; alım sinyali değil.</span></div>
+<div class="sz"><span class="uvsb">🌱 UV</span><span>Uzun vade AL: yükselen trendde 50 günlük ortalamaya geri çekilip döndü. Çıkış: 2 gün 200 günlük ortalamanın altı.</span></div>
+<div class="sz"><span class="sdb destek">Destekten tepki</span><span>Fiyat eski bir dibe indi ve yukarı dönüyor.</span></div>
+<div class="sz"><span class="hacimb">📈 hacim</span><span>Gösterge AL'i günü hacim 20 gün ortalamasının 1,5 katından fazla (bilgi).</span></div>
+<div class="sz"><span class="bayrakb">🚩</span><span>Boğa bayrağı kırılımı (bilgi).</span></div>
+<div class="sz"><span class="bilb">📅 bilanço</span><span>7 gün içinde bilanço açıklanacak: o gün fiyat sert oynayabilir.</span></div>
+<div class="sz"><span class="bilb">💰 temettü</span><span>7 gün içinde temettü hak kullanımı: o sabah fiyat temettü kadar düşük açılır.</span></div>
+<div class="sz"><span class="arzb">ARZ</span><span>Son 12 ayın halka arzı.</span></div>
+<div class="sz"><span class="yildiz">★</span><span>AL+: göstergeler AL ve F/K ile PD/DD grup ortancasının altında (görece ucuz).</span></div>
+<div class="sz"><span>✂️</span><span>Hisse penceresinde: bedelsiz/bölünme oldu, fiyatlar düzeltildi; portföydeyse maliyetini güncelle.</span></div>
+</div>
+<div class="szgrup"><h3>Sütunlar</h3>
+<div class="sz"><b>Sinyal</b><span>5 göstergenin oylaması (SuperTrend, MACD, ortalamalar, RSI, Stokastik): AL / NÖTR / SAT. Bilgi amaçlı; AL mesajı 🚀'den gelir. Sarı NÖTR = AL'den döndü, turuncu = SAT'tan döndü.</span></div>
+<div class="sz"><b>Sinyalde</b><span>Bu sinyal kaç gündür sürüyor.</span></div>
+<div class="sz"><b>Uyum</b><span>5 oylama göstergesinden kaçı AL diyor.</span></div>
+<div class="sz"><b>Güç</b><span>7 iyi göstergeden kaçı olumlu (yukarıda).</span></div>
+<div class="sz"><b>Stop</b><span>İz stop: AL'den beri tepe kapanışın %20 altı. Kapanış altına inerse çık.</span></div>
+<div class="sz"><b>Öneri lot</b><span>Stop yerse portföyünün belirlediğin yüzdesini kaybedeceğin lot.</span></div>
+</div>
+</div>
 <div class="aciklama">
-<div class="kart"><h3>AL / AL+ / NÖTR / SAT</h3><p>Trend, ortalama dizilimi, MACD kesişimi ve RSI momentumundan bir puan. <b>★ AL+</b>: teknik AL ile birlikte F/K ve PD/DD de grup medyanının altında.</p></div>
-<div class="kart"><h3>📈 hacim · ⚡ oynak · ⚠ taban serisi</h3><p><b>📈 hacim</b>: AL günü işlem hacmi son 20 günün 1,5 katından fazla — ilgi arttığını gösterir; ama backtest'te tek başına belirgin bir üstünlük sağlamadı, bilgi amaçlıdır. <b>⚡ oynak</b>: son 60 günde günlük oynaklık %5'ten fazla (spekülatif) — AL mesajı gönderilmez. <b>⚠ taban serisi</b>: son 15 günde 4+ kez ~%10 düştü (fon krizi tipi çöküş) — bu hisselerden AL mesajı gönderilmez.</p></div>
-<div class="kart"><h3>🌱 Uzun vade sinyali · 🚩 Bayrak</h3><p><b>🌱 UV AL</b>: yükselen trendde (fiyat 200 günlük ortalamanın üstünde ve o yükseliyor) 50 günlük ortalamaya geri çekilip dönen hisse. 2 gün üst üste 200 günlük ortalamanın altında kapanırsa SAT. Günlük sinyalden yavaş, 3-4 ay tutuş; backtest'te düşük faiz döneminde isabet %65. <b>🚩</b>: boğa bayrağı kırılımı (bilgi amaçlı).</p></div>
 <div class="kart"><h3>Piyasa filtresi</h3><p>BIST 100, 50 günlük ortalamasının altındaysa üstte "Piyasa zayıf" uyarısı çıkar. 5 yıllık backtest'te bu dönemlerde gelen AL'ler belirgin şekilde daha kötü sonuç verdi.</p></div>
 <div class="kart"><h3>Çıkış ve hedef</h3><p><b>📍 İz stop</b>: AL'den beri görülen en yüksek kapanışın %20 altı; fiyat yükseldikçe yukarı taşınır, kapanış altına inerse "çık". SAT sinyali tek başına çıkış değildir (gece testleri: SAT'ta çıkmak yükseliş piyasasında kazancı eritiyordu; iz stop 2023'te −%6 yerine +%45). <b>🎯 1. hedef</b>: en yakın direnç — geçmişte satış gelen tepe. <b>🎯 2. hedef</b>: risk/ödül 2:1 (maliyetinden stop'a olan mesafenin 2 katı yukarısı). Hedefler satış emri değil, izleme noktasıdır: 5 yıllık backtest'te hedefte kısmi satış, SAT/stop'a kadar tutmaktan belirgin şekilde kötü sonuç verdi.</p></div>
 <div class="kart"><h3>NÖTR: sarı mı turuncu mu?</h3><p><span class="pill notr notr-al">NÖTR</span> <b>Sarı = AL'den döndü.</b> Elindeyse tut; iz stop kırılırsa çık. Yeni alım yapma.<br><span class="pill notr notr-sat">NÖTR</span> <b>Turuncu = SAT'tan döndü.</b> Düşüş yavaşladı ama henüz alım sinyali değil; AL'i bekle. (5 yıllık backtest: NÖTR'de satmak ya da turuncuda almak, beklemekten kötü sonuç verdi.)</p></div>
@@ -505,6 +550,13 @@ function pozHtml(k,d){
  var kural='Kural: kapanış iz stop\'un altına inerse çık. İz stop, fiyat yükseldikçe yukarı taşınır; SAT sinyali tek başına çıkış değildir.';
  return h+'<div class="pk">'+kural+'</div></div>';
 }
+function gucHtml(d){
+ var g=d.guc;if(!g)return '';
+ var h='<div class="bilkutu guckutu">💪 <b>Güç: '+g.puan+'/'+g.toplam+'</b> — 7 iyi göstergeden kaçı şu an olumlu.';
+ g.detay.forEach(function(x){h+='<div class="gs"><span>'+(x.durum===true?'✅':(x.durum===false?'❌':'—'))+'</span><b>'+x.ad+'</b><span class="sgun">'+x.aciklama+'</span></div>';});
+ if(d.momentum)h+='<div class="cikis">📈 <b>Ayın güçlülerinde</b> (son 6 ay '+(d.mom6>=0?'+':'')+d.mom6+'%).</div>';
+ return h+'<div class="pk sgun">5 yıllık testte puan yükseldikçe sonraki ~1 ayda endekse göre getiri arttı; 2-3 ay sonrası için tutarlı değil ve v3 AL\'lerini seçmeye yaramadı. Alım sinyali değil, güç bilgisi.</div></div>';
+}
 function tkHtml(d){
  var t=d.tk;if(!t)return '';
  var h='<div class="uvkutu">🚀 <b>Trend kırılımı (v3 AL kuralı): ';
@@ -614,7 +666,7 @@ function ac(k){
  ((d.tahta&&d.tahta.seviye)?'<div class="patlakkutu">'+(d.tahta.seviye==='sisme'?'🎈 <b>Şişme riski (tahtacı uyarısı):</b> '+d.tahta.neden.join('; ')+'. 5 yıllık veride bu durumdaki hisselerin ~%15-19\'u sonraki 20 günde %25+ çakıldı (normalde %2). Yeni alım için AL mesajı gönderilmez; elindeyse iz stop\'u sıkı takip et.':'⚠️ <b>Dağıtım işareti:</b> '+d.tahta.neden[0]+'. Büyük satıcı (tahtacı) malı dağıtıyor olabilir; bu durumdakilerin ~%10\'u 20 günde %25+ düştü (normalde %2).')+'</div>':'')+
  (d.patlak?'<div class="patlakkutu">⚠ <b>Taban serisi:</b> son 15 günde '+d.taban15+' kez ~%10 düştü. Fon krizi tipi çöküş olabilir; bu hisseden AL mesajı gönderilmez.</div>':'')+
  (d.bolunme?'<div class="arzkutu">✂️ <b>Bedelsiz/bölünme:</b> '+d.bolunme+' tarihinde fiyat tek günde sınırın ötesinde değişti; grafik ve göstergeler buna göre düzeltildi. Portföyündeyse maliyetini aracı kurumdaki yeni maliyetle güncelle.</div>':'')+
- pozHtml(k,d)+arzHtml(d)+tkHtml(d)+uvHtml(d)+bilHtml(d)+kapHtml(d)+
+ pozHtml(k,d)+arzHtml(d)+tkHtml(d)+gucHtml(d)+uvHtml(d)+bilHtml(d)+kapHtml(d)+
  '<div class="grafik">'+grafik(d.spark,d.sd)+'<div class="leg"><span class="c1">Fiyat</span><span class="c2">SMA20</span><span class="c3">SMA50</span><span class="c4">SuperTrend</span>'+
    (d.sd&&d.sd.destek?'<span class="c5">Destek</span>':'')+(d.sd&&d.sd.direnc?'<span class="c6">Direnç</span>':'')+
    '<span style="color:#1B7F4B">▲ AL</span><span style="color:#B4362E">▼ SAT</span></div></div>'+

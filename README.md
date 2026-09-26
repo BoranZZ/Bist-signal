@@ -63,6 +63,9 @@ Mesaj şu durumlarda gelir:
 - **KAP bildirimleri:** Hisse penceresinde son 5 KAP bildirimi (tıklayınca KAP'ta açılır). Portföyündeki hisse yeni bildirim yayınlarsa Telegram'a not gelir (günlük geri alım bildirimleri hariç).
 - **Tahtacı uyarısı:** 🎈 şişme (kısa sürede çok tavan / fiyat ikiye katlandı / aşırı şişkin ve oynak) ve ⚠️ dağıtım (hacim patlarken fiyat zirveden düşüyor) rozetleri. Geçmişte bu durumdaki hisselerin 20 günde %25+ çakılma olasılığı normalin 4-8 katı. 🎈 olan hisseden AL mesajı gelmez; portföyündeyse günlük özette uyarı.
 - **🪤 Tuzak riski:** Dipteki bir hisse düşen trendi %4+ yükselişle kırınca grafikte "AL" gibi görünür. 5 yılda tüm borsada bu kırılımların %56'sı 15 gün içinde geri düştü ve kırılımda almak rastgele bir günden kötü sonuç verdi. Bu rozet "acele etme" uyarısıdır.
+- **Güç sütunu (💪 X/7):** 7 iyi göstergeden kaçı olumlu. Yüksek puan, testte sonraki ~1 ayda endeksten iyi gitmeye işaret etti; alım sinyali değil. Hisseye tıklayınca 7'si tek tek.
+- **📈 Ayın güçlüleri:** Son 6 ayın en güçlü %20'si; her ayın başında Telegram'a liste gelir. Bilgi amaçlı.
+- **İşaret sözlüğü:** Panonun en altında bütün rozetlerin açıklaması.
 - **Fiyat alarmı:** Hisseye tıkla → 🔔 Fiyat alarmı → fiyatı yaz → "Üstüne çıkınca" ya da "Altına inince". Fiyat oraya gelince Telegram'a bir kez mesaj gelir (Telegram'a bağlı cihazda kurulmalı).
 - **Haftalık özet:** Cuma kapanıştan sonra: haftanın AL'leri, canlı karne, portföyün haftalık değişimi.
 - **Günlük portföy özeti:** Hafta içi kapanıştan sonra (18:30+) bir kez. Sektör dağılımı ve tek sektöre yoğunlaşma uyarısı dahil. Her hisse için sinyal, K/Z, çıkış ve hedefler, dikkat notları (stop'a yakın, dirence yaklaşıyor, taban serisi).
