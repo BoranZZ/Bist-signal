@@ -412,6 +412,39 @@ def trend_kirilimi(d, xu_ust=None, islemler=False):
     return out
 
 
+def tahta_riski(d):
+    """Tahtacı 'şişir-çak' uyarısı (o güne kadarki veriyle). 5 yıllık olay çalışması (2022-26, tüm hisseler): normalde
+    bir hissenin 20 gün içinde ≥%25 çakılma olasılığı %2,3. 🔥 şişme: 10 günde ≥5 tavan (%19, 8 kat), 20 günde ≥%100
+    (%15, 7 kat), 50g ortalamanın %70+ üstü ve 20g oynaklık ≥%6 (%16), ≥3 tavan + hacim 5g/60g ≥3x (%19). ⚠️ dağıtım:
+    hacim 5g/60g > 2x iken fiyat 10g zirvesinin %8+ altında (%9,5, 4 kat). Kesinlik değil risk: çoğu yine çakılmaz."""
+    c, v = d["Close"], d["Volume"].replace(0, float("nan"))
+    if len(c) < 61:
+        return None
+    r = c.pct_change()
+    tavan10 = int((r.tail(10) >= 0.095).sum())
+    yuk20 = float(c.iloc[-1] / c.iloc[-21] - 1)
+    sisme50 = float(c.iloc[-1] / c.tail(50).mean() - 1)
+    vol20 = float(r.tail(20).std())
+    hk = v.tail(5).mean() / v.tail(60).mean()
+    hk = float(hk) if hk == hk else 0.0
+    zirve10 = float(c.tail(10).max())
+    neden = []
+    if tavan10 >= 5:
+        neden.append(f"10 günde {tavan10} tavan")
+    if yuk20 >= 1.0:
+        neden.append(f"20 günde %{yuk20 * 100:.0f} yükseliş")
+    if sisme50 >= 0.7 and vol20 >= 0.06:
+        neden.append(f"50 günlük ortalamanın %{sisme50 * 100:.0f} üstünde, çok oynak")
+    if tavan10 >= 3 and hk >= 3:
+        neden.append(f"{tavan10} tavan + hacim {hk:.1f} kat")
+    seviye = "sisme" if neden else None
+    if not seviye and hk > 2 and c.iloc[-1] < zirve10 * 0.92:
+        seviye = "dagitim"
+        neden.append(f"hacim {hk:.1f} kat artmışken fiyat 10 günlük zirvenin %{(1 - c.iloc[-1] / zirve10) * 100:.0f} altında")
+    return {"seviye": seviye, "neden": neden, "tavan10": tavan10, "yuk20": round(yuk20 * 100, 1),
+            "sisme50": round(sisme50 * 100, 1), "hacim_kat": round(hk, 1)}
+
+
 def analiz_et(df, xu_ust=None):
     df = bolunme_duzelt(df)
     c = df["Close"].dropna()
@@ -530,6 +563,7 @@ def analiz_et(df, xu_ust=None):
         "bolunme": (df.attrs.get("bolunme") or [None])[-1],   # son (kaydedilmemiş) bedelsiz/bölünme tarihi
         "bayrak": bayrak_kirilimi(df),
         "patlak": taban >= PATLAK_TABAN,
+        "tahta": tahta_riski(d),
         "sinyal_tarih": sinyal_tarih,
         "sinyal_degisim": sinyal_degisim,
         "yeni": bool(yeni),

@@ -712,6 +712,11 @@ def portfoy_ozeti(sonuclar, pf, piyasa=None, endeks=None):
             notlar.append("⚠️ dirence yaklaşıyor")
         if s.get("patlak"):
             notlar.append(f"⚠️ taban serisi ({s['taban15']} kez/15 gün)")
+        th = s.get("tahta") or {}
+        if th.get("seviye") == "sisme":
+            notlar.append("🔥 şişme riski: " + ", ".join(th["neden"]) + " — geçmişte bu durumdakilerin ~%15-19'u 20 günde %25+ çakıldı; iz stop'u sıkı takip et")
+        elif th.get("seviye") == "dagitim":
+            notlar.append("⚠️ dağıtım işareti: " + th["neden"][0] + " — büyük satıcı çıkıyor olabilir")
         b = s.get("bilanco")
         if bilanco_yakin(b, 7):
             ne = "" if b["sonraki"]["kaynak"] == "yahoo" else " en geç"
@@ -903,8 +908,9 @@ def main():
     tk_d = durum.get("tk_gonderilen") or {}
     tk_gonderilen = set(tk_d.get("kodlar", [])) if tk_d.get("tarih") == bugun_iso else set()
     tk_aday = [s for s in sonuclar if (s.get("tk") or {}).get("bugun")]
-    patlak_al = [s for s in tk_aday if s.get("patlak")]
-    tk_aday = [s for s in tk_aday if not s.get("patlak")]                 # taban serisi: AL mesajı yok
+    _riskli = lambda s: s.get("patlak") or ((s.get("tahta") or {}).get("seviye") == "sisme")
+    patlak_al = [s for s in tk_aday if _riskli(s)]
+    tk_aday = [s for s in tk_aday if not _riskli(s)]                      # taban serisi / 🔥 şişme: AL mesajı yok
     if kapanis_zamani:   # kapanıştan önce gönderilip kapanışta tutmayan kırılımlar
         tutan = {s["kod"] for s in tk_aday}
         iptal += [(by_kod[k], "AL") for k in sorted(tk_gonderilen - tutan) if k in by_kod]

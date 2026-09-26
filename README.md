@@ -61,6 +61,7 @@ Mesaj şu durumlarda gelir:
 - **Endeksle kıyas:** Portföyde hisse eklerken/düzenlerken (✎) alış tarihini gir. Portföyün, aynı parayla aynı günlerde BIST 100 alsaydın ne olacağıyla kıyaslanır (panoda ve günlük portföy özetinde). Tarih girmek isteğe bağlı.
 - **Temettü:** Bilanço kutusunda son 12 ayın temettüsü ve verimi; hak kullanım günü biliniyorsa gösterilir, 7 gün içindeyse 💰 rozeti ve portföy özetinde uyarı.
 - **KAP bildirimleri:** Hisse penceresinde son 5 KAP bildirimi (tıklayınca KAP'ta açılır). Portföyündeki hisse yeni bildirim yayınlarsa Telegram'a not gelir (günlük geri alım bildirimleri hariç).
+- **Tahtacı uyarısı:** 🔥 şişme (kısa sürede çok tavan / fiyat ikiye katlandı / aşırı şişkin ve oynak) ve ⚠️ dağıtım (hacim patlarken fiyat zirveden düşüyor) rozetleri. Geçmişte bu durumdaki hisselerin 20 günde %25+ çakılma olasılığı normalin 4-8 katı. 🔥 olan hisseden AL mesajı gelmez; portföyündeyse günlük özette uyarı.
 - **Fiyat alarmı:** Hisseye tıkla → 🔔 Fiyat alarmı → fiyatı yaz → "Üstüne çıkınca" ya da "Altına inince". Fiyat oraya gelince Telegram'a bir kez mesaj gelir (Telegram'a bağlı cihazda kurulmalı).
 - **Haftalık özet:** Cuma kapanıştan sonra: haftanın AL'leri, canlı karne, portföyün haftalık değişimi.
 - **Günlük portföy özeti:** Hafta içi kapanıştan sonra (18:30+) bir kez. Sektör dağılımı ve tek sektöre yoğunlaşma uyarısı dahil. Her hisse için sinyal, K/Z, çıkış ve hedefler, dikkat notları (stop'a yakın, dirence yaklaşıyor, taban serisi).
