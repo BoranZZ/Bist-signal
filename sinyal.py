@@ -445,6 +445,36 @@ def tahta_riski(d):
             "sisme50": round(sisme50 * 100, 1), "hacim_kat": round(hk, 1)}
 
 
+def trend_tuzagi(d, son_gun=5):
+    """🪤 Düşen trend kırılımı tuzağı: düşük seviyedeki hisse (120g zirvesinin ≥%25 altı, fiyat < SMA50) son iki tepeden
+    (5'er gün pivot, ikincisi alçak) çizilen düşen trend çizgisini ≥%4 yükselişle kapanışta kırdıysa (son `son_gun` gün).
+    Tüm borsa (586 hisse, 2022-26, 1.209 olay): %56'sı 15 günde kırılım kapanışının %5+ altına döndü; kırılımda alıp 60 gün
+    tutmak aynı hisselerde rastgele günden kötü (ort +%12,9 vs +%16, medyan +%2 vs +%3,7). Hacim/fitil/piyasa ayırmıyor."""
+    c, h = d["Close"].values, d["High"].values
+    n = len(c)
+    if n < 130:
+        return None
+    s50 = d["Close"].rolling(50).mean().values
+    zir = d["Close"].rolling(120).max().values
+    for t in range(n - 1, max(n - 1 - son_gun, 125), -1):
+        if c[t] / c[t - 1] - 1 < 0.04 or not (c[t] <= s50[t]) or c[t] > 0.75 * zir[t]:
+            continue
+        pp = [p for p in range(t - 120, t - 5) if p >= 5 and h[p] == h[p - 5:p + 6].max()]
+        if len(pp) < 2:
+            continue
+        p1 = max(pp, key=lambda p: h[p])
+        sonra = [p for p in pp if p > p1 + 5 and h[p] < h[p1]]
+        if not sonra:
+            continue
+        p2 = sonra[-1]
+        egim = (h[p2] - h[p1]) / (p2 - p1)
+        cizgi = lambda i: h[p1] + egim * (i - p1)
+        if c[t] > cizgi(t) and c[t - 1] <= cizgi(t - 1):
+            return {"gun_once": n - 1 - t, "tarih": str(d.index[t].date()), "kirilim_fiyat": round(float(c[t]), 2),
+                    "gunluk": round((c[t] / c[t - 1] - 1) * 100, 1), "geri_dondu": bool(c[-1] < c[t] * 0.95)}
+    return None
+
+
 def analiz_et(df, xu_ust=None):
     df = bolunme_duzelt(df)
     c = df["Close"].dropna()
@@ -564,6 +594,7 @@ def analiz_et(df, xu_ust=None):
         "bayrak": bayrak_kirilimi(df),
         "patlak": taban >= PATLAK_TABAN,
         "tahta": tahta_riski(d),
+        "tuzak": trend_tuzagi(d),
         "sinyal_tarih": sinyal_tarih,
         "sinyal_degisim": sinyal_degisim,
         "yeni": bool(yeni),

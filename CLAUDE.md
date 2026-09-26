@@ -81,6 +81,14 @@ v3 girişlerinin sadece 1/417'si uyarılı günde (şablon + oynaklık filtresi 
 'Dipten kaldırma' tahmin edilemedi: tepeden %50+ çöken 75 olayda 60 gün sonrası −%65…+%189, hacim artışı ayırmıyor.
 Pano rozeti + modal kutusu, portföy özetinde not. (scratchpad bt/tahta1.py)
 
+## 🪤 Düşen trend kırılımı tuzağı — `sinyal.trend_tuzagi` (kullanıcının 'tahtacı' tarifi)
+Düşük seviyedeki hisse (120g zirvesinin ≥%25 altı, < SMA50) iki tepeden çizilen düşen trendi ≥%4 yükselişle kırınca
+küçük yatırımcı 'AL' okur. Tüm borsa (KAP'tan 586 hisse, 2022-26, 1.209 olay; bt/tahta2-3.py): %56'sı 15 günde kırılım
+kapanışının %5+ altına döndü, %29'u +%20'ye ulaştı. Kırılımda alıp 60 gün tutmak aynı hisselerde rastgele günden kötü
+(ort +%12,9 / medyan +%2 vs +%16 / +%3,7). Hacim, fitil, piyasa, hisse büyüklüğü tuzağı ayırmıyor (%55-68). Tuzak
+sonrası 'dipten topla' sadece geriye bakınca iyi; gerçekçi limit emirle (kırılımın %5-15 altı) avantaj yok. → Sadece
+uyarı rozeti (son 5 gün), sinyal değil. Canlı fonksiyon olayları birebir buluyor (150/150).
+
 ## Veri kalitesi: kaydedilmemiş bedelsiz/bölünme
 yfinance BIST bölünmelerini çoğu zaman kaydetmiyor (5 yılda 125 hissede 12 olay: KONTR, FENER×3, CCOLA, HEKTS, TUKAS,
 BSOKE, EUREN, CVKMD...). BIST günlük sınırı ±%10 olduğundan tek gün ≤−%25 / ≥+%35 kapanış değişimi bölünme sayılır:
