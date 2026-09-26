@@ -2,7 +2,11 @@
   "al": [
     "AGHOL",
     "AHGAZ",
+    "BAHKM",
     "ENERY",
+    "GMTAS",
+    "HRKET",
+    "HUNER",
     "ISDMR",
     "TKFEN",
     "TOASO"
@@ -163,9 +167,10 @@
   "alarm_tetik": [],
   "on_sinyal": {},
   "uv_son": {},
-  "kap_son": 1668368,
+  "kap_son": 1668369,
   "tk_gonderilen": {
     "tarih": "2026-09-26",
     "kodlar": []
-  }
+  },
+  "mom_ay": {}
 }
