@@ -772,13 +772,13 @@ def haftalik_ozet(sonuclar, pf, acik, kapali, simdi):
     """Cuma kapanıştan sonra: haftanın AL'leri, canlı karnenin haftası, portföyün haftalık değişimi."""
     pazartesi = (simdi - pd.Timedelta(days=simdi.weekday())).strftime("%Y-%m-%d")
     parca = [f"🗓 <b>Haftalık özet</b> — {pazartesi} haftası"]
-    al = sorted((s for s in sonuclar if s["sinyal"] == "AL" and (s.get("sinyal_tarih") or "") >= pazartesi),
-                key=lambda s: -(s.get("sinyal_degisim") or 0))
+    al = sorted((s for s in sonuclar if (s.get("tk") or {}).get("durum") == "AL" and (s["tk"].get("giris_tarih") or "") >= pazartesi),
+                key=lambda s: -(s["tk"].get("degisim") or 0))
     if al:
-        parca.append(f"<b>Bu hafta AL'e dönen ({len(al)})</b>: " + ", ".join(
-            f"{s['kod']} ({_yz(s['sinyal_degisim'] or 0)})" for s in al[:10]) + (" …" if len(al) > 10 else ""))
+        parca.append(f"<b>Bu haftanın 🚀 AL'leri ({len(al)})</b>: " + ", ".join(
+            f"{s['kod']} ({_yz(s['tk'].get('degisim') or 0)})" for s in al[:10]) + (" …" if len(al) > 10 else ""))
     else:
-        parca.append("Bu hafta AL'e dönen hisse yok.")
+        parca.append("Bu hafta 🚀 AL gelmedi (piyasa zayıfken kural gereği AL gelmez).")
     kap = [r for r in kapali if (r.get("cikis_tarih") or "") >= pazartesi and r.get("sonuc") is not None]
     if kap:
         kazanan = sum(1 for r in kap if r["sonuc"] > 0)

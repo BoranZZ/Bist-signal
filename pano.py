@@ -161,9 +161,11 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None, 
 
     html = _SABLON
     for a, b in [("__TARIH__", tarih), ("__AL__", str(al)), ("__GUCLU__", str(guclu)),
-                 ("__TOPLAM__", str(len(sonuclar))), ("__BANNER__", banner),
+                 ("__TOPLAM__", str(len(sonuclar))),
+                 ("__TKBUGUN__", str(sum(1 for s in sonuclar if (s.get("tk") or {}).get("bugun")))),
+                 ("__TK5__", str(sum(1 for s in sonuclar if (s.get("tk") or {}).get("durum") == "AL" and ((s.get("tk") or {}).get("gun") or 0) <= 5))), ("__BANNER__", banner),
                  ("__ROWS__", "".join(rows)), ("__ARZ__", arzblok),
-                 ("__XU__", json.dumps(endeks)),
+                 ("__XU__", json.dumps(endeks)), ("__PIYASA__", json.dumps(piyasa)),
                  ("__DATA__", json.dumps(veri, ensure_ascii=False))]:
         html = html.replace(a, b)
     return html
@@ -225,11 +227,12 @@ h1{font-size:19px;margin:0;font-weight:650}.tarih{color:var(--muted);font-size:1
 .banner.uy{background:#FBECEA;border:1px solid #E6C3BD;color:#8A2F26}
 .sar{margin-top:18px;overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
 table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:720px}
+#t td:nth-child(1),#t th:nth-child(1){position:sticky;left:0;z-index:1;background:var(--panel)}#t td:nth-child(2),#t th:nth-child(2){position:sticky;left:38px;z-index:1;background:var(--panel);box-shadow:1px 0 0 var(--line)}#t tr.favrow td:nth-child(1),#t tr.favrow td:nth-child(2){background:#FFFBEB}#t tbody tr:hover td{background:#F2F5F3}
 th,td{padding:11px 12px;text-align:left;white-space:nowrap}
 th{position:sticky;top:0;background:var(--panel);color:var(--muted);font-weight:600;font-size:12px;
 border-bottom:1px solid var(--line);cursor:pointer;user-select:none}th:hover{color:var(--ink)}
 tbody tr{border-bottom:1px solid var(--line);cursor:pointer}tbody tr:last-child{border-bottom:none}
-tbody tr:hover{background:#F2F5F3}
+tbody tr:hover,tbody tr:hover td{background:#F2F5F3}
 .kod{font-weight:650}.num{text-align:right;font-variant-numeric:tabular-nums}
 .stop{color:var(--sat)}.lot{font-weight:650}.pos{color:var(--pos)}.neg{color:var(--neg)}
 .pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:650}
@@ -262,6 +265,7 @@ tbody tr:hover{background:#F2F5F3}
 .alkutu{margin-top:14px;border:1px solid var(--line);border-radius:10px;padding:10px 13px;background:#FCFCFB}
 .alsat{font-size:13px;margin:3px 0;display:flex;align-items:center;gap:8px}
 .favtd{width:26px;padding-right:0!important}.fav{border:0;background:none;cursor:pointer;font-size:15px;line-height:1;padding:2px;color:#C7962B}tr.favrow td{background:#FFFBEB}.tabcubuk{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 10px}#ara{flex:1 1 180px;max-width:260px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px}.sfav{font-size:13px;display:flex;gap:5px;align-items:center;cursor:pointer}.mfav{margin-left:8px;border:1px solid var(--line);background:var(--panel);border-radius:7px;padding:3px 9px;font-size:12px;cursor:pointer}
+.bugun{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin:0 0 16px}.bugun h2{font-size:15px;margin:0 0 8px}.bgs{font-size:13.2px;line-height:1.6;margin:0 0 5px}.bgk{font-weight:700;color:var(--accent);text-decoration:none}
 .momb{background:#E8F0FB;color:#1F4E8C;font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:5px;margin-left:5px;white-space:nowrap}
 .gucb{display:inline-block;min-width:30px;text-align:center;font-size:11px;font-weight:700;padding:2px 5px;border-radius:5px;background:#F1F1EE;color:#555}.gucb.g5,.gucb.g6,.gucb.g7{background:#E4F2E9;color:#14633A}.gucb.g0,.gucb.g1,.gucb.g2{background:#FBECEA;color:#8A2F26}
 .sozluk{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin:12px 0 18px}.szgrup{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 15px}.szgrup h3{margin:0 0 8px;font-size:13.5px}.sz{display:flex;gap:9px;align-items:baseline;font-size:12.6px;line-height:1.5;margin:0 0 7px;color:var(--muted)}.sz>span:first-child,.sz>b{flex:0 0 auto;min-width:112px;color:var(--ink)}.sz>span:first-child{margin-left:0}
@@ -332,11 +336,12 @@ table.pf{min-width:820px}
 </head><body><div class="wrap">
 <header><div><h1>BIST Sinyal Panosu</h1><div class="tarih">Son güncelleme: __TARIH__ · <a href="#" onclick="yenile();return false" title="Sayfanın en son halini getirir (önbelleği atlar)">↻ Yenile</a> · <a href="https://github.com/BoranZZ/Bist-signal/actions/workflows/tarama.yml" target="_blank" rel="noopener" title="GitHub'da 'Run workflow' ile taramayı hemen başlat; 3-5 dk sonra Yenile'ye bas">Taramayı şimdi başlat ↗</a></div></div>
 <div class="ozet">
-<div><div class="b">__AL__</div><div class="l">/ __TOPLAM__ hissede AL</div></div>
-<div><div class="b g">__GUCLU__</div><div class="l">★ AL+ (teknik+temel)</div></div>
+<div><div class="b">__TKBUGUN__</div><div class="l">bugün 🚀 AL</div></div>
+<div><div class="b g">__TK5__</div><div class="l">son 5 günde 🚀 AL · __TOPLAM__ hisse taranıyor</div></div>
 </div></header>
 <div class="ipucu">İncelemek için bir satıra tıkla → grafik, oranlar ve o hisseye özel yorum açılır. Sütun başlığına tıklayınca sıralanır. · <a class="glink" href="gecmis.html">Sinyal Geçmişi →</a></div>
 __BANNER__
+<div id="bugun" class="bugun"></div>
 <div class="pfbox">
   <div class="pfbas"><h2>Portföyüm</h2><div class="pfsag"><span id="pftop" class="pftop"></span><button class="pfekle" onclick="pfFormAc()">+ Ekle</button></div></div>
   <div id="pfbulut" class="pfbulut"></div>
@@ -417,7 +422,8 @@ __ARZ__
 <div class="ust" id="ust" onclick="if(event.target===this)kapat()"><div class="modal" id="modal"></div></div>
 <script>
 const DATA=__DATA__;
-const XU=__XU__;  // BIST 100: son 2 yıl günlük, öncesi haftalık — portföy-endeks kıyası
+const XU=__XU__;
+const PIYASA=__PIYASA__;  // BIST 100: son 2 yıl günlük, öncesi haftalık — portföy-endeks kıyası
 const t=document.getElementById('t');
 t.querySelectorAll('th').forEach((th,i)=>{th.addEventListener('click',()=>{
 if(th.dataset.t==='f'){t._sirali=false;tabloDuzen();return;}
@@ -445,7 +451,7 @@ function favBulutOku(){
    if(Array.isArray(a)&&a.length){try{localStorage.setItem(FAV_KEY,JSON.stringify(a))}catch(e){}tabloDuzen();}});
  }).catch(function(){});
 }
-function favDegis(k){var a=favOku(),i=a.indexOf(k);if(i>=0)a.splice(i,1);else a.push(k);favYaz(a);tabloDuzen();
+function favDegis(k){var a=favOku(),i=a.indexOf(k);if(i>=0)a.splice(i,1);else a.push(k);favYaz(a);tabloDuzen();bugunRender();
  var d=document.getElementById('mfav');if(d)d.textContent=a.indexOf(k)>=0?'⭐ Favorilerde':'☆ Favorilere ekle';}
 var _SIRA=null;  // sunucunun ilk sırası (AL → NÖTR → SAT)
 function tabloDuzen(){
@@ -459,6 +465,40 @@ function tabloDuzen(){
  var f1=rows.filter(function(r){return fav.indexOf(r.dataset.kod)>=0;}),f2=rows.filter(function(r){return fav.indexOf(r.dataset.kod)<0;});
  f1.concat(f2).forEach(function(r){tb.appendChild(r);});
  var n=document.getElementById('favsay');if(n)n.textContent=fav.length?'('+fav.length+')':'';
+}
+
+// --- 📋 Bugün ne var? — tek bakışta: piyasa, yeni 🚀 AL'ler, portföy ve favori uyarıları (hepsi cihazda hesaplanır)
+function _kl(k){return '<a href="#" class="bgk" onclick="ac(\''+k+'\');return false">'+k+'</a>';}
+function bugunUyari(k,d,p){  // bir hisse için dikkat notları
+ var u=[];if(!d)return u;
+ if(p&&d.iz&&d.iz.cikti&&!p.uzun)u.push('📉 iz stop kırıldı');
+ else if(p&&!p.uzun){var pl=pozPlan(d,p);if(pl.stop&&!pl.asildi&&pl.stopUzak>-3)u.push('iz stop\'a %'+Math.abs(pl.stopUzak).toFixed(1)+' kaldı');}
+ if(d.tahta&&d.tahta.seviye==='sisme')u.push('🎈 şişme');
+ if(d.tahta&&d.tahta.seviye==='dagitim')u.push('⚠️ dağıtım');
+ if(d.tuzak)u.push('🪤 tuzak riski');
+ if(d.patlak)u.push('⚠ taban serisi');
+ if(d.bilanco&&d.bilanco.kalan_gun!=null&&d.bilanco.kalan_gun>=0&&d.bilanco.kalan_gun<=7)u.push('📅 bilanço '+d.bilanco.kalan_gun+' gün sonra');
+ if(d.temettu&&d.temettu.ex_kalan!=null&&d.temettu.ex_kalan<=7)u.push('💰 temettü '+d.temettu.ex_kalan+' gün sonra');
+ if(d.bolunme&&(Date.now()-new Date(d.bolunme).getTime())<30*864e5)u.push('✂️ bölünme ('+d.bolunme+'): maliyetini güncelle');
+ return u;
+}
+function bugunRender(){
+ var el=document.getElementById('bugun');if(!el)return;
+ var h='<h2>📋 Bugün ne var?</h2>';
+ if(PIYASA)h+='<div class="bgs">'+(PIYASA.zayif?'⚠️ <b>Piyasa zayıf</b>: BIST 100 50 günlük ortalamasının %'+Math.abs(PIYASA.fark)+' altında. Bu dönemde 🚀 AL gelmez (kural gereği); acele alım yapma.':'✅ <b>Piyasa normal</b>: BIST 100 50 günlük ortalamasının üstünde; 🚀 AL sinyalleri gelebilir.')+'</div>';
+ var al=Object.keys(DATA).filter(function(k){var t=DATA[k].tk;return t&&(t.bugun||(t.durum==='AL'&&t.gun<=5));})
+  .sort(function(a,b){return DATA[a].tk.gun-DATA[b].tk.gun;});
+ h+='<div class="bgs">🚀 <b>Yeni AL</b> (son 5 gün): '+(al.length?al.map(function(k){var t=DATA[k].tk;return _kl(k)+(t.bugun?' <span class="tkb yeni">bugün</span>':' <span class="sgun">'+t.gun+'g önce</span>');}).join(' · '):'yok')+'</div>';
+ var pf=pfOku(),ps=[];
+ pf.forEach(function(p){var u=bugunUyari(p.kod,DATA[p.kod],p);if(u.length)ps.push(_kl(p.kod)+': '+u.join(', '));});
+ h+='<div class="bgs">💼 <b>Portföyün</b>: '+(pf.length?(ps.length?ps.join(' · '):'dikkat gerektiren bir şey yok ✅'):'<span class="sgun">henüz hisse eklemedin</span>')+'</div>';
+ var fv=favOku().filter(function(k){return !pf.some(function(p){return p.kod===k;});}),fs=[];
+ fv.forEach(function(k){var d=DATA[k];if(!d)return;var u=bugunUyari(k,d,null);var t=d.tk;
+  if(t&&(t.bugun||(t.durum==='AL'&&t.gun<=5)))u.unshift('🚀 AL');
+  if(t&&t.durum!=='AL'&&t.sablon&&t.kirilima_uzak!=null&&t.kirilima_uzak>0&&t.kirilima_uzak<=3)u.push('👀 kırılıma %'+t.kirilima_uzak);
+  if(u.length)fs.push(_kl(k)+': '+u.join(', '));});
+ if(favOku().length)h+='<div class="bgs">⭐ <b>Favorilerin</b>: '+(fs.length?fs.join(' · '):'önemli bir değişiklik yok')+'</div>';
+ el.innerHTML=h;
 }
 function sinyalCls(d){if(d.sinyal==='AL')return 'al';if(d.sinyal==='SAT')return 'sat';
  return 'notr'+(d.notr_kaynak==='AL'?' notr-al':d.notr_kaynak==='SAT'?' notr-sat':'');}
@@ -907,9 +947,10 @@ function pfRender(){
      '<span class="pfxu">Temettüler iki tarafta da dahil değil. Kıyas için hisse eklerken/düzenlerken alış tarihini gir.</span></div>';
  }else if(XU)r+='<div class="pfkiyas sgun">📈 Portföyünü BIST 100 ile kıyaslamak için hisseyi düzenle (✎) ve <b>alış tarihini</b> gir.</div>';
  liste.innerHTML=r;
+ if(typeof bugunRender==='function')bugunRender();
  top.innerHTML='Toplam K/Z: <b class="'+(toplam>=0?'pos':'neg')+'">'+(toplam>=0?'+':'')+Math.round(toplam).toLocaleString('tr-TR')+' TL</b>';
 }
-(function(){var dl=document.getElementById('pfkodlar');if(dl){dl.innerHTML=Object.keys(DATA).sort().map(function(k){return '<option value="'+k+'"></option>';}).join('');}pfRender();pfBulutOku();alBulutOku();tabloDuzen();favBulutOku();})();
+(function(){var dl=document.getElementById('pfkodlar');if(dl){dl.innerHTML=Object.keys(DATA).sort().map(function(k){return '<option value="'+k+'"></option>';}).join('');}pfRender();pfBulutOku();alBulutOku();tabloDuzen();favBulutOku();bugunRender();})();
 </script></body></html>"""
 
 
