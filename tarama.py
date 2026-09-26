@@ -78,11 +78,80 @@ SADECE_KAPANIS_MESAJI = True   # False: gün içi her taramada (eski davranış)
 MIN_GUN = 60      # sinyal için gereken en az işlem günü (sinyal.analiz_et)
 
 
-def veri_cek(kodlar):
+KAPANIS_DUZELT_GUN = 3     # son kaç günün günlük kapanışı saatlik veriyle düzeltilir
+KAPANIS_DUZELT_SINIR = 0.02  # günlük ile saatlik arasında bundan büyük fark: temettü düzeltmesi/veri hatası, dokunma
+
+
+def _son_fiyat(tk):
+    try:
+        x = yf.Ticker(tk).fast_info.last_price
+        return float(x) if x and x == x else None
+    except Exception:
+        return None
+
+
+def veri_cek(kodlar, kesin_kapanis=False):
+    """Günlük veri (2 yıl: SMA200 tabanlı sinyaller için) + kapanış düzeltmesi. Yahoo'nun BIST günlük barlarında kapanış
+    çoğu zaman resmi kapanıştan farklı (Eylül 2026 kontrolü: günlerin ~%30'unda >%0,3; THYAO 24.09 günlük 288,5, resmi
+    289,5) ve son günün kapanışı boş geliyor. Saatlik verinin gün sonu fiyatı resmi kapanışla birebir tuttu (16/16).
+    Bu yüzden son KAPANIS_DUZELT_GUN günün kapanışı saatlikten alınır; kesin kapanıştan sonra son gün Yahoo'nun anlık
+    son fiyatından (kapanış seansı fiyatı, TradingView ile aynı)."""
     tickers = [k + ".IS" for k in kodlar] + [ENDEKS + ".IS"]
     print(f"{len(tickers)} hisse indiriliyor...")
-    return yf.download(tickers, period="2y", interval="1d", group_by="ticker",   # 2 yıl: SMA200 tabanlı uzun vade sinyali için
-                       auto_adjust=True, progress=False, threads=True)
+    g = yf.download(tickers, period="2y", interval="1d", group_by="ticker", auto_adjust=True, progress=False, threads=True)
+    try:
+        s = yf.download(tickers, period="7d", interval="1h", group_by="ticker", auto_adjust=True, progress=False, threads=True)
+    except Exception as e:
+        print(f"Saatlik veri alınamadı ({type(e).__name__}); günlük veri düzeltmesiz kullanılıyor.")
+        return g
+    son = {}
+    if kesin_kapanis:
+        from concurrent.futures import ThreadPoolExecutor
+        with ThreadPoolExecutor(max_workers=12) as ex:
+            son = dict(zip(tickers, ex.map(_son_fiyat, tickers)))
+    parca, duzeltilen, eklenen = {}, 0, 0
+    for tk in tickers:
+        try:
+            d = g[tk].copy()
+        except KeyError:
+            continue
+        try:
+            hh = s[tk].dropna(subset=["Close"])
+        except KeyError:
+            hh = None
+        if hh is not None and not hh.empty:
+            ix = hh.index.tz_convert("Europe/Istanbul") if hh.index.tz is not None else hh.index
+            agg = hh.groupby(ix.date).agg({"Open": "first", "High": "max", "Low": "min", "Close": "last", "Volume": "sum"})
+            gunler = sorted(agg.index)[-KAPANIS_DUZELT_GUN:]
+            tarih = pd.Series(d.index.date, index=d.index)
+            for gd in gunler:
+                x = float(agg.at[gd, "Close"])
+                if gd == gunler[-1] and son.get(tk) and abs(son[tk] / x - 1) <= KAPANIS_DUZELT_SINIR:
+                    x = son[tk]
+                satir = tarih.index[tarih.values == gd]
+                if len(satir):
+                    t = satir[-1]
+                    eski = d.at[t, "Close"]
+                    if pd.notna(eski) and abs(x / eski - 1) > KAPANIS_DUZELT_SINIR:
+                        continue
+                    for k_, v_ in (("Open", agg.at[gd, "Open"]), ("High", agg.at[gd, "High"]), ("Low", agg.at[gd, "Low"])):
+                        if pd.isna(d.at[t, k_]):
+                            d.at[t, k_] = v_
+                    d.at[t, "Close"] = x
+                    d.at[t, "High"] = max(d.at[t, "High"], x)
+                    d.at[t, "Low"] = min(d.at[t, "Low"], x)
+                    duzeltilen += int(pd.isna(eski) or abs(x - eski) > 1e-9)
+                else:
+                    yeni = pd.Timestamp(gd).tz_localize(d.index.tz) if d.index.tz is not None else pd.Timestamp(gd)
+                    d.loc[yeni] = pd.Series({"Open": agg.at[gd, "Open"], "High": max(agg.at[gd, "High"], x),
+                                             "Low": min(agg.at[gd, "Low"], x), "Close": x,
+                                             "Volume": agg.at[gd, "Volume"]}).reindex(d.columns)
+                    eklenen += 1
+            d = d.sort_index()
+        parca[tk] = d
+    print(f"Kapanış düzeltmesi: {duzeltilen} gün-hisse düzeltildi, {eklenen} eksik gün eklendi"
+          + (f", son fiyat {sum(1 for v in son.values() if v)} hisse için anlık kapanıştan." if son else "."))
+    return pd.concat(parca, axis=1)
 
 
 def piyasa_durumu(data):
@@ -819,7 +888,8 @@ def main():
     if disarida:   # kodları yazma: log herkese açık
         print(f"Portföyde tarama listesinde olmayan {len(disarida)} hisse var; takip için EK_HISSELER'e ekle.")
 
-    data = veri_cek(KODLAR)
+    _sim = pd.Timestamp.now(tz="Europe/Istanbul")
+    data = veri_cek(KODLAR, kesin_kapanis=_sim.hour * 60 + _sim.minute >= KAPANIS_DAKIKA or _sim.weekday() >= 5)
     piyasa = piyasa_durumu(data)
     endeks = endeks_serisi(data)
     oranlar = oranlari_al(KODLAR)

@@ -89,6 +89,14 @@ kapanışının %5+ altına döndü, %29'u +%20'ye ulaştı. Kırılımda alıp 
 sonrası 'dipten topla' sadece geriye bakınca iyi; gerçekçi limit emirle (kırılımın %5-15 altı) avantaj yok. → Sadece
 uyarı rozeti (son 5 gün), sinyal değil. Canlı fonksiyon olayları birebir buluyor (150/150).
 
+## Veri kalitesi: Yahoo günlük kapanışı yanlış / boş
+Yahoo'nun BIST günlük barlarında kapanış çoğu zaman resmi kapanıştan farklı (Eylül 2026: günlerin ~%30'unda >%0,3; THYAO
+24.09 günlük 288,5, resmi 289,5) ve son günün kapanışı NaN geliyor (dropna ile önceki gün gösteriliyordu: THYAO 288,5 vs
+gerçek 290,75). Saatlik verinin gün sonu = resmi kapanış (fast_info.previous_close ile 16/16). `veri_cek`: son 3 günün
+kapanışı saatlikten; kesin kapanış (18:30+/hafta sonu) sonrası son gün `fast_info.last_price` (kapanış seansı, 12 iş
+parçacığı, ~10 sn). Günlük–saatlik farkı >%2 ise (temettü düzeltmesi) dokunulmaz. Eski backtest verisindeki bu küçük
+rastgele hatalar (~%0,3) sonuçları yönlü etkilemez.
+
 ## Veri kalitesi: kaydedilmemiş bedelsiz/bölünme
 yfinance BIST bölünmelerini çoğu zaman kaydetmiyor (5 yılda 125 hissede 12 olay: KONTR, FENER×3, CCOLA, HEKTS, TUKAS,
 BSOKE, EUREN, CVKMD...). BIST günlük sınırı ±%10 olduğundan tek gün ≤−%25 / ≥+%35 kapanış değişimi bölünme sayılır:
