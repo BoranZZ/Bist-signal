@@ -628,6 +628,8 @@ MAX_AL_SATIR = 20  # Telegram mesajı 4096 karakterle sınırlı
 def _al_satiri(s, pf):
     isaret = "❗" if s["kod"] in pf else "🟢"
     y = " ★AL+" if s["guclu"] else ""
+    if s["kod"] in KUCUK_HISSELER:
+        y += " 🔹küçük hisse (tahta sığ, sert oynar — lotu küçük tut)"
     h = f" 📈hacim {s['hacim_kat']}x" if s.get("hacim_teyit") else ""
     if s.get("bayrak"):
         h += f" 🚩bayrak (direk %{s['bayrak']['direk']})"
