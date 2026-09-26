@@ -651,9 +651,11 @@ MOMENTUM_PAY = 0.20   # aylık momentum listesi: taranan hisselerin en güçlü 
 
 def momentum_listesi(sonuclar):
     """📈 Ayın güçlüleri: 6 aylık getiri (son ay hariç) sıralamasında ilk %20, sadece fiyatı 200 günlük ortalamanın
-    üstündekiler. Gece testi (2022-26): her ay bu listeyi tutmak yüksek faizde çok güçlü, düşük faizde BIST100 gerisinde;
+    üstündekiler; sadece BIST100 + EK_HISSELER. Gece testi (2022-26): her ay bu listeyi tutmak yüksek faizde çok güçlü, düşük faizde BIST100 gerisinde;
     v3 ile yarı yarıya 4 yılda +%717 / maks düşüş −%21 (v3 tek başına +%562 / −%25). Bilgi, AL sinyali değil."""
-    tum = [s for s in sonuclar if s.get("mom6") is not None]
+    # evren: testteki gibi BIST100 + EK_HISSELER (küçük hisseler ve yeni arzlar hariç: tepede şişirilmiş hisseler çıkıyordu)
+    buyuk = set(BIST100) | set(EK_HISSELER)
+    tum = [s for s in sonuclar if s.get("mom6") is not None and s["kod"] in buyuk]
     n = max(1, int(len(tum) * MOMENTUM_PAY))
     aday = sorted((s for s in tum if s.get("s200_ust")), key=lambda s: -s["mom6"])
     return [s["kod"] for s in aday[:n]]
