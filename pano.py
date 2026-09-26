@@ -272,6 +272,7 @@ tbody tr:hover,tbody tr:hover td{background:#F2F5F3}
 .alsat{font-size:13px;margin:3px 0;display:flex;align-items:center;gap:8px}
 .favtd{width:26px;padding-right:0!important}.fav{border:0;background:none;cursor:pointer;font-size:15px;line-height:1;padding:2px;color:#C7962B}tr.favrow td{background:#FFFBEB}.tabcubuk{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 10px}#ara{flex:1 1 180px;max-width:260px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px}.sfav{font-size:13px;display:flex;gap:5px;align-items:center;cursor:pointer}.mfav{margin-left:8px;border:1px solid var(--line);background:var(--panel);border-radius:7px;padding:3px 9px;font-size:12px;cursor:pointer}
 .bugun{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin:0 0 16px}.bugun h2{font-size:15px;margin:0 0 8px}.bgs{font-size:13.2px;line-height:1.6;margin:0 0 5px}.bgk{font-weight:700;color:var(--accent);text-decoration:none}
+.mozet{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:2px 0 12px}.mozet span{margin-left:0!important}
 .momb{background:#E8F0FB;color:#1F4E8C;font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:5px;margin-left:5px;white-space:nowrap}
 .gucb{display:inline-block;min-width:30px;text-align:center;font-size:11px;font-weight:700;padding:2px 5px;border-radius:5px;background:#F1F1EE;color:#555}.gucb.g5,.gucb.g6,.gucb.g7{background:#E4F2E9;color:#14633A}.gucb.g0,.gucb.g1,.gucb.g2{background:#FBECEA;color:#8A2F26}
 .sozluk{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin:12px 0 18px}.szgrup{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 15px}.szgrup h3{margin:0 0 8px;font-size:13.5px}.sz{display:flex;gap:9px;align-items:baseline;font-size:12.6px;line-height:1.5;margin:0 0 7px;color:var(--muted)}.sz>span:first-child,.sz>b{flex:0 0 auto;min-width:112px;color:var(--ink)}.sz>span:first-child{margin-left:0}
@@ -641,6 +642,19 @@ function gucHtml(d){
  if(d.momentum)h+='<div class="cikis">📈 <b>Ayın güçlülerinde</b> (son 6 ay '+(d.mom6>=0?'+':'')+d.mom6+'%).</div>';
  return h+'<div class="pk sgun">5 yıllık testte puan yükseldikçe sonraki ~1 ayda endekse göre getiri arttı; 2-3 ay sonrası için tutarlı değil ve v3 AL\'lerini seçmeye yaramadı. Alım sinyali değil, güç bilgisi.</div></div>';
 }
+function modalOzet(k,d){  // tek satır: v3 durumu · güç · uyarılar · portföy
+ var p=[],t=d.tk||{};
+ if(t.bugun)p.push('<span class="tkb yeni">🚀 bugün AL</span>');
+ else if(t.durum==='AL')p.push(t.gun<=5?'<span class="tkb">🚀 AL '+t.gun+'g önce</span>':'<span class="tkb izle">trendde · '+t.gun+'g</span>');
+ else if(t.sablon&&t.kirilima_uzak!=null&&t.kirilima_uzak>0&&t.kirilima_uzak<=3)p.push('<span class="tkb izle">👀 kırılıma %'+t.kirilima_uzak+'</span>');
+ else p.push('<span class="sgun">🚀 AL yok</span>');
+ if(d.guc)p.push('<span class="gucb g'+d.guc.puan+'">💪 '+d.guc.puan+'/'+d.guc.toplam+'</span>');
+ if(d.momentum)p.push('<span class="momb">📈 ayın güçlüsü</span>');
+ var pf=pfOku().filter(function(x){return x.kod===k;})[0];
+ bugunUyari(k,d,pf||null).forEach(function(u){p.push('<span class="gun1b">'+u+'</span>');});
+ if(pf){var kz=(d.fiyat/pf.maliyet-1)*100;p.push('<span class="sgun">💼 portföyde '+(kz>=0?'+':'')+kz.toFixed(1)+'%</span>');}
+ return '<div class="mozet">'+p.join(' ')+'</div>';
+}
 function tkHtml(d){
  var t=d.tk;if(!t)return '';
  var h='<div class="uvkutu">🚀 <b>Trend kırılımı (v3 AL kuralı): ';
@@ -745,17 +759,19 @@ function ac(k){
  '<div class="mh"><div class="sol"><h2>'+k+'</h2>'+pill+uyum+' <button class="mfav" id="mfav" onclick="favDegis(\''+k+'\')">'+(favOku().indexOf(k)>=0?'⭐ Favorilerde':'☆ Favorilere ekle')+'</button></div><button class="kapa" onclick="kapat()">✕</button></div>'+
  '<div class="mfiyat">'+(d.fiyat!=null?d.fiyat+' TL':'')+' <span class="'+dcls+'">'+dtxt+'</span>'+
    (d.sektor?' <span class="sektorb">'+d.sektor+(d.endustri&&d.endustri!==d.sektor?' · '+d.endustri:'')+'</span>':'')+'</div>'+
- zaman+
+ modalOzet(k,d)+
  (d.tuzak?'<div class="patlakkutu">🪤 <b>Düşen trend kırılımı — tuzak riski:</b> '+d.tuzak.tarih+' günü hisse düşük seviyedeyken %'+d.tuzak.gunluk+' yükselişle düşen trend çizgisini kırdı ('+d.tuzak.kirilim_fiyat+' TL). Grafikte "AL" gibi görünür ama tüm borsada 5 yılda bu kırılımların <b>%56\'sı 15 gün içinde %5+ geri düştü</b>; kırılımda alıp 60 gün tutmak aynı hisselerde rastgele bir günden kötü sonuç verdi. Hacimli ya da güçlü kapanışlı olması tuzağı ayırmıyor.'+(d.tuzak.geri_dondu?' <b>Şu an kırılım fiyatının %5+ altına döndü.</b>':'')+'</div>':'')+
  ((d.tahta&&d.tahta.seviye)?'<div class="patlakkutu">'+(d.tahta.seviye==='sisme'?'🎈 <b>Şişme riski (tahtacı uyarısı):</b> '+d.tahta.neden.join('; ')+'. 5 yıllık veride bu durumdaki hisselerin ~%15-19\'u sonraki 20 günde %25+ çakıldı (normalde %2). Yeni alım için AL mesajı gönderilmez; elindeyse iz stop\'u sıkı takip et.':'⚠️ <b>Dağıtım işareti:</b> '+d.tahta.neden[0]+'. Büyük satıcı (tahtacı) malı dağıtıyor olabilir; bu durumdakilerin ~%10\'u 20 günde %25+ düştü (normalde %2).')+'</div>':'')+
  (d.patlak?'<div class="patlakkutu">⚠ <b>Taban serisi:</b> son 15 günde '+d.taban15+' kez ~%10 düştü. Fon krizi tipi çöküş olabilir; bu hisseden AL mesajı gönderilmez.</div>':'')+
  (d.bolunme?'<div class="arzkutu">✂️ <b>Bedelsiz/bölünme:</b> '+d.bolunme+' tarihinde fiyat tek günde sınırın ötesinde değişti; grafik ve göstergeler buna göre düzeltildi. Portföyündeyse maliyetini aracı kurumdaki yeni maliyetle güncelle.</div>':'')+
- pozHtml(k,d)+arzHtml(d)+tkHtml(d)+gucHtml(d)+uvHtml(d)+bilHtml(d)+kapHtml(d)+
  '<div class="grafik">'+grafik(d.spark,d.sd)+'<div class="leg"><span class="c1">Fiyat</span><span class="c2">SMA20</span><span class="c3">SMA50</span><span class="c4">SuperTrend</span>'+
    (d.sd&&d.sd.destek?'<span class="c5">Destek</span>':'')+(d.sd&&d.sd.direnc?'<span class="c6">Direnç</span>':'')+
    '<span style="color:#1B7F4B">▲ AL</span><span style="color:#B4362E">▼ SAT</span></div></div>'+
+ zaman+
+ pozHtml(k,d)+tkHtml(d)+gucHtml(d)+uvHtml(d)+
  sdHtml(d)+
  '<div class="metr">'+m('RSI',d.rsi)+m('F/K',d.fk)+m('PD/DD',d.pddd)+m('FD/FAVÖK',d.favok)+m('İz stop',d.iz&&!d.iz.cikti?d.iz.stop:'—')+m('Öneri lot',lot)+'</div>'+
+ bilHtml(d)+kapHtml(d)+arzHtml(d)+
  '<div class="gbas">Göstergeler</div><div class="gliste">'+gost+'</div>'+
  (ekh?'<div class="ekler">'+ekh+'</div>':'')+
  '<div class="yorum">'+(d.yorum||d.gerekce.join(' · '))+'</div>'+
