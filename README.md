@@ -66,6 +66,7 @@ Mesaj şu durumlarda gelir:
 - **Güç sütunu (💪 X/7):** 7 iyi göstergeden kaçı olumlu. Yüksek puan, testte sonraki ~1 ayda endeksten iyi gitmeye işaret etti; alım sinyali değil. Hisseye tıklayınca 7'si tek tek.
 - **📈 Ayın güçlüleri:** Son 6 ayın en güçlü %20'si; her ayın başında Telegram'a liste gelir. Bilgi amaçlı.
 - **İşaret sözlüğü:** Panonun en altında bütün rozetlerin açıklaması.
+- **⭐ Favoriler:** Tablodaki ☆'ya bas: hisse favorilere eklenir ve en üstte (AL → NÖTR → SAT sırasıyla) durur; diğerleri altta. Üstteki kutudan hisse arayabilir, "Sadece favoriler" ile listeyi kısaltabilirsin. Telegram'a bağlıysan favoriler telefonla da eşitlenir.
 - **Fiyat alarmı:** Hisseye tıkla → 🔔 Fiyat alarmı → fiyatı yaz → "Üstüne çıkınca" ya da "Altına inince". Fiyat oraya gelince Telegram'a bir kez mesaj gelir (Telegram'a bağlı cihazda kurulmalı).
 - **Haftalık özet:** Cuma kapanıştan sonra: haftanın AL'leri, canlı karne, portföyün haftalık değişimi.
 - **Günlük portföy özeti:** Hafta içi kapanıştan sonra (18:30+) bir kez. Sektör dağılımı ve tek sektöre yoğunlaşma uyarısı dahil. Her hisse için sinyal, K/Z, çıkış ve hedefler, dikkat notları (stop'a yakın, dirence yaklaşıyor, taban serisi).

@@ -36,7 +36,7 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None, 
         fkm = "ucuz" if (s.get("fk") and fk_med and s["fk"] < fk_med) else ("pahali" if s.get("fk") else "")
         pdm = "ucuz" if (s.get("pddd") and pddd_med and s["pddd"] < pddd_med) else ("pahali" if s.get("pddd") else "")
         ok = {"ucuz": "▼", "pahali": "▲", "": ""}
-        yildiz = ' <span class="yildiz">★</span>' if s.get("guclu") else ""
+        yildiz = ' <span class="yildiz" title="AL+: göstergeler AL, F/K ve PD/DD görece ucuz">AL+</span>' if s.get("guclu") else ""
         ycls = {"AL": "yal", "SAT": "ysat", "NÖTR": "ynotr"}[s["sinyal"]]
         yenirz = f' <span class="yeni {ycls}">YENİ</span>' if s.get("yeni") else ""
         sdrz = ""
@@ -100,7 +100,8 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None, 
         iz = s.get("iz") or {}
         izs = iz.get("stop", "—") if (iz and not iz.get("cikti")) else "—"   # v2: iz stop (açık AL dalgası)
         rows.append(
-            f'<tr onclick="ac(\'{k}\')">'
+            f'<tr data-kod="{k}" onclick="ac(\'{k}\')">'
+            f'<td class="favtd"><button class="fav" onclick="event.stopPropagation();favDegis(\'{k}\')" title="Favorilere ekle">☆</button></td>'
             f'<td class="kod">{k}</td>'
             f'<td class="num">{s.get("fiyat","—")}</td>'
             f'<td class="num {dcls}">{dtxt}</td>'
@@ -260,6 +261,7 @@ tbody tr:hover{background:#F2F5F3}
 .uvb{background:#E8EEF7;color:#28507A;font-size:9.5px;font-weight:700;padding:2px 5px;border-radius:5px;margin-left:5px}
 .alkutu{margin-top:14px;border:1px solid var(--line);border-radius:10px;padding:10px 13px;background:#FCFCFB}
 .alsat{font-size:13px;margin:3px 0;display:flex;align-items:center;gap:8px}
+.favtd{width:26px;padding-right:0!important}.fav{border:0;background:none;cursor:pointer;font-size:15px;line-height:1;padding:2px;color:#C7962B}tr.favrow td{background:#FFFBEB}.tabcubuk{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 10px}#ara{flex:1 1 180px;max-width:260px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px}.sfav{font-size:13px;display:flex;gap:5px;align-items:center;cursor:pointer}.mfav{margin-left:8px;border:1px solid var(--line);background:var(--panel);border-radius:7px;padding:3px 9px;font-size:12px;cursor:pointer}
 .momb{background:#E8F0FB;color:#1F4E8C;font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:5px;margin-left:5px;white-space:nowrap}
 .gucb{display:inline-block;min-width:30px;text-align:center;font-size:11px;font-weight:700;padding:2px 5px;border-radius:5px;background:#F1F1EE;color:#555}.gucb.g5,.gucb.g6,.gucb.g7{background:#E4F2E9;color:#14633A}.gucb.g0,.gucb.g1,.gucb.g2{background:#FBECEA;color:#8A2F26}
 .sozluk{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin:12px 0 18px}.szgrup{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 15px}.szgrup h3{margin:0 0 8px;font-size:13.5px}.sz{display:flex;gap:9px;align-items:baseline;font-size:12.6px;line-height:1.5;margin:0 0 7px;color:var(--muted)}.sz>span:first-child,.sz>b{flex:0 0 auto;min-width:112px;color:var(--ink)}.sz>span:first-child{margin-left:0}
@@ -352,8 +354,9 @@ __BANNER__
   </div>
   <div id="pflist"></div>
 </div>
+<div class="tabcubuk"><input id="ara" placeholder="🔍 Hisse ara (örn. THY)" autocomplete="off" oninput="tabloDuzen()"><label class="sfav"><input id="sadecefav" type="checkbox" onchange="tabloDuzen()"> ⭐ Sadece favoriler <span id="favsay"></span></label><span class="sgun">☆'ya basınca hisse favorilere eklenir ve en üste çıkar.</span></div>
 <div class="sar"><table id="t"><thead><tr>
-<th data-t="s">Hisse</th><th class="num" data-t="n">Fiyat</th><th class="num" data-t="n">Değişim</th><th data-t="s">Sinyal</th>
+<th data-t="f" title="Favori">⭐</th><th data-t="s">Hisse</th><th class="num" data-t="n">Fiyat</th><th class="num" data-t="n">Değişim</th><th data-t="s">Sinyal</th>
 <th class="num" data-t="n">Sinyalde</th><th class="num" data-t="n">Uyum</th><th class="num" data-t="n" title="7 iyi göstergeden kaçı olumlu (kısa vadeli güç)">Güç</th><th class="num" data-t="n">RSI</th><th class="num" data-t="n">F/K</th><th class="num" data-t="n">PD/DD</th><th class="num" data-t="n">Stop</th><th class="num" data-t="n">Öneri lot</th>
 </tr></thead><tbody>__ROWS__</tbody></table></div>
 __ARZ__
@@ -384,7 +387,7 @@ __ARZ__
 <div class="sz"><span class="bilb">📅 bilanço</span><span>7 gün içinde bilanço açıklanacak: o gün fiyat sert oynayabilir.</span></div>
 <div class="sz"><span class="bilb">💰 temettü</span><span>7 gün içinde temettü hak kullanımı: o sabah fiyat temettü kadar düşük açılır.</span></div>
 <div class="sz"><span class="arzb">ARZ</span><span>Son 12 ayın halka arzı.</span></div>
-<div class="sz"><span class="yildiz">★</span><span>AL+: göstergeler AL ve F/K ile PD/DD grup ortancasının altında (görece ucuz).</span></div>
+<div class="sz"><span class="yildiz">AL+</span><span>AL+: göstergeler AL ve F/K ile PD/DD grup ortancasının altında (görece ucuz).</span></div>
 <div class="sz"><span>✂️</span><span>Hisse penceresinde: bedelsiz/bölünme oldu, fiyatlar düzeltildi; portföydeyse maliyetini güncelle.</span></div>
 </div>
 <div class="szgrup"><h3>Sütunlar</h3>
@@ -417,11 +420,46 @@ const DATA=__DATA__;
 const XU=__XU__;  // BIST 100: son 2 yıl günlük, öncesi haftalık — portföy-endeks kıyası
 const t=document.getElementById('t');
 t.querySelectorAll('th').forEach((th,i)=>{th.addEventListener('click',()=>{
+if(th.dataset.t==='f'){t._sirali=false;tabloDuzen();return;}
 const tb=t.tBodies[0],rows=[...tb.rows],num=th.dataset.t==='n',asc=th._asc=!th._asc;
 rows.sort((a,b)=>{let x=a.cells[i].innerText.replace('%','').replace('+',''),y=b.cells[i].innerText.replace('%','').replace('+','');
 if(num){x=parseFloat(x)||-1e9;y=parseFloat(y)||-1e9;return asc?x-y:y-x;}return asc?x.localeCompare(y,'tr'):y.localeCompare(x,'tr');});
-rows.forEach(r=>tb.appendChild(r));});});
+t._sirali=true;rows.forEach(r=>tb.appendChild(r));tabloDuzen();});});
 
+
+// --- ⭐ Favoriler: cihazda + GitHub'daki FAVORILER variable'ında (portföyle aynı anahtar). Favoriler tabloda en üstte,
+// kendi içinde sunucunun sırasıyla (AL → NÖTR → SAT); sütuna göre sıralayınca da üstte kalır.
+var FAV_KEY='favoriler_v1';
+function favOku(){try{return JSON.parse(localStorage.getItem(FAV_KEY))||[]}catch(e){return[]}}
+function favYaz(a){try{localStorage.setItem(FAV_KEY,JSON.stringify(a))}catch(e){}
+ if(!ghAnahtar())return;
+ var v={name:'FAVORILER',value:JSON.stringify(a)};
+ ghIstek('PATCH','/actions/variables/FAVORILER',v).then(function(r){return r.status===404?ghIstek('POST','/actions/variables',v):r;}).catch(function(){});
+}
+function favBulutOku(){
+ if(!ghAnahtar())return;
+ ghIstek('GET','/actions/variables/FAVORILER').then(function(r){
+  if(r.status===404){if(favOku().length)favYaz(favOku());return;}
+  if(!r.ok)return;
+  return r.json().then(function(j){var a=[];try{a=JSON.parse(j.value);}catch(e){}
+   if(Array.isArray(a)&&a.length){try{localStorage.setItem(FAV_KEY,JSON.stringify(a))}catch(e){}tabloDuzen();}});
+ }).catch(function(){});
+}
+function favDegis(k){var a=favOku(),i=a.indexOf(k);if(i>=0)a.splice(i,1);else a.push(k);favYaz(a);tabloDuzen();
+ var d=document.getElementById('mfav');if(d)d.textContent=a.indexOf(k)>=0?'⭐ Favorilerde':'☆ Favorilere ekle';}
+var _SIRA=null;  // sunucunun ilk sırası (AL → NÖTR → SAT)
+function tabloDuzen(){
+ var tb=t.tBodies[0],rows=[...tb.rows],fav=favOku();
+ if(!_SIRA){_SIRA={};rows.forEach(function(r,i){_SIRA[r.dataset.kod]=i;});}
+ var q=(document.getElementById('ara').value||'').trim().toLocaleUpperCase('tr'),sf=document.getElementById('sadecefav').checked;
+ rows.forEach(function(r){var k=r.dataset.kod,f=fav.indexOf(k)>=0;r.classList.toggle('favrow',f);
+  var b=r.querySelector('.fav');if(b){b.textContent=f?'⭐':'☆';b.title=f?'Favorilerden çıkar':'Favorilere ekle';}
+  r.hidden=(q&&k.indexOf(q)<0)||(sf&&!f);});
+ if(!t._sirali)rows.sort(function(a,b){return _SIRA[a.dataset.kod]-_SIRA[b.dataset.kod];});
+ var f1=rows.filter(function(r){return fav.indexOf(r.dataset.kod)>=0;}),f2=rows.filter(function(r){return fav.indexOf(r.dataset.kod)<0;});
+ f1.concat(f2).forEach(function(r){tb.appendChild(r);});
+ var n=document.getElementById('favsay');if(n)n.textContent=fav.length?'('+fav.length+')':'';
+}
 function sinyalCls(d){if(d.sinyal==='AL')return 'al';if(d.sinyal==='SAT')return 'sat';
  return 'notr'+(d.notr_kaynak==='AL'?' notr-al':d.notr_kaynak==='SAT'?' notr-sat':'');}
 // Büyük grafik: fiyat/tarih eksenleri, AL/SAT dönüş işaretleri, destek/direnç çizgileri, fare/dokunma ile değer
@@ -628,7 +666,7 @@ function arzHtml(d){
 function ac(k){
  const d=DATA[k];if(!d)return;
  const dcls=(d.degisim||0)>=0?'pos':'neg';const dtxt=d.degisim==null?'—':((d.degisim>=0?'+':'')+d.degisim+'%');
- const pill='<span class="pill '+sinyalCls(d)+'">'+d.sinyal+'</span>'+(d.guclu?' <span class="yildiz">★</span>':'');
+ const pill='<span class="pill '+sinyalCls(d)+'">'+d.sinyal+'</span>'+(d.guclu?' <span class="yildiz">AL+</span>':'');
  const m=(l,v)=>'<div class="m"><div class="l">'+l+'</div><div class="v">'+(v==null?'—':v)+'</div></div>';
  const lot=(d.lot&&d.sinyal==='AL')?d.lot+' lot':'—';
  const tv='https://www.tradingview.com/chart/?symbol=BIST%3A'+k;
@@ -658,7 +696,7 @@ function ac(k){
    zaman+='</div>';
  }
  document.getElementById('modal').innerHTML=
- '<div class="mh"><div class="sol"><h2>'+k+'</h2>'+pill+uyum+'</div><button class="kapa" onclick="kapat()">✕</button></div>'+
+ '<div class="mh"><div class="sol"><h2>'+k+'</h2>'+pill+uyum+' <button class="mfav" id="mfav" onclick="favDegis(\''+k+'\')">'+(favOku().indexOf(k)>=0?'⭐ Favorilerde':'☆ Favorilere ekle')+'</button></div><button class="kapa" onclick="kapat()">✕</button></div>'+
  '<div class="mfiyat">'+(d.fiyat!=null?d.fiyat+' TL':'')+' <span class="'+dcls+'">'+dtxt+'</span>'+
    (d.sektor?' <span class="sektorb">'+d.sektor+(d.endustri&&d.endustri!==d.sektor?' · '+d.endustri:'')+'</span>':'')+'</div>'+
  zaman+
@@ -871,7 +909,7 @@ function pfRender(){
  liste.innerHTML=r;
  top.innerHTML='Toplam K/Z: <b class="'+(toplam>=0?'pos':'neg')+'">'+(toplam>=0?'+':'')+Math.round(toplam).toLocaleString('tr-TR')+' TL</b>';
 }
-(function(){var dl=document.getElementById('pfkodlar');if(dl){dl.innerHTML=Object.keys(DATA).sort().map(function(k){return '<option value="'+k+'"></option>';}).join('');}pfRender();pfBulutOku();alBulutOku();})();
+(function(){var dl=document.getElementById('pfkodlar');if(dl){dl.innerHTML=Object.keys(DATA).sort().map(function(k){return '<option value="'+k+'"></option>';}).join('');}pfRender();pfBulutOku();alBulutOku();tabloDuzen();favBulutOku();})();
 </script></body></html>"""
 
 
