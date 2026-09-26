@@ -74,10 +74,10 @@ Fon krizinde çöken şişirilmiş hisseler (TERA, SMRTG, GENIL, MIATK) listeden
 isteğiyle faiz yüzünden düşen eski büyükler (KONTR vb.) KALDI — tüm çökenleri çıkarma.
 
 ## Tahtacı (şişir-çak) uyarısı — `sinyal.tahta_riski`
-Olay çalışması (2022-26, tüm hisseler, bölünme düzeltmeli): 20 günde ≥%25 çakılma taban oranı %2,3. 🔥 şişme
+Olay çalışması (2022-26, tüm hisseler, bölünme düzeltmeli): 20 günde ≥%25 çakılma taban oranı %2,3. 🎈 şişme
 (10g ≥5 tavan %19 / 20g ≥%100 %15 / 50g ort +%70 ve 20g std ≥%6 %16 / ≥3 tavan + hacim 5g/60g ≥3x %19) ve ⚠️ dağıtım
 (hacim 5g/60g >2x iken 10g zirvenin %8+ altı, %9,5). Küçük tahta (düşük TL hacim) tek başına risk artırmıyor.
-v3 girişlerinin sadece 1/417'si uyarılı günde (şablon + oynaklık filtresi zaten eliyor) → 🔥'de AL mesajı gitmez.
+v3 girişlerinin sadece 1/417'si uyarılı günde (şablon + oynaklık filtresi zaten eliyor) → 🎈'de AL mesajı gitmez.
 'Dipten kaldırma' tahmin edilemedi: tepeden %50+ çöken 75 olayda 60 gün sonrası −%65…+%189, hacim artışı ayırmıyor.
 Pano rozeti + modal kutusu, portföy özetinde not. (scratchpad bt/tahta1.py)
 
@@ -117,6 +117,8 @@ değişmedi. Son 30 günde bölünme olan portföy hissesinde 'maliyetini günce
 - Telegram: 17:30+ kırılımlar (`tk_gonderilen`, günde bir kez), 18:30 sonrası kapanışta tutmayan için "↩️ iptal".
   SINYAL AL'i artık mesaj değil (panoda gösterge bilgisi); SAT portföy bilgisi. Karne (gecmis.json, "kural": "v3")
   sadece kesin kapanışta kayıt açar. Portföy iz stop'u: en son giriş v3 kırılımıysa ondan (`analiz_et` iz override).
+- Geç giriş (çökenler hariç, 2022-26): sinyalden 0/5/10/20/40 gün sonra (pozisyon hâlâ açıksa) girince ort +%20/+%19/
+  +%18/+%15/+%8, isabet %52/51/50/47/35 → panoda ≤5 gün '🚀 AL Ng önce', sonrası 'trendde · Ng' (yeni alım değil).
 - Pano: 🚀 KIRILIM (bugün) / 🚀 Ng (pozisyon) / 👀 kırılıma %x (şablonda, ≤%3) rozetleri; modalda tkHtml kutusu.
 
 ## Canlı kurallar (5 yıllık backtest'e dayanarak, 2026-09)

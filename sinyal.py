@@ -414,7 +414,7 @@ def trend_kirilimi(d, xu_ust=None, islemler=False):
 
 def tahta_riski(d):
     """Tahtacı 'şişir-çak' uyarısı (o güne kadarki veriyle). 5 yıllık olay çalışması (2022-26, tüm hisseler): normalde
-    bir hissenin 20 gün içinde ≥%25 çakılma olasılığı %2,3. 🔥 şişme: 10 günde ≥5 tavan (%19, 8 kat), 20 günde ≥%100
+    bir hissenin 20 gün içinde ≥%25 çakılma olasılığı %2,3. 🎈 şişme: 10 günde ≥5 tavan (%19, 8 kat), 20 günde ≥%100
     (%15, 7 kat), 50g ortalamanın %70+ üstü ve 20g oynaklık ≥%6 (%16), ≥3 tavan + hacim 5g/60g ≥3x (%19). ⚠️ dağıtım:
     hacim 5g/60g > 2x iken fiyat 10g zirvesinin %8+ altında (%9,5, 4 kat). Kesinlik değil risk: çoğu yine çakılmaz."""
     c, v = d["Close"], d["Volume"].replace(0, float("nan"))

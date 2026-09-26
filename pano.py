@@ -58,7 +58,7 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None, 
             sdrz += f' <span class="gun1b" title="{tz["tarih"]}: düşen trend %{tz["gunluk"]} yükselişle kırıldı. Tüm borsada bu kırılımların %56&#39;sı 15 günde geri düştü; kırılımda almak rastgele günden kötü sonuç verdi">🪤 tuzak riski</span>'
         th = s.get("tahta") or {}
         if th.get("seviye") == "sisme":
-            sdrz += f' <span class="patlakb" title="{"; ".join(th["neden"])} — tahtacı şişirmesi olabilir">🔥 şişme</span>'
+            sdrz += f' <span class="patlakb" title="{"; ".join(th["neden"])} — tahtacı şişirmesi olabilir">🎈 şişme</span>'
         elif th.get("seviye") == "dagitim":
             sdrz += f' <span class="gun1b" title="{th["neden"][0]}">⚠️ dağıtım</span>'
         if s.get("arz"):
@@ -66,8 +66,12 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None, 
         tk = s.get("tk") or {}
         if tk.get("bugun"):
             sdrz += f' <span class="tkb yeni" title="Bugün trend şablonunda 20 günlük zirve kırıldı — v3 AL">🚀 KIRILIM</span>'
+        elif tk.get("durum") == "AL" and (tk.get("gun") or 0) <= 5:
+            # backtest: sinyalden 5 gün içinde girmek sinyal günüyle neredeyse aynı (ort +%19 vs +%20)
+            sdrz += f' <span class="tkb" title="{tk.get("gun")} gün önce 🚀 AL geldi ({tk.get("giris_tarih")}, o günden beri {tk.get("degisim")}%). İlk 5 gün içinde girmek backtest\'te sinyal günüyle neredeyse aynı sonuç verdi. İz stop {tk.get("stop")} TL">🚀 AL {tk.get("gun")}g önce</span>'
         elif tk.get("durum") == "AL":
-            sdrz += f' <span class="tkb" title="v3 pozisyonu: {tk.get("giris_tarih")} kırılımından beri {tk.get("degisim")}% · iz stop {tk.get("stop")} TL">🚀 {tk.get("gun")}g</span>'
+            # 20+ gün sonra girmek belirgin kötü (40 gün sonra isabet %35) — yeni alım sinyali değil
+            sdrz += f' <span class="tkb izle" title="Yeni alım sinyali DEĞİL: {tk.get("giris_tarih")} günkü 🚀 AL hâlâ sürüyor ({tk.get("degisim")}%, iz stop {tk.get("stop")} TL). Backtest: sinyalden 20+ gün sonra girmek belirgin kötü; yeni alım için bir sonraki kırılımı bekle">trendde · {tk.get("gun")}g</span>'
         elif tk.get("sablon") and tk.get("kirilima_uzak") is not None and 0 < tk["kirilima_uzak"] <= 3:
             sdrz += f' <span class="tkb izle" title="Trend şablonunda; 20 günlük zirveye (%{tk["kirilima_uzak"]} yukarıda, {tk.get("kirilim_seviye")} TL) yakın — kapanışla aşarsa v3 AL">👀 kırılıma %{tk["kirilima_uzak"]}</span>'
         uv = s.get("uv") or {}
@@ -505,7 +509,8 @@ function tkHtml(d){
  var t=d.tk;if(!t)return '';
  var h='<div class="uvkutu">🚀 <b>Trend kırılımı (v3 AL kuralı): ';
  if(t.bugun)h+='BUGÜN KIRILIM</b> — trend şablonundayken 20 günlük zirve ('+t.kirilim_seviye+' TL) aşıldı. Giriş ertesi açılış; çıkış: tepe kapanışın %20 altı (iz stop).';
- else if(t.durum==='AL')h+='pozisyon açık</b> — '+t.giris_tarih+' kırılımından beri '+t.gun+' işlem günü, '+(t.degisim>=0?'+':'')+t.degisim+'%. İz stop <b>'+t.stop+' TL</b> (tepe '+t.tepe+' TL, '+t.tepe_tarih+').';
+ else if(t.durum==='AL')h+=(t.gun<=5?'AL '+t.gun+' gün önce geldi</b>':'AL sürüyor, ama yeni alım sinyali değil</b>')+' — '+t.giris_tarih+' kırılımından beri '+t.gun+' işlem günü, '+(t.degisim>=0?'+':'')+t.degisim+'%. İz stop <b>'+t.stop+' TL</b> (tepe '+t.tepe+' TL, '+t.tepe_tarih+').'+
+   (t.gun<=5?' İlk 5 gün içinde girmek backtest\'te sinyal günüyle neredeyse aynı sonuç verdi.':' Backtest: sinyalden 20+ gün sonra girmek belirgin kötü (40 gün sonra girenlerin sadece %35\'i kârda) — elindeyse iz stop\'a kadar tut, yeni alım için bir sonraki kırılımı bekle.');
  else if(t.durum==='CIKTI'&&t.cikis_gun!=null&&t.cikis_gun<=20)h+='son işlem kapandı</b> — '+t.giris_tarih+' girişi, '+t.cikis_tarih+' iz stop ile çıktı ('+(t.sonuc>=0?'+':'')+t.sonuc+'%).';
  else h+=(t.sablon?'şablonda, kırılım bekleniyor</b>':'yok</b> — trend şablonu sağlanmıyor.');
  if(!t.bugun&&t.durum!=='AL'&&t.sablon&&t.kirilim_seviye)h+=' Kapanış <b>'+t.kirilim_seviye+' TL</b> üstüne çıkarsa AL'+(t.kirilima_uzak!=null?' (%'+t.kirilima_uzak+' yukarıda)':'')+'.';
@@ -606,7 +611,7 @@ function ac(k){
    (d.sektor?' <span class="sektorb">'+d.sektor+(d.endustri&&d.endustri!==d.sektor?' · '+d.endustri:'')+'</span>':'')+'</div>'+
  zaman+
  (d.tuzak?'<div class="patlakkutu">🪤 <b>Düşen trend kırılımı — tuzak riski:</b> '+d.tuzak.tarih+' günü hisse düşük seviyedeyken %'+d.tuzak.gunluk+' yükselişle düşen trend çizgisini kırdı ('+d.tuzak.kirilim_fiyat+' TL). Grafikte "AL" gibi görünür ama tüm borsada 5 yılda bu kırılımların <b>%56\'sı 15 gün içinde %5+ geri düştü</b>; kırılımda alıp 60 gün tutmak aynı hisselerde rastgele bir günden kötü sonuç verdi. Hacimli ya da güçlü kapanışlı olması tuzağı ayırmıyor.'+(d.tuzak.geri_dondu?' <b>Şu an kırılım fiyatının %5+ altına döndü.</b>':'')+'</div>':'')+
- ((d.tahta&&d.tahta.seviye)?'<div class="patlakkutu">'+(d.tahta.seviye==='sisme'?'🔥 <b>Şişme riski (tahtacı uyarısı):</b> '+d.tahta.neden.join('; ')+'. 5 yıllık veride bu durumdaki hisselerin ~%15-19\'u sonraki 20 günde %25+ çakıldı (normalde %2). Yeni alım için AL mesajı gönderilmez; elindeyse iz stop\'u sıkı takip et.':'⚠️ <b>Dağıtım işareti:</b> '+d.tahta.neden[0]+'. Büyük satıcı (tahtacı) malı dağıtıyor olabilir; bu durumdakilerin ~%10\'u 20 günde %25+ düştü (normalde %2).')+'</div>':'')+
+ ((d.tahta&&d.tahta.seviye)?'<div class="patlakkutu">'+(d.tahta.seviye==='sisme'?'🎈 <b>Şişme riski (tahtacı uyarısı):</b> '+d.tahta.neden.join('; ')+'. 5 yıllık veride bu durumdaki hisselerin ~%15-19\'u sonraki 20 günde %25+ çakıldı (normalde %2). Yeni alım için AL mesajı gönderilmez; elindeyse iz stop\'u sıkı takip et.':'⚠️ <b>Dağıtım işareti:</b> '+d.tahta.neden[0]+'. Büyük satıcı (tahtacı) malı dağıtıyor olabilir; bu durumdakilerin ~%10\'u 20 günde %25+ düştü (normalde %2).')+'</div>':'')+
  (d.patlak?'<div class="patlakkutu">⚠ <b>Taban serisi:</b> son 15 günde '+d.taban15+' kez ~%10 düştü. Fon krizi tipi çöküş olabilir; bu hisseden AL mesajı gönderilmez.</div>':'')+
  (d.bolunme?'<div class="arzkutu">✂️ <b>Bedelsiz/bölünme:</b> '+d.bolunme+' tarihinde fiyat tek günde sınırın ötesinde değişti; grafik ve göstergeler buna göre düzeltildi. Portföyündeyse maliyetini aracı kurumdaki yeni maliyetle güncelle.</div>':'')+
  pozHtml(k,d)+arzHtml(d)+tkHtml(d)+uvHtml(d)+bilHtml(d)+kapHtml(d)+
