@@ -199,6 +199,7 @@ değişmedi. Son 30 günde bölünme olan portföy hissesinde 'maliyetini günce
 - 📋 'Bugün ne var?' kartı (`bugunRender`, istemci): PIYASA (piyasa_durumu JSON), 🚀 AL son 5 gün, portföy uyarıları
   (`bugunUyari`: iz stop kırıldı/%3'ten yakın sadece portföyde; 🎈/⚠️/🪤/taban/bilanço/temettü ≤7 gün/bölünme ≤30 gün),
   favoriler (🚀, 👀 ≤%3, uyarılar). Üst sayılar artık v3: bugün 🚀 AL / son 5 günde 🚀 AL.
+- Karne (gecmis.html): kartlar sadece `kural: v3` kayıtları; eski kayıtlar 'eski kural' etiketi + ayrı özet satırı (`ozet['eski']`).
 - ⭐ Favoriler: istemci tarafı (`favoriler_v1` localStorage + `FAVORILER` variable, portföyle aynı anahtar). `tabloDuzen()`
   favorileri üste alır (sunucu sırası AL→NÖTR→SAT korunur), sütun sıralamasında da üstte tutar; arama kutusu + 'sadece
   favoriler'. Satırlarda `data-kod`; ilk sütun ⭐. AL+ işareti ★ yerine 'AL+' yazısı (favori yıldızıyla karışmasın).

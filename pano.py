@@ -173,6 +173,9 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None, 
 
 def gecmis_uret(acik, kapali, ozet):
     """Sinyal geçmişi sayfası: açık pozisyonlar + kapanmış sinyaller + karne."""
+    def eski(r):
+        return "" if r.get("kural") == "v3" else ' <span class="eskib" title="Eski (v3 öncesi) kurallarla açılmış kayıt">eski kural</span>'
+
     def satirlar(kayitlar, acikmi):
         out = []
         for r in sorted(kayitlar, key=lambda x: x.get("giris_tarih", ""), reverse=True):
@@ -180,14 +183,14 @@ def gecmis_uret(acik, kapali, ozet):
                 s = r.get("anlik")
                 scls = "pos" if (s or 0) >= 0 else "neg"
                 stxt = f"{'+' if (s or 0) >= 0 else ''}{s}%" if s is not None else "—"
-                out.append(f'<tr><td class="kod">{r["kod"]}</td><td>{r["giris_tarih"]}</td>'
+                out.append(f'<tr><td class="kod">{r["kod"]}{eski(r)}</td><td>{r["giris_tarih"]}</td>'
                            f'<td class="num">{r["giris_fiyat"]}</td><td class="num">{r.get("guncel","—")}</td>'
                            f'<td class="num {scls}">{stxt}</td><td class="num stop">{r["stop"]}</td></tr>')
             else:
                 s = r.get("sonuc")
                 scls = "pos" if (s or 0) >= 0 else "neg"
                 stxt = f"{'+' if (s or 0) >= 0 else ''}{s}%" if s is not None else "—"
-                out.append(f'<tr><td class="kod">{r["kod"]}</td><td>{r["giris_tarih"]}</td>'
+                out.append(f'<tr><td class="kod">{r["kod"]}{eski(r)}</td><td>{r["giris_tarih"]}</td>'
                            f'<td class="num">{r["giris_fiyat"]}</td><td>{r.get("cikis_tarih","—")}</td>'
                            f'<td class="num">{r.get("cikis_fiyat","—")}</td>'
                            f'<td class="num {scls}">{stxt}</td><td>{r.get("sebep","—")}</td></tr>')
@@ -199,6 +202,9 @@ def gecmis_uret(acik, kapali, ozet):
         "__ORT__": str(ozet.get("ort", "—")), "__ACIK__": str(ozet.get("acik", 0)),
         "__ACIKROWS__": satirlar(acik, True), "__KAPALIROWS__": satirlar(kapali, False),
         "__TARIH__": _simdi(),
+        "__ESKI__": (lambda e: (f'<div class="not">Eski (v3 öncesi) kurallarla açılmış kayıtlar yukarıdaki kartlara dahil değil: '
+                                f'{e["kapanan"]} kapanan (isabet %{e["isabet"]}, ortalama %{e["ort"]}), {e["acik"]} açık. '
+                                f'Tablolarda "eski kural" etiketiyle görünürler.</div>') if (e["kapanan"] or e["acik"]) else "")(ozet.get("eski") or {"kapanan": 0, "acik": 0}),
     }
     for a, b in reps.items():
         html = html.replace(a, b)
@@ -972,15 +978,17 @@ th,td{padding:9px 11px;text-align:left;white-space:nowrap}th{color:var(--muted);
 tbody tr{border-bottom:1px solid var(--line)}tbody tr:last-child{border-bottom:none}
 .kod{font-weight:650}.num{text-align:right;font-variant-numeric:tabular-nums}.stop{color:var(--neg)}.pos{color:var(--pos)}.neg{color:var(--neg)}
 .not{margin-top:22px;padding:13px 15px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--muted);font-size:12px;line-height:1.6}
+.eskib{font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:5px;margin-left:5px;background:#F1F1EE;color:#6B7079}
 </style></head><body><div class="wrap">
 <a class="geri" href="index.html">← Panoya dön</a>
 <h1>Sinyal Geçmişi (canlı karne)</h1><div class="tarih">Güncelleme: __TARIH__</div>
 <div class="kartlar">
-<div class="k"><div class="b">%__ISABET__</div><div class="l">kapanan sinyallerde isabet</div></div>
+<div class="k"><div class="b">%__ISABET__</div><div class="l">kapanan 🚀 v3 sinyallerinde isabet</div></div>
 <div class="k"><div class="b">__KAPANAN__</div><div class="l">kapanan sinyal sayısı</div></div>
 <div class="k"><div class="b">%__ORT__</div><div class="l">kapananların ortalama sonucu</div></div>
 <div class="k"><div class="b">__ACIK__</div><div class="l">şu an açık takip</div></div>
 </div>
+__ESKI__
 <h2>Açık pozisyonlar (takipte)</h2>
 <div class="sar"><table><thead><tr><th>Hisse</th><th>Sinyal tarihi</th><th class="num">Giriş</th><th class="num">Güncel</th><th class="num">Anlık %</th><th class="num">Stop</th></tr></thead><tbody>__ACIKROWS__</tbody></table></div>
 <h2>Kapanmış sinyaller</h2>

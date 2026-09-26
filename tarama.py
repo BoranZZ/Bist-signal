@@ -918,13 +918,14 @@ def gecmis_guncelle(by_kod, bugun, piyasa=None, yeni_kayit=True):
 
     acik = [r for r in kayitlar if r["durum"] == "açık"]
     kapali = [r for r in kayitlar if r["durum"] == "kapalı"]
-    if kapali:
-        sonuclar_ = [r["sonuc"] for r in kapali if r.get("sonuc") is not None]
-        isabet = round(sum(1 for x in sonuclar_ if x > 0) / len(sonuclar_) * 100, 1) if sonuclar_ else 0
-        ort = round(sum(sonuclar_) / len(sonuclar_), 1) if sonuclar_ else 0
-    else:
-        isabet = ort = 0
-    ozet = {"isabet": isabet, "kapanan": len(kapali), "ort": ort, "acik": len(acik)}
+    def _istat(ac, ka):
+        x = [r["sonuc"] for r in ka if r.get("sonuc") is not None]
+        return {"isabet": round(sum(1 for v in x if v > 0) / len(x) * 100, 1) if x else 0,
+                "kapanan": len(ka), "ort": round(sum(x) / len(x), 1) if x else 0, "acik": len(ac)}
+    # karne kartları sadece canlı kural (v3) kayıtlarını sayar; eski kurallarla açılmışlar ayrı özet
+    v3 = lambda r: r.get("kural") == "v3"
+    ozet = _istat([r for r in acik if v3(r)], [r for r in kapali if v3(r)])
+    ozet["eski"] = _istat([r for r in acik if not v3(r)], [r for r in kapali if not v3(r)])
     return acik, kapali, ozet
 
 
