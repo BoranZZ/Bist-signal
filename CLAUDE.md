@@ -214,7 +214,9 @@ değişmedi. Son 30 günde bölünme olan portföy hissesinde 'maliyetini günce
   favorileri üste alır (sunucu sırası AL→NÖTR→SAT korunur), sütun sıralamasında da üstte tutar; arama kutusu + 'sadece
   favoriler'. Satırlarda `data-kod`; ilk sütun ⭐. AL+ işareti ★ yerine 'AL+' yazısı (favori yıldızıyla karışmasın).
 - 📍 Portföy gün içi (`tarama.gunici_olaylar`, 10:15-18:10 hafta içi): destek/direnç DÜNKÜ kapanışa kadarki veriyle
-  (`sd_dun`; bugün yeniden hesaplanan destek kırılınca alttaki dibe kayar), olaylar d_yakin/d_sarkti/d_kirildi (karar
+  (`sd_dun`; bugün yeniden hesaplanan destek kırılınca alttaki dibe kayar),
+  destek dün üstünde kapanılıp bugün karar çizgisi üstünde (hafif altında) kapanınca ertesi gün de korunur (`destek_direnc`,
+  2026-09-29; eskiden %97'sinde kayboluyordu, 'yarın izle' izlenmiyordu; gün içi 'desteği kırdı' mesajı hisse-günlerin %4,9 → %8,1'i), olaylar d_yakin/d_sarkti/d_kirildi (karar
   çizgisi = S·(1−tol)), r_kirdi/r_dondu, iz_yakin (%2)/iz_alti, taban/tavan (±%9,5)/sert (−%5). Olay+seviye günde bir kez
   (`durum.gunici`, gizli anahtar); ağır olay hafifleri bastırır. Veri teyidi: olay `_son_fiyat` (fast_info) ile de tutmalı,
   iki fiyat >%1 farklıysa atlanır (THYAO 24.09 Yahoo günlük 288,5 / resmi 289,5, destek 289,25 → yanlış 'kırıldı' görünmüştü).

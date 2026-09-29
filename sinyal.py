@@ -251,7 +251,12 @@ def destek_direnc(df):
     dipler = [p for p in _pivotlar(low, PIVOT_K, False) if p[0] <= sinir]
     tepeler = [p for p in _pivotlar(high, PIVOT_K, True) if p[0] <= sinir]
 
-    alt = [p for p in dipler if p[1] <= fiyat]
+    # dünkü kapanışta destek olan seviye, bugün hafif altında (karar çizgisi S×(1−tol) üstünde) kapanınca kaybolmasın:
+    # akşam mesajı "kırılım sayılmaz, yarın izle" diyor; eskiden ertesi sabah bu olayların %97'sinde seviye alttaki dibe
+    # kayıyordu ve geri alınıp alınmadığı hiç raporlanmıyordu (5 günde ~yarısı geri alındı, yarısı kırıldı; scratchpad
+    # sd_hafif.py, 125 hisse 2022-26). Sadece dün üstünde kapanılan seviye: daha genişi gün içi mesajları ~3 kat artırıyordu.
+    dun_c = float(close.iloc[-2]) if len(close) > 1 else fiyat
+    alt = [p for p in dipler if p[1] <= fiyat or (p[1] * (1 - tol) <= fiyat and dun_c >= p[1])]
     ust = [p for p in tepeler if p[1] > fiyat]
     destek = max(alt, key=lambda p: (p[1], p[0])) if alt else None    # en yakın, eşitse en yeni
     direnc = min(ust, key=lambda p: (p[1], -p[0])) if ust else None
