@@ -1,5 +1,6 @@
 {
   "al": [
+    "AKFIS",
     "ENERY",
     "GMTAS",
     "HRKET",
@@ -20,7 +21,7 @@
     "AKBNK": "SAT",
     "AKCNS": "SAT",
     "AKENR": "SAT",
-    "AKFIS": "NÖTR",
+    "AKFIS": "AL",
     "AKFYE": "SAT",
     "AKGRT": "SAT",
     "AKHAN": "SAT",
@@ -329,6 +330,11 @@
   "karar_kirilim_g": [],
   "alarm_tetik": [],
   "on_sinyal": {
+    "AKFIS": {
+      "sinyal": "AL",
+      "onceki": "NÖTR",
+      "tarih": "2026-09-29"
+    },
     "CELHA": {
       "sinyal": "SAT",
       "onceki": "NÖTR",
