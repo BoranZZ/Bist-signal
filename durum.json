@@ -77,7 +77,7 @@
     "CANTE": "SAT",
     "CATES": "SAT",
     "CCOLA": "SAT",
-    "CELHA": "NÖTR",
+    "CELHA": "SAT",
     "CEMZY": "SAT",
     "CGCAM": "SAT",
     "CIMSA": "SAT",
@@ -329,6 +329,11 @@
   "karar_kirilim_g": [],
   "alarm_tetik": [],
   "on_sinyal": {
+    "CELHA": {
+      "sinyal": "SAT",
+      "onceki": "NÖTR",
+      "tarih": "2026-09-29"
+    },
     "GMTAS": {
       "sinyal": "AL",
       "onceki": "NÖTR",
@@ -618,7 +623,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1669662,
+  "kap_son": 1669664,
   "tk_gonderilen": {
     "tarih": "2026-09-29",
     "kodlar": []
