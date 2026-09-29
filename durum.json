@@ -134,7 +134,7 @@
     "GIPTA": "SAT",
     "GLRMK": "SAT",
     "GLYHO": "SAT",
-    "GMTAS": "NÖTR",
+    "GMTAS": "AL",
     "GOKNR": "SAT",
     "GRSEL": "SAT",
     "GRTHO": "SAT",
@@ -217,7 +217,7 @@
     "MOBTL": "SAT",
     "MOGAN": "SAT",
     "MOPAS": "SAT",
-    "MPARK": "NÖTR",
+    "MPARK": "SAT",
     "MRGYO": "SAT",
     "MRSHL": "SAT",
     "NETCD": "SAT",
@@ -229,6 +229,7 @@
     "ONCSM": "SAT",
     "ONRYT": "SAT",
     "ORGE": "NÖTR",
+    "ORZAX": "SAT",
     "OTKAR": "SAT",
     "OYAKC": "SAT",
     "OZATD": "SAT",
@@ -237,7 +238,7 @@
     "PAPIL": "SAT",
     "PASEU": "SAT",
     "PATEK": "SAT",
-    "PCILT": "NÖTR",
+    "PCILT": "SAT",
     "PEKGY": "SAT",
     "PENTA": "SAT",
     "PETKM": "SAT",
@@ -252,7 +253,7 @@
     "RTALB": "SAT",
     "RUBNS": "SAT",
     "RYGYO": "NÖTR",
-    "RYSAS": "NÖTR",
+    "RYSAS": "SAT",
     "SAFKR": "SAT",
     "SAHOL": "SAT",
     "SANFM": "SAT",
@@ -290,7 +291,7 @@
     "TRENJ": "SAT",
     "TRGYO": "SAT",
     "TRHOL": "SAT",
-    "TRMET": "NÖTR",
+    "TRMET": "SAT",
     "TSKB": "SAT",
     "TSPOR": "SAT",
     "TTKOM": "SAT",
@@ -327,7 +328,33 @@
   "hafta_tarih": "2026-09-25",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {},
+  "on_sinyal": {
+    "GMTAS": {
+      "sinyal": "AL",
+      "onceki": "NÖTR",
+      "tarih": "2026-09-29"
+    },
+    "MPARK": {
+      "sinyal": "SAT",
+      "onceki": "NÖTR",
+      "tarih": "2026-09-29"
+    },
+    "PCILT": {
+      "sinyal": "SAT",
+      "onceki": "NÖTR",
+      "tarih": "2026-09-29"
+    },
+    "RYSAS": {
+      "sinyal": "SAT",
+      "onceki": "NÖTR",
+      "tarih": "2026-09-29"
+    },
+    "TRMET": {
+      "sinyal": "SAT",
+      "onceki": "NÖTR",
+      "tarih": "2026-09-29"
+    }
+  },
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
@@ -591,7 +618,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1669657,
+  "kap_son": 1669662,
   "tk_gonderilen": {
     "tarih": "2026-09-29",
     "kodlar": []
