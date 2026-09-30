@@ -18,7 +18,7 @@
     "AKBNK": "SAT",
     "AKCNS": "SAT",
     "AKENR": "SAT",
-    "AKFIS": "NÖTR",
+    "AKFIS": "AL",
     "AKFYE": "SAT",
     "AKGRT": "SAT",
     "AKHAN": "SAT",
@@ -75,7 +75,7 @@
     "CANTE": "SAT",
     "CATES": "SAT",
     "CCOLA": "SAT",
-    "CELHA": "NÖTR",
+    "CELHA": "SAT",
     "CEMZY": "SAT",
     "CGCAM": "SAT",
     "CIMSA": "SAT",
@@ -134,6 +134,7 @@
     "GLYHO": "SAT",
     "GMTAS": "AL",
     "GOKNR": "SAT",
+    "GOLDA": "SAT",
     "GRSEL": "SAT",
     "GRTHO": "SAT",
     "GSDDE": "SAT",
@@ -143,7 +144,7 @@
     "GUNDG": "SAT",
     "GWIND": "SAT",
     "GZNMI": "SAT",
-    "HALKB": "NÖTR",
+    "HALKB": "SAT",
     "HATSN": "SAT",
     "HDFGS": "SAT",
     "HEDEF": "SAT",
@@ -190,7 +191,7 @@
     "KORDS": "SAT",
     "KRDMA": "SAT",
     "KRDMB": "SAT",
-    "KRDMD": "AL",
+    "KRDMD": "SAT",
     "KTLEV": "SAT",
     "KUYAS": "SAT",
     "KZBGY": "SAT",
@@ -274,7 +275,7 @@
     "TABGD": "SAT",
     "TARKM": "SAT",
     "TATEN": "SAT",
-    "TAVHL": "NÖTR",
+    "TAVHL": "SAT",
     "TCELL": "SAT",
     "TCKRC": "SAT",
     "TEHOL": "SAT",
@@ -294,7 +295,7 @@
     "TSPOR": "SAT",
     "TTKOM": "SAT",
     "TTRAK": "SAT",
-    "TUKAS": "AL",
+    "TUKAS": "SAT",
     "TUPRS": "NÖTR",
     "TUREX": "NÖTR",
     "TURSG": "SAT",
@@ -326,7 +327,38 @@
   "hafta_tarih": "2026-09-25",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {},
+  "on_sinyal": {
+    "AKFIS": {
+      "sinyal": "AL",
+      "onceki": "NÖTR",
+      "tarih": "2026-09-30"
+    },
+    "CELHA": {
+      "sinyal": "SAT",
+      "onceki": "NÖTR",
+      "tarih": "2026-09-30"
+    },
+    "HALKB": {
+      "sinyal": "SAT",
+      "onceki": "NÖTR",
+      "tarih": "2026-09-30"
+    },
+    "KRDMD": {
+      "sinyal": "SAT",
+      "onceki": "AL",
+      "tarih": "2026-09-30"
+    },
+    "TAVHL": {
+      "sinyal": "SAT",
+      "onceki": "NÖTR",
+      "tarih": "2026-09-30"
+    },
+    "TUKAS": {
+      "sinyal": "SAT",
+      "onceki": "AL",
+      "tarih": "2026-09-30"
+    }
+  },
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
