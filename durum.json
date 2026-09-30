@@ -17,7 +17,7 @@
     "AKBNK": "SAT",
     "AKCNS": "SAT",
     "AKENR": "SAT",
-    "AKFIS": "AL",
+    "AKFIS": "NÖTR",
     "AKFYE": "SAT",
     "AKGRT": "SAT",
     "AKHAN": "SAT",
@@ -74,7 +74,7 @@
     "CANTE": "SAT",
     "CATES": "SAT",
     "CCOLA": "SAT",
-    "CELHA": "SAT",
+    "CELHA": "NÖTR",
     "CEMZY": "SAT",
     "CGCAM": "SAT",
     "CIMSA": "SAT",
@@ -281,7 +281,7 @@
     "TERA": "SAT",
     "TGSAS": "SAT",
     "THYAO": "SAT",
-    "TKFEN": "SAT",
+    "TKFEN": "AL",
     "TMPOL": "SAT",
     "TNZTP": "SAT",
     "TOASO": "SAT",
@@ -322,63 +322,17 @@
     "ed52d36b8529c244",
     "fc9a269fa7f1b36a"
   ],
-  "ozet_tarih": "2026-09-29",
+  "ozet_tarih": "2026-09-30",
   "hafta_tarih": "2026-09-25",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {
-    "AGHOL": {
-      "sinyal": "SAT",
-      "onceki": "AL",
-      "tarih": "2026-09-30"
-    },
-    "AKFIS": {
-      "sinyal": "AL",
-      "onceki": "NÖTR",
-      "tarih": "2026-09-30"
-    },
-    "CELHA": {
-      "sinyal": "SAT",
-      "onceki": "NÖTR",
-      "tarih": "2026-09-30"
-    },
-    "HALKB": {
-      "sinyal": "SAT",
-      "onceki": "NÖTR",
-      "tarih": "2026-09-30"
-    },
-    "KRDMD": {
-      "sinyal": "SAT",
-      "onceki": "AL",
-      "tarih": "2026-09-30"
-    },
-    "SOKM": {
-      "sinyal": "SAT",
-      "onceki": "AL",
-      "tarih": "2026-09-30"
-    },
-    "TAVHL": {
-      "sinyal": "SAT",
-      "onceki": "NÖTR",
-      "tarih": "2026-09-30"
-    },
-    "TKFEN": {
-      "sinyal": "SAT",
-      "onceki": "AL",
-      "tarih": "2026-09-30"
-    },
-    "TUKAS": {
-      "sinyal": "SAT",
-      "onceki": "AL",
-      "tarih": "2026-09-30"
-    }
-  },
+  "on_sinyal": {},
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
     "ADESE": "SAT",
     "AEFES": "SAT",
-    "AGHOL": "AL",
+    "AGHOL": "SAT",
     "AHGAZ": "AL",
     "AKBNK": "SAT",
     "AKCNS": "SAT",
@@ -389,7 +343,7 @@
     "AKSA": "SAT",
     "AKSEN": "SAT",
     "AKSUE": "SAT",
-    "ALARK": "AL",
+    "ALARK": "SAT",
     "ALBRK": "SAT",
     "ALCTL": "SAT",
     "ALGYO": "SAT",
@@ -402,7 +356,7 @@
     "ARDYZ": "AL",
     "ARMGD": "AL",
     "ARSAN": "SAT",
-    "ASELS": "AL",
+    "ASELS": "SAT",
     "ASTOR": "SAT",
     "ATATP": "AL",
     "AVHOL": "SAT",
@@ -485,7 +439,7 @@
     "GOKNR": "SAT",
     "GRSEL": "SAT",
     "GRTHO": "SAT",
-    "GSDDE": "AL",
+    "GSDDE": "SAT",
     "GSDHO": "SAT",
     "GUBRF": "SAT",
     "GUNDG": "SAT",
@@ -575,7 +529,7 @@
     "PCILT": "AL",
     "PEKGY": "SAT",
     "PENTA": "SAT",
-    "PETKM": "AL",
+    "PETKM": "SAT",
     "PGSUS": "SAT",
     "PKART": "SAT",
     "PRZMA": "SAT",
@@ -615,7 +569,7 @@
     "THYAO": "SAT",
     "TKFEN": "AL",
     "TMPOL": "SAT",
-    "TNZTP": "AL",
+    "TNZTP": "SAT",
     "TOASO": "SAT",
     "TRALT": "SAT",
     "TRENJ": "SAT",
@@ -631,12 +585,12 @@
     "ULUSE": "SAT",
     "ULUUN": "SAT",
     "VAKBN": "AL",
-    "VBTYZ": "AL",
+    "VBTYZ": "SAT",
     "YEOTK": "SAT",
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1670455,
+  "kap_son": 1670482,
   "tk_gonderilen": {
     "tarih": "2026-09-30",
     "kodlar": []
