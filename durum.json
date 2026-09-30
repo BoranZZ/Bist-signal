@@ -1,5 +1,6 @@
 {
   "al": [
+    "AHGAZ",
     "AKFIS",
     "BIMAS",
     "ENERY",
@@ -630,8 +631,12 @@
     "tarih": "2026-09-30",
     "g": [
       "1114f64dd82a8a86",
+      "26485dcdcb69d95a",
       "343bb42cde06e4ff",
-      "cfd3c7272b34f9d6"
+      "3c4db577c818c81b",
+      "5055d2c9176ea7a6",
+      "cfd3c7272b34f9d6",
+      "e0b1f67b3cb13097"
     ]
   },
   "sabah_tarih": "2026-09-30"
