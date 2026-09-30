@@ -267,7 +267,7 @@
     "SMRVA": "SAT",
     "SNGYO": "SAT",
     "SOHOE": "SAT",
-    "SOKM": "AL",
+    "SOKM": "SAT",
     "SUNTK": "SAT",
     "SURGY": "SAT",
     "SVGYO": "SAT",
@@ -343,6 +343,11 @@
       "tarih": "2026-09-30"
     },
     "KRDMD": {
+      "sinyal": "SAT",
+      "onceki": "AL",
+      "tarih": "2026-09-30"
+    },
+    "SOKM": {
       "sinyal": "SAT",
       "onceki": "AL",
       "tarih": "2026-09-30"
@@ -621,7 +626,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1670389,
+  "kap_son": 1670395,
   "tk_gonderilen": {
     "tarih": "2026-09-30",
     "kodlar": []
