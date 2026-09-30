@@ -124,6 +124,23 @@ BSOKE, EUREN, CVKMD...). BIST günlük sınırı ±%10 olduğundan tek gün ≤�
 ve 'çöken hisse' sınıflaması bozulur, bedelsiz günü yanlış 'iz stop kırıldı' gelir. Düzeltilmiş veriyle v3/v2 kıyası
 değişmedi. Son 30 günde bölünme olan portföy hissesinde 'maliyetini güncelle' notu (kullanıcının maliyeti eski fiyatla).
 
+## Klasik grafik formasyonları — TEST EDİLDİ, EKLENMEDİ (2026-09-29)
+3 paralel araştırma (125 + 586 hisse, 2022-09 → 2026-09, iki faiz dönemi, çökenler hariç; pivotlar `_pivotlar` ile, look-ahead
+yok; aynı hisse/dönem/SMA200 trendindeki rastgele günlerle kıyas; sepet/portföy simülasyonu; parametre komşuları). Scriptler:
+scratchpad `bt/formasyon/` (dip_ortak + dip1-5, tepe_ortak + tepe1-5, devam_ortak + devam1-4). Sonuç: **11 formasyonun hiçbiri
+sinyal, filtre, etiket ya da çıkış olarak eklenmeye değmez.** Kullanıcı formasyon sorarsa bu sonucu anlat, baştan araştırma.
+- **Dip (W, TOBO, üçlü dip) — yeni AL olarak:** rastgele günden ayrılmıyor (20g ±2 puan); hedef tutma taban oranıyla aynı
+  (~%50). TOBO sadece 586'da zayıf + (60g rastgeleye göre +6/+4), 125'te yok; 60 gün tut sepeti rastgele günlerin aralığında
+  (yüksek faiz +%195 vs rastgele 165..195), düşüşü daha derin. %45-67'si 15 günde tetik kapanışının %5+ altına indi (🪤 ile aynı tablo).
+- **Tepe (OBO, ikili, üçlü tepe) — v3 çıkışı olarak:** %20 iz stop'u tutarlı yenmiyor. OBO çıkışı işlemlerin %67-86'sında iz
+  stop'tan iyi ama büyük kazananları kesiyor (yüksek faizde ort. −5…−11 puan); sepet farkı komşu ayarlarda işaret değiştiriyor
+  (586 yüksek faiz −25…0). Uyarı olarak: OBO/ikili sonrası 20g ~−1 puan göreli zayıflık, 60g kayboluyor; iz stop'a inme
+  olasılığını artırmıyor, sadece biraz öne çekiyor. ("Erken çıkış yükselişte kazancı eritir" bulgusunun tekrarı.)
+- **Devam (fincan-kulp, yükselen/simetrik üçgen, VCP, yatay kanal) — v3'e katkı:** olayların çoğu zaten v3 kırılımıyla aynı gün;
+  formasyon etiketli v3 işlemleri etiketsizlerden 4 kıyasın 4'ünde KÖTÜ (586: +3,7 vs +8,0 / +1,2 vs +4,4) → etiket bile yanıltıcı.
+  VCP'nin tek iyi sonucu (586, yüksek faiz sepet +311 vs v3 +239) en iyi 10 işlem çıkınca kayboluyor (197 vs 206), 125'te ve düşük
+  faizde geride; komşu ayarlar dağınık. Bayrak (`bayrak_kirilimi`) ile aynı tablo: bilgiyi v3 şablonu zaten taşıyor.
+
 ## v3 — 🚀 trend kırılımı (2026-09 gece araştırması, canlı AL kuralı)
 - AL mesajı artık gösterge oylamasından (SINYAL) DEĞİL: `sinyal.trend_kirilimi` — Minervini trend şablonu (fiyat > SMA50 >
   SMA150 > SMA200, SMA200 20 günde yükselmiş, 52h zirvesinin ≥%75'i, 52h dibinin ≥%30 üstü) iken önceki 20 günün en yüksek
