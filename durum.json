@@ -2,10 +2,10 @@
   "al": [
     "AHGAZ",
     "AKFIS",
-    "ENERY",
     "GMTAS",
     "HRKET",
-    "HUNER"
+    "HUNER",
+    "ISDMR"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -628,6 +628,8 @@
   "gunici": {
     "tarih": "2026-09-30",
     "g": [
+      "1114f64dd82a8a86",
+      "343bb42cde06e4ff",
       "cfd3c7272b34f9d6"
     ]
   },
