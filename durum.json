@@ -1,10 +1,12 @@
 {
   "al": [
     "AHGAZ",
+    "AKFIS",
     "ENERY",
     "GMTAS",
     "HRKET",
     "HUNER",
+    "ISDMR",
     "TUKAS"
   ],
   "son": {
@@ -627,7 +629,9 @@
   },
   "gunici": {
     "tarih": "2026-09-30",
-    "g": []
+    "g": [
+      "cfd3c7272b34f9d6"
+    ]
   },
   "sabah_tarih": "2026-09-30"
 }
