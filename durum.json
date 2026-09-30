@@ -281,7 +281,7 @@
     "TERA": "SAT",
     "TGSAS": "SAT",
     "THYAO": "SAT",
-    "TKFEN": "AL",
+    "TKFEN": "SAT",
     "TMPOL": "SAT",
     "TNZTP": "SAT",
     "TOASO": "SAT",
@@ -360,6 +360,11 @@
     "TAVHL": {
       "sinyal": "SAT",
       "onceki": "NÖTR",
+      "tarih": "2026-09-30"
+    },
+    "TKFEN": {
+      "sinyal": "SAT",
+      "onceki": "AL",
       "tarih": "2026-09-30"
     },
     "TUKAS": {
@@ -631,7 +636,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1670415,
+  "kap_son": 1670428,
   "tk_gonderilen": {
     "tarih": "2026-09-30",
     "kodlar": []
