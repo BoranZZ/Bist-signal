@@ -21,7 +21,7 @@
     "AKBNK": "SAT",
     "AKCNS": "SAT",
     "AKENR": "SAT",
-    "AKFIS": "NÖTR",
+    "AKFIS": "AL",
     "AKFYE": "SAT",
     "AKGRT": "SAT",
     "AKHAN": "SAT",
@@ -105,6 +105,7 @@
     "EGGUB": "SAT",
     "EKDMR": "SAT",
     "EKGYO": "SAT",
+    "EKIM": "SAT",
     "EMKEL": "SAT",
     "EMPAE": "SAT",
     "ENDAE": "SAT",
@@ -330,7 +331,13 @@
   "hafta_tarih": "2026-09-25",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {},
+  "on_sinyal": {
+    "AKFIS": {
+      "sinyal": "AL",
+      "onceki": "NÖTR",
+      "tarih": "2026-10-01"
+    }
+  },
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
@@ -594,7 +601,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1670872,
+  "kap_son": 1670876,
   "tk_gonderilen": {
     "tarih": "2026-10-01",
     "kodlar": []
