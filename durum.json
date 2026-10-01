@@ -1,11 +1,11 @@
 {
   "al": [
     "AHGAZ",
+    "AKFIS",
     "BIMAS",
     "GMTAS",
     "HRKET",
-    "HUNER",
-    "TKFEN"
+    "HUNER"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -629,7 +629,10 @@
   "gunici": {
     "tarih": "2026-10-01",
     "g": [
+      "25bb72695627e446",
+      "384d8adaf9758414",
       "44f7a1d5307ccb8d",
+      "6d621d0ecf4a7e06",
       "7b4a9a3d10b26756"
     ]
   },
