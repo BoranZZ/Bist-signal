@@ -327,22 +327,11 @@
     "ed52d36b8529c244",
     "fc9a269fa7f1b36a"
   ],
-  "ozet_tarih": "2026-09-30",
+  "ozet_tarih": "2026-10-01",
   "hafta_tarih": "2026-09-25",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {
-    "AKFIS": {
-      "sinyal": "AL",
-      "onceki": "NÖTR",
-      "tarih": "2026-10-01"
-    },
-    "BAHKM": {
-      "sinyal": "SAT",
-      "onceki": "AL",
-      "tarih": "2026-10-01"
-    }
-  },
+  "on_sinyal": {},
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
@@ -370,7 +359,7 @@
     "ANHYT": "SAT",
     "ANSGR": "SAT",
     "ARDYZ": "AL",
-    "ARMGD": "AL",
+    "ARMGD": "SAT",
     "ARSAN": "SAT",
     "ASELS": "SAT",
     "ASTOR": "SAT",
@@ -380,7 +369,7 @@
     "AYGAZ": "AL",
     "BAHKM": "AL",
     "BERA": "SAT",
-    "BIGEN": "AL",
+    "BIGEN": "SAT",
     "BIGTK": "SAT",
     "BIMAS": "AL",
     "BINHO": "SAT",
@@ -412,7 +401,7 @@
     "DAPGM": "SAT",
     "DCTTR": "SAT",
     "DITAS": "SAT",
-    "DMRGD": "AL",
+    "DMRGD": "SAT",
     "DOAS": "SAT",
     "DOHOL": "SAT",
     "DSTKF": "SAT",
@@ -590,7 +579,7 @@
     "TRALT": "SAT",
     "TRENJ": "SAT",
     "TRGYO": "AL",
-    "TRHOL": "AL",
+    "TRHOL": "SAT",
     "TRMET": "AL",
     "TSKB": "SAT",
     "TTKOM": "SAT",
@@ -606,38 +595,38 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1670937,
+  "kap_son": 1670951,
   "tk_gonderilen": {
     "tarih": "2026-10-01",
     "kodlar": []
   },
   "mom_ay": {
-    "ay": "2026-09",
+    "ay": "2026-10",
     "kodlar": [
       "TKFEN",
-      "TCKRC",
       "AHGAZ",
-      "TUPRS",
-      "KRDMD",
+      "TCKRC",
       "RYSAS",
+      "TUPRS",
+      "ISDMR",
+      "KRDMD",
       "EREGL",
+      "BRSAN",
       "AYGAZ",
       "ISGYO",
-      "ISDMR",
-      "BRSAN",
       "RGYAS",
+      "ENERY",
       "HALKB",
-      "ASELS",
-      "ALARK",
-      "TRMET",
-      "GLYHO",
-      "TRGYO",
       "BIMAS",
       "CCOLA",
+      "ASELS",
+      "TRGYO",
+      "GLYHO",
+      "KCHOL",
+      "ALBRK",
+      "VAKBN",
       "SOKM",
-      "ENERY",
-      "AGHOL",
-      "VAKBN"
+      "ENJSA"
     ]
   },
   "gunici": {
