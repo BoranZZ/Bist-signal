@@ -1,5 +1,6 @@
 {
   "al": [
+    "AHGAZ",
     "AKFIS",
     "ENERY",
     "GMTAS",
@@ -593,7 +594,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1670811,
+  "kap_son": 1670816,
   "tk_gonderilen": {
     "tarih": "2026-10-01",
     "kodlar": []
