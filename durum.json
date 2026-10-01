@@ -51,7 +51,7 @@
     "AVHOL": "SAT",
     "AYDEM": "SAT",
     "AYGAZ": "SAT",
-    "BAHKM": "AL",
+    "BAHKM": "SAT",
     "BALSU": "SAT",
     "BERA": "SAT",
     "BESTE": "SAT",
@@ -336,6 +336,11 @@
       "sinyal": "AL",
       "onceki": "NÖTR",
       "tarih": "2026-10-01"
+    },
+    "BAHKM": {
+      "sinyal": "SAT",
+      "onceki": "AL",
+      "tarih": "2026-10-01"
     }
   },
   "uv_son": {
@@ -601,7 +606,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1670918,
+  "kap_son": 1670932,
   "tk_gonderilen": {
     "tarih": "2026-10-01",
     "kodlar": []
