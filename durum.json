@@ -1,9 +1,11 @@
 {
   "al": [
+    "AHGAZ",
     "BIMAS",
     "GMTAS",
     "HRKET",
-    "HUNER"
+    "HUNER",
+    "TKFEN"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -590,7 +592,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1670620,
+  "kap_son": 1670661,
   "tk_gonderilen": {
     "tarih": "2026-10-01",
     "kodlar": []
@@ -626,7 +628,10 @@
   },
   "gunici": {
     "tarih": "2026-10-01",
-    "g": []
+    "g": [
+      "44f7a1d5307ccb8d",
+      "7b4a9a3d10b26756"
+    ]
   },
   "sabah_tarih": "2026-10-01"
 }
