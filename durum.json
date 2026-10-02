@@ -2,11 +2,11 @@
   "al": [
     "AHGAZ",
     "AKFIS",
+    "BERA",
     "ENERY",
     "GMTAS",
     "HRKET",
     "HUNER",
-    "ISDMR",
     "LOGO",
     "ORGE",
     "TKFEN"
@@ -597,7 +597,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1671369,
+  "kap_son": 1671408,
   "tk_gonderilen": {
     "tarih": "2026-10-02",
     "kodlar": []
