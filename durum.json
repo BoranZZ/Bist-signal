@@ -56,7 +56,7 @@
     "AYGAZ": "SAT",
     "BAHKM": "SAT",
     "BALSU": "SAT",
-    "BERA": "SAT",
+    "BERA": "AL",
     "BESTE": "SAT",
     "BETAE": "SAT",
     "BIGEN": "SAT",
@@ -174,6 +174,7 @@
     "ISGYO": "SAT",
     "ISKPL": "SAT",
     "ISMEN": "SAT",
+    "ISVEA": "SAT",
     "IZENR": "SAT",
     "IZFAS": "SAT",
     "IZMDC": "SAT",
@@ -234,7 +235,7 @@
     "OFSYM": "SAT",
     "ONCSM": "SAT",
     "ONRYT": "SAT",
-    "ORGE": "NÖTR",
+    "ORGE": "AL",
     "ORZAX": "SAT",
     "OTKAR": "SAT",
     "OYAKC": "SAT",
@@ -334,7 +335,18 @@
   "hafta_tarih": "2026-09-25",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {},
+  "on_sinyal": {
+    "BERA": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-10-02"
+    },
+    "ORGE": {
+      "sinyal": "AL",
+      "onceki": "NÖTR",
+      "tarih": "2026-10-02"
+    }
+  },
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
