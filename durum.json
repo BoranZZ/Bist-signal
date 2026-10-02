@@ -6,7 +6,6 @@
     "GMTAS",
     "HRKET",
     "HUNER",
-    "ISDMR",
     "LOGO",
     "ORGE",
     "TKFEN"
@@ -597,7 +596,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1671367,
+  "kap_son": 1671369,
   "tk_gonderilen": {
     "tarih": "2026-10-02",
     "kodlar": []
