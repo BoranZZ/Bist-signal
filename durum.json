@@ -2,12 +2,12 @@
   "al": [
     "AHGAZ",
     "AKFIS",
-    "BERA",
     "ENERY",
     "GMTAS",
     "HRKET",
     "HUNER",
     "LOGO",
+    "ORGE",
     "TKFEN"
   ],
   "son": {
@@ -632,7 +632,11 @@
   },
   "gunici": {
     "tarih": "2026-10-02",
-    "g": []
+    "g": [
+      "2defee723ca87708",
+      "715f1fa7bc4718b7",
+      "fc81c907df6b7cf1"
+    ]
   },
   "sabah_tarih": "2026-10-02"
 }
