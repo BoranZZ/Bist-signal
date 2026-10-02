@@ -9,6 +9,7 @@
     "HUNER",
     "ISDMR",
     "LOGO",
+    "METRO",
     "ORGE",
     "TKFEN"
   ],
@@ -217,7 +218,7 @@
     "MCARD": "SAT",
     "MEGMT": "SAT",
     "MERCN": "SAT",
-    "METRO": "SAT",
+    "METRO": "AL",
     "MEYSU": "SAT",
     "MGROS": "SAT",
     "MIATK": "SAT",
@@ -331,22 +332,11 @@
     "ed52d36b8529c244",
     "fc9a269fa7f1b36a"
   ],
-  "ozet_tarih": "2026-10-01",
-  "hafta_tarih": "2026-09-25",
+  "ozet_tarih": "2026-10-02",
+  "hafta_tarih": "2026-10-02",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {
-    "BERA": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-10-02"
-    },
-    "ORGE": {
-      "sinyal": "AL",
-      "onceki": "NÖTR",
-      "tarih": "2026-10-02"
-    }
-  },
+  "on_sinyal": {},
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
@@ -530,7 +520,7 @@
     "MOBTL": "SAT",
     "MOGAN": "SAT",
     "MOPAS": "SAT",
-    "MPARK": "SAT",
+    "MPARK": "AL",
     "MRGYO": "SAT",
     "MRSHL": "SAT",
     "NTHOL": "SAT",
@@ -610,7 +600,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1671543,
+  "kap_son": 1671574,
   "tk_gonderilen": {
     "tarih": "2026-10-02",
     "kodlar": []
