@@ -81,7 +81,7 @@
     "CANTE": "SAT",
     "CATES": "SAT",
     "CCOLA": "SAT",
-    "CELHA": "NÖTR",
+    "CELHA": "AL",
     "CEMZY": "SAT",
     "CGCAM": "SAT",
     "CIMSA": "SAT",
@@ -213,7 +213,7 @@
     "MAGEN": "SAT",
     "MANAS": "SAT",
     "MARTI": "SAT",
-    "MAVI": "NÖTR",
+    "MAVI": "AL",
     "MCARD": "SAT",
     "MEGMT": "SAT",
     "MERCN": "SAT",
@@ -335,7 +335,18 @@
   "hafta_tarih": "2026-10-02",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {},
+  "on_sinyal": {
+    "CELHA": {
+      "sinyal": "AL",
+      "onceki": "NÖTR",
+      "tarih": "2026-10-05"
+    },
+    "MAVI": {
+      "sinyal": "AL",
+      "onceki": "NÖTR",
+      "tarih": "2026-10-05"
+    }
+  },
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
