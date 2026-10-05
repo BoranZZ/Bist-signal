@@ -10,7 +10,8 @@
     "LOGO",
     "MAVI",
     "ORGE",
-    "TKFEN"
+    "TKFEN",
+    "TUPRS"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -304,7 +305,7 @@
     "TTKOM": "SAT",
     "TTRAK": "SAT",
     "TUKAS": "SAT",
-    "TUPRS": "NÖTR",
+    "TUPRS": "AL",
     "TUREX": "NÖTR",
     "TURSG": "SAT",
     "UCAYM": "SAT",
@@ -342,6 +343,11 @@
       "tarih": "2026-10-05"
     },
     "MAVI": {
+      "sinyal": "AL",
+      "onceki": "NÖTR",
+      "tarih": "2026-10-05"
+    },
+    "TUPRS": {
       "sinyal": "AL",
       "onceki": "NÖTR",
       "tarih": "2026-10-05"
