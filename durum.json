@@ -9,7 +9,6 @@
     "HUNER",
     "ISDMR",
     "LOGO",
-    "METRO",
     "ORGE",
     "TKFEN"
   ],
@@ -600,9 +599,9 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1671652,
+  "kap_son": 1671679,
   "tk_gonderilen": {
-    "tarih": "2026-10-02",
+    "tarih": "2026-10-05",
     "kodlar": []
   },
   "mom_ay": {
@@ -635,12 +634,8 @@
     ]
   },
   "gunici": {
-    "tarih": "2026-10-02",
-    "g": [
-      "2defee723ca87708",
-      "715f1fa7bc4718b7",
-      "fc81c907df6b7cf1"
-    ]
+    "tarih": "2026-10-05",
+    "g": []
   },
-  "sabah_tarih": "2026-10-02"
+  "sabah_tarih": "2026-10-05"
 }
