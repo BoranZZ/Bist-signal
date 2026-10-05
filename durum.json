@@ -6,6 +6,7 @@
     "ENERY",
     "HRKET",
     "HUNER",
+    "INDES",
     "ISDMR",
     "LOGO",
     "MAVI",
@@ -166,7 +167,7 @@
     "IEYHO": "SAT",
     "IHAAS": "SAT",
     "IHLAS": "SAT",
-    "INDES": "SAT",
+    "INDES": "AL",
     "INFO": "SAT",
     "ISCTR": "SAT",
     "ISDMR": "AL",
@@ -339,6 +340,11 @@
     "CELHA": {
       "sinyal": "AL",
       "onceki": "NÖTR",
+      "tarih": "2026-10-05"
+    },
+    "INDES": {
+      "sinyal": "AL",
+      "onceki": "SAT",
       "tarih": "2026-10-05"
     },
     "MAVI": {
@@ -615,7 +621,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1672478,
+  "kap_son": 1672526,
   "tk_gonderilen": {
     "tarih": "2026-10-05",
     "kodlar": []
