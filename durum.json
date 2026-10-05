@@ -6,12 +6,11 @@
     "ENERY",
     "HRKET",
     "HUNER",
-    "INDES",
-    "ISDMR",
     "LOGO",
     "MAVI",
     "ORGE",
-    "TKFEN"
+    "TKFEN",
+    "TUPRS"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -167,7 +166,7 @@
     "IEYHO": "SAT",
     "IHAAS": "SAT",
     "IHLAS": "SAT",
-    "INDES": "AL",
+    "INDES": "SAT",
     "INFO": "SAT",
     "ISCTR": "SAT",
     "ISDMR": "AL",
@@ -332,32 +331,11 @@
     "ed52d36b8529c244",
     "fc9a269fa7f1b36a"
   ],
-  "ozet_tarih": "2026-10-02",
+  "ozet_tarih": "2026-10-05",
   "hafta_tarih": "2026-10-02",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {
-    "CELHA": {
-      "sinyal": "AL",
-      "onceki": "NÖTR",
-      "tarih": "2026-10-05"
-    },
-    "INDES": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-10-05"
-    },
-    "MAVI": {
-      "sinyal": "AL",
-      "onceki": "NÖTR",
-      "tarih": "2026-10-05"
-    },
-    "TUPRS": {
-      "sinyal": "AL",
-      "onceki": "NÖTR",
-      "tarih": "2026-10-05"
-    }
-  },
+  "on_sinyal": {},
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
@@ -375,7 +353,7 @@
     "AKSEN": "SAT",
     "AKSUE": "SAT",
     "ALARK": "SAT",
-    "ALBRK": "SAT",
+    "ALBRK": "AL",
     "ALCTL": "SAT",
     "ALGYO": "SAT",
     "ALKLC": "SAT",
@@ -443,7 +421,7 @@
     "EMKEL": "SAT",
     "ENDAE": "SAT",
     "ENERY": "SAT",
-    "ENJSA": "SAT",
+    "ENJSA": "AL",
     "ENKAI": "SAT",
     "ENSRI": "SAT",
     "ENTRA": "SAT",
@@ -606,7 +584,7 @@
     "TRENJ": "SAT",
     "TRGYO": "AL",
     "TRHOL": "SAT",
-    "TRMET": "AL",
+    "TRMET": "SAT",
     "TSKB": "SAT",
     "TTKOM": "SAT",
     "TUKAS": "SAT",
@@ -621,7 +599,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1672552,
+  "kap_son": 1672569,
   "tk_gonderilen": {
     "tarih": "2026-10-05",
     "kodlar": []
