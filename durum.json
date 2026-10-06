@@ -4,14 +4,17 @@
     "AKFIS",
     "CELHA",
     "ENERY",
+    "FRIGO",
     "HRKET",
     "HUNER",
     "INDES",
-    "ISDMR",
     "LOGO",
     "MAVI",
+    "MPARK",
     "ORGE",
-    "TKFEN"
+    "TAVHL",
+    "TKFEN",
+    "TUPRS"
   ],
   "son": {
     "A1CAP": "SAT",
