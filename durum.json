@@ -3,14 +3,11 @@
     "AHGAZ",
     "AKFIS",
     "CELHA",
-    "ENERY",
     "FRIGO",
     "HRKET",
     "INDES",
-    "ISDMR",
     "LOGO",
     "ORGE",
-    "RYGYO",
     "TKFEN"
   ],
   "son": {
@@ -600,7 +597,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1673281,
+  "kap_son": 1673289,
   "tk_gonderilen": {
     "tarih": "2026-10-06",
     "kodlar": []
