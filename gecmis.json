@@ -6,7 +6,7 @@
       "giris_fiyat": 34.38,
       "stop": 27.5,
       "durum": "açık",
-      "guncel": 32.2,
+      "guncel": 32.22,
       "anlik": -6.3,
       "tepe": 34.38
     },
@@ -30,8 +30,8 @@
       "giris_fiyat": 411.5,
       "stop": 329.2,
       "durum": "açık",
-      "guncel": 380.75,
-      "anlik": -7.5,
+      "guncel": 381.5,
+      "anlik": -7.3,
       "tepe": 411.5
     },
     {
@@ -40,8 +40,8 @@
       "giris_fiyat": 46.2,
       "stop": 38.06,
       "durum": "açık",
-      "guncel": 44.42,
-      "anlik": -3.9,
+      "guncel": 44.36,
+      "anlik": -4.0,
       "tepe": 47.58
     },
     {
@@ -50,8 +50,8 @@
       "giris_fiyat": 5827.5,
       "stop": 4662.0,
       "durum": "açık",
-      "guncel": 5015.0,
-      "anlik": -13.9,
+      "guncel": 5010.0,
+      "anlik": -14.0,
       "tepe": 5827.5
     },
     {
@@ -72,11 +72,11 @@
       "kod": "AHGAZ",
       "giris_tarih": "2026-09-25",
       "giris_fiyat": 44.34,
-      "stop": 37.09,
+      "stop": 37.55,
       "durum": "açık",
-      "guncel": 46.3,
-      "anlik": 4.4,
-      "tepe": 46.36
+      "guncel": 46.94,
+      "anlik": 5.9,
+      "tepe": 46.94
     },
     {
       "kod": "ENERY",
@@ -84,8 +84,8 @@
       "giris_fiyat": 13.36,
       "stop": 11.08,
       "durum": "açık",
-      "guncel": 13.72,
-      "anlik": 2.7,
+      "guncel": 13.74,
+      "anlik": 2.8,
       "tepe": 13.85
     },
     {
@@ -94,8 +94,8 @@
       "giris_fiyat": 62.5,
       "stop": 51.84,
       "durum": "açık",
-      "guncel": 62.65,
-      "anlik": 0.2,
+      "guncel": 62.45,
+      "anlik": -0.1,
       "tepe": 64.8
     },
     {
@@ -114,8 +114,8 @@
       "giris_fiyat": 290.25,
       "stop": 232.2,
       "durum": "açık",
-      "guncel": 270.5,
-      "anlik": -6.8,
+      "guncel": 269.75,
+      "anlik": -7.1,
       "tepe": 290.25
     },
     {
@@ -124,8 +124,8 @@
       "giris_fiyat": 429.0,
       "stop": 343.2,
       "durum": "açık",
-      "guncel": 409.0,
-      "anlik": -4.7,
+      "guncel": 408.5,
+      "anlik": -4.8,
       "tepe": 429.0
     }
   ]
