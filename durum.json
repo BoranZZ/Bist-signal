@@ -7,7 +7,6 @@
     "INDES",
     "ISDMR",
     "LOGO",
-    "METRO",
     "ORGE",
     "RYGYO",
     "TKFEN"
@@ -599,7 +598,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1673296,
+  "kap_son": 1673337,
   "tk_gonderilen": {
     "tarih": "2026-10-06",
     "kodlar": []
