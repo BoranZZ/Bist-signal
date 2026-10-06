@@ -7,7 +7,6 @@
     "HRKET",
     "INDES",
     "LOGO",
-    "ORGE",
     "RYGYO",
     "TAVHL",
     "TKFEN"
@@ -331,32 +330,11 @@
     "ed52d36b8529c244",
     "fc9a269fa7f1b36a"
   ],
-  "ozet_tarih": "2026-10-05",
+  "ozet_tarih": "2026-10-06",
   "hafta_tarih": "2026-10-02",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {
-    "FRIGO": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-10-06"
-    },
-    "INDES": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-10-06"
-    },
-    "RYGYO": {
-      "sinyal": "AL",
-      "onceki": "NÖTR",
-      "tarih": "2026-10-06"
-    },
-    "TAVHL": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-10-06"
-    }
-  },
+  "on_sinyal": {},
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
@@ -540,7 +518,7 @@
     "MOBTL": "SAT",
     "MOGAN": "SAT",
     "MOPAS": "SAT",
-    "MPARK": "AL",
+    "MPARK": "SAT",
     "MRGYO": "SAT",
     "MRSHL": "SAT",
     "NTHOL": "SAT",
@@ -620,7 +598,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1673679,
+  "kap_son": 1673724,
   "tk_gonderilen": {
     "tarih": "2026-10-06",
     "kodlar": []
