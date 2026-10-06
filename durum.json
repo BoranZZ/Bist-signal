@@ -7,7 +7,6 @@
     "HRKET",
     "INDES",
     "LOGO",
-    "METRO",
     "ORGE",
     "RYGYO",
     "TAVHL",
@@ -621,7 +620,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1673644,
+  "kap_son": 1673679,
   "tk_gonderilen": {
     "tarih": "2026-10-06",
     "kodlar": []
