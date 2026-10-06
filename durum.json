@@ -6,8 +6,10 @@
     "FRIGO",
     "HRKET",
     "INDES",
+    "ISDMR",
     "LOGO",
     "ORGE",
+    "RYGYO",
     "TKFEN"
   ],
   "son": {
@@ -597,7 +599,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1673289,
+  "kap_son": 1673296,
   "tk_gonderilen": {
     "tarih": "2026-10-06",
     "kodlar": []
