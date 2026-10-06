@@ -10,6 +10,7 @@
     "ISDMR",
     "LOGO",
     "ORGE",
+    "RYGYO",
     "TKFEN"
   ],
   "son": {
@@ -599,7 +600,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1673194,
+  "kap_son": 1673266,
   "tk_gonderilen": {
     "tarih": "2026-10-06",
     "kodlar": []
