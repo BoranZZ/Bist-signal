@@ -6,6 +6,7 @@
     "ENERY",
     "FRIGO",
     "HRKET",
+    "HUNER",
     "INDES",
     "LOGO",
     "METRO",
@@ -601,7 +602,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1673053,
+  "kap_son": 1673099,
   "tk_gonderilen": {
     "tarih": "2026-10-06",
     "kodlar": []
