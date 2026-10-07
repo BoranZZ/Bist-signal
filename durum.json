@@ -6,8 +6,7 @@
     "HRKET",
     "INDES",
     "LOGO",
-    "RYGYO",
-    "TKFEN"
+    "RYGYO"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -596,7 +595,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1674508,
+  "kap_son": 1674676,
   "tk_gonderilen": {
     "tarih": "2026-10-07",
     "kodlar": []
