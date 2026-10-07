@@ -3,6 +3,7 @@
     "AHGAZ",
     "AKFIS",
     "ENERY",
+    "FRIGO",
     "HRKET",
     "INDES",
     "LOGO",
@@ -634,9 +635,12 @@
   "gunici": {
     "tarih": "2026-10-07",
     "g": [
+      "02336b0490faf460",
       "0dd21bb347094b34",
       "133ff216a141c83b",
-      "a72ec59177a8689d"
+      "5a735c613fd638ce",
+      "a72ec59177a8689d",
+      "b28ca2fed16fdc0b"
     ]
   },
   "sabah_tarih": "2026-10-07"
