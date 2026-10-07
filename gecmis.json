@@ -6,8 +6,8 @@
       "giris_fiyat": 34.38,
       "stop": 27.5,
       "durum": "açık",
-      "guncel": 32.16,
-      "anlik": -6.5,
+      "guncel": 32.1,
+      "anlik": -6.6,
       "tepe": 34.38
     },
     {
@@ -30,7 +30,7 @@
       "giris_fiyat": 411.5,
       "stop": 329.2,
       "durum": "açık",
-      "guncel": 383.75,
+      "guncel": 384.0,
       "anlik": -6.7,
       "tepe": 411.5
     },
@@ -40,8 +40,8 @@
       "giris_fiyat": 46.2,
       "stop": 38.06,
       "durum": "açık",
-      "guncel": 44.88,
-      "anlik": -2.9,
+      "guncel": 44.7,
+      "anlik": -3.2,
       "tepe": 47.58
     },
     {
@@ -50,8 +50,8 @@
       "giris_fiyat": 5827.5,
       "stop": 4662.0,
       "durum": "açık",
-      "guncel": 4970.0,
-      "anlik": -14.7,
+      "guncel": 4980.0,
+      "anlik": -14.5,
       "tepe": 5827.5
     },
     {
@@ -72,11 +72,11 @@
       "kod": "AHGAZ",
       "giris_tarih": "2026-09-25",
       "giris_fiyat": 44.34,
-      "stop": 38.29,
+      "stop": 38.4,
       "durum": "açık",
-      "guncel": 47.86,
-      "anlik": 7.9,
-      "tepe": 47.86
+      "guncel": 48.0,
+      "anlik": 8.3,
+      "tepe": 48.0
     },
     {
       "kod": "ENERY",
@@ -84,8 +84,8 @@
       "giris_fiyat": 13.36,
       "stop": 11.17,
       "durum": "açık",
-      "guncel": 13.94,
-      "anlik": 4.3,
+      "guncel": 13.95,
+      "anlik": 4.4,
       "tepe": 13.96
     },
     {
@@ -104,8 +104,8 @@
       "giris_fiyat": 58.2,
       "stop": 46.56,
       "durum": "açık",
-      "guncel": 55.8,
-      "anlik": -4.1,
+      "guncel": 55.6,
+      "anlik": -4.5,
       "tepe": 58.2
     },
     {
@@ -114,8 +114,8 @@
       "giris_fiyat": 290.25,
       "stop": 232.2,
       "durum": "açık",
-      "guncel": 269.25,
-      "anlik": -7.2,
+      "guncel": 269.0,
+      "anlik": -7.3,
       "tepe": 290.25
     },
     {
