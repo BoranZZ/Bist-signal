@@ -59,7 +59,7 @@
     "BETAE": "SAT",
     "BIGEN": "SAT",
     "BIGTK": "SAT",
-    "BIMAS": "AL",
+    "BIMAS": "SAT",
     "BINHO": "SAT",
     "BIOEN": "SAT",
     "BJKAS": "SAT",
@@ -223,7 +223,7 @@
     "MOGAN": "SAT",
     "MOPAS": "SAT",
     "MPARK": "SAT",
-    "MRGYO": "SAT",
+    "MRGYO": "AL",
     "MRSHL": "SAT",
     "NETCD": "SAT",
     "NTHOL": "SAT",
@@ -275,6 +275,7 @@
     "SNGYO": "SAT",
     "SOHOE": "SAT",
     "SOKM": "SAT",
+    "SSAAT": "SAT",
     "SUNTK": "SAT",
     "SURGY": "SAT",
     "SVGYO": "SAT",
@@ -333,7 +334,18 @@
   "hafta_tarih": "2026-10-02",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {},
+  "on_sinyal": {
+    "BIMAS": {
+      "sinyal": "SAT",
+      "onceki": "AL",
+      "tarih": "2026-10-07"
+    },
+    "MRGYO": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-10-07"
+    }
+  },
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",

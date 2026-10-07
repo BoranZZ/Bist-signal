@@ -6,8 +6,8 @@
       "giris_fiyat": 34.38,
       "stop": 27.5,
       "durum": "açık",
-      "guncel": 31.84,
-      "anlik": -7.4,
+      "guncel": 31.86,
+      "anlik": -7.3,
       "tepe": 34.38
     },
     {
@@ -30,8 +30,8 @@
       "giris_fiyat": 411.5,
       "stop": 329.2,
       "durum": "açık",
-      "guncel": 380.0,
-      "anlik": -7.7,
+      "guncel": 379.5,
+      "anlik": -7.8,
       "tepe": 411.5
     },
     {
@@ -40,8 +40,8 @@
       "giris_fiyat": 46.2,
       "stop": 38.06,
       "durum": "açık",
-      "guncel": 42.56,
-      "anlik": -7.9,
+      "guncel": 42.64,
+      "anlik": -7.7,
       "tepe": 47.58
     },
     {
@@ -50,7 +50,7 @@
       "giris_fiyat": 5827.5,
       "stop": 4662.0,
       "durum": "açık",
-      "guncel": 4847.5,
+      "guncel": 4850.0,
       "anlik": -16.8,
       "tepe": 5827.5
     },
@@ -72,11 +72,11 @@
       "kod": "AHGAZ",
       "giris_tarih": "2026-09-25",
       "giris_fiyat": 44.34,
-      "stop": 38.43,
+      "stop": 38.53,
       "durum": "açık",
-      "guncel": 47.84,
-      "anlik": 7.9,
-      "tepe": 48.04
+      "guncel": 48.16,
+      "anlik": 8.6,
+      "tepe": 48.16
     },
     {
       "kod": "ENERY",
@@ -84,7 +84,7 @@
       "giris_fiyat": 13.36,
       "stop": 11.22,
       "durum": "açık",
-      "guncel": 13.89,
+      "guncel": 13.9,
       "anlik": 4.0,
       "tepe": 14.02
     },
@@ -94,8 +94,8 @@
       "giris_fiyat": 62.5,
       "stop": 51.84,
       "durum": "açık",
-      "guncel": 61.95,
-      "anlik": -0.9,
+      "guncel": 62.1,
+      "anlik": -0.6,
       "tepe": 64.8
     },
     {
@@ -104,8 +104,8 @@
       "giris_fiyat": 58.2,
       "stop": 46.56,
       "durum": "açık",
-      "guncel": 55.2,
-      "anlik": -5.2,
+      "guncel": 55.25,
+      "anlik": -5.1,
       "tepe": 58.2
     },
     {
@@ -114,8 +114,8 @@
       "giris_fiyat": 290.25,
       "stop": 232.2,
       "durum": "açık",
-      "guncel": 262.25,
-      "anlik": -9.6,
+      "guncel": 262.0,
+      "anlik": -9.7,
       "tepe": 290.25
     },
     {
@@ -124,7 +124,7 @@
       "giris_fiyat": 429.0,
       "stop": 343.2,
       "durum": "açık",
-      "guncel": 395.5,
+      "guncel": 395.75,
       "anlik": -7.8,
       "tepe": 429.0
     }
