@@ -6,7 +6,8 @@
     "HRKET",
     "INDES",
     "LOGO",
-    "TKFEN"
+    "TKFEN",
+    "YKBNK"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -221,7 +222,7 @@
     "MOGAN": "SAT",
     "MOPAS": "SAT",
     "MPARK": "SAT",
-    "MRGYO": "AL",
+    "MRGYO": "SAT",
     "MRSHL": "SAT",
     "NETCD": "SAT",
     "NTHOL": "SAT",
@@ -328,27 +329,11 @@
     "ed52d36b8529c244",
     "fc9a269fa7f1b36a"
   ],
-  "ozet_tarih": "2026-10-06",
+  "ozet_tarih": "2026-10-07",
   "hafta_tarih": "2026-10-02",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {
-    "BIMAS": {
-      "sinyal": "SAT",
-      "onceki": "AL",
-      "tarih": "2026-10-07"
-    },
-    "MRGYO": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-10-07"
-    },
-    "YKBNK": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-10-07"
-    }
-  },
+  "on_sinyal": {},
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
@@ -597,7 +582,7 @@
     "TRENJ": "SAT",
     "TRGYO": "AL",
     "TRHOL": "SAT",
-    "TRMET": "SAT",
+    "TRMET": "AL",
     "TSKB": "SAT",
     "TTKOM": "SAT",
     "TUKAS": "SAT",
@@ -612,7 +597,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1675276,
+  "kap_son": 1675284,
   "tk_gonderilen": {
     "tarih": "2026-10-07",
     "kodlar": []
