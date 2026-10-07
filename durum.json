@@ -6,9 +6,9 @@
     "HRKET",
     "INDES",
     "LOGO",
-    "MRGYO",
     "RYGYO",
-    "TKFEN"
+    "TKFEN",
+    "YKBNK"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -319,7 +319,7 @@
     "VSNMD": "SAT",
     "YEOTK": "SAT",
     "YIGIT": "SAT",
-    "YKBNK": "SAT",
+    "YKBNK": "AL",
     "ZERGY": "SAT",
     "ZGYO": "SAT",
     "ZOREN": "SAT"
@@ -341,6 +341,11 @@
       "tarih": "2026-10-07"
     },
     "MRGYO": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-10-07"
+    },
+    "YKBNK": {
       "sinyal": "AL",
       "onceki": "SAT",
       "tarih": "2026-10-07"
@@ -609,7 +614,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1674911,
+  "kap_son": 1675111,
   "tk_gonderilen": {
     "tarih": "2026-10-07",
     "kodlar": []
