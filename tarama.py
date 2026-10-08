@@ -830,6 +830,13 @@ def uzama_metni(u):
     return "⚠️ Çok yükselmiş hisse (" + ", ".join(ne) + "): " + UZAMA_NOT
 
 
+def _sisme_ad(th, ad):
+    """🎈 tetiklendi ama 20 günde hâlâ eksi: çöküş sonrası tepki tavanları — 'şişme' yanıltıcı (panodaki thDalga ile aynı)."""
+    if (th.get("yuk20") or 0) < 0:
+        return f"🎈 sert tavan-taban dalgalanması (düşüş sonrası, 20 günde %{th['yuk20']:.0f}): "
+    return f"🎈 {ad}: "
+
+
 def _bugun_tarih():
     return pd.Timestamp.now(tz="Europe/Istanbul").date()
 
@@ -876,7 +883,7 @@ def gunici_olaylar(s, df, pozisyon, fiyat=None):
     if th.get("seviye") == dun_th.get("seviye"):   # dün de aynıydı: günlük özette yazıyor, gün içi tekrar etme
         th = {}
     if th.get("seviye") == "sisme":   # tahtacı olay çalışması: 20 günde %25+ çakılma olasılığı normalin 7-8 katı
-        out.append(("sisme", 0, (), "🎈 şişme işareti: " + ", ".join(th.get("neden") or []) + ". Geçmişte bu durumdakilerin ~%15-19'u 20 günde %25+ çakıldı."))
+        out.append(("sisme", 0, (), _sisme_ad(th, "şişme işareti") + ", ".join(th.get("neden") or []) + ". Geçmişte bu durumdakilerin ~%15-19'u 20 günde %25+ çakıldı."))
     elif th.get("seviye") == "dagitim":   # ~4 kat
         out.append(("dagitim", 0, (), "⚠️ dağıtım işareti: " + ((th.get("neden") or [""])[0]) + ". Büyük satıcı çıkıyor olabilir (çakılma olasılığı ~4 kat)."))
     iz = s.get("iz") or {}
@@ -1228,7 +1235,7 @@ def portfoy_ozeti(sonuclar, pf, piyasa=None, endeks=None, sd_satir=None):
             notlar.insert(0, kilit_metni(s["kt"]))
         th = s.get("tahta") or {}
         if th.get("seviye") == "sisme":
-            notlar.append("🎈 şişme riski: " + ", ".join(th["neden"]) + " — geçmişte bu durumdakilerin ~%15-19'u 20 günde %25+ çakıldı; iz stop'u sıkı takip et")
+            notlar.append(_sisme_ad(th, "şişme riski") + ", ".join(th["neden"]) + " — geçmişte bu durumdakilerin ~%15-19'u 20 günde %25+ çakıldı; iz stop'u sıkı takip et")
         elif th.get("seviye") == "dagitim":
             notlar.append("⚠️ dağıtım işareti: " + th["neden"][0] + " — büyük satıcı çıkıyor olabilir")
         b = s.get("bilanco")

@@ -172,7 +172,7 @@ sinyal, filtre, etiket ya da çıkış olarak eklenmeye değmez.** Kullanıcı f
   uzatılabilir (yapılmadı: tüm göstergeleri/uv durumunu ve çalışma süresini etkiler).
 
 ## 🚀 Sinyal geçmişi · son AL/SAT grafikte · Son roketler filtresi (2026-10, hepsi BİLGİ)
-- `sinyal.tk_gecmis` → `tkg`: son 6 v3 işlemi `[sinyal günü, giriş (ertesi açılış), çıkış günü|null, çıkış kapanışı|null]`
+- `sinyal.tk_gecmis` → `tkg`: son 6 v3 işlemi `[sinyal günü, giriş (ertesi açılış), çıkış günü|null, çıkış kapanışı|null(, 1 = çıkış günü kilitli taban)]`
   (canlı `trend_kirilimi(ham=True)`; komisyonsuz). Portföyden bağımsız. `tk.kisa` = veri <250 gün (yeni arz: sinyal çıkamaz).
 - Modal grafik: ▲ AL (yeşil, 🚀 girişi) / ▼ SAT (kırmızı, iz stop çıkışı), mor kesikli iz stop; üstte `tkSonHtml` özet satırı;
   '6 ay / 1 yıl' düğmesi — 1 yılda grafik penceresinden önceki ~6 ay HAFTALIK kapanış (`spark.w0` pazartesi + `spark.w`, x ekseni
@@ -209,6 +209,8 @@ sinyal, filtre, etiket ya da çıkış olarak eklenmeye değmez.** Kullanıcı f
   endekse göre +%18,4 → +%16,7 (en iyi 10 hariç +13,3 → +11,7), en kötü işlem −%27 → −%81 (TRHOL/IEYHO 18.09.2026). Katı varyant
   ('her taban günü satılamaz', `v3_taban`) +%13,6 / en kötü −%82; backtest.html'de duyarlılık tablosu (kapanış / kilitli / katı).
   backtest.py korn verisiyle s4_kart.txt'yi birebir tekrarladı. v2/eski kurallarda bu düzeltme yok (kıyas v3 aleyhine hafif eğik).
+  `tk_gecmis` 5. eleman `1` = çıkış günü kilitli tabandı → Sinyal geçmişi / grafik üstü satır / Son roketler'de '🔒 tabanda alıcı
+  yoktu, bu fiyattan satılamamış olabilir' (OZATD 18 Eyl 3.632,5).
 - **Aşırı uzamış 🚀 girişi (`sinyal.asiri_uzama` → `tk.uzama`, BİLGİ notu, AL engellenmez):** sinyal günü fiyat 52h (250g) dibinin ≥5
   katı ya da 126 gün öncesinin ≥3 katı. s1_kuyruk (OR birleşimi, canlı liste, 'her taban satılamaz' çıkışıyla): bu grubun %13,3'ü
   %30+ kayıpla kapandı, diğerleri %1,3 (sadece kilitli taban satılamazsa %5,7 / %0,2; kapanış varsayımıyla ikisi de %0); en büyük
@@ -218,6 +220,8 @@ sinyal, filtre, etiket ya da çıkış olarak eklenmeye değmez.** Kullanıcı f
   tutarsız); 🔻 hacim kuruması (taban + hacim <0,5x: düşük faizde endeksi yenme %51 — ayırmıyor; 1. gün hacim <0,25x kesinlik %18,5,
   taban oranı %7,3, olay az); 1. gün taban/1. gün kilitli uyarısı (kesinlik %22-30, yanlış alarm çok); KAP VBTS tedbiri (kesinlik
   %13 vs %9 taban oranı) ve pay bazında devre kesici bildirimi (%8,4 vs %9 — hiç ayırmıyor).
+- Not (değiştirilmedi): canlı karne kaydı (`gecmis_guncelle`) sadece taban serisini dışlar; Telegram AL ise 🎈 şişme ve 🔒'yi de
+  dışlar → karne, mesajı gitmeyen birkaç 🎈 girişini de sayabilir (v3 girişlerinin ~1/417'si 🎈'li günde).
 
 ## Canlı kurallar (5 yıllık backtest'e dayanarak, 2026-09)
 - Piyasa filtresi: XU100 < SMA50 → "piyasa zayıf" bandı + Telegram notu (AL'ler engellenmez).
@@ -325,6 +329,12 @@ sinyal, filtre, etiket ya da çıkış olarak eklenmeye değmez.** Kullanıcı f
   çelişmesin) + 5g hacim ≥1,5x notu; (c) tek seviye — portföydeyse iz stop / karar çizgisi (JS, localStorage), değilse 👀 kırılım
   seviyesi (≤%3) ya da en yakın destek/direnç (±%15'ten uzaksa 'yakında seviye yok'); (d) en önemli tek uyarı (🔒 > taban serisi >
   🎈 > ⚠️ > 🪤 > 🔻 > bilanço/temettü ≤7g > bölünme > ⚡). Sunucu tarafına portföy cümlesi YAZILMAZ.
+- Metin düzeltmeleri (2026-10-08 vaka testi): (a) taban serisinde ya da 60 günde ≤ −%50'de genel yön '💥 çöküş' (DMRGD 7 tabanla
+  'yükseliş' diyordu); (b) 🎈 tetiklendi ama 20g getiri eksiyse (çöküş sonrası tepki tavanları: HEDEF, PASEU, KLRHO, CRDFA, LYDHO)
+  rozet/kutu/Telegram metni '🎈 sert dalgalanma / sert tavan-taban dalgalanması' (`thDalga` = `tarama._sisme_ad`; `tahta_riski` tetiği
+  aynı); (c) 🌱 SAT kalmışken fiyat SMA200 üstüne döndüyse 'hâlâ SAT …, fiyat o zamandan beri üstüne döndü' (eskiden hem 'trend
+  bozuk' hem 'trend yükselişte'); (d) neden kutusundaki iz stop satırı: portföy dışında sadece 🚀 v3 çıkışı (`tk.cikis_tarih`,
+  Sinyal geçmişiyle aynı), portföyde portföyün kullandığı `d.iz` (eskiden gösterge iz stop'u: 313 hissenin 175'inde çelişki).
 - `nedenHtml`/`hareket`: 1/5/20 gün hisse getirisi (grafik verisi `spark`), aynı tarihlerde BIST 100 (`XU`), kıyas grubundaki
   diğer hisselerin ortalaması, hacim oranı (`sinyal.hacim_oranlari` → `hv`: 1g/önceki 20g, 5g/önceki
   60g, 20g/önceki 60g), pencere içi tavan/taban, KAP (son 5 bildirimden pencere içindekiler, geri alım ayrı sayılır), bölünme,

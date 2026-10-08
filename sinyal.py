@@ -479,9 +479,12 @@ def tk_gecmis(d, tum, n=TK_GECMIS_N):
     fiyatı (ertesi açılış; sinyal bugünse bugünkü kapanış), çıkış günü ya da None (açık), çıkış kapanışı ya da None].
     Canlı kuralın geçmişe uygulanması — backtest.py v3 ile aynı işlemler (aynı fonksiyon). Komisyonsuz."""
     idx, cv = d.index, d["Close"].values
+    kil = kilitli_gun(d).values
+    # 5. eleman (sadece varsa): 1 = çıkış günü kilitli taban (o kapanıştan satılamamış olabilir)
     return [[str(idx[x["i"]].date()), round(x["giris"], 2),
              str(idx[x["cik"]].date()) if x["cik"] is not None else None,
-             round(float(cv[x["cik"]]), 2) if x["cik"] is not None else None] for x in tum[-n:]]
+             round(float(cv[x["cik"]]), 2) if x["cik"] is not None else None]
+            + ([1] if (x["cik"] is not None and kil[x["cik"]]) else []) for x in tum[-n:]]
 
 
 def kilitli_gun(d, sadece_kilitli=True):
