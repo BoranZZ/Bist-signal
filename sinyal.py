@@ -454,6 +454,19 @@ def trend_kirilimi(d, xu_ust=None, islemler=False, ham=False):
            "kirilima_uzak": round((hh / fiyat - 1) * 100, 1) if (hh and sab_son and not acik) else None}
     if n < 250:   # 52 haftalık zirve/dip için en az 250 işlem günü gerekir: yeni halka arzlarda sinyal henüz çıkamaz
         out["kisa"] = True
+    if sab_son and not acik and hh:
+        # şablonda ama AL yok: hangi koşul eksik? (fiyat seviyenin üstündeyken 'çıkarsa AL' demek yanıltıcıydı — ENERY 2026-10)
+        eksik = []
+        if bool(kir.iloc[-1]) and bool(kir.iloc[-2]):
+            eksik.append("ilk")      # dünkü kapanış da 20 günlük zirvenin üstündeydi: kural sadece ilk kırılım gününü sayar
+        if (c.pct_change().rolling(60).std() > OYNAK_ESIK).iloc[-1]:
+            eksik.append("oynak")
+        if xu_ust is not None and not bool(xu_ust.reindex(d.index, method="ffill").fillna(False).astype(bool).iloc[-1]):
+            eksik.append("piyasa")   # BIST 100 50 günlük ortalamasının altında
+        if son and son["cik"] == n - 1 and bool(gir.iloc[-1]):
+            eksik.append("cikis")    # bugün iz stop çıkışı oldu: aynı gün yeni giriş sayılmaz
+        if eksik:
+            out["eksik"] = eksik
     if acik:
         stop = acik["tepe"] * (1 - IZ_STOP_ORAN)
         uz = asiri_uzama(c, acik["i"])   # sinyal günü ölçülür (bilgi notu; sadece varsa yazılır)
@@ -674,6 +687,57 @@ def guc_puani(d):
     return {"puan": sum(1 for x in detay if x["durum"]), "toplam": len(detay), "detay": detay}
 
 
+def _vade_ok(c, s, yukseliyor):
+    """+1 yukarı (fiyat ortalamanın üstünde ve ortalama yükseliyor), −1 aşağı (altında ve yükselmiyor), 0 yatay; None = veri az."""
+    if pd.isna(s) or pd.isna(c):
+        return None
+    if c > s and yukseliyor:
+        return 1
+    if c < s and not yukseliyor:
+        return -1
+    return 0
+
+
+def _donem_tamam(son, bugun, bar_kesin, kural):
+    """Son mumun haftası/ayı TAMAMLANDI mı: son gün kesinleşmiş olmalı ve ya sonraki iş günü yeni döneme düşmeli
+    (cuma / ayın son iş günü) ya da bugün yeni dönemde olmalı (tatil arası)."""
+    if not bar_kesin:
+        return False
+    sonraki = son + pd.Timedelta(days=1)
+    while sonraki.weekday() >= 5:
+        sonraki += pd.Timedelta(days=1)
+    p = pd.Period(son, kural)
+    return pd.Period(sonraki, kural) != p or (bugun is not None and pd.Period(bugun, kural) != p)
+
+
+def vade_durum(d, bar_kesin=True, bugun=None):
+    """📅 Vadeler (BİLGİ): [günlük, haftalık, aylık] trend oku (+1/0/−1, None = geçmiş yetersiz). Araştırma (2026-10,
+    scratchpad vade_uzun/durum.py, s2_mtf.py): Günlük = kapanış > SMA50 ve SMA50 10 gün öncesinden yüksek; Haftalık
+    (Weinstein) = son TAMAMLANMIŞ haftanın (W-FRI) kapanışı > 30 haftalık ort. ve ort. 4 hafta öncesinden yüksek;
+    Aylık = son tamamlanmış ayın kapanışı > 10 aylık ort. ve ort. bir önceki aydan yüksek. Haftalık/aylık mumlar günlükten
+    türetilir (kapanış = dönemin son işlem günü). 2 yıllık pencere 5 yıllık veriyle aynı sonucu verir (s5_pencere)."""
+    c = d["Close"].dropna()
+    if len(c) < 60:
+        return None
+    s50 = c.rolling(50).mean()
+    g = _vade_ok(float(c.iloc[-1]), s50.iloc[-1], bool(s50.iloc[-1] > s50.iloc[-11]))
+    gunler = pd.DatetimeIndex([pd.Timestamp(x.date()) for x in c.index])
+    son = gunler[-1]
+    bugun = pd.Timestamp(bugun) if bugun is not None else None
+    sonuc = [g]
+    for kural, n, geri in (("W-FRI", 30, 4), ("M", 10, 1)):
+        per = gunler.to_period(kural)
+        k = pd.Series(c.values, index=per).groupby(level=0).last()
+        if not _donem_tamam(son, bugun, bar_kesin, kural):
+            k = k.iloc[:-1]
+        if len(k) < n + geri:
+            sonuc.append(None)
+            continue
+        s = k.rolling(n).mean()
+        sonuc.append(_vade_ok(float(k.iloc[-1]), s.iloc[-1], bool(s.iloc[-1] > s.iloc[-1 - geri])))
+    return sonuc
+
+
 def hacim_oranlari(d):
     """'Neden yükseldi/düştü?' kutusu için hacim/ortalama: [son gün / önceki 20 gün, son 5 gün / önceki 60 gün,
     son 20 gün / önceki 60 gün] (pencere ortalamaya dahil değil). bt/hareket (299 hisse, 2021-26): ≥1,5 kat
@@ -689,8 +753,9 @@ def hacim_oranlari(d):
     return [oran(1, 20), oran(5, 60), oran(20, 60)]
 
 
-def analiz_et(df, xu_ust=None, xu=None):
-    """xu_ust: v3 piyasa filtresi (XU100 > SMA50, günlük bool seri); xu: XU100 kapanış serisi (🔒 kilitli taban için)."""
+def analiz_et(df, xu_ust=None, xu=None, bar_kesin=True, bugun=None):
+    """xu_ust: v3 piyasa filtresi (XU100 > SMA50, günlük bool seri); xu: XU100 kapanış serisi (🔒 kilitli taban için).
+    bar_kesin: son günlük mum kesinleşti mi (seans içinde False: haftalık/aylık vade için bu hafta/ay tamamlanmış sayılmaz)."""
     df = bolunme_duzelt(df)
     c = df["Close"].dropna()
     if len(c) < 60:
@@ -811,6 +876,7 @@ def analiz_et(df, xu_ust=None, xu=None):
         "hv": hacim_oranlari(d),
         "uv": uzun_vade(d),
         "tk": tk,
+        "vd": vade_durum(d, bar_kesin, bugun),
         "guc": guc_puani(d),
         "mom6": round((float(d["Close"].iloc[-22]) / float(d["Close"].iloc[-127]) - 1) * 100, 1) if len(d) > 127 else None,
         "s200_ust": bool(len(d) > 200 and not pd.isna(d["SMA200"].iloc[-1]) and fiyat > d["SMA200"].iloc[-1]),

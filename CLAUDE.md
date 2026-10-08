@@ -41,10 +41,13 @@ GITHUB_TOKEN ile güncellenemez → workflow değişirse arkadaşa elle güncell
 - `pano.py` — `index.html` ve `gecmis.html` üretir. Portföy istemci tarafında (localStorage),
   modalda kendi SVG grafiğimiz + TradingView butonu.
 - `backtest.py` — ertesi-gün girişli, komisyonlu, al-tut kıyaslı simülasyon.
+- `gunici.py` — ⏱️ gün içi görünüm (15 dk / 1 s / 4 s durum bilgisi; aşağıda 'Vadeler').
 
 ## Önemli ilkeler
 - Sinyal kuralları tek yerde (`sinyal.py`); backtest ve canlı aynı motoru kullanmalı.
-- Backtest'te look-ahead yasak; işleme ertesi gün girilir; çift yön %0.2 maliyet düşülür.
+- Backtest'te look-ahead yasak; işleme ertesi gün girilir; maliyet `backtest.KOMISYON = 0.002` alışta VE satışta ayrı ayrı
+  düşülür (`net = (1−K)·çıkış/giriş·(1−K) − 1` → gidiş-dönüş ≈ %0,4; eskiden burada yanlışlıkla 'çift yön %0,2' yazıyordu, kod hep
+  böyleydi — 2026-10 kontrolü). Tüm geçmiş kararlar bu düzenekle alındı; değiştirme. Bazı scratchpad araştırmaları %0,1/yön kullandı.
 - Dürüstlük: "daha çok gösterge = daha isabetli" değil; pusula backtest + canlı karne.
 - Finansal tavsiye verme; stop/pozisyon büyüklüğü/risk vurgusu koru.
 
@@ -113,7 +116,8 @@ uyarı rozeti (son 5 gün), sinyal değil. Canlı fonksiyon olayları birebir bu
 Yahoo'nun BIST günlük barlarında kapanış çoğu zaman resmi kapanıştan farklı (Eylül 2026: günlerin ~%30'unda >%0,3; THYAO
 24.09 günlük 288,5, resmi 289,5) ve son günün kapanışı NaN geliyor (dropna ile önceki gün gösteriliyordu: THYAO 288,5 vs
 gerçek 290,75). Saatlik verinin gün sonu = resmi kapanış (fast_info.previous_close ile 16/16). `veri_cek`: son 3 günün
-kapanışı saatlikten; kesin kapanış (18:30+/hafta sonu) sonrası son gün `fast_info.last_price` (kapanış seansı, 12 iş
+kapanışı gün içi veriden (2026-10'dan beri 15 dk'lık: 326 hissede 1.956 gün sonu kapanışı saatlikle birebir aynı; 15 dk alınamazsa
+eski saatlik indirmeye düşer); kesin kapanış (18:30+/hafta sonu) sonrası son gün `fast_info.last_price` (kapanış seansı, 12 iş
 parçacığı, ~10 sn). Günlük–saatlik farkı >%2 ise (temettü düzeltmesi) dokunulmaz. Eski backtest verisindeki bu küçük
 rastgele hatalar (~%0,3) sonuçları yönlü etkilemez.
 
@@ -222,6 +226,44 @@ sinyal, filtre, etiket ya da çıkış olarak eklenmeye değmez.** Kullanıcı f
   %13 vs %9 taban oranı) ve pay bazında devre kesici bildirimi (%8,4 vs %9 — hiç ayırmıyor).
 - Not (değiştirilmedi): canlı karne kaydı (`gecmis_guncelle`) sadece taban serisini dışlar; Telegram AL ise 🎈 şişme ve 🔒'yi de
   dışlar → karne, mesajı gitmeyen birkaç 🎈 girişini de sayabilir (v3 girişlerinin ~1/417'si 🎈'li günde).
+
+## 📅 Vadeler · ⏱️ gün içi görünüm · 🚀 gün içi kırılım notu (2026-10, hepsi BİLGİ — scratchpad vade_uzun, vade_gunici, vade_impl)
+- **Vadeler (`sinyal.vade_durum` → `vd` = [günlük, haftalık, aylık], +1/0/−1/None):** Günlük ↑ = kapanış > SMA50 ve SMA50 10 gün
+  öncesinden yüksek, ↓ = altında ve yükselmiyor; Haftalık (Weinstein) = son TAMAMLANMIŞ haftanın (W-FRI) kapanışı > 30 haftalık ort.
+  ve ort. 4 hafta öncesinden yüksek; Aylık = son tamamlanmış ay > 10 aylık ort. ve ort. bir önceki aydan yüksek; aksi →. Mumlar 2 yıllık
+  günlükten türetilir; hafta/ay 'tamam' = son gün kesin (18:30+ ya da geçmiş gün) ve sonraki iş günü ya da bugün yeni dönemde
+  (`analiz_et(bar_kesin, bugun)`). 11 aydan kısa geçmişte aylık —. Doğrulama (vade_impl/t_vade.py, 258 hisse × son 120 gün = 30.960
+  hisse-gün): 2y pencere = 5y veri 0 fark; araştırma `durum.py` ile günlük/aylık 0, haftalık 33 fark (hepsi 30.04.2026: 1 Mayıs tatili,
+  araştırma perşembe kapanışında haftayı tamam sayıyor, canlı ertesi günü bekliyor). Pano: tablo 'Vade' sütunu (G↑ H↑ A↓, istemcide
+  `DATA.vd`'den çizilir, sıralanabilir), modal `vadeHtml` satırı, sözlük. Üçü ↓: 2016-2026'da sonraki 60/120 günde endeksi yenme
+  ~%35-45 (tüm hisselerde ~%41-56; düşük faiz/çökenler hariç n=53 hücrede %49-53) → 'fark küçük, kesin değil'. Üçü ↑: 'tek başına
+  alım sinyali değil'.
+- **⏱️ Gün içi görünüm (`gunici.py` → panoda `const GI={g,t,tam,v:{kod:[15dk trend,RSI,kırılım, 1s…, 4s…]}}`):** trend ↑ = EMA20 >
+  EMA50 ve fiyat > EMA50 (↓ tersi), RSI(14), son 3 mumda önceki 20 mumun zirve/dip kırılımı. 15 dk verisi `veri_cek`'in tek toplu
+  indirmesinden (`start=` son 59 gün, threads=True; kapanış düzeltmesi de bundan); 1 s 10:00 hizalı, 4 s 10:00-14:00 / 14:00-18:00;
+  bitişi 'şimdi − 15 dk'dan sonra olan yarım mum atılır; `bolunme_duzelt` uygulanır; <60 mum → o vade boş. 59 gün yeterliliği: 45
+  güne kısaltınca 4 s trendi 325 hissenin 7'sinde değişiyor (EMA50 tam oturmuyor, Yahoo 15 dk en fazla 60 gün veriyor). Seans
+  dışında (18:30+, hafta sonu, 10:00 öncesi) önceki index.html'deki `GI` son seansın tamamlanmış hâliyse (`tam`) yeniden kullanılır
+  ve sadece 7 günlük 15 dk iner. İndirme/hesap hatasında `GI=null`, tarama bozulmaz (test: 15 dk yok → saatlik yedek; hepsi yok;
+  hesap hatası). Süre: 15 dk 59 gün ≈ 15 sn (eski saatlik 7 gün ≈ 12-15 sn, yerine geçti) + hesap ~10 sn → Actions'a ~+10 sn.
+  Araştırma (323 hisse 2023-11→2026-10): BIST100+EK'te 1 s trend/RSI/oylama sonraki 1-5 günde maliyetten küçük fark (±3-12 baz
+  puan); RSI<30 sonraki 5 günde ort. hisseden −36 bp (tümü −100 bp) → modal notu.
+- **🚀 gün içi kırılım:** kesin kapanış öncesi `tk.bugun` ise `tk.gk` = verinin saatine (şimdi − 15 dk) göre o saatte görünen
+  kırılımların kapanışta tutma oranı (`tarama.GK_ORAN`: 10:30 %67, 11:30 %71, 12:30 %74, 13:30 %77, 14:30 %76, 15:30 %79, 16:30 %85,
+  17:30 %88; v3_yanlis.py, 611 aday gün). Kutuda + Telegram 🚀 başlığında `GK_NOT` (kapanış seansında almak ertesi açılışa göre
+  ort. +0,8 puan; ertesi gün VWAP geri çekilmesi −1,0, limit −%1/−%2 −6,8/−10,2 puan — en güçlüler dolmadan kaçıyor). Backtest'in
+  ertesi açılış varsayımı DEĞİŞMEDİ. 17:30-18:30 mesajındaki eski '25/25 tuttu' cümlesi `gk_metni` ile değişti. Python `gk_metni` /
+  `GK_NOT` = JS `gkMetin` / `GK_NOT` (9/9).
+- **🚀 'seviyenin üstünde ama AL yok' (ENERY 2026-10-08):** kutu 'Kapanış 14 TL üstüne çıkarsa AL (%-1.1 yukarıda)' diyordu; fiyat
+  zaten üstteydi ama (a) kırılım ilk gün değildi (dünkü kapanış da 20g zirvesinin üstünde, kural sadece ilk günü sayar) ve (b) BIST 100
+  < SMA50 (piyasa filtresi). `trend_kirilimi` artık şablonda/pozisyonsuzken `eksik` = ['ilk','oynak','piyasa','cikis'] verir; kutu ve
+  sade anlat eksik koşulu yazar. Aynı durumda HRKET (−%1,5) vardı.
+- **Test edilip GEREKMİYOR çıkanlar (tekrar araştırma):** 1/5/15 dk sistemleri (oylama, SuperTrend, EMA kesişimi, kırılım; maliyet
+  sonrası işlem başı −0,6…+0,4 puan, aynı tutuşlu rastgele girişe göre fark küçük; 1 dk'da hepsi eksi); 1 s / 4 s trend sistemleri (aynı tutuşlu rastgele girişten fark tutarsız, 4 s kırılım
+  tümünde −2,7 puan); açılış aralığı kırılımı (ORB 30/60 dk), VWAP kesişimi, RSI<30 dip dönüşü (rastgeleden ayrılmıyor ya da kötü);
+  haftalık/aylık v3 değişikliği (haftalık+aylık ↑ filtresi, cuma kapanışında iz stop, haftalık SAT'ta çık, haftalık v3: 200 yarım
+  listede v3'ü yenme %16-90, düşük faizde fark yok → tutarsız); 'zayıf kapanış' etiketi (kapanış gün aralığının alt yarısı / tipik
+  fiyat altı: yüksek faizde kötü, düşük faizde iyi; 10 yuvada atlamak 4 yılda +%478 → +%424).
 
 ## Canlı kurallar (5 yıllık backtest'e dayanarak, 2026-09)
 - Piyasa filtresi: XU100 < SMA50 → "piyasa zayıf" bandı + Telegram notu (AL'ler engellenmez).

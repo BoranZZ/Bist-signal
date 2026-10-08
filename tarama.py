@@ -12,6 +12,7 @@ from kap import kap_guncelle, kap_mesaji
 from bilanco import bilancolari_al, bilanco_ozet, bilanco_metni, bilanco_yakin, tarih_tr, temettu_ozet
 from sinyal import analiz_et, destek_direnc, bolunme_duzelt, tahta_riski, TABAN_GETIRI, TABAN_GUN, IZ_STOP_ORAN, KILIT_ARALIK
 from pano import pano_uret, gecmis_uret
+import gunici
 
 # ================== AYARLAR ==================
 # BIST 100 bileşimi, 1 Ekim - 31 Aralık 2026 dönemi (Borsa İstanbul 3 ayda bir günceller)
@@ -97,6 +98,29 @@ SINYAL_DAKIKA = 17 * 60 + 30
 SADECE_KAPANIS_MESAJI = True   # False: gün içi her taramada (eski davranış)
 MIN_GUN = 60      # sinyal için gereken en az işlem günü (sinyal.analiz_et)
 
+# 🚀 gün içi kırılım (kesin kapanıştan önce görünen): o saatte saatlik kapanışı 20 günlük zirvenin üstünde olan şablondaki
+# hisselerin kaçı gün sonunda da üstünde kapattı (scratchpad vade_gunici/v3_yanlis.py, 2023-11 → 2026-10, 611 aday gün).
+# Saat = saatlik mumun bitişi; Yahoo ~15 dk gecikmeli olduğu için verinin saati (şimdi − 15 dk) kullanılır.
+GK_ORAN = ((10 * 60 + 30, 67), (11 * 60 + 30, 71), (12 * 60 + 30, 74), (13 * 60 + 30, 77), (14 * 60 + 30, 76),
+           (15 * 60 + 30, 79), (16 * 60 + 30, 85), (17 * 60 + 30, 88))
+GK_EK = {67: "'si", 71: "'i", 74: "'ü", 77: "'si", 76: "'sı", 79: "'u", 85: "'i", 88: "'i"}   # Türkçe ek (JS gkMetin ile aynı)
+GK_NOT = ("Geçmişte kapanışta tutan kırılımda kapanış seansında almak ertesi sabaha göre ort. +0,8 puan iyiydi; ertesi gün "
+          "geri çekilme ya da limit emirle beklemek belirgin kötüydü (en güçlüler kaçtı).")   # v3_analiz.py B) — JS GK_NOT
+
+
+def gk_oran(simdi):
+    """Verinin saatine (şimdi − 15 dk) göre kapanışta tutma oranı (%); 10:30 öncesi için ilk değer."""
+    dk = simdi.hour * 60 + simdi.minute - gunici.GECIKME
+    o = GK_ORAN[0][1]
+    for d, p in GK_ORAN:
+        if dk >= d:
+            o = p
+    return o
+
+
+def gk_metni(oran):
+    return f"Gün içi kırılım: geçmişte bu saatte görünen kırılımların ~%{oran}{GK_EK.get(oran, '')} kapanışta tuttu."
+
 
 KAPANIS_DUZELT_GUN = 3     # son kaç günün günlük kapanışı saatlik veriyle düzeltilir
 KAPANIS_DUZELT_SINIR = 0.02  # günlük ile saatlik arasında bundan büyük fark: temettü düzeltmesi/veri hatası, dokunma
@@ -110,20 +134,42 @@ def _son_fiyat(tk):
         return None
 
 
-def veri_cek(kodlar, kesin_kapanis=False):
+def _gun_ici_indir(tickers, gun):
+    """Yahoo 15 dk verisi: gun verilirse son 'gun' takvim günü (`start=`, gün içi görünüm için), yoksa son 7 gün."""
+    kw = dict(interval="15m", group_by="ticker", auto_adjust=True, progress=False, threads=True)
+    if gun:
+        bas = (pd.Timestamp.now(tz="Europe/Istanbul") - pd.Timedelta(days=gun)).date()
+        s = yf.download(tickers, start=str(bas), **kw)
+    else:
+        s = yf.download(tickers, period="7d", **kw)
+    if s is None or s.empty:
+        raise ValueError("boş veri")
+    return s
+
+
+def veri_cek(kodlar, kesin_kapanis=False, gunici_gun=None, ara=None):
     """Günlük veri (2 yıl: SMA200 tabanlı sinyaller için) + kapanış düzeltmesi. Yahoo'nun BIST günlük barlarında kapanış
     çoğu zaman resmi kapanıştan farklı (Eylül 2026 kontrolü: günlerin ~%30'unda >%0,3; THYAO 24.09 günlük 288,5, resmi
-    289,5) ve son günün kapanışı boş geliyor. Saatlik verinin gün sonu fiyatı resmi kapanışla birebir tuttu (16/16).
-    Bu yüzden son KAPANIS_DUZELT_GUN günün kapanışı saatlikten alınır; kesin kapanıştan sonra son gün Yahoo'nun anlık
-    son fiyatından (kapanış seansı fiyatı, TradingView ile aynı)."""
+    289,5) ve son günün kapanışı boş geliyor. Gün içi verinin gün sonu fiyatı resmi kapanışla birebir tuttu (16/16).
+    Bu yüzden son KAPANIS_DUZELT_GUN günün kapanışı gün içi veriden alınır; kesin kapanıştan sonra son gün Yahoo'nun anlık
+    son fiyatından (kapanış seansı fiyatı, TradingView ile aynı).
+    Gün içi veri 15 dk'lık (2026-10: 6 günde 326 hissenin 1.956 gün sonu kapanışı saatlikle birebir aynı); aynı indirme
+    📊 gün içi görünümde de kullanılır (gunici_gun: kaç günlük, ara: {"15m": veri} buraya yazılır). Alınamazsa eski
+    saatlik indirmeye düşülür (gün içi görünüm o taramada boş kalır)."""
     tickers = [k + ".IS" for k in kodlar] + [ENDEKS + ".IS"]
     print(f"{len(tickers)} hisse indiriliyor...")
     g = yf.download(tickers, period="2y", interval="1d", group_by="ticker", auto_adjust=True, progress=False, threads=True)
     try:
-        s = yf.download(tickers, period="7d", interval="1h", group_by="ticker", auto_adjust=True, progress=False, threads=True)
+        s = _gun_ici_indir(tickers, gunici_gun)
+        if ara is not None:
+            ara["15m"] = s
     except Exception as e:
-        print(f"Saatlik veri alınamadı ({type(e).__name__}); günlük veri düzeltmesiz kullanılıyor.")
-        return g
+        print(f"15 dk veri alınamadı ({type(e).__name__}); saatlik deneniyor.")
+        try:
+            s = yf.download(tickers, period="7d", interval="1h", group_by="ticker", auto_adjust=True, progress=False, threads=True)
+        except Exception as e:
+            print(f"Saatlik veri alınamadı ({type(e).__name__}); günlük veri düzeltmesiz kullanılıyor.")
+            return g
     son = {}
     if kesin_kapanis:
         from concurrent.futures import ThreadPoolExecutor
@@ -1086,8 +1132,10 @@ def telegram_mesaji(yeni_al, yeni_sat, sat_teyit, pf, uyari, piyasa=None, karar_
             satir.append(f"…ve {kalan} hisse daha (panoya bak)")
         bas = f"<b>Yeni AL — 🚀 trend kırılımı ({len(yeni_al)})</b>"
         if on_kapanis:
-            bas += ("\n⏰ <i>Kapanıştan önce (~17:15 fiyatlarıyla). Saatlik veriyle bu saatte görülen kırılımlar "
-                    "neredeyse hep kapanışta tuttu (son 60 günde 25/25); tutmazsa 18:30'dan sonra iptal mesajı gelir.</i>")
+            _s = pd.Timestamp.now(tz="Europe/Istanbul")
+            bas += (f"\n⏰ <i>Kapanıştan önce (~{(_s - pd.Timedelta(minutes=gunici.GECIKME)).strftime('%H:%M')} fiyatlarıyla). "
+                    f"{gk_metni(gk_oran(_s))} Tutmazsa 18:30'dan sonra iptal mesajı gelir.</i>")
+        bas += f"\n💡 <i>{GK_NOT}</i>"
         if piyasa and piyasa.get("zayif"):
             bas += ("\n⚠️ <i>Piyasa zayıf: BIST 100 50 günlük ortalamasının altında. Backtest'te bu dönemlerde "
                     "gelen AL'ler belirgin şekilde daha kötü sonuç verdi — temkinli ol.</i>")
@@ -1369,7 +1417,22 @@ def main():
         print(f"Portföyde tarama listesinde olmayan {len(disarida)} hisse var; takip için EK_HISSELER'e ekle.")
 
     _sim = pd.Timestamp.now(tz="Europe/Istanbul")
-    data = veri_cek(KODLAR, kesin_kapanis=_sim.hour * 60 + _sim.minute >= KAPANIS_DAKIKA or _sim.weekday() >= 5)
+    # 📊 gün içi görünüm: seans dışında önceki panonun tamamlanmış son seans durumu yeniden kullanılır (indirme kısa kalır)
+    gi = gunici.yeniden_kullan(_sim)
+    _ara = {}
+    data = veri_cek(KODLAR, kesin_kapanis=_sim.hour * 60 + _sim.minute >= KAPANIS_DAKIKA or _sim.weekday() >= 5,
+                    gunici_gun=None if gi else gunici.GUN, ara=_ara)
+    if gi:
+        print(f"Gün içi görünüm: önceki panodan ({gi['t']}).")
+    elif "15m" in _ara:
+        try:
+            _t0 = time.time()
+            gi = gunici.hesapla(_ara["15m"], KODLAR, _sim)
+            print(f"Gün içi görünüm: {len(gi['v']) if gi else 0} hisse ({time.time() - _t0:.1f} sn).")
+        except Exception as e:   # gün içi görünüm taramayı asla bozmasın
+            print(f"Gün içi görünüm hesaplanamadı ({type(e).__name__}).")
+            gi = None
+    _ara.clear()
     piyasa = piyasa_durumu(data)
     endeks = endeks_serisi(data)
     oranlar = oranlari_al(KODLAR)
@@ -1390,7 +1453,8 @@ def main():
             if df.empty:
                 continue
             arz = arz_bilgisi(kod, df)
-            a = analiz_et(df, xu_ust, _xu)
+            _bk = bool(_kesin or df.index[-1].date() != _sim.date())   # son günlük mum kesin mi (vadeler: hafta/ay tamam mı)
+            a = analiz_et(df, xu_ust, _xu, bar_kesin=_bk, bugun=_sim.date())
             if not a:
                 if arz:
                     yeni_arzlar.append(arz)   # sinyal için geçmiş henüz yetersiz
@@ -1398,7 +1462,9 @@ def main():
             a["kod"] = kod
             a["arz"] = arz
             if a.get("kt"):
-                a["kt"]["kesin"] = bool(_kesin or df.index[-1].date() != _sim.date())
+                a["kt"]["kesin"] = _bk
+            if (a.get("tk") or {}).get("bugun") and not _bk:
+                a["tk"]["gk"] = gk_oran(_sim)   # kesin kapanıştan önce görünen 🚀: o saatte kapanışta tutma oranı
             o = oranlar.get(kod, [None, None, None])
             a["fk"] = o[0] if len(o) > 0 else None
             a["pddd"] = o[1] if len(o) > 1 else None
@@ -1542,7 +1608,8 @@ def main():
         f.write(gecmis_uret(acik, kapali, karne))
 
     with open("index.html", "w", encoding="utf-8") as f:
-        f.write(pano_uret(sonuclar, ornek=False, uyari=uyari, piyasa=piyasa, yeni_arzlar=yeni_arzlar, endeks=endeks))
+        f.write(pano_uret(sonuclar, ornek=False, uyari=uyari, piyasa=piyasa, yeni_arzlar=yeni_arzlar, endeks=endeks,
+                          gunici=gi))
     print(f"index.html: {len(sonuclar)} hisse (+{len(yeni_arzlar)} yeni arz), {len(bugun_al)} AL, {len(yeni)} yeni | "
           f"taban serisi: {sum(1 for s in sonuclar if s.get('patlak'))} | "
           f"piyasa: {'zayıf' if piyasa and piyasa['zayif'] else 'normal'} | "
