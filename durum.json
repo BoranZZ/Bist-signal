@@ -6,6 +6,7 @@
     "ENERY",
     "HRKET",
     "LOGO",
+    "METRO",
     "RTALB",
     "TUPRS"
   ],
@@ -254,13 +255,14 @@
     "RALYH": "SAT",
     "REEDR": "SAT",
     "RGYAS": "SAT",
-    "RTALB": "SAT",
+    "RTALB": "AL",
     "RUBNS": "SAT",
     "RYGYO": "AL",
     "RYSAS": "SAT",
     "SAFKR": "SAT",
     "SAHOL": "SAT",
     "SANFM": "SAT",
+    "SARAE": "SAT",
     "SARKY": "SAT",
     "SASA": "SAT",
     "SAYAS": "SAT",
@@ -333,7 +335,13 @@
   "hafta_tarih": "2026-10-02",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {},
+  "on_sinyal": {
+    "RTALB": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-10-08"
+    }
+  },
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
