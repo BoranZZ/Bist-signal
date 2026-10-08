@@ -2,10 +2,8 @@
   "al": [
     "AHGAZ",
     "AKFIS",
-    "ENERY",
     "HRKET",
     "LOGO",
-    "OTKAR",
     "TKFEN"
   ],
   "son": {
@@ -596,7 +594,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1676062,
+  "kap_son": 1676214,
   "tk_gonderilen": {
     "tarih": "2026-10-08",
     "kodlar": []
