@@ -2,11 +2,11 @@
   "al": [
     "AHGAZ",
     "AKFIS",
+    "CELHA",
     "ENERY",
     "HRKET",
-    "INDES",
     "LOGO",
-    "TAVHL",
+    "RTALB",
     "TKFEN"
   ],
   "son": {
@@ -633,7 +633,11 @@
   },
   "gunici": {
     "tarih": "2026-10-08",
-    "g": []
+    "g": [
+      "74a2f9d108c2ec75",
+      "7b6b8730a4941985",
+      "a5248cab77799e0d"
+    ]
   },
   "sabah_tarih": "2026-10-08"
 }
