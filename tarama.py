@@ -5,6 +5,7 @@ Akış: fiyat çek -> sinyal + (günlük önbellekli) oran -> risk/lot -> AL+ ->
 -> index.html -> Telegram (tüm hisselerde yeni AL, portföyde yeni SAT).
 """
 import bisect, json, math, os, time
+from html import escape
 import pandas as pd
 import yfinance as yf
 from kap import kap_guncelle, kap_mesaji
@@ -471,7 +472,11 @@ def alarmlari_yukle():
         except Exception:
             continue
         if yon in ("ust", "alt") and fiyat > 0:
-            temiz.append({"kod": kod, "yon": yon, "fiyat": fiyat})
+            x = {"kod": kod, "yon": yon, "fiyat": fiyat}
+            notu = str(a.get("not") or "").strip()[:40]   # isteğe bağlı: 'destek', 'iz stop'... (anahtara girmez)
+            if notu:
+                x["not"] = notu
+            temiz.append(x)
     if temiz:
         print(f"Alarm: {len(temiz)} adet.")
     return temiz
@@ -508,7 +513,8 @@ def alarm_kontrol(alarmlar, by_kod, tetiklenen):
 
 
 def alarm_mesaji(liste):
-    satir = [f"🔔 <b>{a['kod']}</b> {a['fiyat']:g} TL {'üstüne çıktı' if a['yon'] == 'ust' else 'altına indi'} — şu an {s['fiyat']} TL ({s['sinyal']})"
+    satir = [f"🔔 <b>{a['kod']}</b> {a['fiyat']:g} TL{' (' + escape(a['not']) + ')' if a.get('not') else ''} "
+             f"{'üstüne çıktı' if a['yon'] == 'ust' else 'altına indi'} — şu an {s['fiyat']} TL ({s['sinyal']})"
              for a, s in liste]
     return ("🔔 <b>Fiyat alarmı</b>\n" + "\n".join(satir) +
             f"\n\n<a href=\"{PANO_URL}\">Panoyu aç</a> · Alarm bir kez çalar; panodan silebilir ya da yenisini kurabilirsin.")

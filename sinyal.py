@@ -554,6 +554,21 @@ def guc_puani(d):
     return {"puan": sum(1 for x in detay if x["durum"]), "toplam": len(detay), "detay": detay}
 
 
+def hacim_oranlari(d):
+    """'Neden yükseldi/düştü?' kutusu için hacim/ortalama: [son gün / önceki 20 gün, son 5 gün / önceki 60 gün,
+    son 20 gün / önceki 60 gün] (pencere ortalamaya dahil değil). bt/hareket (299 hisse, 2021-26): ≥1,5 kat
+    günlerin ~%12,5'i — panoda 'hacimli' eşiği. Hesaplanamayan None."""
+    if "Volume" not in d:
+        return None
+    v = d["Volume"].astype(float).replace(0, np.nan)
+    def oran(n, taban):
+        if len(v) < n + taban:
+            return None
+        x = v.iloc[-n:].mean() / v.iloc[-n - taban:-n].mean()
+        return None if pd.isna(x) else round(float(x), 1)
+    return [oran(1, 20), oran(5, 60), oran(20, 60)]
+
+
 def analiz_et(df, xu_ust=None):
     df = bolunme_duzelt(df)
     c = df["Close"].dropna()
@@ -671,6 +686,7 @@ def analiz_et(df, xu_ust=None):
         "hacim_teyit": bool(hacim_kat is not None and hacim_kat >= HACIM_ESIK),
         "taban15": taban,
         "mom20": mom20,
+        "hv": hacim_oranlari(d),
         "uv": uzun_vade(d),
         "tk": tk,
         "guc": guc_puani(d),

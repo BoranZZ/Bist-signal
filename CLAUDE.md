@@ -236,7 +236,11 @@ değişmedi. Son 30 günde bölünme olan portföy hissesinde 'maliyetini günce
   (tüm borsada ters). Pano portföy tablosunda Destek sütunu (`d.sd.destek`, bugünkü veriyle en yakın destek).
 - Fiyat alarmı: panoda hisse penceresinden kurulur, `ALARMLAR` variable'ına (portföyle aynı anahtar) yazılır;
   her taramada (gün içi de) kontrol, her alarm bir kez çalar. durum.json herkese açık olduğundan sadece
-  alarmın sha1 özeti (`alarm_tetik`) saklanır; silinen alarmın kaydı temizlenir.
+  alarmın sha1 özeti (`alarm_tetik`) saklanır; silinen alarmın kaydı temizlenir. **Önerilen alarmlar** (`alOneriler`, JS):
+  en yakın destek (fiyat desteğin hafif altındaysa karar çizgisi), direnç, 🚀 kırılım seviyesi (şablonda), portföydeyse iz stop /
+  karar çizgisi (aşılmış seviye önerilmez); tek tek ya da 'Hepsini kur', aynı kod+yön+fiyata ikinci alarm kurulmaz (elle de).
+  Kayıtta isteğe bağlı `not` ('destek', 'iz stop'...; ≤40 karakter, Telegram'da escape'li gösterilir). Anahtar hâlâ
+  kod|yön|fiyat → eski alarmlar aynen çalışır.
 - Taban serisi: son 15 günde ≥4 kez ≤ −%9 → "⚠ taban serisi"; bu hisselerden AL mesajı gitmez.
 - SAT: 1. gün "⏳" işaretiyle gösterilir/bildirilir, 2. gün "✅ teyit" mesajı (portföy).
 - Portföy: çıkış = son AL başındaki sabit stop (`al_stop`), SAT'ta çıkış sebebi sinyal; hedefler
@@ -244,3 +248,22 @@ değişmedi. Son 30 günde bölünme olan portföy hissesinde 'maliyetini günce
 - Python (`tarama.pozisyon_plani`) ve JS (`pano.pozPlan`) aynı mantık — birini değiştirirsen ikisini de.
 - Şablon (pano.py `_SABLON`) raw string içinde JS: tek tırnaklı JS dizelerinde kesme işareti `\'` olmalı;
   değişiklikten sonra şablon JS'ini `node --check` ile doğrula (bir kez sayfayı tamamen bozuyordu).
+
+## 💬 Sade anlat · 🔎 Neden yükseldi/düştü? (2026-10, hisse penceresi, hepsi istemci JS — yapay zekâ yok)
+- `sadeHtml`: (a) genel yön — `trend`/`trend_asagi` + SMA50 (📉 trend aşağı uyarısıyla aynı kural), ikisi de değilse 60g
+  getiri ±%10; (b) kısa vade alıcı/satıcı — 💪 güç ≥5 (sinyal SAT değilse) / ≤2 (AL değilse), yoksa 'dengede' (oylama ile
+  çelişmesin) + 5g hacim ≥1,5x notu; (c) tek seviye — portföydeyse iz stop / karar çizgisi (JS, localStorage), değilse 👀 kırılım
+  seviyesi (≤%3) ya da en yakın destek/direnç (±%15'ten uzaksa 'yakında seviye yok'); (d) en önemli tek uyarı (🎈 > taban > ⚠️ >
+  🪤 > bilanço/temettü ≤7g > bölünme > ⚡). Sunucu tarafına portföy cümlesi YAZILMAZ.
+- `nedenHtml`/`hareket`: 1/5/20 gün hisse getirisi (grafik verisi `spark`), aynı tarihlerde BIST 100 (`XU`), aynı endüstri (≥4
+  hisse, yoksa ana sektör) diğer hisselerin ortalaması, hacim oranı (`sinyal.hacim_oranlari` → `hv`: 1g/önceki 20g, 5g/önceki
+  60g, 20g/önceki 60g), pencere içi tavan/taban, KAP (son 5 bildirimden pencere içindekiler, geri alım ayrı sayılır), bölünme,
+  6 ay/20 gün zirve-dip, destek tepkisi/direnç, iz stop kırılımı. 'Aynı dönemde' der, sebep iddia etmez.
+- Eşikler (scratchpad bt/hareket/dagilim.py, 299 hisse, Eki 2021–Eki 2026): endeksten ayrışma ≥ 4 / 10 / 20 puan (1/5/20 gün)
+  → günlerin %12,9 / %11,6 / %12,8'i; hacim ≥1,5x → %12,5-12,7 (≥2,5x 'çok yüksek', <%5). Ayrışanların sadece %7-8'inde
+  sektör de aynı yönde gitmiş ('sektörel': sektörden fark < T/2 ve sektör endeksten ≥ T/2 aynı yönde); gerisi 'hisseye özel'.
+- Olay çalışması (bt/hareket/olay.py; aynı hissede 20 günde bir olay; sonraki 20g endekse göre, aynı hisselerin tüm günleri
+  ort +%1,4 / medyan −%1,2 / endeksi yenme %46): hisseye özel + hacimli YÜKSELİŞ (5g) ort +%2,3 / medyan −%2,4 / %44 (2.421
+  olay; 1g ve 20g benzer, hacimsizler biraz daha iyi) → belirgin değil, kutuda sadece 'farklı gitmedi' notu. Hisseye özel +
+  hacimli DÜŞÜŞ ise her yıl endeksin gerisinde: 5g ort −%3,8 / medyan −%5,2 / yenme %36 (839 olay), 20g −%7,4 / %33 (284) —
+  bugünkü hisselerle (hayatta kalan yanlılığı tersine çalışır). Uygulanmadı (yeni kural yok); ileride uyarı adayı.

@@ -134,6 +134,7 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None, 
             "al_stop": s.get("al_stop"), "al_tarih": s.get("al_tarih"), "hacim_kat": s.get("hacim_kat"),
             "hacim_teyit": bool(s.get("hacim_teyit")), "taban15": s.get("taban15"), "patlak": bool(s.get("patlak")), "tahta": s.get("tahta"), "tuzak": s.get("tuzak"),
             "arz": s.get("arz"), "sektor": s.get("sektor"), "endustri": s.get("endustri"), "mom20": s.get("mom20"), "uv": s.get("uv"), "bayrak": s.get("bayrak"), "bilanco": s.get("bilanco"), "temettu": s.get("temettu"), "kap": s.get("kap"), "tk": s.get("tk"), "guc": s.get("guc"), "momentum": bool(s.get("momentum")), "mom6": s.get("mom6"), "bolunme": s.get("bolunme"),
+            "hv": s.get("hv"),
         }
 
     banner = ""
@@ -273,7 +274,8 @@ tbody tr:hover,tbody tr:hover td{background:#F2F5F3}
 .pfuv{display:flex;align-items:center;gap:5px;font-size:13px;color:var(--ink);cursor:pointer}
 .uvb{background:#E8EEF7;color:#28507A;font-size:9.5px;font-weight:700;padding:2px 5px;border-radius:5px;margin-left:5px}
 .alkutu{margin-top:14px;border:1px solid var(--line);border-radius:10px;padding:10px 13px;background:#FCFCFB}
-.alsat{font-size:13px;margin:3px 0;display:flex;align-items:center;gap:8px}
+.alsat{font-size:13px;margin:3px 0;display:flex;align-items:center;gap:8px;flex-wrap:wrap}.aloneri{margin-top:8px;padding-top:6px;border-top:1px dashed var(--line)}.alkur{padding:4px 10px!important;font-size:12px}
+.sade{margin:10px 0 12px;border:1px solid #DCE3EE;background:#F6F8FB;border-radius:10px;padding:11px 14px;font-size:13.3px;line-height:1.6}.sade .ss+.ss{margin-top:5px}.nedenkutu .ns{margin:3px 0}.nedenkutu a{color:var(--accent)}
 .favtd{width:26px;padding-right:0!important}.fav{border:0;background:none;cursor:pointer;font-size:15px;line-height:1;padding:2px;color:#C7962B}tr.favrow td{background:#FFFBEB}.tabcubuk{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 10px}#ara{flex:1 1 180px;max-width:260px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px}.sfav{font-size:13px;display:flex;gap:5px;align-items:center;cursor:pointer}.mfav{margin-left:8px;border:1px solid var(--line);background:var(--panel);border-radius:7px;padding:3px 9px;font-size:12px;cursor:pointer}
 .bugun{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin:0 0 16px}.bugun h2{font-size:15px;margin:0 0 8px}.bgs{font-size:13.2px;line-height:1.6;margin:0 0 5px}.bgk{font-weight:700;color:var(--accent);text-decoration:none}
 .mozet{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:2px 0 12px}.mozet span{margin-left:0!important}
@@ -741,6 +743,162 @@ function arzHtml(d){
  var g=z.getiri==null?'':' · arzdan beri <b class="'+(z.getiri>=0?'pos':'neg')+'">'+(z.getiri>=0?'+':'')+z.getiri+'%</b>';
  return '<div class="arzkutu">🆕 <b>Halka arz:</b> '+z.tarih+' tarihinde işlem görmeye başladı'+(z.arz_fiyat?' · arz fiyatı <b>'+z.arz_fiyat+' TL</b>':' (bölünmeyle geldi, arz fiyatı yok)')+g+'</div>';
 }
+// --- 💬 Sade anlat · 🔎 Neden yükseldi/düştü? · önerilen alarmlar — hepsi cihazda, panodaki veriden (yapay zekâ yok).
+// Eşikler (bt/hareket, 299 hisse 2021-26): BIST 100'den ayrışma 1/5/20 günde ≥ 4/10/20 puan → günlerin ~%12-13'ü;
+// hacim ortalamanın ≥ 1,5 katı → ~%12,5'i. Ayrışan günlerin ~%7-8'inde aynı sektör de aynı yönde gitmiş (sektörel).
+var HR_ESIK={1:4,5:10,20:20},HR_HACIM=1.5,HR_HACIM2=2.5;
+function pyz(x){return (x>=0?'+':'−')+'%'+Math.abs(x).toFixed(1).replace('.',',');}
+function kat(x){return x.toFixed(1).replace('.',',');}
+function hEsc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function spGetiri(sp,t0,t1){  // grafik verisinde t0 → t1 kapanış değişimi (%) ya da null
+ if(!sp||!sp.t||!sp.c)return null;var i0=sp.t.indexOf(t0),i1=sp.t.indexOf(t1);
+ if(i0<0||i1<0||sp.c[i0]==null||sp.c[i1]==null||!sp.c[i0])return null;return (sp.c[i1]/sp.c[i0]-1)*100;}
+var _GRUP=null;
+function grupAd(d){  // sektör kıyası: endüstride en az 4 hisse varsa endüstri, yoksa ana sektör (en az 4)
+ if(!_GRUP){_GRUP={e:{},s:{}};Object.keys(DATA).forEach(function(k){var x=DATA[k];
+  if(x.endustri)_GRUP.e[x.endustri]=(_GRUP.e[x.endustri]||0)+1;if(x.sektor)_GRUP.s[x.sektor]=(_GRUP.s[x.sektor]||0)+1;});}
+ if(d.endustri&&_GRUP.e[d.endustri]>=4)return ['endustri',d.endustri];
+ if(d.sektor&&_GRUP.s[d.sektor]>=4)return ['sektor',d.sektor];
+ return null;}
+function hareket(k,d){  // son 1/5/20 günlük hareketin bileşenleri: hisse, BIST 100, sektör, hacim, tavan/taban
+ var sp=d.spark;if(!sp||!sp.c||sp.c.length<2)return null;
+ var n=sp.c.length,t1=sp.t[n-1],g=grupAd(d),xuTamam=!!(XU&&XU.t&&XU.t[XU.t.length-1]>=t1),out={t1:t1,ufuk:[]};
+ [1,5,20].forEach(function(u,j){
+  if(n<=u)return;var t0=sp.t[n-1-u],r=spGetiri(sp,t0,t1);if(r==null)return;
+  var x0=xuTamam?xuDeger(t0):null,x1=xuTamam?xuDeger(t1):null,xu=(x0&&x1)?(x1/x0-1)*100:null;
+  var sek=null,sn=0,top=0;
+  if(g)Object.keys(DATA).forEach(function(k2){if(k2===k)return;var y=DATA[k2];
+   if((g[0]==='endustri'?y.endustri:y.sektor)!==g[1])return;var rr=spGetiri(y.spark,t0,t1);if(rr==null)return;top+=rr;sn++;});
+  if(sn>=2)sek=top/sn;
+  var hk=(d.hv&&d.hv[j]!=null)?d.hv[j]:null,tavan=0,taban=0;
+  for(var i=n-u;i<n;i++){if(sp.c[i]==null||sp.c[i-1]==null)continue;var ch=sp.c[i]/sp.c[i-1]-1;if(ch>=0.095)tavan++;if(ch<=-0.095)taban++;}
+  var T=HR_ESIK[u],fark=xu==null?null:r-xu,tur;
+  if(fark==null)tur='?';
+  else if(Math.abs(fark)<T)tur='piyasa';
+  else if(sek!=null&&Math.abs(r-sek)<T/2&&Math.abs(sek-xu)>=T/2&&(sek-xu)*fark>0)tur='sektor';
+  else tur='ozel';
+  out.ufuk.push({u:u,t0:t0,r:r,xu:xu,fark:fark,sek:sek,sn:sn,grup:g,hk:hk,tavan:tavan,taban:taban,tur:tur,
+   dikkat:(fark!=null&&Math.abs(fark)>=T)||Math.abs(r)>=T||(hk!=null&&hk>=HR_HACIM)});
+ });
+ return out;}
+function _gunFark(a,b){return Math.round((new Date(b.slice(0,10))-new Date(a.slice(0,10)))/864e5);}
+function nedenHtml(k,d){
+ var h=hareket(k,d);if(!h||!h.ufuk.length)return '';
+ var sat=[],sakin=[],ek=[];
+ h.ufuk.forEach(function(x){
+  var ad=x.u===1?'son gün':'son '+x.u+' gün';
+  if(!x.dikkat){sakin.push(ad+' '+pyz(x.r));return;}
+  var T=HR_ESIK[x.u],gad=x.grup?hEsc(x.grup[1]):'',s='<b>'+(x.u===1?'Son gün':'Son '+x.u+' gün')+': '+pyz(x.r)+'</b>'+(x.u===1&&x.tavan?' (tavan)':'')+(x.u===1&&x.taban?' (taban)':'');
+  if(x.xu!=null)s+=' · BIST 100 '+pyz(x.xu);
+  if(x.tur==='piyasa')s+=Math.abs(x.r)>=T?' → <b>piyasayla birlikte</b> (endeks de benzer hareket etti).':' → endeksle uyumlu.';
+  else if(x.tur==='sektor')s+=' → <b>sektörel</b>: aynı sektördeki '+x.sn+' hissenin ('+gad+') ortalaması '+pyz(x.sek)+'.';
+  else if(x.tur==='ozel')s+=' → <b>hisseye özel</b>: endeksten '+Math.abs(x.fark).toFixed(0)+' puan '+(x.fark>0?'daha iyi':'daha kötü')+(x.sek!=null?'; sektörü ('+gad+', '+x.sn+' hisse) '+pyz(x.sek):'')+'.';
+  if(x.hk!=null&&x.hk>=HR_HACIM)s+=' Hacim '+(x.u===1?'önceki 20 günün':'önceki 60 günün')+' ortalamasının <b>'+kat(x.hk)+' katı</b>'+(x.hk>=HR_HACIM2?' (çok yüksek)':'')+'.';
+  else if(x.u>1&&x.hk!=null&&x.hk<0.7&&Math.abs(x.r)>=T)s+=' Hacim ortalamanın altında (ilgi sınırlı).';
+  sat.push(s);
+ });
+ var u20=h.ufuk[h.ufuk.length-1],t0=u20.t0;
+ if(u20.u>1&&(u20.tavan||u20.taban))ek.push('Son '+u20.u+' günde '+[u20.tavan?u20.tavan+' tavan':'',u20.taban?u20.taban+' taban':''].filter(Boolean).join(', ')+' (günlük ~%10 sınır).');
+ var kp=(d.kap||[]).filter(function(b){return b.t.slice(0,10)>t0;}),ga=kp.filter(function(b){return /Geri Al/i.test(b.konu);}).length;
+ kp.filter(function(b){return !/Geri Al/i.test(b.konu);}).slice(0,3).forEach(function(b){
+  var gf=_gunFark(b.t,h.t1),oz=(b.ozet&&b.ozet!==b.konu)?' — '+hEsc(b.ozet.length>110?b.ozet.slice(0,110)+'…':b.ozet):'';
+  ek.push('📰 '+(gf<=0?'Bugün':gf+' gün önce')+' ('+b.t.slice(8,10)+'.'+b.t.slice(5,7)+') KAP: <a href="https://www.kap.org.tr/tr/Bildirim/'+b.id+'" target="_blank" rel="noopener">'+hEsc(b.konu)+'</a>'+oz);});
+ if(ga)ek.push('📰 Bu dönemde '+ga+' geri alım (şirketin kendi hissesini alması) bildirimi var.');
+ if(d.bolunme&&d.bolunme>t0)ek.push('✂️ '+d.bolunme+' günü bedelsiz/bölünme: yüzdeler düzeltilmiş fiyatla hesaplandı.');
+ var c=(d.spark||{}).c||[],n=c.length,son=c[n-1],onc=c.slice(0,n-1).filter(function(v){return v!=null;});
+ if(onc.length>=60&&son>=Math.max.apply(null,onc))ek.push('🔝 Fiyat grafikteki son 6 ayın en yüksek kapanışında.');
+ else if(onc.length>=60&&son<=Math.min.apply(null,onc))ek.push('🔻 Fiyat grafikteki son 6 ayın en düşük kapanışında.');
+ else if(onc.length>=20){var s20=onc.slice(-20);if(son>Math.max.apply(null,s20))ek.push('↗️ Son 20 günün en yüksek kapanışı aşıldı'+((d.tk||{}).bugun?' (🚀 v3 AL kuralı bugün çalıştı).':'.'));
+  else if(son<Math.min.apply(null,s20))ek.push('↘️ Son 20 günün en düşük kapanışının altına inildi.');}
+ if(d.sd&&d.sd.tepki&&d.sd.destek)ek.push('🔵 Fiyat '+d.sd.destek.fiyat+' TL desteğine inip yukarı döndü.');
+ if(d.sd&&d.sd.yaklas&&d.sd.direnc)ek.push('🟠 Fiyat '+d.sd.direnc.fiyat+' TL direncine yaklaştı.');
+ if(d.iz&&d.iz.cikti&&d.iz.cikis_tarih&&d.iz.cikis_tarih>t0)ek.push('📍 '+d.iz.cikis_tarih+' günü iz stop kırıldı.');
+ var th=d.tahta||{};if(th.seviye==='sisme')ek.push('🎈 Şişme uyarısı var (yukarıdaki kutu).');else if(th.seviye==='dagitim')ek.push('⚠️ Dağıtım işareti var (yukarıdaki kutu).');
+ if(d.tuzak)ek.push('🪤 Düşen trend kırılımı tuzak riski var (yukarıdaki kutu).');
+ var x='<div class="bilkutu nedenkutu"><div class="gbas">🔎 Neden yükseldi / düştü?</div>';
+ var xs=h.ufuk.map(function(u){return u.xu==null?'':(u.u===1?'son gün ':u.u+' gün ')+pyz(u.xu);}).filter(Boolean).join(', ');
+ if(!sat.length&&!ek.length)return x+'<div>'+sakin.join(', ').replace(/^s/,'S')+(xs?' (BIST 100: '+xs+')':'')+' — endeksle uyumlu, dikkat çekici bir hareket yok.</div></div>';
+ sat.forEach(function(s){x+='<div class="ns">'+s+'</div>';});
+ if(sakin.length)x+='<div class="ns sgun">'+sakin.join(', ').replace(/^s/,'S')+': endeksle uyumlu, dikkat çekici değil.</div>';
+ if(ek.length)x+='<div class="ns" style="margin-top:6px"><b>Aynı dönemde:</b></div>'+ek.map(function(s){return '<div class="ns">• '+s+'</div>';}).join('');
+ var ozelH=h.ufuk.some(function(u){return u.dikkat&&u.tur==='ozel'&&u.r>0&&u.hk!=null&&u.hk>=HR_HACIM;});
+ return x+'<div class="pk sgun">Bu kutu aynı dönemde olanları yan yana koyar; hareketin sebebini bilemez.'+(ozelH?' Geçmiş veride (2021-26, 299 hisse) hisseye özel, hacimli yükselişlerden sonraki 20 gün, rastgele bir günden belirgin farklı gitmedi — tek başına alım/satım işareti değildir.':'')+'</div></div>';
+}
+function pfBirlesik(k){  // portföyde aynı hisse birden çok satırsa toplam adet + ağırlıklı maliyet
+ var p=pfOku().filter(function(x){return x.kod===k;});if(!p.length)return null;
+ var ad=0,top=0;p.forEach(function(x){ad+=x.adet;top+=x.adet*x.maliyet;});
+ return {adet:ad,maliyet:top/ad,uzun:p.some(function(x){return x.uzun;})};}
+function sadeHtml(k,d){
+ if(d.fiyat==null)return '';
+ var sp=d.spark||{},c=sp.c||[],n=c.length,f=d.fiyat,u=d.uv||{},s50=u.sma50,cm=[];
+ var r60=(n>60&&c[n-61])?(f/c[n-61]-1)*100:null,r5=(n>5&&c[n-6])?(f/c[n-6]-1)*100:null;
+ // (a) uzun vadeli yön — 📉 trend aşağı uyarısıyla aynı kural (fiyat < düşen 200 günlük ortalama)
+ var o200='200 günlük ortalamanın (son ~10 ayın ortalama fiyatı)',o50='50 günlük ortalamanın (son ~2,5 ay)';
+ if(d.trend&&s50&&f>s50)cm.push('📈 <b>Genel yön: yükseliş.</b> Fiyat hem son ~2,5 ayın hem son ~10 ayın ortalama fiyatının (50 ve 200 günlük ortalama) üstünde; uzun vadeli ortalama da yükseliyor.');
+ else if(d.trend)cm.push('📈 <b>Genel yön: yükseliş, ama son haftalarda geri çekiliyor.</b> Fiyat '+o200+' üstünde, '+o50+' altına indi.');
+ else if(d.trend_asagi&&!(s50&&f>s50))cm.push('📉 <b>Genel yön: düşüş.</b> Fiyat hem son ~2,5 ayın hem son ~10 ayın ortalama fiyatının (50 ve 200 günlük ortalama) altında; uzun vadeli ortalama da düşüyor.');
+ else if(d.trend_asagi)cm.push('📉 <b>Genel yön: düşüş, ama son haftalarda toparlanıyor.</b> Fiyat '+o50+' üstüne çıktı, düşen '+o200+' hâlâ altında.');
+ else if(r60!=null&&r60>=10)cm.push('↗️ <b>Son 3 ayda yükseliyor</b> ('+pyz(r60)+'), ama uzun vadeli yön henüz net değil.');
+ else if(r60!=null&&r60<=-10)cm.push('↘️ <b>Son 3 ayda düşüyor</b> ('+pyz(r60)+'), ama uzun vadeli yön henüz net değil.');
+ else cm.push('➡️ <b>Fiyat yatay seyrediyor</b>'+(r60!=null?' (son 3 ayda '+pyz(r60)+')':'')+': belirgin bir yön yok.');
+ // (b) kısa vade: alıcılar mı satıcılar mı (💪 güç puanı + gösterge oylamasıyla çelişmeyecek şekilde)
+ var gp=d.guc?d.guc.puan:null,gt=d.guc?d.guc.toplam:7,hv5=d.hv?d.hv[1]:null,ak;
+ if(gp!=null&&gp>=5&&d.sinyal!=='SAT')ak='💪 <b>Kısa vadede alıcılar güçlü:</b> '+gt+' göstergeden '+gp+' tanesi olumlu';
+ else if(gp!=null&&gp<=2&&d.sinyal!=='AL')ak='🔻 <b>Kısa vadede satıcılar güçlü:</b> '+(gp?gt+' göstergeden sadece '+gp+' tanesi olumlu':gt+' göstergenin hiçbiri olumlu değil');
+ else ak='⚖️ <b>Kısa vadede alıcılar ve satıcılar dengede:</b> göstergeler karışık'+(gp!=null?' ('+gt+' göstergeden '+gp+' tanesi olumlu)':'');
+ if(hv5!=null&&hv5>=HR_HACIM&&r5!=null&&Math.abs(r5)>=3)ak+='; son 5 günde hacim ortalamanın '+kat(hv5)+' katıyken fiyat '+(r5>0?'yükseldi (alım ilgisi)':'düştü (satış baskısı)');
+ cm.push(ak+'.');
+ // (c) takip edilecek tek seviye: portföydeyse iz stop / karar çizgisi, değilse en yakın destek/direnç ya da kırılım seviyesi
+ var p=pfBirlesik(k),sv=null,t=d.tk||{};
+ if(p){var pl=pozPlan(d,p);
+  if(pl.uzun){if(pl.karar)sv=pl.kararAsildi?'🧭 <b>Fiyat karar çizgisinin ('+pl.karar+' TL) altında.</b> Karar çizgisi, uzun vadeli pozisyonun için ana desteğin biraz altıdır; altında kapanış pozisyonu yeniden düşünme noktası.'
+    :'🧭 <b>Senin için takip edilecek seviye: karar çizgisi '+pl.karar+' TL</b> ('+pyz(pl.kararUzak)+'). Bu, ana desteğin (geçmişte düşüşün durduğu fiyat) biraz altıdır; altında kapanış, desteğin kırıldığını gösterir.';}
+  else if(pl.izCikti)sv='📍 <b>İz stop '+pl.izCikti+' tarihinde kırıldı.</b> İz stop, aldıktan sonraki en yüksek kapanışın %20 altıdır; sistemin kuralına göre çıkış zamanı geçti.';
+  else if(pl.stop)sv=pl.asildi?'📍 <b>Fiyat çıkış seviyesinin ('+pl.stop+' TL) altında</b> — sistemin kuralına göre çıkış zamanı.'
+    :'📍 <b>Senin için takip edilecek seviye: '+(pl.iz?'iz stop':'stop')+' '+pl.stop+' TL</b> ('+pyz(pl.stopUzak)+'). '+(pl.iz?'İz stop, aldıktan sonraki en yüksek kapanışın %20 altıdır ve fiyat yükseldikçe yukarı taşınır; ':'')+'kapanış bunun altına inerse sistemin kuralı "çık" der.';
+ }
+ if(!sv){
+  var ds=d.sd&&d.sd.destek,dr=d.sd&&d.sd.direnc;
+  if(t.sablon&&t.durum!=='AL'&&t.kirilim_seviye&&t.kirilima_uzak!=null&&t.kirilima_uzak>0&&t.kirilima_uzak<=3)
+   sv='👀 <b>Takip edilecek seviye: '+t.kirilim_seviye+' TL</b> ('+pyz(t.kirilima_uzak)+' yukarıda): son 20 günün en yüksek kapanışı. Kapanış bunun üstüne çıkarsa sistemin 🚀 AL kuralı (trend kırılımı) çalışır.';
+  else{var ud=ds?Math.abs(ds.uzaklik):1e9,ur=dr?Math.abs(dr.uzaklik):1e9;
+   if(ds&&ds.fiyat>=f){var kc=kararCizgisi(d);sv='🔵 <b>Fiyat '+ds.fiyat+' TL desteğinin hafif altına sarktı.</b> Destek, geçmişte düşüşün durduğu ve alıcıların geldiği fiyattır. Takip edilecek seviye: <b>'+kc+' TL</b> (desteğin biraz altı, '+pyz((kc/f-1)*100)+'); bunun altında kapanış desteğin kırıldığını gösterir.';}
+   else if(Math.min(ud,ur)>15)sv='Fiyatın yakınında (±%15) belirgin bir destek ya da direnç yok'+(ds||dr?'; en yakını '+(ds&&ud<=ur?'destek '+ds.fiyat+' TL ('+pyz(ds.uzaklik)+')':'direnç '+dr.fiyat+' TL ('+pyz(dr.uzaklik)+')'):'')+'. Destek geçmişte düşüşün, direnç yükselişin durduğu fiyattır.';
+   else if(ds&&ud<=ur)sv='🔵 <b>Takip edilecek seviye: destek '+ds.fiyat+' TL</b> ('+pyz(ds.uzaklik)+'). Destek, geçmişte düşüşün durduğu ve alıcıların geldiği fiyattır'+(ds.test>=2?' (bu bölge '+ds.test+' kez denendi)':'')+'; altında kapanış düşüşün sürebileceğini gösterir.';
+   else if(dr)sv='🟠 <b>Takip edilecek seviye: direnç '+dr.fiyat+' TL</b> ('+pyz(dr.uzaklik)+'). Direnç, geçmişte yükselişin durduğu ve satıcıların çıktığı fiyattır; kapanışla aşılırsa yükseliş hızlanabilir, aşılamazsa geri dönebilir.';
+   else sv='Son 6 ayda fiyatın yakınında belirgin bir destek ya da direnç yok.';}
+ }
+ cm.push(sv);
+ // (d) en önemli tek uyarı
+ var th=d.tahta||{},b=d.bilanco||{},tm=d.temettu||{},uy=null;
+ if(th.seviye==='sisme')uy='🎈 <b>En önemli uyarı — şişme riski:</b> kısa sürede çok yükseldi; geçmişte bu durumdaki hisselerin ~%15-19\'u sonraki 20 günde %25+ düştü (normalde %2).';
+ else if(d.patlak)uy='⚠ <b>En önemli uyarı — taban serisi:</b> son 15 günde '+d.taban15+' kez ~%10 düştü (çöküş tipi hareket).';
+ else if(th.seviye==='dagitim')uy='⚠️ <b>En önemli uyarı — dağıtım işareti:</b> hacim artarken fiyat son zirvesinden geriliyor; büyük satıcı elindekini satıyor olabilir.';
+ else if(d.tuzak)uy='🪤 <b>En önemli uyarı — tuzak riski:</b> dipteki hisse düşen trendi yukarı kırdı; geçmişte bu kırılımların yarısından fazlası 15 günde geri düştü.';
+ else if(b.kalan_gun!=null&&b.kalan_gun>=0&&b.kalan_gun<=7)uy='📅 <b>'+(b.kalan_gun?b.kalan_gun+' gün sonra':'Bugün')+' bilanço</b> açıklanabilir: o gün fiyat sert oynayabilir.';
+ else if(tm.ex_kalan!=null&&tm.ex_kalan>=0&&tm.ex_kalan<=7)uy='💰 <b>'+(tm.ex_kalan?tm.ex_kalan+' gün sonra':'Bugün')+' temettü hak kullanımı:</b> o sabah fiyat temettü kadar düşük açılır (kayıp değil, ödeme).';
+ else if(d.bolunme&&(Date.now()-new Date(d.bolunme).getTime())<30*864e5)uy='✂️ <b>'+d.bolunme+' günü bedelsiz/bölünme</b> oldu: grafik düzeltildi'+(p?'; maliyetini aracı kurumdaki yeni maliyetle güncelle.':'.');
+ else if(d.oynak)uy='⚡ <b>Uyarı — çok oynak:</b> son 60 günde günlük oynaklık %'+d.vol60+'; fiyat kısa sürede sert gidip gelebilir.';
+ if(uy)cm.push(uy);
+ return '<div class="sade"><div class="gbas">💬 Sade anlat</div>'+cm.map(function(s){return '<div class="ss">'+s+'</div>';}).join('')+'<div class="pk sgun">Panodaki verilerden kurallarla yazılır; yatırım tavsiyesi değildir.</div></div>';
+}
+function alOneriler(k,d){  // önerilen alarmlar: portföydeyse iz stop / karar çizgisi, en yakın destek ve direnç, 🚀 kırılım seviyesi
+ var o=[],sd=d.sd||{},f=d.fiyat,p=pfBirlesik(k),t=d.tk||{};if(f==null)return o;
+ if(p){var pl=pozPlan(d,p);
+  if(pl.uzun){if(pl.karar&&!pl.kararAsildi)o.push({yon:'alt',fiyat:pl.karar,not:'karar çizgisi'});}
+  else if(pl.stop&&!pl.asildi&&!pl.izCikti)o.push({yon:'alt',fiyat:pl.stop,not:pl.iz?'iz stop':'stop'});}
+ if(sd.destek&&sd.destek.fiyat<f)o.push({yon:'alt',fiyat:sd.destek.fiyat,not:'destek'});
+ else if(sd.destek){var kc=kararCizgisi(d);if(kc&&kc<f)o.push({yon:'alt',fiyat:kc,not:'destek kırılımı (karar çizgisi)'});}
+ if(sd.direnc&&sd.direnc.fiyat>f)o.push({yon:'ust',fiyat:sd.direnc.fiyat,not:'direnç'});
+ if(t.sablon&&t.durum!=='AL'&&t.kirilim_seviye&&t.kirilim_seviye>f)o.push({yon:'ust',fiyat:t.kirilim_seviye,not:'kırılım (🚀 AL) seviyesi'});
+ return o.filter(function(x,i){return o.findIndex(function(y){return y.yon===x.yon&&Math.abs(y.fiyat-x.fiyat)<0.005;})===i;});
+}
+function alVar(k,yon,f){return alOku().some(function(x){return x.kod===k&&x.yon===yon&&Math.abs(x.fiyat-f)<0.005;});}
+function alOneriKur(k,i){  // i: öneri sırası; 'hepsi' → kurulmamış tüm öneriler (aynı seviyeye ikinci alarm kurulmaz)
+ var d=DATA[k];if(!d)return;var o=alOneriler(k,d),a=alOku();
+ (i==='hepsi'?o:[o[i]]).forEach(function(x){if(x&&!a.some(function(y){return y.kod===k&&y.yon===x.yon&&Math.abs(y.fiyat-x.fiyat)<0.005;}))a.push({kod:k,yon:x.yon,fiyat:x.fiyat,not:x.not});});
+ alYaz(a);ac(k);
+}
 function ac(k){
  const d=DATA[k];if(!d)return;
  const dcls=(d.degisim||0)>=0?'pos':'neg';const dtxt=d.degisim==null?'—':((d.degisim>=0?'+':'')+d.degisim+'%');
@@ -777,6 +935,7 @@ function ac(k){
  '<div class="mh"><div class="sol"><h2>'+k+'</h2>'+pill+uyum+' <button class="mfav" id="mfav" onclick="favDegis(\''+k+'\')">'+(favOku().indexOf(k)>=0?'⭐ Favorilerde':'☆ Favorilere ekle')+'</button></div><button class="kapa" onclick="kapat()">✕</button></div>'+
  '<div class="mfiyat">'+(d.fiyat!=null?d.fiyat+' TL':'')+' <span class="'+dcls+'">'+dtxt+'</span>'+
    (d.sektor?' <span class="sektorb">'+d.sektor+(d.endustri&&d.endustri!==d.sektor?' · '+d.endustri:'')+'</span>':'')+'</div>'+
+ sadeHtml(k,d)+
  modalOzet(k,d)+
  (d.tuzak?'<div class="patlakkutu">🪤 <b>Düşen trend kırılımı — tuzak riski:</b> '+d.tuzak.tarih+' günü hisse düşük seviyedeyken %'+d.tuzak.gunluk+' yükselişle düşen trend çizgisini kırdı ('+d.tuzak.kirilim_fiyat+' TL). Grafikte "AL" gibi görünür ama tüm borsada 5 yılda bu kırılımların <b>%56\'sı 15 gün içinde %5+ geri düştü</b>; kırılımda alıp 60 gün tutmak aynı hisselerde rastgele bir günden kötü sonuç verdi. Hacimli ya da güçlü kapanışlı olması tuzağı ayırmıyor.'+(d.tuzak.geri_dondu?' <b>Şu an kırılım fiyatının %5+ altına döndü.</b>':'')+'</div>':'')+
  ((d.tahta&&d.tahta.seviye)?'<div class="patlakkutu">'+(d.tahta.seviye==='sisme'?'🎈 <b>Şişme riski (tahtacı uyarısı):</b> '+d.tahta.neden.join('; ')+'. 5 yıllık veride bu durumdaki hisselerin ~%15-19\'u sonraki 20 günde %25+ çakıldı (normalde %2). Yeni alım için AL mesajı gönderilmez; elindeyse iz stop\'u sıkı takip et.':'⚠️ <b>Dağıtım işareti:</b> '+d.tahta.neden[0]+'. Büyük satıcı (tahtacı) malı dağıtıyor olabilir; bu durumdakilerin ~%10\'u 20 günde %25+ düştü (normalde %2).')+'</div>':'')+
@@ -785,6 +944,7 @@ function ac(k){
  '<div class="grafik">'+grafik(d.spark,d.sd)+'<div class="leg"><span class="c1">Fiyat</span><span class="c2">SMA20</span><span class="c3">SMA50</span><span class="c4">SuperTrend</span>'+
    (d.sd&&d.sd.destek?'<span class="c5">Destek</span>':'')+(d.sd&&d.sd.direnc?'<span class="c6">Direnç</span>':'')+
    '<span class="c7">İz stop</span><span>🚀 AL</span><span style="color:#7A3E9D">✕ çıkış</span></div></div>'+
+ nedenHtml(k,d)+
  zaman+
  pozHtml(k,d)+tkHtml(d)+gucHtml(d)+uvHtml(d)+
  sdHtml(d)+
@@ -894,9 +1054,14 @@ function alBulutOku(){
 }
 function alarmHtml(k,d){
  var liste='';alOku().forEach(function(x,i){if(x.kod!==k)return;
-  liste+='<div class="alsat">🔔 '+(x.yon==='ust'?'<b>'+x.fiyat+' TL</b> üstüne çıkınca':'<b>'+x.fiyat+' TL</b> altına inince')+
+  liste+='<div class="alsat">🔔 '+(x.yon==='ust'?'<b>'+x.fiyat+' TL</b> üstüne çıkınca':'<b>'+x.fiyat+' TL</b> altına inince')+(x.not?' <span class="sgun">('+hEsc(x.not)+')</span>':'')+
    ' <button class="pfsil" title="Sil" onclick="alSil('+i+',\''+k+'\')">✕</button></div>';});
- return '<div class="alkutu"><div class="gbas">🔔 Fiyat alarmı</div>'+liste+
+ var on=alOneriler(k,d),oh='',kur=0;
+ on.forEach(function(x,i){var kurulu=alVar(k,x.yon,x.fiyat);if(!kurulu)kur++;
+  oh+='<div class="alsat"><span>'+(x.yon==='ust'?'⬆️':'⬇️')+' <b>'+x.not.charAt(0).toLocaleUpperCase('tr')+x.not.slice(1)+' '+x.fiyat+' TL</b> '+(x.yon==='ust'?'üstüne çıkınca':'altına inince')+' <span class="sgun">('+pyz((x.fiyat/d.fiyat-1)*100)+')</span></span>'+
+   (kurulu?' <span class="sgun">✓ kurulu</span>':' <button class="pfipt alkur" onclick="alOneriKur(\''+k+'\','+i+')">🔔 Kur</button>')+'</div>';});
+ if(on.length)oh='<div class="aloneri"><div class="cikis" style="margin:2px 0 4px"><b>Önerilen alarmlar</b> (tek tıkla kurulur):'+(kur>=2?' <button class="pfipt alkur" onclick="alOneriKur(\''+k+'\',\'hepsi\')">Hepsini kur ('+kur+')</button>':'')+'</div>'+oh+'</div>';
+ return '<div class="alkutu"><div class="gbas">🔔 Fiyat alarmı</div>'+liste+oh+
   '<div class="pfform" style="display:flex;margin:6px 0 0"><input id="alfiyat" type="number" step="any" min="0" placeholder="Fiyat (TL)" style="width:120px">'+
   '<button class="pfipt" onclick="alEkle(\''+k+'\',\'ust\')">Üstüne çıkınca</button><button class="pfipt" onclick="alEkle(\''+k+'\',\'alt\')">Altına inince</button></div>'+
   '<div class="cikis" id="alnot">'+(ghAnahtar()?'Alarm tetiklenince Telegram\'a bir kez mesaj gelir (her 15 dakikalık taramada kontrol edilir).'
@@ -905,6 +1070,7 @@ function alarmHtml(k,d){
 function alEkle(k,yon){
  var f=parseFloat(document.getElementById('alfiyat').value);
  if(!(f>0)){document.getElementById('alnot').textContent='Geçerli bir fiyat gir.';return;}
+ if(alVar(k,yon,f)){document.getElementById('alnot').textContent='Bu alarm zaten kurulu.';return;}
  var a=alOku();a.push({kod:k,yon:yon,fiyat:f});alYaz(a);ac(k);
 }
 function alSil(i,k){var a=alOku();a.splice(i,1);alYaz(a);ac(k);}
