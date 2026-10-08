@@ -297,8 +297,21 @@ def _spark(d, n=130, tk_ham=None):
     def arr(col):
         return [None if (col not in t or pd.isna(x)) else round(float(x), 2) for x in (t[col] if col in t else [np.nan]*len(t))]
     out = {"c": arr("Close"), "s20": arr("SMA20"), "s50": arr("SMA50"),
-           "t": [str(x.date()) for x in t.index],
-           "sg": "".join({"AL": "A", "SAT": "S"}.get(x, "N") for x in t["SINYAL"])}
+           "t": [str(x.date()) for x in t.index]}
+    # 1 yıllık grafik görünümü için grafik penceresinden önceki ~6 ay HAFTALIK kapanış (sayfa şişmesin): "w0" = ilk haftanın
+    # pazartesisi, "w" = ardışık haftaların son kapanışı (işlem yoksa null). Grafik penceresinin başladığı hafta dahil değil.
+    if len(t):
+        bas_t = t.index[0]
+        on = d["Close"][(d.index < bas_t) & (d.index >= d.index[-1] - pd.Timedelta(days=365))].dropna()
+        if len(on):
+            hp = on.index.to_period("W")
+            hs = on.groupby(hp).last()
+            hs = hs[hs.index != bas_t.to_period("W")]
+            if len(hs):
+                tum = pd.period_range(hs.index[0], hs.index[-1], freq="W")
+                hs = hs.reindex(tum)
+                out["w0"] = str(tum[0].start_time.date())
+                out["w"] = [None if pd.isna(x) else (round(float(x), 2 if x < 100 else 1) if x < 1000 else int(round(float(x)))) for x in hs.values]
     if "ST_LINE" in t:
         out["st"] = arr("ST_LINE")
     if tk_ham:
@@ -433,6 +446,8 @@ def trend_kirilimi(d, xu_ust=None, islemler=False, ham=False):
     out = {"sablon": sab_son, "bugun": bool(acik is not None and acik["i"] == n - 1), "durum": None,
            "kirilim_seviye": round(hh, 2) if hh else None,
            "kirilima_uzak": round((hh / fiyat - 1) * 100, 1) if (hh and sab_son and not acik) else None}
+    if n < 250:   # 52 haftalık zirve/dip için en az 250 işlem günü gerekir: yeni halka arzlarda sinyal henüz çıkamaz
+        out["kisa"] = True
     if acik:
         stop = acik["tepe"] * (1 - IZ_STOP_ORAN)
         out.update({"durum": "AL", "giris_tarih": str(idx[acik["i"]].date()), "giris_fiyat": round(acik["giris"], 2),
@@ -445,6 +460,19 @@ def trend_kirilimi(d, xu_ust=None, islemler=False, ham=False):
                     "stop": round(son["tepe"] * (1 - IZ_STOP_ORAN), 2),
                     "sonuc": round((float(cv[son["cik"]]) / son["giris"] - 1) * 100, 1), "cikis_gun": n - 1 - son["cik"]})
     return out
+
+
+TK_GECMIS_N = 6   # hisse penceresindeki 'Sinyal geçmişi' ve '🚀 Son roketler' için saklanan en son v3 işlemi sayısı
+
+
+def tk_gecmis(d, tum, n=TK_GECMIS_N):
+    """trend_kirilimi(..., ham=True) işlemlerinin kompakt hali (eskiden yeniye, en çok n): [kırılım (sinyal) günü, giriş
+    fiyatı (ertesi açılış; sinyal bugünse bugünkü kapanış), çıkış günü ya da None (açık), çıkış kapanışı ya da None].
+    Canlı kuralın geçmişe uygulanması — backtest.py v3 ile aynı işlemler (aynı fonksiyon). Komisyonsuz."""
+    idx, cv = d.index, d["Close"].values
+    return [[str(idx[x["i"]].date()), round(x["giris"], 2),
+             str(idx[x["cik"]].date()) if x["cik"] is not None else None,
+             round(float(cv[x["cik"]]), 2) if x["cik"] is not None else None] for x in tum[-n:]]
 
 
 def tahta_riski(d):
@@ -647,6 +675,7 @@ def analiz_et(df, xu_ust=None):
 
     # v3: son giriş 🚀 trend kırılımıysa (gösterge AL'inden daha yeni) iz stop o girişten izlenir
     tk = trend_kirilimi(d, xu_ust)
+    tk_ham = trend_kirilimi(d, xu_ust, ham=True)
     if tk.get("giris_tarih") and (al_tarih is None or tk["giris_tarih"] >= al_tarih):
         al_tarih = tk["giris_tarih"]
         if tk["durum"] == "AL":
@@ -700,5 +729,6 @@ def analiz_et(df, xu_ust=None):
         "sinyal_tarih": sinyal_tarih,
         "sinyal_degisim": sinyal_degisim,
         "yeni": bool(yeni),
-        "spark": _spark(d, tk_ham=trend_kirilimi(d, xu_ust, ham=True)),
+        "tkg": tk_gecmis(d, tk_ham),
+        "spark": _spark(d, tk_ham=tk_ham),
     }

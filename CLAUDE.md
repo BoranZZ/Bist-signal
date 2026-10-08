@@ -165,6 +165,26 @@ sinyal, filtre, etiket ya da çıkış olarak eklenmeye değmez.** Kullanıcı f
 - Geç giriş (çökenler hariç, 2022-26): sinyalden 0/5/10/20/40 gün sonra (pozisyon hâlâ açıksa) girince ort +%20/+%19/
   +%18/+%15/+%8, isabet %52/51/50/47/35 → panoda ≤5 gün '🚀 AL Ng önce', sonrası 'trendde · Ng' (yeni alım değil).
 - Pano: 🚀 KIRILIM (bugün) / 🚀 Ng (pozisyon) / 👀 kırılıma %x (şablonda, ≤%3) rozetleri; modalda tkHtml kutusu.
+- **Veri penceresi uyarısı (2026-10-08 kontrolü):** tarama 2 yıllık veri indirir, kural 250 gün ısınma ister → canlı işlem listesi
+  en fazla son ~1 yıl. Aynı veride `tk_gecmis` = backtest.py v3 (313 hisse, 5y 1.083 + 2y 316 işlem, 0 fark), ama 2y pencere 5y
+  veriye göre: son ~8 ayın işlemleri birebir (son 90 gün 0 fark), daha eskilerde 284 hisseden 41'inde ≥1 işlem farklı (5y'de daha
+  önceden açık kalan pozisyon); açık pozisyonlarda 4 hissede giriş tarihi farklı, iz stop aynı. Düzeltmek için `veri_cek` period'u
+  uzatılabilir (yapılmadı: tüm göstergeleri/uv durumunu ve çalışma süresini etkiler).
+
+## 🚀 Sinyal geçmişi · son AL/SAT grafikte · Son roketler filtresi (2026-10, hepsi BİLGİ)
+- `sinyal.tk_gecmis` → `tkg`: son 6 v3 işlemi `[sinyal günü, giriş (ertesi açılış), çıkış günü|null, çıkış kapanışı|null]`
+  (canlı `trend_kirilimi(ham=True)`; komisyonsuz). Portföyden bağımsız. `tk.kisa` = veri <250 gün (yeni arz: sinyal çıkamaz).
+- Modal grafik: ▲ AL (yeşil, 🚀 girişi) / ▼ SAT (kırmızı, iz stop çıkışı), mor kesikli iz stop; üstte `tkSonHtml` özet satırı;
+  '6 ay / 1 yıl' düğmesi — 1 yılda grafik penceresinden önceki ~6 ay HAFTALIK kapanış (`spark.w0` pazartesi + `spark.w`, x ekseni
+  tarihe göre), eski işlemlerin işaretleri `tkg`'den. Kullanılmayan `spark.sg` (eski oylama dizisi) kaldırıldı. Altta `tkGecmisHtml`
+  tablosu (getiri, aynı günlerde BIST 100'e göre fark — XU sinyal günü kapanışından; 6 aydan eski işlemler ≈ işaretli).
+- Tablo filtresi '🚀 Son roketler' (5/20/60 işlem günü, `roketListe/roketOzet/roketHtml`): kapananlar DAHİL (seçim yanlılığı),
+  sinyal gününe göre yeniden eskiye, üstte özet (sayı, artıda, ort/medyan, endekse göre), 20+ gün geç giriş notu. 'Bugün ne var?'
+  kartında kısayol. `tkGun` = rozetlerdeki `tk.gun` (spark.t sırası). Python aynası testte (scratchpad sg/py_roket.py): 0 fark.
+- Araştırma (2026-10-08, 5y veri): son 60 işlem gününün 50 sinyalinin 5'i artıda (ort −%11,8, medyan −%14,9; BIST 100'e göre
+  medyan −8,8 puan; 37'si iz stop'la kapandı) — Ağustos kümesi piyasa düşüşüne denk geldi; AHGAZ (+%36) en iyisiydi, genel değil.
+  Tarihsel 30 gün ufku (1.033 işlem): ort +%13, medyan +%6, %59 artıda; 34 aylık kohortun 6'sında artıda oranı ≤%20 (2023-04,
+  2023-09/10/11, 2024-07, 2025-01) → kötü kohortlar olağan dışı değil.
 
 ## Canlı kurallar (5 yıllık backtest'e dayanarak, 2026-09)
 - Piyasa filtresi: XU100 < SMA50 → "piyasa zayıf" bandı + Telegram notu (AL'ler engellenmez).

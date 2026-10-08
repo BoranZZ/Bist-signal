@@ -138,7 +138,7 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None, 
             "spark": s.get("spark", {}),
             "al_stop": s.get("al_stop"), "al_tarih": s.get("al_tarih"), "hacim_kat": s.get("hacim_kat"),
             "hacim_teyit": bool(s.get("hacim_teyit")), "taban15": s.get("taban15"), "patlak": bool(s.get("patlak")), "tahta": s.get("tahta"), "tuzak": s.get("tuzak"),
-            "arz": s.get("arz"), "sektor": s.get("sektor"), "endustri": s.get("endustri"), "mom20": s.get("mom20"), "uv": s.get("uv"), "bayrak": s.get("bayrak"), "bilanco": s.get("bilanco"), "temettu": s.get("temettu"), "kap": s.get("kap"), "tk": s.get("tk"), "guc": s.get("guc"), "momentum": bool(s.get("momentum")), "mom6": s.get("mom6"), "bolunme": s.get("bolunme"),
+            "arz": s.get("arz"), "sektor": s.get("sektor"), "endustri": s.get("endustri"), "mom20": s.get("mom20"), "uv": s.get("uv"), "bayrak": s.get("bayrak"), "bilanco": s.get("bilanco"), "temettu": s.get("temettu"), "kap": s.get("kap"), "tk": s.get("tk"), "tkg": s.get("tkg"), "guc": s.get("guc"), "momentum": bool(s.get("momentum")), "mom6": s.get("mom6"), "bolunme": s.get("bolunme"),
             "hv": s.get("hv"), "kg": s.get("kg"), "od": s.get("od"),
         }
 
@@ -340,7 +340,11 @@ table.pf{min-width:900px}
 .leg span::before{content:"";display:inline-block;width:10px;height:2px;margin-right:5px;vertical-align:middle}
 .leg .c1::before{background:#16181D}.leg .c2::before{background:#0E4D45}.leg .c3::before{background:#C7962B}.leg .c4::before{background:#B4362E}
 .leg .c5::before{background:#3A6EA5}.leg .c6::before{background:#B7791F}.leg .c7::before{background:repeating-linear-gradient(90deg,#7A3E9D 0 5px,transparent 5px 7px)}
-.leg{flex-wrap:wrap}
+.leg{flex-wrap:wrap}.leg .lm::before{display:none}
+.tkson{font-size:12.8px;line-height:1.5;margin:2px 4px 6px}.graralik{display:flex;gap:6px;margin:0 4px 6px}
+.grb{border:1px solid var(--line);background:#fff;border-radius:7px;padding:3px 10px;font-size:12px;cursor:pointer;color:var(--muted)}.grb.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.tkgs{overflow-x:auto;margin:6px 0 2px}table.rk{min-width:0;font-size:12.5px}table.rk th,table.rk td{padding:6px 8px}.tkgs tbody tr{cursor:default}.tkgs tbody tr:hover,.tkgs tbody tr:hover td{background:none}
+.rkkutu .sar{margin-top:8px}.rkkutu table.rk{min-width:640px}#roket{border:1px solid var(--line);border-radius:7px;padding:4px 6px;font-size:13px;background:#fff}
 .uyum{font-weight:650;color:var(--accent)}
 .uyroz{background:#EEF4F1;color:var(--accent);font-size:11.5px;font-weight:650;padding:2px 8px;border-radius:999px}
 .gbas{font-size:13px;font-weight:650;margin:4px 0 8px}
@@ -377,8 +381,9 @@ __BANNER__
   </div>
   <div id="pflist"></div>
 </div>
-<div class="tabcubuk"><input id="ara" placeholder="🔍 Hisse ara (örn. THY)" autocomplete="off" oninput="tabloDuzen()"><label class="sfav"><input id="sadecefav" type="checkbox" onchange="tabloDuzen()"> ⭐ Sadece favoriler <span id="favsay"></span></label><span class="sgun">☆'ya basınca hisse favorilere eklenir ve en üste çıkar.</span></div>
-<div class="sar"><table id="t"><thead><tr>
+<div class="tabcubuk"><input id="ara" placeholder="🔍 Hisse ara (örn. THY)" autocomplete="off" oninput="tabloDuzen()"><label class="sfav"><input id="sadecefav" type="checkbox" onchange="tabloDuzen()"> ⭐ Sadece favoriler <span id="favsay"></span></label><label class="sfav" title="Son N işlem gününde 🚀 AL almış hisseler: sinyal günü, girişten beri getiri, BIST 100'e göre fark; iz stop ile kapananlar da dahil">🚀 Son roketler <select id="roket" onchange="tabloDuzen()"><option value="0">kapalı</option><option value="5">5 gün</option><option value="20">20 gün</option><option value="60">60 gün</option></select></label><span class="sgun">☆'ya basınca hisse favorilere eklenir ve en üste çıkar.</span></div>
+<div id="roketkutu" hidden></div>
+<div class="sar" id="tsar"><table id="t"><thead><tr>
 <th data-t="f" title="Favori">⭐</th><th data-t="s">Hisse</th><th class="num" data-t="n">Fiyat</th><th class="num" data-t="n">Değişim</th><th data-t="s">Sinyal</th>
 <th class="num" data-t="n">Sinyalde</th><th class="num" data-t="n">Uyum</th><th class="num" data-t="n" title="7 iyi göstergeden kaçı olumlu (kısa vadeli güç)">Güç</th><th class="num" data-t="n">RSI</th><th class="num" data-t="n">F/K</th><th class="num" data-t="n">PD/DD</th><th class="num" data-t="n">Stop</th><th class="num" data-t="n">Öneri lot</th>
 </tr></thead><tbody>__ROWS__</tbody></table></div>
@@ -389,6 +394,7 @@ __ARZ__
 <div class="sz"><span class="tkb yeni">🚀 KIRILIM</span><span>Bugün AL: hisse güçlü trenddeyken (fiyat 50/150/200 günlük ortalamaların üstünde, 52 hafta zirvesine yakın) son 20 günün zirvesini ilk kez aştı. Telegram'a gelen AL budur. Çıkış: tepe kapanışın %20 altı (iz stop).</span></div>
 <div class="sz"><span class="tkb">🚀 AL 3g önce</span><span>AL birkaç gün önce geldi. Testte ilk 5 gün içinde almak, sinyal günüyle neredeyse aynı sonucu verdi.</span></div>
 <div class="sz"><span class="tkb izle">trendde · 25g</span><span>Eski AL hâlâ sürüyor ama <b>yeni alım sinyali değil</b>: 20+ gün sonra girmek testte belirgin kötüydü. Elindeyse iz stop'a kadar tut.</span></div>
+<div class="sz"><span class="tkb izle">🚀 Son roketler</span><span>Tablonun üstündeki filtre: son 5 / 20 / 60 işlem gününde 🚀 AL almış hisseler; sinyal günü, girişten beri getiri, BIST 100'e göre fark. İz stop ile kapananlar da listede (sadece iyi gidenleri göstermek yanıltıcı olur). Eski sinyaller yeni alım sinyali değil.</span></div>
 <div class="sz"><span class="tkb izle">👀 kırılıma %2</span><span>Trend şablonunda, 20 günlük zirveye yakın: yakında AL gelebilir (bunların ~%76'sı 10 gün içinde kırıyor). Beklemeden almak ek fayda sağlamadı.</span></div>
 </div>
 <div class="szgrup"><h3>Uyarılar (dikkat)</h3>
@@ -425,7 +431,7 @@ __ARZ__
 </div>
 <div class="aciklama">
 <div class="kart"><h3>📖 Sistemi nasıl kullanırım?</h3><p><b>1.</b> 🚀 AL Telegram'a 17:30'dan sonra gelir: hisse güçlü trendde son 20 günün zirvesini aştı. İstersen o gün kapanışa kadar, istersen sonraki 5 gün içinde alırsın (testte fark küçük). Kapanışta tutmazsa 18:30'dan sonra "↩️ iptal" gelir.<br><b>2.</b> Parayı ~10 eşit parçaya böl; tek hisseye yüklenme.<br><b>3.</b> Aldıktan sonra tek kural <b>📍 iz stop</b>: AL'den beri en yüksek kapanışın %20 altı. Kapanış bunun altına inerse çık. Gün içi sarkma yetmez, kapanış belirler.<br><b>4.</b> Sabah ☀️ mesajında portföyünün seviyeleri, gün içinde 📍 önemli olaylar, akşam 💼 özet gelir.<br><b>5.</b> 🎈 / ⚠️ / 🪤 uyarıları olan hisselerde dikkatli ol; SAT, NÖTR ve destek/direnç bilgi amaçlıdır.</p></div>
-<div class="kart"><h3>📈 Grafik nasıl okunur?</h3><p>Hisseye tıklayınca açılan grafikte: <b>siyah çizgi</b> fiyat (son 6 ay). <b>Yeşil / sarı çizgi</b> 20 / 50 günlük ortalama: fiyat ikisinin üstündeyse kısa vadede güçlü. <b>Kırmızı çizgi</b> SuperTrend (gösterge sinyali). <b>Mavi / turuncu kesikli</b> destek / direnç. <b>🚀</b> Telegram'a gelen AL günü, <b>✕</b> iz stop'la çıkış günü, <b>mor kesikli çizgi</b> o pozisyonun iz stop'u: fiyat yükseldikçe yukarı çıkar, hiç aşağı inmez. Parmağını/fareni grafikte gezdirince o günün fiyatı ve iz stop'u görünür.</p></div>
+<div class="kart"><h3>📈 Grafik nasıl okunur?</h3><p>Hisseye tıklayınca açılan grafikte: <b>siyah çizgi</b> fiyat (son 6 ay). <b>Yeşil / sarı çizgi</b> 20 / 50 günlük ortalama: fiyat ikisinin üstündeyse kısa vadede güçlü. <b>Kırmızı çizgi</b> SuperTrend (gösterge sinyali). <b>Mavi / turuncu kesikli</b> destek / direnç. <b style="color:#1B7F4B">▲ AL</b> Telegram'a gelen 🚀 AL günü, <b style="color:#B4362E">▼ SAT</b> iz stop'la çıkış günü, <b>mor kesikli çizgi</b> o pozisyonun iz stop'u: fiyat yükseldikçe yukarı çıkar, hiç aşağı inmez. Grafiğin üstünde son AL/SAT özeti; <b>1 yıl</b> düğmesi daha eski kısmı haftalık gösterir. Altta o hissenin <b>sinyal geçmişi</b> tablosu var. Parmağını/fareni grafikte gezdirince o günün fiyatı ve iz stop'u görünür.</p></div>
 <div class="kart"><h3>Piyasa filtresi</h3><p>BIST 100, 50 günlük ortalamasının altındaysa üstte "Piyasa zayıf" uyarısı çıkar. 5 yıllık backtest'te bu dönemlerde gelen AL'ler belirgin şekilde daha kötü sonuç verdi.</p></div>
 <div class="kart"><h3>Çıkış ve hedef</h3><p><b>📍 İz stop</b>: AL'den beri görülen en yüksek kapanışın %20 altı; fiyat yükseldikçe yukarı taşınır, kapanış altına inerse "çık". SAT sinyali tek başına çıkış değildir (gece testleri: SAT'ta çıkmak yükseliş piyasasında kazancı eritiyordu; iz stop 2023'te −%6 yerine +%45). <b>🎯 İzleme</b>: en yakın direnç — geçmişte satış gelen tepe. Hedef satış emri değil, izleme noktasıdır: 5 yıllık backtest'te hedefte kısmi satış, SAT/stop'a kadar tutmaktan belirgin şekilde kötü sonuç verdi.</p></div>
 <div class="kart"><h3>NÖTR: sarı mı turuncu mu?</h3><p><span class="pill notr notr-al">NÖTR</span> <b>Sarı = AL'den döndü.</b> Elindeyse tut; iz stop kırılırsa çık. Yeni alım yapma.<br><span class="pill notr notr-sat">NÖTR</span> <b>Turuncu = SAT'tan döndü.</b> Düşüş yavaşladı ama henüz alım sinyali değil; AL'i bekle. (5 yıllık backtest: NÖTR'de satmak ya da turuncuda almak, beklemekten kötü sonuç verdi.)</p></div>
@@ -486,6 +492,8 @@ function tabloDuzen(){
  var f1=rows.filter(function(r){return fav.indexOf(r.dataset.kod)>=0;}),f2=rows.filter(function(r){return fav.indexOf(r.dataset.kod)<0;});
  f1.concat(f2).forEach(function(r){tb.appendChild(r);});
  var n=document.getElementById('favsay');if(n)n.textContent=fav.length?'('+fav.length+')':'';
+ var rs=document.getElementById('roket'),N=rs?+rs.value:0,rk=document.getElementById('roketkutu'),ts=document.getElementById('tsar');
+ if(rk&&ts){rk.hidden=!N;ts.hidden=!!N;rk.innerHTML=N?roketHtml(N,q,sf,fav):'';}
 }
 
 // --- 📋 Bugün ne var? — tek bakışta: piyasa, yeni 🚀 AL'ler, portföy ve favori uyarıları (hepsi cihazda hesaplanır)
@@ -513,7 +521,7 @@ function bugunRender(){
  if(PIYASA)h+='<div class="bgs">'+(PIYASA.zayif?'⚠️ <b>Piyasa zayıf</b>: BIST 100 50 günlük ortalamasının %'+Math.abs(PIYASA.fark)+' altında. Bu dönemde 🚀 AL gelmez (kural gereği); acele alım yapma.':'✅ <b>Piyasa normal</b>: BIST 100 50 günlük ortalamasının üstünde; 🚀 AL sinyalleri gelebilir.')+'</div>';
  var al=Object.keys(DATA).filter(function(k){var t=DATA[k].tk;return t&&(t.bugun||(t.durum==='AL'&&t.gun<=5));})
   .sort(function(a,b){return DATA[a].tk.gun-DATA[b].tk.gun;});
- h+='<div class="bgs">🚀 <b>Yeni AL</b> (son 5 gün): '+(al.length?al.map(function(k){var t=DATA[k].tk;return _kl(k)+(t.bugun?' <span class="tkb yeni">bugün</span>':' <span class="sgun">'+t.gun+'g önce</span>');}).join(' · '):'yok')+'</div>';
+ h+='<div class="bgs">🚀 <b>Yeni AL</b> (son 5 gün): '+(al.length?al.map(function(k){var t=DATA[k].tk;return _kl(k)+(t.bugun?' <span class="tkb yeni">bugün</span>':' <span class="sgun">'+t.gun+'g önce</span>');}).join(' · '):'yok')+' <a href="#" class="glink" onclick="roketAc(20);return false">→ son 20 günün tüm 🚀 sinyalleri</a></div>';
  var pf=pfOku(),ps=[];
  pf.forEach(function(p){var u=bugunUyari(p.kod,DATA[p.kod],p);if(u.length)ps.push(_kl(p.kod)+': '+u.join(', '));});
  h+='<div class="bgs">💼 <b>Portföyün</b>: '+(pf.length?(ps.length?ps.join(' · '):'dikkat gerektiren bir şey yok ✅'):'<span class="sgun">henüz hisse eklemedin</span>')+'</div>';
@@ -527,11 +535,13 @@ function bugunRender(){
 }
 function sinyalCls(d){if(d.sinyal==='AL')return 'al';if(d.sinyal==='SAT')return 'sat';
  return 'notr'+(d.notr_kaynak==='AL'?' notr-al':d.notr_kaynak==='SAT'?' notr-sat':'');}
-// Büyük grafik: fiyat/tarih eksenleri, 🚀 v3 AL ve ✕ çıkış işaretleri, iz stop çizgisi, destek/direnç, fare/dokunma ile değer
-var GR={W:600,H:260,L:6,R:54,T:10,B:24},_gr=null;
+// Büyük grafik: fiyat/tarih eksenleri, ▲ AL (🚀 v3) ve ▼ SAT (iz stop) işaretleri, iz stop çizgisi, destek/direnç, fare/dokunma ile değer.
+// '6 ay' görünümü günlük (gün sırasına göre); '1 yıl' görünümünde grafik penceresinden önceki ~6 ay haftalık kapanış (sp.w) ve
+// x ekseni tarihe göre (haftalık ve günlük kısım aynı ölçekte).
+var GR={W:600,H:260,L:6,R:54,T:10,B:24},_gr=null,_PX=null,_grAralik='6a';
 var AYLAR=['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
 function trTarih(s){var p=s.split('-');return (+p[2])+' '+AYLAR[+p[1]-1];}
-function grX(i,n){return GR.L+(n>1?i/(n-1):0)*(GR.W-GR.L-GR.R);}
+function grX(i,n){return _PX?_PX[i]:GR.L+(n>1?i/(n-1):0)*(GR.W-GR.L-GR.R);}
 function grY(v,mn,mx){return GR.T+(1-(v-mn)/(mx-mn||1))*(GR.H-GR.T-GR.B);}
 function cizgi(vals,color,mn,mx,w){
  var pts=[],n=vals.length;
@@ -553,30 +563,54 @@ function adimlar(mn,mx){  // okunur eksen değerleri
  var aralik=(mx-mn)/4,us=Math.pow(10,Math.floor(Math.log10(aralik||1))),k=[1,2,2.5,5,10].find(function(x){return x*us>=aralik;})*us;
  var v=[],b=Math.ceil(mn/k)*k;for(var x=b;x<=mx+1e-9;x+=k)v.push(Math.round(x*100)/100);return v;
 }
-function grafik(sp,sd){
+function grGun(s,k){return new Date(Date.parse(s+'T00:00:00Z')+k*864e5).toISOString().slice(0,10);}
+function grIsaret(tur,x,y,baslik){  // ▲ AL (yeşil, fiyatın altında) / ▼ SAT (kırmızı, üstünde); grafik kenarına taşarsa ters tarafa
+ var alt=GR.H-GR.B,ust=GR.T,g='<g><title>'+baslik+'</title>';
+ if(tur==='G'){var a=y+29>alt;var d=a?-1:1,y0=y+6*d,y1=y+14*d;
+  g+='<path d="M'+x.toFixed(1)+' '+y0.toFixed(1)+'L'+(x-5).toFixed(1)+' '+y1.toFixed(1)+'L'+(x+5).toFixed(1)+' '+y1.toFixed(1)+'Z" fill="#1B7F4B"/>'+
+   '<text x="'+x.toFixed(1)+'" y="'+(a?y-17:y+24).toFixed(1)+'" font-size="9" font-weight="700" fill="#1B7F4B" text-anchor="middle" stroke="#fff" stroke-width="2.5" paint-order="stroke">AL</text>';}
+ else{var b=y-26<ust;var e=b?-1:1,z0=y-6*e,z1=y-14*e;
+  g+='<path d="M'+x.toFixed(1)+' '+z0.toFixed(1)+'L'+(x-5).toFixed(1)+' '+z1.toFixed(1)+'L'+(x+5).toFixed(1)+' '+z1.toFixed(1)+'Z" fill="#B4362E"/>'+
+   '<text x="'+x.toFixed(1)+'" y="'+(b?y+24:y-17).toFixed(1)+'" font-size="9" font-weight="700" fill="#B4362E" text-anchor="middle" stroke="#fff" stroke-width="2.5" paint-order="stroke">SAT</text>';}
+ return g+'</g>';
+}
+function grafik(sp,sd,ar,tkg){
  if(!sp||!sp.c) return '<div style="color:#6B7079;font-size:13px">Grafik verisi yok.</div>';
- var ds=sd&&sd.destek?sd.destek.fiyat:null,dr=sd&&sd.direnc?sd.direnc.fiyat:null,n=sp.c.length;
- if(sp.iz&&!sp.izg){sp.izg=new Array(n).fill(null);sp.iz.forEach(function(p){p[1].forEach(function(v,k){sp.izg[p[0]+k]=v;});});}  // iz stop parçaları → gün dizisi
- var hepsi=sp.c.concat(sp.s20||[],sp.s50||[],sp.izg||[],[ds,dr]).filter(function(x){return x!=null;});
+ var ds=sd&&sd.destek?sd.destek.fiyat:null,dr=sd&&sd.direnc?sd.direnc.fiyat:null;
+ if(sp.iz&&!sp.izg){sp.izg=new Array(sp.c.length).fill(null);sp.iz.forEach(function(p){p[1].forEach(function(v,k){sp.izg[p[0]+k]=v;});});}  // iz stop parçaları → gün dizisi
+ var uz=ar==='1y'&&sp.w&&sp.w.length&&sp.w0,m=uz?sp.w.length:0,bos=new Array(m).fill(null);
+ var c=sp.c,s20=sp.s20,s50=sp.s50,st=sp.st,izg=sp.izg,tt=sp.t,tk=sp.tk||'',eski=[];
+ if(uz){var wt=[];for(var q=0;q<m;q++)wt.push(grGun(sp.w0,7*q+4));   // haftalık nokta: o haftanın cuması
+  c=sp.w.concat(sp.c);tt=wt.concat(sp.t);tk=new Array(m+1).join('.')+tk;
+  s20=s20?bos.concat(s20):null;s50=s50?bos.concat(s50):null;st=st?bos.concat(st):null;izg=izg?bos.concat(izg):null;
+  (tkg||[]).forEach(function(x){   // grafik penceresinden eski işlemler (haftalık kısım): işaret işlemin kendi fiyatında
+   if(x[0]<sp.t[0]&&x[0]>=wt[0])eski.push(['G',x[0],x[1]]);
+   if(x[2]&&x[2]<sp.t[0]&&x[2]>=wt[0])eski.push(['C',x[2],x[3]]);});}
+ var n=c.length;
+ if(uz){var t0=Date.parse(tt[0]),t1=Date.parse(tt[n-1]);_PX=tt.map(function(s){return GR.L+(Date.parse(s)-t0)/((t1-t0)||1)*(GR.W-GR.L-GR.R);});}else _PX=null;
+ var hepsi=c.concat(s20||[],s50||[],izg||[],[ds,dr],eski.map(function(e){return e[2];})).filter(function(x){return x!=null;});
  var mn=Math.min.apply(null,hepsi),mx=Math.max.apply(null,hepsi),pay=(mx-mn)*0.04;mn-=pay;mx+=pay;
- _gr={sp:sp,mn:mn,mx:mx,n:n};
+ _gr={c:c,t:tt,s20:s20,s50:s50,izg:izg,tk:tk,m:m,px:_PX,mn:mn,mx:mx,n:n};
  var g='<svg id="grsvg" viewBox="0 0 '+GR.W+' '+GR.H+'" width="100%" style="display:block;touch-action:pan-y" onmousemove="grHover(event)" ontouchstart="grHover(event)" ontouchmove="grHover(event)" onmouseleave="grCik()">';
  adimlar(mn,mx).forEach(function(v){var y=grY(v,mn,mx).toFixed(1);
   g+='<line x1="'+GR.L+'" x2="'+(GR.W-GR.R)+'" y1="'+y+'" y2="'+y+'" stroke="#ECEDEA" stroke-width="1"/>'+
      '<text x="'+(GR.W-GR.R+4)+'" y="'+(+y+3.5)+'" font-size="10" fill="#8A8F98">'+v+'</text>';});
  for(var k=0;k<5;k++){var i=Math.round(k*(n-1)/4),x=grX(i,n);
-  g+='<text x="'+x.toFixed(1)+'" y="'+(GR.H-6)+'" font-size="10" fill="#8A8F98" text-anchor="'+(k===0?'start':k===4?'end':'middle')+'">'+trTarih(sp.t[i])+'</text>';}
+  g+='<text x="'+x.toFixed(1)+'" y="'+(GR.H-6)+'" font-size="10" fill="#8A8F98" text-anchor="'+(k===0?'start':k===4?'end':'middle')+'">'+trTarih(tt[i])+(uz&&k===0?' '+tt[i].slice(2,4):'')+'</text>';}
+ if(uz&&m)g+='<line x1="'+grX(m,n).toFixed(1)+'" x2="'+grX(m,n).toFixed(1)+'" y1="'+GR.T+'" y2="'+(GR.H-GR.B)+'" stroke="#E6E7E4" stroke-width="1"/>'+
+   '<text x="'+(grX(m,n)-4).toFixed(1)+'" y="'+(GR.T+9)+'" font-size="9" fill="#A0A4AB" text-anchor="end">← haftalık · günlük →</text>';
  if(ds!=null)g+=yatay(ds,'#3A6EA5',mn,mx);
  if(dr!=null)g+=yatay(dr,'#B7791F',mn,mx);
- if(sp.s50)g+=cizgi(sp.s50,'#C7962B',mn,mx,1.2);
- if(sp.s20)g+=cizgi(sp.s20,'#0E4D45',mn,mx,1.2);
- if(sp.st)g+=cizgi(sp.st,'#B4362E',mn,mx,1.3);
- if(sp.izg)g+=cizgiParca(sp.izg,'#7A3E9D',mn,mx,1.4,'6 3');
- g+=cizgi(sp.c,'#16181D',mn,mx,1.8);
- if(sp.tk)for(var j=0;j<n;j++){var a=sp.tk.charAt(j);if((a!=='G'&&a!=='C')||sp.c[j]==null)continue;   // Telegram'daki 🚀 AL ve iz stop çıkışı
-  var xx=grX(j,n).toFixed(1),yy=grY(sp.c[j],mn,mx);
-  g+=a==='G'?'<text x="'+xx+'" y="'+(yy+19).toFixed(1)+'" font-size="14" text-anchor="middle"><title>🚀 AL (kırılım): '+trTarih(sp.t[j])+'</title>🚀</text>'
-            :'<text x="'+xx+'" y="'+(yy-8).toFixed(1)+'" font-size="13" font-weight="700" fill="#7A3E9D" text-anchor="middle"><title>Çıkış (iz stop): '+trTarih(sp.t[j])+'</title>✕</text>';}
+ if(s50)g+=cizgi(s50,'#C7962B',mn,mx,1.2);
+ if(s20)g+=cizgi(s20,'#0E4D45',mn,mx,1.2);
+ if(st)g+=cizgi(st,'#B4362E',mn,mx,1.1);
+ if(izg)g+=cizgiParca(izg,'#7A3E9D',mn,mx,1.4,'6 3');
+ g+=cizgi(c,'#16181D',mn,mx,1.8);
+ for(var j=0;j<n;j++){var a=tk.charAt(j);if((a!=='G'&&a!=='C')||c[j]==null)continue;   // Telegram'daki 🚀 AL ve iz stop çıkışı
+  g+=grIsaret(a,grX(j,n),grY(c[j],mn,mx),(a==='G'?'▲ AL (🚀 kırılım): ':'▼ SAT (iz stop): ')+trTarih(tt[j])+' · '+c[j]+' TL');}
+ if(eski.length){var e0=Date.parse(tt[0]),e1=Date.parse(tt[n-1]);eski.forEach(function(e){
+  var ex=GR.L+(Date.parse(e[1])-e0)/((e1-e0)||1)*(GR.W-GR.L-GR.R);
+  g+=grIsaret(e[0],ex,grY(e[2],mn,mx),(e[0]==='G'?'▲ AL (🚀 kırılım): '+trTarih(e[1])+' · giriş ':'▼ SAT (iz stop): '+trTarih(e[1])+' · ')+e[2]+' TL');});}
  g+='<line id="grcizgi" x1="0" x2="0" y1="'+GR.T+'" y2="'+(GR.H-GR.B)+'" stroke="#16181D" stroke-width="0.8" stroke-dasharray="3 3" visibility="hidden"/>'+
     '<circle id="grnokta" r="3.5" fill="#16181D" visibility="hidden"/></svg><div id="grbilgi" class="grbilgi" hidden></div>';
  return g;
@@ -584,17 +618,94 @@ function grafik(sp,sd){
 function grHover(e){
  if(!_gr)return;var svg=document.getElementById('grsvg');if(!svg)return;
  var p=e.touches?e.touches[0]:e,r=svg.getBoundingClientRect(),x=(p.clientX-r.left)/r.width*GR.W;
- var n=_gr.n,i=Math.max(0,Math.min(n-1,Math.round((x-GR.L)/(GR.W-GR.L-GR.R)*(n-1)))),sp=_gr.sp;if(sp.c[i]==null)return;
- var xx=grX(i,n),yy=grY(sp.c[i],_gr.mn,_gr.mx),cz=document.getElementById('grcizgi'),nk=document.getElementById('grnokta'),b=document.getElementById('grbilgi');
+ var n=_gr.n,i;
+ if(_gr.px){i=0;for(var j=1;j<n;j++)if(Math.abs(_gr.px[j]-x)<Math.abs(_gr.px[i]-x))i=j;}
+ else i=Math.max(0,Math.min(n-1,Math.round((x-GR.L)/(GR.W-GR.L-GR.R)*(n-1))));
+ var G=_gr;if(G.c[i]==null)return;
+ var xx=G.px?G.px[i]:GR.L+(n>1?i/(n-1):0)*(GR.W-GR.L-GR.R),yy=grY(G.c[i],G.mn,G.mx),cz=document.getElementById('grcizgi'),nk=document.getElementById('grnokta'),b=document.getElementById('grbilgi');
  cz.setAttribute('x1',xx);cz.setAttribute('x2',xx);cz.setAttribute('visibility','visible');
  nk.setAttribute('cx',xx);nk.setAttribute('cy',yy);nk.setAttribute('visibility','visible');
- var ta={G:' · 🚀 AL',C:' · ✕ çıkış'}[(sp.tk||'').charAt(i)]||'';
- b.innerHTML='<b>'+trTarih(sp.t[i])+' '+sp.t[i].slice(0,4)+'</b> · '+sp.c[i]+' TL'+ta+
-  (sp.izg&&sp.izg[i]!=null?'<br><span style="color:#7A3E9D">İz stop '+sp.izg[i]+'</span>':'')+
-  (sp.s20&&sp.s20[i]!=null?'<br><span style="color:#0E4D45">SMA20 '+sp.s20[i]+'</span>':'')+(sp.s50&&sp.s50[i]!=null?' · <span style="color:#C7962B">SMA50 '+sp.s50[i]+'</span>':'');
+ var ta={G:' · ▲ AL (🚀)',C:' · ▼ SAT (iz stop)'}[(G.tk||'').charAt(i)]||'';
+ b.innerHTML='<b>'+(i<G.m?'hafta sonu ':'')+trTarih(G.t[i])+' '+G.t[i].slice(0,4)+'</b> · '+G.c[i]+' TL'+ta+
+  (G.izg&&G.izg[i]!=null?'<br><span style="color:#7A3E9D">İz stop '+G.izg[i]+'</span>':'')+
+  (G.s20&&G.s20[i]!=null?'<br><span style="color:#0E4D45">SMA20 '+G.s20[i]+'</span>':'')+(G.s50&&G.s50[i]!=null?' · <span style="color:#C7962B">SMA50 '+G.s50[i]+'</span>':'');
  b.hidden=false;b.style.left=Math.min(Math.max(xx/GR.W*100,2),70)+'%';
 }
 function grCik(){['grcizgi','grnokta'].forEach(function(id){var el=document.getElementById(id);if(el)el.setAttribute('visibility','hidden');});var b=document.getElementById('grbilgi');if(b)b.hidden=true;}
+function grAralikSec(k,a){  // 6 ay / 1 yıl düğmesi
+ var d=DATA[k];if(!d)return;_grAralik=a;var el=document.getElementById('grkutu');if(el)el.innerHTML=grafik(d.spark,d.sd,a,d.tkg);
+ ['6a','1y'].forEach(function(x){var b=document.getElementById('gra'+x);if(b)b.className='grb'+(x===a?' on':'');});
+}
+// --- 🚀 v3 işlem geçmişi: d.tkg = sinyal.tk_gecmis → [sinyal (kırılım) günü, giriş (ertesi açılış), çıkış günü|null, çıkış|null]
+function tkGun(d,t){var tt=(d.spark||{}).t||[],i=tt.indexOf(t);return i<0?null:tt.length-1-i;}  // sinyal kaç işlem günü önce (rozetlerdeki tk.gun ile aynı); ~6 aydan eskiyse null
+function xuSon(){return (XU&&XU.c&&XU.c.length)?XU.c[XU.c.length-1]:null;}
+function tkIslem(d,x){  // tek işlem: getiri (komisyonsuz) ve aynı günlerde BIST 100 (sinyal günü kapanışından çıkış günü / son kapanışa)
+ var acik=x[2]==null,son=acik?d.fiyat:x[3],r=(x[1]&&son!=null)?(son/x[1]-1)*100:null;
+ var x0=xuDeger(x[0]),x1=acik?xuSon():xuDeger(x[2]),xr=(x0&&x1)?(x1/x0-1)*100:null;
+ return {t:x[0],g:x[1],ct:x[2],c:x[3],acik:acik,son:son,r:r,xu:xr,fark:(r!=null&&xr!=null)?r-xr:null,gun:tkGun(d,x[0])};
+}
+function tTam(s){if(!s)return '—';var y=(XU&&XU.t&&XU.t.length)?XU.t[XU.t.length-1].slice(0,4):'';return trTarih(s)+(s.slice(0,4)!==y?' '+s.slice(0,4):'');}
+function tlS(x){return x==null?'—':(+x).toLocaleString('tr-TR',{maximumFractionDigits:2})+' TL';}
+function tkY(x){return x==null?'—':pyz(x);}
+function tkP(x){return x==null?'—':(x>=0?'+':'−')+Math.abs(x).toFixed(1).replace('.',',')+' puan';}
+function tkC(x){return x==null?'':(x>=0?'pos':'neg');}
+function tkSonHtml(d){  // grafiğin üstünde tek satır: son 🚀 AL ya da son SAT (iz stop)
+ var a=d.tkg||[],t=d.tk||{};
+ if(!a.length)return '<div class="tkson sgun">🚀 '+(t.kisa?'Henüz 🚀 sinyali olamaz: kural en az 1 yıllık (250 işlem günü) fiyat geçmişi ister.':'Son ~1 yılda 🚀 AL sinyali yok.')+'</div>';
+ var x=tkIslem(d,a[a.length-1]),h;
+ if(x.acik&&t.bugun)h='▲ <b>Bugün 🚀 AL</b> — kapanış '+tlS(x.g)+'; kurala göre giriş yarın açılışta. Çıkış: tepe kapanışın %20 altı (iz stop).';
+ else if(x.acik)h='▲ <b>Son 🚀 AL: '+tTam(x.t)+'</b> · giriş '+tlS(x.g)+' → şu an <b class="'+tkC(x.r)+'">'+tkY(x.r)+'</b> (pozisyon açık'+(t.stop!=null?' · iz stop '+tlS(t.stop):'')+')'+
+   (x.gun!=null&&x.gun>5?' <span class="sgun">· '+x.gun+' işlem günü önceydi; yeni alım sinyali değil</span>':'');
+ else h='▼ <b>Son SAT (iz stop): '+tTam(x.ct)+'</b> · '+tlS(x.c)+'; o işlemde <b class="'+tkC(x.r)+'">'+tkY(x.r)+'</b> <span class="sgun">(🚀 AL '+tTam(x.t)+', giriş '+tlS(x.g)+')</span>';
+ return '<div class="tkson">'+h+'</div>';
+}
+function tkGecmisHtml(d){  // hisse penceresi: bu hissenin son v3 işlemleri (bilgi)
+ var a=(d.tkg||[]).slice().reverse();if(!a.length)return '';
+ var bas=((d.spark||{}).t||[])[0]||'',ev=false;
+ var h='<div class="bilkutu">🚀 <b>Sinyal geçmişi</b> <span class="sgun">— v3 kuralının bu hissedeki son '+a.length+' işlemi (canlı kural geçmişe uygulandı)</span>'+
+  '<div class="tkgs"><table class="rk"><thead><tr><th>🚀 AL (sinyal)</th><th class="num">Giriş</th><th>Çıkış</th><th class="num">Getiri</th><th class="num" title="Aynı günlerde BIST 100 getirisine göre fark">BIST 100\'e göre</th></tr></thead><tbody>';
+ a.forEach(function(x){var s=tkIslem(d,x),es=x[0]<bas;if(es)ev=true;
+  h+='<tr><td>'+tTam(s.t)+(es?' <span class="sgun" title="6 aydan eski: aşağıdaki nota bak">≈</span>':'')+'</td><td class="num">'+tlS(s.g)+'</td>'+
+   '<td>'+(s.acik?'<span class="tkb izle">açık</span> şu an '+tlS(s.son):tTam(s.ct)+' · '+tlS(s.c))+'</td>'+
+   '<td class="num '+tkC(s.r)+'">'+tkY(s.r)+'</td><td class="num '+tkC(s.fark)+'">'+tkP(s.fark)+'</td></tr>';});
+ h+='</tbody></table></div><div class="pk sgun">Giriş: sinyalin ertesi günü açılış; çıkış: iz stop kırılan günün kapanışı; komisyonsuz. Pano 2 yıllık veriyle çalışır, kural 1 yıllık geçmiş ister: liste en fazla son ~1 yılı kapsar'+
+  (ev?'; ≈ işaretli (6 aydan eski) işlemler, daha önceden açık kalmış bir pozisyon yüzünden 5 yıllık testtekinden farklı olabilir':'')+
+  '. <b>Tek hissenin geçmiş işlemleri geleceğini göstermez</b>; kural tek hissede değil, yüzlerce hissede birlikte test edildi.</div></div>';
+ return h;
+}
+// --- 🚀 Son roketler filtresi: son N işlem gününde 🚀 AL almış hisseler — kapananlar (iz stop) DAHİL (seçim yanlılığı olmasın)
+function roketListe(N){
+ var o=[];Object.keys(DATA).forEach(function(k){var d=DATA[k];(d.tkg||[]).forEach(function(x){var g=tkGun(d,x[0]);
+  if(g!=null&&g<=N){var s=tkIslem(d,x);s.kod=k;o.push(s);}});});
+ o.sort(function(a,b){return a.t<b.t?1:(a.t>b.t?-1:(a.kod<b.kod?-1:1));});
+ return o;
+}
+function roketOzet(o){  // tarama dışı araştırmadaki Python hesabıyla aynı (ortalama / medyan / artıda / endeksi geçen)
+ var r=o.map(function(s){return s.r;}).filter(function(v){return v!=null;}),f=o.map(function(s){return s.fark;}).filter(function(v){return v!=null;});
+ var ort=function(a){return a.length?a.reduce(function(x,y){return x+y;},0)/a.length:null;};
+ var med=function(a){if(!a.length)return null;var b=a.slice().sort(function(x,y){return x-y;}),h=b.length>>1;return b.length%2?b[h]:(b[h-1]+b[h])/2;};
+ return {n:o.length,acik:o.filter(function(s){return s.acik;}).length,arti:r.filter(function(v){return v>0;}).length,ort:ort(r),med:med(r),
+  fort:ort(f),fmed:med(f),gecen:f.filter(function(v){return v>0;}).length,fn:f.length};
+}
+function roketHtml(N,q,sf,fav){
+ var o=roketListe(N).filter(function(s){return (!q||s.kod.indexOf(q)>=0)&&(!sf||fav.indexOf(s.kod)>=0);}),z=roketOzet(o);
+ var h='<div class="bugun rkkutu"><h2>🚀 Son '+N+' işlem gününün sinyalleri</h2>';
+ if(!o.length)return h+'<div class="bgs">Bu dönemde 🚀 AL yok'+(q||sf?' (arama/favori süzgecine uyan)':'')+'.</div></div>';
+ h+='<div class="bgs"><b>'+z.n+' sinyal</b> ('+z.acik+' hâlâ açık, '+(z.n-z.acik)+' iz stop ile kapandı) · artıda <b>'+z.arti+'/'+z.n+'</b> · ortalama <b class="'+tkC(z.ort)+'">'+tkY(z.ort)+'</b> · medyan <b class="'+tkC(z.med)+'">'+tkY(z.med)+'</b>'+
+  (z.fn?' · BIST 100\'e göre ortalama <b class="'+tkC(z.fort)+'">'+tkP(z.fort)+'</b>, medyan '+tkP(z.fmed)+', endeksi geçen '+z.gecen+'/'+z.fn:'')+'</div>';
+ h+='<div class="bgs sgun">Getiri: sinyalin ertesi açılışından bugüne (açıksa) ya da iz stop çıkışına; komisyonsuz. Kapananlar da listede — sadece iyi gidenleri göstermek yanıltıcı olur. Kısa dönemde birkaç hisse ortalamayı sürükler; bir dönemin iyi gitmesi sonrakini göstermez.'+
+  (N>5?' <b>Eski satırlar yeni alım sinyali değil:</b> testte sinyalden 20+ gün sonra girmek geçmişte belirgin daha kötüydü (sinyal günü ort. +%20 / isabet %52; 20 gün sonra +%15 / %47; 40 gün sonra +%8 / %35).':'')+'</div>';
+ h+='<div class="sar"><table class="rk"><thead><tr><th>Hisse</th><th>🚀 Sinyal günü</th><th class="num">Giriş</th><th class="num">Şimdi / çıkış</th><th class="num">Getiri</th><th class="num">BIST 100</th><th class="num">Fark</th><th>Durum</th></tr></thead><tbody>';
+ o.forEach(function(s){var dur;
+  if(!s.acik)dur='<span class="tkb izle">kapandı '+tTam(s.ct)+'</span>';
+  else if(s.gun===0)dur='<span class="tkb yeni">🚀 bugün</span>';
+  else if(s.gun<=5)dur='<span class="tkb">🚀 AL '+s.gun+'g önce</span>';
+  else dur='<span class="tkb izle">trendde · '+s.gun+'g</span>';
+  h+='<tr onclick="ac(\''+s.kod+'\')"><td class="kod">'+s.kod+'</td><td>'+tTam(s.t)+' <span class="sgun">'+(s.gun===0?'bugün':s.gun+'g önce')+'</span></td><td class="num">'+tlS(s.g)+'</td>'+
+   '<td class="num">'+tlS(s.son)+'</td><td class="num '+tkC(s.r)+'">'+tkY(s.r)+'</td><td class="num">'+tkY(s.xu)+'</td><td class="num '+tkC(s.fark)+'">'+tkP(s.fark)+'</td><td>'+dur+'</td></tr>';});
+ return h+'</tbody></table></div></div>';
+}
+function roketAc(n){var s=document.getElementById('roket');if(!s)return;s.value=String(n);tabloDuzen();var k=document.getElementById('roketkutu');if(k&&k.scrollIntoView)k.scrollIntoView({behavior:'smooth',block:'start'});}
 function sdHtml(d){
  const sd=d.sd;if(!sd)return '';
  const sat=(ad,s,tur)=>{
@@ -959,12 +1070,13 @@ function ac(k){
  ((d.tahta&&d.tahta.seviye)?'<div class="patlakkutu">'+(d.tahta.seviye==='sisme'?'🎈 <b>Şişme riski (tahtacı uyarısı):</b> '+d.tahta.neden.join('; ')+'. 5 yıllık veride bu durumdaki hisselerin ~%15-19\'u sonraki 20 günde %25+ çakıldı (normalde %2). Yeni alım için AL mesajı gönderilmez; elindeyse iz stop\'u sıkı takip et.':'⚠️ <b>Dağıtım işareti:</b> '+d.tahta.neden[0]+'. Büyük satıcı (tahtacı) malı dağıtıyor olabilir; bu durumdakilerin ~%10\'u 20 günde %25+ düştü (normalde %2).')+'</div>':'')+
  (d.patlak?'<div class="patlakkutu">⚠ <b>Taban serisi:</b> son 15 günde '+d.taban15+' kez ~%10 düştü. Fon krizi tipi çöküş olabilir; bu hisseden AL mesajı gönderilmez.</div>':'')+
  (d.bolunme?'<div class="arzkutu">✂️ <b>Bedelsiz/bölünme:</b> '+d.bolunme+' tarihinde fiyat tek günde sınırın ötesinde değişti; grafik ve göstergeler buna göre düzeltildi. Portföyündeyse maliyetini aracı kurumdaki yeni maliyetle güncelle.</div>':'')+
- '<div class="grafik">'+grafik(d.spark,d.sd)+'<div class="leg"><span class="c1">Fiyat</span><span class="c2">SMA20</span><span class="c3">SMA50</span><span class="c4">SuperTrend</span>'+
+ '<div class="grafik">'+tkSonHtml(d)+((d.spark&&d.spark.w&&d.spark.w.length)?'<div class="graralik"><button id="gra6a" class="grb'+(_grAralik==='6a'?' on':'')+'" onclick="grAralikSec(\''+k+'\',\'6a\')">6 ay</button><button id="gra1y" class="grb'+(_grAralik==='1y'?' on':'')+'" onclick="grAralikSec(\''+k+'\',\'1y\')">1 yıl</button></div>':'')+
+   '<div id="grkutu">'+grafik(d.spark,d.sd,_grAralik,d.tkg)+'</div><div class="leg"><span class="c1">Fiyat</span><span class="c2">SMA20</span><span class="c3">SMA50</span><span class="c4">SuperTrend</span>'+
    (d.sd&&d.sd.destek?'<span class="c5">Destek</span>':'')+(d.sd&&d.sd.direnc?'<span class="c6">Direnç</span>':'')+
-   '<span class="c7">İz stop</span><span>🚀 AL</span><span style="color:#7A3E9D">✕ çıkış</span></div></div>'+
+   '<span class="c7">İz stop</span><span class="lm" style="color:#1B7F4B">▲ AL (🚀)</span><span class="lm" style="color:#B4362E">▼ SAT (iz stop)</span></div></div>'+
  nedenHtml(k,d)+
  zaman+
- pozHtml(k,d)+tkHtml(d)+gucHtml(d)+uvHtml(d)+
+ pozHtml(k,d)+tkHtml(d)+tkGecmisHtml(d)+gucHtml(d)+uvHtml(d)+
  sdHtml(d)+
  '<div class="metr">'+m('RSI',d.rsi)+m('F/K',d.fk)+m('PD/DD',d.pddd)+m('FD/FAVÖK',d.favok)+m('İz stop',d.iz&&!d.iz.cikti?d.iz.stop:'—')+m('Öneri lot',lot)+'</div>'+
  bilHtml(d)+kapHtml(d)+arzHtml(d)+
