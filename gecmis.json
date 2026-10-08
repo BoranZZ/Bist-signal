@@ -6,8 +6,8 @@
       "giris_fiyat": 34.38,
       "stop": 27.5,
       "durum": "açık",
-      "guncel": 31.9,
-      "anlik": -7.2,
+      "guncel": 31.98,
+      "anlik": -7.0,
       "tepe": 34.38
     },
     {
@@ -30,8 +30,8 @@
       "giris_fiyat": 411.5,
       "stop": 329.2,
       "durum": "açık",
-      "guncel": 382.75,
-      "anlik": -7.0,
+      "guncel": 385.5,
+      "anlik": -6.3,
       "tepe": 411.5
     },
     {
@@ -50,7 +50,7 @@
       "giris_fiyat": 5827.5,
       "stop": 4662.0,
       "durum": "açık",
-      "guncel": 4845.0,
+      "guncel": 4840.0,
       "anlik": -16.9,
       "tepe": 5827.5
     },
@@ -74,19 +74,19 @@
       "giris_fiyat": 44.34,
       "stop": 38.72,
       "durum": "açık",
-      "guncel": 48.36,
-      "anlik": 9.1,
+      "guncel": 48.34,
+      "anlik": 9.0,
       "tepe": 48.4
     },
     {
       "kod": "ENERY",
       "giris_tarih": "2026-09-25",
       "giris_fiyat": 13.36,
-      "stop": 11.32,
+      "stop": 11.34,
       "durum": "açık",
-      "guncel": 14.15,
-      "anlik": 5.9,
-      "tepe": 14.15
+      "guncel": 14.18,
+      "anlik": 6.1,
+      "tepe": 14.18
     },
     {
       "kod": "ISDMR",
@@ -94,8 +94,8 @@
       "giris_fiyat": 62.5,
       "stop": 51.84,
       "durum": "açık",
-      "guncel": 62.45,
-      "anlik": -0.1,
+      "guncel": 62.6,
+      "anlik": 0.2,
       "tepe": 64.8
     },
     {
@@ -104,8 +104,8 @@
       "giris_fiyat": 58.2,
       "stop": 46.56,
       "durum": "açık",
-      "guncel": 55.0,
-      "anlik": -5.5,
+      "guncel": 54.9,
+      "anlik": -5.7,
       "tepe": 58.2
     },
     {
@@ -114,8 +114,8 @@
       "giris_fiyat": 290.25,
       "stop": 232.2,
       "durum": "açık",
-      "guncel": 263.5,
-      "anlik": -9.2,
+      "guncel": 263.0,
+      "anlik": -9.4,
       "tepe": 290.25
     },
     {
@@ -124,8 +124,8 @@
       "giris_fiyat": 429.0,
       "stop": 343.2,
       "durum": "açık",
-      "guncel": 399.25,
-      "anlik": -6.9,
+      "guncel": 399.75,
+      "anlik": -6.8,
       "tepe": 429.0
     }
   ]
