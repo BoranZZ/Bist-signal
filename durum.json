@@ -318,7 +318,7 @@
     "VSNMD": "SAT",
     "YEOTK": "SAT",
     "YIGIT": "SAT",
-    "YKBNK": "AL",
+    "YKBNK": "SAT",
     "ZERGY": "SAT",
     "ZGYO": "SAT",
     "ZOREN": "SAT"
@@ -337,6 +337,11 @@
     "RTALB": {
       "sinyal": "AL",
       "onceki": "SAT",
+      "tarih": "2026-10-08"
+    },
+    "YKBNK": {
+      "sinyal": "SAT",
+      "onceki": "AL",
       "tarih": "2026-10-08"
     }
   },
