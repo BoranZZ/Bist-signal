@@ -22,6 +22,12 @@ SD_TOL_MIN, SD_TOL_MAX = 0.01, 0.025   # "yakın" eşiğinin alt/üst sınırı
 HACIM_ESIK = 1.5       # AL'e dönüş günü hacmi / önceki 20 günün ortalaması
 # taban serisi (fon krizinde çöken şişirilmiş hisseler): son 15 günde en az 4 kez ~%10 düşüş
 TABAN_GETIRI, TABAN_GUN, PATLAK_TABAN = -0.09, 15, 4
+# 🔒 kilitli taban (2026-10 araştırması, 587 hisse 2021-10…2026-10, scratchpad bt/korn): üst üste 2 taban (≤ −%9), 2. gün
+# kilitli (gün içi Yüksek−Düşük ≤ %0,15 × kapanış: alıcı yok, fiyat tabana yapışık), ilk tabandan önceki 10 günde taban yok,
+# XU100 iki gün de > −%4 (piyasa çöküş günü değil) → 15 günde 4+ tabana uzama ~%60 (canlı liste %66; normalde ~%9).
+KILIT_ARALIK, KILIT_XU, KILIT_ONCE = 0.0015, -0.04, 10
+# Aşırı uzamış 🚀 girişi (bilgi notu, filtre DEĞİL): sinyal günü fiyat 52h dibinin ≥5 katı ya da 6 ayda (126 gün) ≥3 kat
+UZAMA_DIPKAT, UZAMA_R6 = 5.0, 2.0
 # v2 (gece testleri, 2026-09): çıkış = AL'den sonraki en yüksek kapanışın %20 altı (iz stop). Sınırsız sepet
 # simülasyonunda stop+SAT2'ye göre düşük faizde +%9 -> +%67, 2023'te -%6 -> +%45; %18/%22 komşuları tutarlı.
 # Giriş filtresi: trend (fiyat>SMA200 ve SMA200 yükseliyor) + aşırı oynak değil (60 günlük günlük oynaklık ≤ %5).
@@ -450,6 +456,9 @@ def trend_kirilimi(d, xu_ust=None, islemler=False, ham=False):
         out["kisa"] = True
     if acik:
         stop = acik["tepe"] * (1 - IZ_STOP_ORAN)
+        uz = asiri_uzama(c, acik["i"])   # sinyal günü ölçülür (bilgi notu; sadece varsa yazılır)
+        if uz:
+            out["uzama"] = uz
         out.update({"durum": "AL", "giris_tarih": str(idx[acik["i"]].date()), "giris_fiyat": round(acik["giris"], 2),
                     "gun": n - 1 - acik["i"], "degisim": round((fiyat / acik["giris"] - 1) * 100, 1),
                     "tepe": round(acik["tepe"], 2), "tepe_tarih": str(idx[acik["tepe_i"]].date()),
@@ -473,6 +482,86 @@ def tk_gecmis(d, tum, n=TK_GECMIS_N):
     return [[str(idx[x["i"]].date()), round(x["giris"], 2),
              str(idx[x["cik"]].date()) if x["cik"] is not None else None,
              round(float(cv[x["cik"]]), 2) if x["cik"] is not None else None] for x in tum[-n:]]
+
+
+def kilitli_gun(d, sadece_kilitli=True):
+    """Her gün: taban kapanışı (≤ −%9) ve gün içi aralık (Yüksek−Düşük) ≤ %0,15 × kapanış → kilitli taban (alıcı yok,
+    satış emri çoğu zaman gerçekleşmez). sadece_kilitli=False: her taban günü (backtest'in katı duyarlılık varyantı)."""
+    c = d["Close"]
+    tab = c.pct_change() <= TABAN_GETIRI
+    if not sadece_kilitli:
+        return tab
+    if not _hl_var(d):
+        return pd.Series(False, index=d.index)
+    return tab & ((d["High"] - d["Low"]) <= KILIT_ARALIK * c)
+
+
+def gercekci_cikis(d, j, sadece_kilitli=True, kil=None):
+    """Kapanışla tetiklenen çıkış (j. gün) gerçekte o gün yapılabilir miydi? j kilitli taban günüyse o gün ve sonraki kilitli
+    günlerde satılamaz; ilk kilitsiz günün AÇILIŞINDA çıkılır. Veri biterken hâlâ kilitliyse son kapanışla değerlenir.
+    Döner: (çıkış günü indeksi, fiyat, tür: 'kapanis' | 'acilis' | 'kilitli')."""
+    if kil is None:
+        kil = kilitli_gun(d, sadece_kilitli).values
+    c, n = d["Close"].values, len(d)
+    if not kil[j]:
+        return j, float(c[j]), "kapanis"
+    k = j + 1
+    while k < n and kil[k]:
+        k += 1
+    if k >= n:
+        return n - 1, float(c[n - 1]), "kilitli"
+    o = d["Open"].values if "Open" in d else c
+    return k, float(o[k]) if o[k] == o[k] else float(c[k]), "acilis"
+
+
+def kilitli_taban_seri(d, xu):
+    """🔒 olay günleri (araştırma tanımı; olay = 2. taban günü): dün ve bugün taban (≤ −%9), bugün kilitli (aralık ≤ %0,15),
+    ilk tabandan (dün) önceki KILIT_ONCE günde taban yok, XU100 dün ve bugün > −%4 (yoksa piyasa çöküşü: o günlerde
+    başlayan seriler kaçırılır, ör. OZATD 16.09.2026). XU verisi eksik gün çöküş sayılmaz."""
+    c = d["Close"]
+    tab = (c.pct_change() <= TABAN_GETIRI)
+    once = tab.shift(2, fill_value=False).astype(int).rolling(KILIT_ONCE, min_periods=1).sum()
+    xr = xu.dropna().pct_change().reindex(d.index) if xu is not None else pd.Series(np.nan, index=d.index)
+    cokus = xr <= KILIT_XU
+    ev = (tab & tab.shift(1, fill_value=False) & (once == 0) & kilitli_gun(d)
+          & ~cokus & ~cokus.shift(1, fill_value=False))
+    ev.iloc[: KILIT_ONCE + 2] = False   # önceki 10 gün görülemiyor (yeni arzın ilk günleri)
+    return ev
+
+
+def kilitli_taban(d, xu):
+    """Son gün için 🔒: olay bugün ya da dün olduysa ve o günden beri her gün taban ise (taban serisi henüz başlamadan erken
+    aşama; 15 günde 4+ taban olunca 'taban serisi' uyarısı öncelikli — analiz_et bunu ayıklar). Değilse None.
+    Seans içinde Yahoo'nun gün içi Yüksek/Düşük'ü o ana kadarki işlemlerdir: 'şu ana kadar kilitli' demektir (tarama
+    'kesin' bilgisini ekler)."""
+    if xu is None or len(d) < KILIT_ONCE + 3:
+        return None
+    ev = kilitli_taban_seri(d, xu).values
+    tab = (d["Close"].pct_change() <= TABAN_GETIRI).values
+    kil = kilitli_gun(d).values
+    n = len(d)
+    for g in (0, 1):
+        e = n - 1 - g
+        if ev[e] and tab[e:].all():
+            seri = 0
+            while seri < n and tab[n - 1 - seri]:
+                seri += 1
+            return {"tarih": str(d.index[e].date()), "gun": g, "seri": int(seri), "kilitli_bugun": bool(kil[-1])}
+    return None
+
+
+def asiri_uzama(c, i):
+    """Aşırı uzamış 🚀 girişi (bilgi notu): i. gün kapanışı 52 hafta (250 gün) dibinin ≥5 katı ya da 126 gün öncesinin ≥3 katı.
+    bt/korn s1_kuyruk (587 hisse, iz stop taban günlerinde satılamazsa): canlı listede bu grubun ~%13'ü %30+ kayıpla kapandı,
+    diğerlerinde ~%1; en büyük kazananların bir kısmı da bu grupta, portföy filtresi tutarsız → sadece not."""
+    cv = c.values if hasattr(c, "values") else c
+    if i < 249:
+        return None
+    dipkat = float(cv[i] / np.nanmin(cv[i - 249:i + 1]))
+    r6 = float(cv[i] / cv[i - 126] - 1) if i >= 126 and cv[i - 126] else None
+    if dipkat >= UZAMA_DIPKAT or (r6 is not None and r6 >= UZAMA_R6):
+        return {"dipkat": round(dipkat, 1), "r6": round(r6 * 100) if r6 is not None else None}
+    return None
 
 
 def tahta_riski(d):
@@ -597,7 +686,8 @@ def hacim_oranlari(d):
     return [oran(1, 20), oran(5, 60), oran(20, 60)]
 
 
-def analiz_et(df, xu_ust=None):
+def analiz_et(df, xu_ust=None, xu=None):
+    """xu_ust: v3 piyasa filtresi (XU100 > SMA50, günlük bool seri); xu: XU100 kapanış serisi (🔒 kilitli taban için)."""
     df = bolunme_duzelt(df)
     c = df["Close"].dropna()
     if len(c) < 60:
@@ -724,6 +814,8 @@ def analiz_et(df, xu_ust=None):
         "bolunme": (df.attrs.get("bolunme") or [None])[-1],   # son (kaydedilmemiş) bedelsiz/bölünme tarihi
         "bayrak": bayrak_kirilimi(df),
         "patlak": taban >= PATLAK_TABAN,
+        # 🔒 taban serisi başlayınca (15 günde 4+) mevcut 'taban serisi' uyarısı öncelikli: çift gösterme
+        "kt": None if taban >= PATLAK_TABAN else kilitli_taban(d, xu),
         "tahta": tahta_riski(d),
         "tuzak": trend_tuzagi(d),
         "sinyal_tarih": sinyal_tarih,

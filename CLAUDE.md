@@ -186,6 +186,39 @@ sinyal, filtre, etiket ya da çıkış olarak eklenmeye değmez.** Kullanıcı f
   Tarihsel 30 gün ufku (1.033 işlem): ort +%13, medyan +%6, %59 artıda; 34 aylık kohortun 6'sında artıda oranı ≤%20 (2023-04,
   2023-09/10/11, 2024-07, 2025-01) → kötü kohortlar olağan dışı değil.
 
+## 🔒 Kilitli taban · gerçekçi iz stop çıkışı · aşırı uzama notu (2026-10, scratchpad bt/korn: 587 hisse, 2021-10…2026-10)
+- **🔒 `sinyal.kilitli_taban`** (olay serisi `kilitli_taban_seri`): dün ve bugün taban (kapanış ≤ −%9, `TABAN_GETIRI`), bugün **kilitli**
+  (`kilitli_gun`: Yüksek−Düşük ≤ %0,15 × kapanış = gün boyu işlem neredeyse yok), ilk tabandan önceki 10 günde taban yok, XU100 iki
+  gün de > −%4. Sonuç: 15 günde 4+ tabana uzama ~%60 (n=218; canlı liste %66; tüm ilk tabanlarda ~%9), yıllara göre %49-71, iki faiz
+  döneminde tutarlı; bugünkü 'taban serisi' uyarısından ~2 gün önce. Canlı fonksiyon araştırma olaylarıyla birebir (228/228, 0 fark;
+  araştırma ilk 130 günü almıyordu) ve son-gün fonksiyonu olay serisiyle 3.710 hisse-günde 0 fark (scratchpad kilit/t1, t4).
+  **Bilinen kör nokta:** piyasa çöküş gününde (XU100 ≤ −%4) başlayan serileri kaçırır — 16.09.2026'da (XU −%5,5) başlayan OZATD, ALKLC,
+  IEYHO, MANAS, TRHOL'de 🔒 hiç yanmadı. Çöküş günündeki kilitli olaylar tutarsız: Eylül 2026 öncesi 80 olayda kesinlik %5 (78'i 2023'te),
+  2026'da 16/16 → koşul gevşetilmedi.
+  Rozet 1-2 gün görünür (olay günü + ertesi gün hâlâ tabansa); 15 günde 4+ taban olunca `analiz_et` `kt`'yi boşaltır, 'taban serisi'
+  öncelikli (çift gösterim yok). Eşik ±%9,5 gün içi 'taban' mesajıyla değil, araştırma ve taban serisiyle aynı −%9 (BIST taban fiyatı
+  önceki kapanış × 0,90'ın fiyat adımına yuvarlanmışı ≈ −%9,5…−%10; −%9 hepsini yakalar, adım hesabı gerekmiyor).
+  **Zamanlama:** seans içinde Yahoo'nun gün içi Yüksek/Düşük'ü o ana kadarki işlemler → tarama `kt.kesin` ekler (18:30+ ya da son bar
+  bugünün değilse kesin); kesin değilse metinde 'gün içi veri, kapanışta kesinleşir'. Telegram: portföy hissesinde gün içi olay
+  `kilitli` (olay günü, fiyat hâlâ günün dibinde / tabanda ve aralık ≤ %0,15; 'taban'/'sert'i bastırır, gizli anahtarla günde bir kez)
+  + akşam portföy özetinde en başta not. 🔒 olan hisseden 🚀 AL mesajı gitmez (`_riskli`, taban serisi/🎈 gibi). durum.json'a yeni
+  anahtar yok. Pano: tablo rozeti, modal kutusu (taban serisi kutusuyla birlikte en üstte), sade anlat uyarısı en üstte (🔒 > taban
+  serisi > 🎈), 'Bugün ne var?' (`bugunUyari` ilk sırada), sözlük. Metin Python `tarama.kilit_metni` = JS `ktMetin` (810/810 eşleşme).
+- **Gerçekçi iz stop çıkışı (`sinyal.gercekci_cikis`, backtest.py v3 varsayılanı):** iz stop kilitli taban gününde tetiklenirse o gün
+  satılamaz; ilk kilitsiz günün açılışında çıkılır, veri biterken hâlâ kilitliyse son kapanışla değerlenir. Canlı liste (1.208 işlem):
+  endekse göre +%18,4 → +%16,7 (en iyi 10 hariç +13,3 → +11,7), en kötü işlem −%27 → −%81 (TRHOL/IEYHO 18.09.2026). Katı varyant
+  ('her taban günü satılamaz', `v3_taban`) +%13,6 / en kötü −%82; backtest.html'de duyarlılık tablosu (kapanış / kilitli / katı).
+  backtest.py korn verisiyle s4_kart.txt'yi birebir tekrarladı. v2/eski kurallarda bu düzeltme yok (kıyas v3 aleyhine hafif eğik).
+- **Aşırı uzamış 🚀 girişi (`sinyal.asiri_uzama` → `tk.uzama`, BİLGİ notu, AL engellenmez):** sinyal günü fiyat 52h (250g) dibinin ≥5
+  katı ya da 126 gün öncesinin ≥3 katı. s1_kuyruk (OR birleşimi, canlı liste, 'her taban satılamaz' çıkışıyla): bu grubun %13,3'ü
+  %30+ kayıpla kapandı, diğerleri %1,3 (sadece kilitli taban satılamazsa %5,7 / %0,2; kapanış varsayımıyla ikisi de %0); en büyük
+  %5 kazananın 6/60'ı bu grupta. Düşük faizde çok az olay. Portföyde filtre (hariç/yarım) hücreden hücreye işaret değiştiriyor →
+  sadece not: modal tkHtml kutusu (pozisyon açıkken) + Telegram 🚀 AL satırı. Python `uzama_metni` = JS `uzamaMetin` (173/173).
+- **Test edilip GEREKMİYOR çıkanlar (tekrar araştırma):** aşırı uzama FİLTRESİ (hariç/yarım pozisyon; sepet farkı −160…+24 puan,
+  tutarsız); 🔻 hacim kuruması (taban + hacim <0,5x: düşük faizde endeksi yenme %51 — ayırmıyor; 1. gün hacim <0,25x kesinlik %18,5,
+  taban oranı %7,3, olay az); 1. gün taban/1. gün kilitli uyarısı (kesinlik %22-30, yanlış alarm çok); KAP VBTS tedbiri (kesinlik
+  %13 vs %9 taban oranı) ve pay bazında devre kesici bildirimi (%8,4 vs %9 — hiç ayırmıyor).
+
 ## Canlı kurallar (5 yıllık backtest'e dayanarak, 2026-09)
 - Piyasa filtresi: XU100 < SMA50 → "piyasa zayıf" bandı + Telegram notu (AL'ler engellenmez).
 - Hacim: AL'e dönüş günü hacmi ≥ 1.5× önceki 20 gün → "📈 hacim" etiketi. Aynı işlemler etiketlenince (çökenler hariç) hacimli/hacimsiz farkı YOK; önceki "filtre" testindeki fark seçim yan etkisiydi → bilgi amaçlı tut, filtreye çevirme.
@@ -244,7 +277,7 @@ sinyal, filtre, etiket ya da çıkış olarak eklenmeye değmez.** Kullanıcı f
   Modalda son 5 bildirim. Telegram: portföy hisselerinin yeni bildirimleri (geri alım hariç), `durum.json` → `kap_son`
   (genel bildirim sayacı, portföy bilgisi içermez); ilk çalışmada sessiz başlangıç. KAP'a ulaşılamazsa önbellekle devam.
 - 📋 'Bugün ne var?' kartı (`bugunRender`, istemci): PIYASA (piyasa_durumu JSON), 🚀 AL son 5 gün, portföy uyarıları
-  (`bugunUyari`: iz stop kırıldı/%3'ten yakın sadece portföyde; 🎈/⚠️/🪤/taban/bilanço/temettü ≤7 gün/bölünme ≤30 gün),
+  (`bugunUyari`: 🔒/taban serisi ilk sırada; iz stop kırıldı/%3'ten yakın sadece portföyde; 🎈/⚠️/🪤/bilanço/temettü ≤7 gün/bölünme ≤30 gün),
   favoriler (🚀, 👀 ≤%3, uyarılar). Üst sayılar artık v3: bugün 🚀 AL / son 5 günde 🚀 AL.
 - Karne (gecmis.html): kartlar sadece `kural: v3` kayıtları; eski kayıtlar 'eski kural' etiketi + ayrı özet satırı (`ozet['eski']`).
 - ⭐ Favoriler: istemci tarafı (`favoriler_v1` localStorage + `FAVORILER` variable, portföyle aynı anahtar). `tabloDuzen()`
@@ -278,7 +311,7 @@ sinyal, filtre, etiket ya da çıkış olarak eklenmeye değmez.** Kullanıcı f
   karar çizgisi (aşılmış seviye önerilmez); tek tek ya da 'Hepsini kur', aynı kod+yön+fiyata ikinci alarm kurulmaz (elle de).
   Kayıtta isteğe bağlı `not` ('destek', 'iz stop'...; ≤40 karakter, Telegram'da escape'li gösterilir). Anahtar hâlâ
   kod|yön|fiyat → eski alarmlar aynen çalışır.
-- Taban serisi: son 15 günde ≥4 kez ≤ −%9 → "⚠ taban serisi"; bu hisselerden AL mesajı gitmez.
+- Taban serisi: son 15 günde ≥4 kez ≤ −%9 → "⚠ taban serisi"; bu hisselerden AL mesajı gitmez. Erken aşaması 🔒 kilitli taban (yukarıda).
 - SAT: 1. gün "⏳" işaretiyle gösterilir/bildirilir, 2. gün "✅ teyit" mesajı (portföy).
 - Portföy: çıkış = son AL başındaki sabit stop (`al_stop`), SAT'ta çıkış sebebi sinyal; hedefler
   küçükten büyüğe (en yakın direnç, 2R). Günlük portföy özeti 18:00 sonrası ilk taramada.
@@ -290,8 +323,8 @@ sinyal, filtre, etiket ya da çıkış olarak eklenmeye değmez.** Kullanıcı f
 - `sadeHtml`: (a) genel yön — `trend`/`trend_asagi` + SMA50 (📉 trend aşağı uyarısıyla aynı kural), ikisi de değilse 60g
   getiri ±%10; (b) kısa vade alıcı/satıcı — 💪 güç ≥5 (sinyal SAT değilse) / ≤2 (AL değilse), yoksa 'dengede' (oylama ile
   çelişmesin) + 5g hacim ≥1,5x notu; (c) tek seviye — portföydeyse iz stop / karar çizgisi (JS, localStorage), değilse 👀 kırılım
-  seviyesi (≤%3) ya da en yakın destek/direnç (±%15'ten uzaksa 'yakında seviye yok'); (d) en önemli tek uyarı (🎈 > taban > ⚠️ >
-  🪤 > bilanço/temettü ≤7g > bölünme > ⚡). Sunucu tarafına portföy cümlesi YAZILMAZ.
+  seviyesi (≤%3) ya da en yakın destek/direnç (±%15'ten uzaksa 'yakında seviye yok'); (d) en önemli tek uyarı (🔒 > taban serisi >
+  🎈 > ⚠️ > 🪤 > 🔻 > bilanço/temettü ≤7g > bölünme > ⚡). Sunucu tarafına portföy cümlesi YAZILMAZ.
 - `nedenHtml`/`hareket`: 1/5/20 gün hisse getirisi (grafik verisi `spark`), aynı tarihlerde BIST 100 (`XU`), kıyas grubundaki
   diğer hisselerin ortalaması, hacim oranı (`sinyal.hacim_oranlari` → `hv`: 1g/önceki 20g, 5g/önceki
   60g, 20g/önceki 60g), pencere içi tavan/taban, KAP (son 5 bildirimden pencere içindekiler, geri alım ayrı sayılır), bölünme,

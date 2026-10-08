@@ -14,11 +14,15 @@ Gerçekçi olması için:
           stop ya da 2 gün üst üste SAT gelince çık (süre sınırı yok, canlı sistem gibi).
           Giriş günü hacmi 20 günlük ortalamanın HACIM_ESIK katını aşan işlemler ayrıca raporlanır.
 Sonuçlar düşük faiz (2023 Haziran öncesi) ve yüksek faiz dönemine ayrılır.
+
+v3 çıkış gerçekçiliği (2026-10, bt/korn): iz stop KİLİTLİ taban gününde (≤ −%9 ve gün içi aralık ≤ %0,15) tetiklenirse o gün
+satılamaz; ilk kilitsiz günün açılışında çıkılır (veri biterken hâlâ kilitliyse son kapanışla değerlenir). Varsayılan budur.
+Duyarlılık: "v3_kapanis" (eski varsayım: kapanıştan satılır) ve "v3_taban" (katı: her taban günü satılamaz).
 """
 import numpy as np
 import pandas as pd
 
-from sinyal import gostergeler, sma, trend_kirilimi, bolunme_duzelt, IZ_STOP_ORAN, OYNAK_ESIK
+from sinyal import gostergeler, sma, trend_kirilimi, bolunme_duzelt, kilitli_gun, gercekci_cikis, IZ_STOP_ORAN, OYNAK_ESIK
 
 KOMISYON = 0.002        # tek yön %0.2 (komisyon + kayma varsayımı)
 MAX_GUN = 40            # mevcut kural: bir pozisyonu en fazla bu kadar gün tut
@@ -26,6 +30,10 @@ ADAY_MAX_GUN = 250      # aday kural: fiilen süre sınırı yok
 HACIM_ESIK = 1.5        # hacim teyidi: giriş günü hacmi / 20 günlük ortalama
 FAIZ_DONUM = pd.Timestamp("2023-06-01")   # TCMB'nin sert faiz artırımına başladığı ay
 DONEMLER = [("Düşük faiz", None, FAIZ_DONUM), ("Yüksek faiz", FAIZ_DONUM, None)]
+
+
+V3_KURALLAR = ("v3", "v3_kapanis", "v3_taban")
+CIKIS_SEBEP = {"kapanis": "iz stop", "acilis": "iz stop (taban, ertesi kilitsiz açılış)", "kilitli": "iz stop (hâlâ satılamıyor, son kapanış)"}
 
 
 def piyasa_ust(xu):
@@ -61,12 +69,17 @@ def tek_hisse_backtest(df, kod="", kural="mevcut", xu_ust=None):
 
     islemler = []
     i = 0
-    if kural == "v3":   # 🚀 trend kırılımı: canlıdaki sinyal.trend_kirilimi ile birebir aynı işlemler
+    if kural in V3_KURALLAR:   # 🚀 trend kırılımı: canlıdaki sinyal.trend_kirilimi ile birebir aynı işlemler
         dd = gostergeler(df)
-        for gt, ct, g, cx in trend_kirilimi(dd, xu_ust, islemler=True):
-            sebep = "iz stop"
-            if ct is None:
-                ct, cx, sebep = dd.index[-1], float(dd["Close"].iloc[-1]), "süre"
+        kil = None if kural == "v3_kapanis" else kilitli_gun(dd, sadece_kilitli=(kural == "v3")).values
+        ix3, n3, cv3 = dd.index, len(dd), dd["Close"].values
+        for t in trend_kirilimi(dd, xu_ust, ham=True):
+            gt, g = (ix3[t["i"] + 1] if t["i"] + 1 < n3 else ix3[t["i"]]), t["giris"]
+            if t["cik"] is None:
+                ct, cx, sebep = ix3[-1], float(cv3[-1]), "süre"
+            else:
+                j, cx, tur = (t["cik"], float(cv3[t["cik"]]), "kapanis") if kil is None else gercekci_cikis(dd, t["cik"], kil=kil)
+                ct, sebep = ix3[j], CIKIS_SEBEP[tur]
             islemler.append({"kod": kod, "giris_t": gt, "cikis_t": ct, "gun": (ct - gt).days, "giris": g, "cikis": cx,
                              "brut": cx / g - 1, "net": (1 - KOMISYON) * (cx / g) * (1 - KOMISYON) - 1, "sebep": sebep,
                              "hacim": False})
@@ -161,6 +174,8 @@ def istatistik(islemler, xu=None):
         "fazla": round(float(fazla.mean()) * 100, 2) if len(fazla) else None,
         "fazla_top10_haric": round(float(s[:-10].mean()) * 100, 2) if len(s) > 20 else None,
         "ort_gun": round(float(np.mean([t["gun"] for t in islemler])), 1),
+        "en_kotu": round(float(netler.min()) * 100, 1),
+        "satilamayan": sum(1 for t in islemler if t["sebep"] in (CIKIS_SEBEP["acilis"], CIKIS_SEBEP["kilitli"])),
     }
 
 
@@ -197,7 +212,7 @@ def _yuzde(x, isaret=True):
     return f"{'+' if (isaret and x >= 0) else ''}{x}%".replace("-", "−")
 
 
-def rapor_html(ozetler, genel, donem="", genel_aday=None, donem_satirlari=None, genel_v2=None, genel_v3=None):
+def rapor_html(ozetler, genel, donem="", genel_aday=None, donem_satirlari=None, genel_v2=None, genel_v3=None, v3_duyarlilik=None):
     ozetler = sorted(ozetler, key=lambda x: -(x.get("toplam") or -999))
     satir = []
     for o in ozetler:
@@ -239,6 +254,23 @@ def rapor_html(ozetler, genel, donem="", genel_aday=None, donem_satirlari=None, 
 <div class="not">"En iyi 10 işlem hariç": sonuç birkaç uç işleme mi bağlı? Bu sütun da pozitifse kural daha sağlam demektir.
 Düşük faiz dönemi 2023 Haziran öncesi; faiz indirimi beklentisi varsa o dönem daha yol göstericidir.</div>"""
 
+    duy = ""
+    if v3_duyarlilik:
+        r = "".join(
+            f"<tr><td>{ad}</td><td class='num'>{st['islem']}</td><td class='num'>%{st['isabet']}</td><td class='num'>%{st['ort_islem']}</td>"
+            f"<td class='num {'pos' if (st['fazla'] or 0)>=0 else 'neg'}'>{_yuzde(st['fazla'])}</td>"
+            f"<td class='num {'pos' if (st['fazla_top10_haric'] or 0)>=0 else 'neg'}'>{_yuzde(st['fazla_top10_haric'])}</td>"
+            f"<td class='num neg'>%{st['ort_kaybeden']}</td><td class='num neg'>{_yuzde(st['en_kotu'])}</td><td class='num'>{st['satilamayan']}</td></tr>"
+            for ad, st in v3_duyarlilik if st)
+        duy = f"""<h2>v3 — taban gününde satılabilir miydi? (duyarlılık)</h2>
+<div class="sar"><table><thead><tr><th>Çıkış varsayımı</th><th>İşlem</th><th>İsabet</th><th>İşlem başı</th><th>Endekse göre fark</th>
+<th>En iyi 10 hariç</th><th>Kaybedenler ort.</th><th>En kötü işlem</th><th title="Çıkışı kilitli/taban yüzünden sonraki güne kalan işlem">Ertesiye kalan</th></tr></thead><tbody>{r}</tbody></table></div>
+<div class="not">İz stop kapanışa bakar; ama hisse o gün tabanda <b>kilitliyse</b> (gün boyu işlem neredeyse yok) satış emri çoğu zaman
+gerçekleşmez. Üstteki v3 kartı ve dönem tablosu bunu hesaba katar: kilitli taban gününde satılamaz, ilk kilitsiz günün açılışında
+çıkılır. "Her taban günü satılamaz" daha katı (kötümser) varyant; "kapanışta satılır" eski, iyimser hesap. Fark birkaç
+çöküş işleminden gelir ama en kötü işlemi belirgin büyütür. v2 ve eski kurallarda bu düzeltme yapılmadı (onlar kapanıştan satılır
+varsayar); v3 ile kıyasları bu yüzden v3 aleyhine biraz eğik.</div>"""
+
     g = genel or {}
     return f"""<!doctype html><html lang="tr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>Backtest Raporu</title>
@@ -260,7 +292,8 @@ tbody tr{{border-bottom:1px solid var(--line)}}tbody tr:last-child{{border-botto
 .not{{margin-top:14px;padding:14px 16px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--muted);font-size:12.5px;line-height:1.65}}
 </style></head><body><div class="wrap">
 <h1>Backtest Raporu — canlı kurallar vs eski kurallar</h1><div class="tarih">Dönem: {donem} · komisyon+kayma çift yön %{KOMISYON*100:g}</div>
-{kartlar(genel_v3, "v3 — canlı kural (🚀 trend şablonu + 20 günlük zirve kırılımı, piyasa filtresi; %20 iz stop'ta çık)") if genel_v3 else ""}
+{kartlar(genel_v3, "v3 — canlı kural (🚀 trend şablonu + 20 günlük zirve kırılımı, piyasa filtresi; %20 iz stop'ta çık; kilitli tabanda satılamaz)") if genel_v3 else ""}
+{duy}
 {kartlar(genel_v2, "v2 (AL'e dönüş + piyasa + trend, aşırı oynak hariç; %20 iz stop'ta çık)") if genel_v2 else ""}
 {kartlar(genel_aday, "Önceki canlı kurallar (AL'e dönüş + piyasa filtresi; stop ya da 2 gün SAT'ta çık)") if genel_aday else ""}
 {kartlar(genel, "Eski kurallar (AL olan her gün gir; stop, SAT ya da " + str(MAX_GUN) + " gün sonra çık)")}
@@ -321,7 +354,11 @@ if __name__ == "__main__":
     _, genel_a, isl_a = toplu_backtest(veri, "aday", xu)
     _, genel_v2, isl_v2 = toplu_backtest(veri, "v2", xu)
     _, genel_v3, isl_v3 = toplu_backtest(veri, "v3", xu)
+    _, genel_v3k, _ = toplu_backtest(veri, "v3_kapanis", xu)
+    _, genel_v3t, _ = toplu_backtest(veri, "v3_taban", xu)
+    duyar = [("kilitli tabanda satılamaz (varsayılan)", genel_v3),
+             ("her taban günü satılamaz (katı)", genel_v3t), ("kapanışta satılır (eski, iyimser)", genel_v3k)]
     setler = {"v3 (🚀 kırılım + iz stop %20)": isl_v3, "v2 (trend + iz stop %20)": isl_v2, "eski canlı (stop / 2 gün SAT)": isl_a, "eski": isl_m}
     with open("backtest.html", "w", encoding="utf-8") as f:
-        f.write(rapor_html(ozetler, genel, donem, genel_a, donem_tablosu(setler, xu), genel_v2, genel_v3))
+        f.write(rapor_html(ozetler, genel, donem, genel_a, donem_tablosu(setler, xu), genel_v2, genel_v3, duyar))
     print("backtest.html yazıldı.\n  eski: ", genel, "\n  canlı:", genel_a)

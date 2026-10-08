@@ -10,7 +10,7 @@ import pandas as pd
 import yfinance as yf
 from kap import kap_guncelle, kap_mesaji
 from bilanco import bilancolari_al, bilanco_ozet, bilanco_metni, bilanco_yakin, tarih_tr, temettu_ozet
-from sinyal import analiz_et, destek_direnc, bolunme_duzelt, tahta_riski, TABAN_GETIRI, TABAN_GUN, IZ_STOP_ORAN
+from sinyal import analiz_et, destek_direnc, bolunme_duzelt, tahta_riski, TABAN_GETIRI, TABAN_GUN, IZ_STOP_ORAN, KILIT_ARALIK
 from pano import pano_uret, gecmis_uret
 
 # ================== AYARLAR ==================
@@ -786,7 +786,7 @@ SERT_DUSUS, TABAN_ESIK, TAVAN_ESIK = -0.05, -0.095, 0.095
 # şey söylemiyor (sarkmaların %41'i kapanışta geri alındı) → kapalı; yakınlık sabah mesajında 👉, sarkma sonucu kapanış
 # mesajında. Açmak için buraya ekle. (bt/mesajsay*.py, 125 hisse 2022-26: 5 hisselik portföyde tümü açık ve geniş dönüş
 # tanımıyla günlerin %82'sinde mesaj; bu set + dönüşte gün içi tepenin dirence değmesi şartıyla %41, günde ~0,6 hisse.)
-GUNICI_OLAYLAR = {"taban", "tavan", "sert", "sisme", "dagitim", "iz_yakin", "iz_alti", "d_kirildi", "r_kirdi", "r_dondu"}
+GUNICI_OLAYLAR = {"kilitli", "taban", "tavan", "sert", "sisme", "dagitim", "iz_yakin", "iz_alti", "d_kirildi", "r_kirdi", "r_dondu"}
 PIYASA_SERT = 0.025             # BIST 100 gün içinde bu kadar (±) oynarsa portföyün günlük K/Z'si tek satır
 # Olay çalışması (2022-26, 125 hisse, seviyeler bir önceki kapanışa göre; scratchpad bt/sd1-2.py): gün içi desteğin
 # altına sarkmaların ~%41'i kapanışta geri alındı, ~%40'ı desteğin hafif altında (tolerans içinde) kapadı, ~%19'u
@@ -797,6 +797,37 @@ PIYASA_SERT = 0.025             # BIST 100 gün içinde bu kadar (±) oynarsa po
 # kazanç taşıyor) → iz_alti mesajı "kapanışı bekle" der.
 SD_NOT = ("Geçmiş testte (2022-26) gün içi desteğin altına sarkmaların ~%40'ı kapanışta geri alındı; destek kırılımı ya da "
           "dirençten dönüş sonrası 20 gün rastgele bir günden belirgin farklı değildi. Bunlar bilgi; çıkış kuralı iz stop / karar çizgisi.")
+
+
+# 🔒 kilitli taban (sinyal.kilitli_taban; bt/korn 2026-10, 587 hisse 2021-26): metin panodaki JS ktMetin ile aynı
+KILIT_NOT = ("Geçmişte benzerlerinin ~%60'ı 4+ tabana uzadı (normalde ~%9). Kilitli tabanda satış emri çoğu zaman "
+             "gerçekleşmez. Kesin değil.")
+# Aşırı uzamış 🚀 girişi (sinyal.asiri_uzama; bt/korn s1_kuyruk): BİLGİ notu, AL engellenmez
+UZAMA_NOT = ("geçmişte bu tür 🚀 girişlerinin ~%13'ü %30+ kayıpla kapandı (diğerlerinde ~%1; taban günlerinde satılamadığı "
+             "varsayımıyla), en büyük kazananların bir kısmı da bu grupta. Pozisyon büyüklüğüne dikkat.")
+
+
+def kilit_metni(kt):
+    """🔒 tek cümle (Telegram + pano aynı): '2 gündür taban, bugün gün boyu işlem neredeyse yok (kilitli). ...'"""
+    if not kt:
+        return ""
+    if kt.get("kilitli_bugun"):
+        m = f"{kt['seri']} gündür taban, bugün gün boyu işlem neredeyse yok (kilitli)"
+        if not kt.get("kesin", True):
+            m += " — gün içi veri, kapanışta kesinleşir"
+    else:
+        m = f"{kt['seri']} gündür taban, dün gün boyu işlem neredeyse yoktu (kilitli)"
+    return "🔒 kilitli taban: " + m + ". " + KILIT_NOT
+
+
+def uzama_metni(u):
+    """Aşırı uzamış 🚀 girişi notu (JS uzamaMetin ile aynı)."""
+    if not u:
+        return ""
+    ne = [f"52 hafta dibinin {('%g' % u['dipkat']).replace('.', ',')} katı"] if u.get("dipkat") and u["dipkat"] >= 5 else []
+    if u.get("r6") is not None and u["r6"] >= 200:
+        ne.append(f"6 ayda +%{u['r6']}")
+    return "⚠️ Çok yükselmiş hisse (" + ", ".join(ne) + "): " + UZAMA_NOT
 
 
 def _bugun_tarih():
@@ -829,7 +860,12 @@ def gunici_olaylar(s, df, pozisyon, fiyat=None):
     hi = max(float(d["High"].iloc[-1]) if pd.notna(d["High"].iloc[-1]) else f, f)
     out = []
     ch = f / dun - 1
-    if ch <= TABAN_ESIK:
+    kt = s.get("kt") or {}
+    lo = float(d["Low"].iloc[-1]) if pd.notna(d["Low"].iloc[-1]) else f
+    # 🔒 bugün 2. taban ve gün boyu kilitli: fiyat hâlâ günün dibinde (taban fiyatında) olmalı; 'taban' mesajının yerine geçer
+    if kt.get("gun") == 0 and kt.get("kilitli_bugun") and ch <= TABAN_GETIRI and f <= lo * (1 + KILIT_ARALIK):
+        out.append(("kilitli", 0, ("taban", "sert"), kilit_metni(kt)))
+    elif ch <= TABAN_ESIK:
         out.append(("taban", 0, ("sert",), f"🟥 tabanda / tabana yakın: bugün {_yz(ch * 100)}"))
     elif ch >= TAVAN_ESIK:
         out.append(("tavan", 0, (), f"🟩 tavanda / tavana yakın: bugün {_yz(ch * 100)}"))
@@ -972,6 +1008,8 @@ def _al_satiri(s, pf):
     kir = f"20 günlük zirve {tk['kirilim_seviye']} TL aşıldı, trend şablonunda" if tk.get("kirilim_seviye") else "trend kırılımı"
     t = (f"{isaret} <b>{s['kod']}</b>{y}{h}  {s['fiyat']} TL  ({fk}, RSI {s['rsi']}{m})\n"
          f"     🚀 {kir}. İz stop {iz0} TL (tepe kapanışın %20 altı, fiyat yükseldikçe yukarı taşınır){lot}")
+    if tk.get("uzama"):   # bilgi notu, AL engellenmez
+        t += "\n     " + uzama_metni(tk["uzama"])
     if s["kod"] in pf:
         t += "\n     " + plan_metni(s, pf[s["kod"]])
     return t
@@ -1186,6 +1224,8 @@ def portfoy_ozeti(sonuclar, pf, piyasa=None, endeks=None, sd_satir=None):
                           "çoğunlukla endeksin gerisinde kaldı (özellikle düşük faiz döneminde)")
         if s.get("patlak"):
             notlar.append(f"⚠️ taban serisi ({s['taban15']} kez/15 gün)")
+        if s.get("kt"):
+            notlar.insert(0, kilit_metni(s["kt"]))
         th = s.get("tahta") or {}
         if th.get("seviye") == "sisme":
             notlar.append("🎈 şişme riski: " + ", ".join(th["neden"]) + " — geçmişte bu durumdakilerin ~%15-19'u 20 günde %25+ çakıldı; iz stop'u sıkı takip et")
@@ -1332,7 +1372,10 @@ def main():
         _xu = data[ENDEKS + ".IS"]["Close"].dropna()
         xu_ust = _xu > _xu.rolling(50).mean()
     except Exception:
-        xu_ust = None
+        _xu = xu_ust = None
+    # 🔒 kilitli taban: seans içinde Yahoo'nun gün içi Yüksek/Düşük'ü o ana kadarki işlemler → 'şu ana kadar kilitli';
+    # kesin kapanıştan sonra (18:30+) ya da son bar bugünün değilse kesin
+    _kesin = _sim.hour * 60 + _sim.minute >= KAPANIS_DAKIKA or _sim.weekday() >= 5
     sonuclar, yeni_arzlar = [], []
     for kod in KODLAR:
         try:
@@ -1340,13 +1383,15 @@ def main():
             if df.empty:
                 continue
             arz = arz_bilgisi(kod, df)
-            a = analiz_et(df, xu_ust)
+            a = analiz_et(df, xu_ust, _xu)
             if not a:
                 if arz:
                     yeni_arzlar.append(arz)   # sinyal için geçmiş henüz yetersiz
                 continue
             a["kod"] = kod
             a["arz"] = arz
+            if a.get("kt"):
+                a["kt"]["kesin"] = bool(_kesin or df.index[-1].date() != _sim.date())
             o = oranlar.get(kod, [None, None, None])
             a["fk"] = o[0] if len(o) > 0 else None
             a["pddd"] = o[1] if len(o) > 1 else None
@@ -1416,9 +1461,9 @@ def main():
     tk_d = durum.get("tk_gonderilen") or {}
     tk_gonderilen = set(tk_d.get("kodlar", [])) if tk_d.get("tarih") == bugun_iso else set()
     tk_aday = [s for s in sonuclar if (s.get("tk") or {}).get("bugun")]
-    _riskli = lambda s: s.get("patlak") or ((s.get("tahta") or {}).get("seviye") == "sisme")
+    _riskli = lambda s: s.get("patlak") or s.get("kt") or ((s.get("tahta") or {}).get("seviye") == "sisme")
     patlak_al = [s for s in tk_aday if _riskli(s)]
-    tk_aday = [s for s in tk_aday if not _riskli(s)]                      # taban serisi / 🎈 şişme: AL mesajı yok
+    tk_aday = [s for s in tk_aday if not _riskli(s)]                      # taban serisi / 🔒 kilitli taban / 🎈 şişme: AL mesajı yok
     if kapanis_zamani:   # kapanıştan önce gönderilip kapanışta tutmayan kırılımlar
         tutan = {s["kod"] for s in tk_aday}
         iptal += [(by_kod[k], "AL") for k in sorted(tk_gonderilen - tutan) if k in by_kod]
@@ -1496,7 +1541,7 @@ def main():
           f"piyasa: {'zayıf' if piyasa and piyasa['zayif'] else 'normal'} | "
           f"karne: {karne['kapanan']} kapanan, {karne['acik']} açık.")
     if patlak_al:
-        print(f"Taban serisi / aşırı oynak {len(patlak_al)} hissenin AL mesajı gönderilmedi.")
+        print(f"Taban serisi / kilitli taban / şişme {len(patlak_al)} hissenin AL mesajı gönderilmedi.")
 
     if yeni or yeni_sat or sat_teyit or karar_kirilan or iptal or diger_al:
         print(f"Telegram: {len(yeni)} yeni AL (+{len(diger_al)} trend dışı), {len(yeni_sat)} portföy SAT, {len(sat_teyit)} iz stop kırılımı, "

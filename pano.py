@@ -57,6 +57,11 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None, 
             sdrz += f' <span class="patlakb" title="60 günlük günlük oynaklık %{s.get("vol60")} (> %5): aşırı oynak, AL mesajı gönderilmez">⚡ oynak</span>'
         if s.get("patlak"):
             sdrz += f' <span class="patlakb" title="Son 15 günde {s.get("taban15")} kez ~%10 düştü (taban serisi)">⚠ taban serisi</span>'
+        kt = s.get("kt")
+        if kt:   # 🔒 taban serisi öncesi erken aşama (seri başlayınca analiz_et kt'yi boşaltır, 'taban serisi' öncelikli)
+            sdrz += (f' <span class="patlakb" title="{kt["seri"]} gündür taban, {"bugün" if kt.get("kilitli_bugun") else "dün"} gün boyu işlem '
+                     f'neredeyse yok (kilitli). Geçmişte benzerlerinin ~%60&#39;ı 4+ tabana uzadı (normalde ~%9). Kilitli tabanda satış '
+                     f'emri çoğu zaman gerçekleşmez. Kesin değil">🔒 kilitli taban</span>')
         tz = s.get("tuzak")
         if tz:
             sdrz += f' <span class="gun1b" title="{tz["tarih"]}: düşen trend %{tz["gunluk"]} yükselişle kırıldı. Tüm borsada bu kırılımların %56&#39;sı 15 günde geri düştü; kırılımda almak rastgele günden kötü sonuç verdi">🪤 tuzak riski</span>'
@@ -141,6 +146,8 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None, 
             "arz": s.get("arz"), "sektor": s.get("sektor"), "endustri": s.get("endustri"), "mom20": s.get("mom20"), "uv": s.get("uv"), "bayrak": s.get("bayrak"), "bilanco": s.get("bilanco"), "temettu": s.get("temettu"), "kap": s.get("kap"), "tk": s.get("tk"), "tkg": s.get("tkg"), "guc": s.get("guc"), "momentum": bool(s.get("momentum")), "mom6": s.get("mom6"), "bolunme": s.get("bolunme"),
             "hv": s.get("hv"), "kg": s.get("kg"), "od": s.get("od"),
         }
+        if s.get("kt"):   # 🔒 sadece olan hissede (index.html şişmesin)
+            veri[k]["kt"] = s["kt"]
 
     banner = ""
     if ornek:
@@ -395,9 +402,11 @@ __ARZ__
 <div class="sz"><span class="tkb">🚀 AL 3g önce</span><span>AL birkaç gün önce geldi. Testte ilk 5 gün içinde almak, sinyal günüyle neredeyse aynı sonucu verdi.</span></div>
 <div class="sz"><span class="tkb izle">trendde · 25g</span><span>Eski AL hâlâ sürüyor ama <b>yeni alım sinyali değil</b>: 20+ gün sonra girmek testte belirgin kötüydü. Elindeyse iz stop'a kadar tut.</span></div>
 <div class="sz"><span class="tkb izle">🚀 Son roketler</span><span>Tablonun üstündeki filtre: son 5 / 20 / 60 işlem gününde 🚀 AL almış hisseler; sinyal günü, girişten beri getiri, BIST 100'e göre fark. İz stop ile kapananlar da listede (sadece iyi gidenleri göstermek yanıltıcı olur). Eski sinyaller yeni alım sinyali değil.</span></div>
+<div class="sz"><span class="tkb">⚠️ çok yükselmiş</span><span>Hisse penceresinde 🚀 AL notu: sinyal günü fiyat 52 hafta dibinin 5+ katı ya da 6 ayda 3+ kat. Geçmişte bu tür girişlerin ~%13'ü %30+ kayıpla kapandı (diğerlerinde ~%1), en büyük kazananların bir kısmı da bu grupta. AL engellenmez; pozisyon büyüklüğüne dikkat.</span></div>
 <div class="sz"><span class="tkb izle">👀 kırılıma %2</span><span>Trend şablonunda, 20 günlük zirveye yakın: yakında AL gelebilir (bunların ~%76'sı 10 gün içinde kırıyor). Beklemeden almak ek fayda sağlamadı.</span></div>
 </div>
 <div class="szgrup"><h3>Uyarılar (dikkat)</h3>
+<div class="sz"><span class="patlakb">🔒 kilitli taban</span><span>2 gündür taban ve bugün gün boyu işlem neredeyse yok (fiyat tabana yapışık, alıcı yok). Geçmişte (2021-26, 587 hisse) benzerlerinin ~%60'ı 15 günde 4+ tabana uzadı (normalde ~%9); 'taban serisi' uyarısından ~2 gün önce gelir. Kilitli tabanda satış emri çoğu zaman gerçekleşmez. Piyasanın çöktüğü günde (BIST 100 −%4 ve altı) başlayan serileri yakalamaz. Kesin değil; AL mesajı gönderilmez.</span></div>
 <div class="sz"><span class="patlakb">🎈 şişme</span><span>Tahtacı şişirmesi olabilir: kısa sürede çok tavan / fiyat ikiye katlandı / aşırı şişkin ve oynak. 20 günde %25+ çakılma olasılığı normalin 7-8 katı. AL mesajı gönderilmez.</span></div>
 <div class="sz"><span class="gun1b">⚠️ dağıtım</span><span>Hacim patlarken fiyat 10 günlük zirvenin %8+ altında: büyük satıcı malı dağıtıyor olabilir (çakılma olasılığı ~4 kat).</span></div>
 <div class="sz"><span class="gun1b">🔻 özel düşüş</span><span>Son 5 ya da 20 günde endeksten belirgin fazla (10 / 20 puan) ve yüksek hacimle düştü; benzer hisseler bu kadar düşmedi. Geçmişte bu durumdakilerin sonraki 20 günde ~%38'i endeksi geçti (normalde ~%46); 2022-23 düşük faiz döneminde fark yoktu. Bilgi, sinyal değil.</span></div>
@@ -500,6 +509,8 @@ function tabloDuzen(){
 function _kl(k){return '<a href="#" class="bgk" onclick="ac(\''+k+'\');return false">'+k+'</a>';}
 function bugunUyari(k,d,p){  // bir hisse için dikkat notları
  var u=[];if(!d)return u;
+ if(d.kt)u.push('🔒 kilitli taban');   // en üstte: satış emri gerçekleşmeyebilir / çöküş
+ if(d.patlak)u.push('⚠ taban serisi');
  if(p&&d.iz&&d.iz.cikti&&!p.uzun)u.push('📉 iz stop kırıldı');
  else if(p&&!p.uzun){var pl=pozPlan(d,p);if(pl.stop&&!pl.asildi&&pl.stopUzak>-3)u.push('iz stop\'a %'+Math.abs(pl.stopUzak).toFixed(1)+' kaldı');}
  if(p&&p.uzun){var pu=pozPlan(d,p);if(pu.karar&&!pu.kararAsildi&&pu.kararUzak>-3)u.push('🧭 karar çizgisine %'+Math.abs(pu.kararUzak).toFixed(1)+' kaldı');}
@@ -509,7 +520,6 @@ function bugunUyari(k,d,p){  // bir hisse için dikkat notları
  if(d.tahta&&d.tahta.seviye==='dagitim')u.push('⚠️ dağıtım');
  if(d.tuzak)u.push('🪤 tuzak riski');
  if(p&&d.od)u.push('🔻 hisseye özel düşüş ('+d.od.u+' gün)');
- if(d.patlak)u.push('⚠ taban serisi');
  if(d.bilanco&&d.bilanco.kalan_gun!=null&&d.bilanco.kalan_gun>=0&&d.bilanco.kalan_gun<=7)u.push('📅 bilanço '+d.bilanco.kalan_gun+' gün sonra');
  if(d.temettu&&d.temettu.ex_kalan!=null&&d.temettu.ex_kalan<=7)u.push('💰 temettü '+d.temettu.ex_kalan+' gün sonra');
  if(d.bolunme&&(Date.now()-new Date(d.bolunme).getTime())<30*864e5)u.push('✂️ bölünme ('+d.bolunme+'): maliyetini güncelle');
@@ -802,6 +812,7 @@ function tkHtml(d){
  else if(t.durum==='CIKTI'&&t.cikis_gun!=null&&t.cikis_gun<=20)h+='son işlem kapandı</b> — '+t.giris_tarih+' girişi, '+t.cikis_tarih+' iz stop ile çıktı ('+(t.sonuc>=0?'+':'')+t.sonuc+'%).';
  else h+=(t.sablon?'şablonda, kırılım bekleniyor</b>':'yok</b> — trend şablonu sağlanmıyor.');
  if(!t.bugun&&t.durum!=='AL'&&t.sablon&&t.kirilim_seviye)h+=' Kapanış <b>'+t.kirilim_seviye+' TL</b> üstüne çıkarsa AL'+(t.kirilima_uzak!=null?' (%'+t.kirilima_uzak+' yukarıda)':'')+'.';
+ if(t.durum==='AL'&&t.uzama)h+='<div class="cikis">'+uzamaMetin(t.uzama).replace('⚠️ Çok yükselmiş hisse','⚠️ <b>Çok yükselmiş hisse</b>')+' <span class="sgun">(sinyal günü ölçüldü; bilgi — AL engellenmez)</span></div>';
  h+='<div class="pk sgun">Şablon: fiyat > 50 > 150 > 200 günlük ortalama, 200 günlük yükseliyor, 52 hafta zirvesine en az %75 yakın, dibinden en az %30 yukarıda. 5 yıllık backtest\'te v2\'den iyi (200 rastgele denemenin %77-97\'sinde); yine de tavsiye değildir.</div>';
  return h+'</div>';
 }
@@ -860,6 +871,21 @@ function arzHtml(d){
  var z=d.arz;if(!z)return '';
  var g=z.getiri==null?'':' · arzdan beri <b class="'+(z.getiri>=0?'pos':'neg')+'">'+(z.getiri>=0?'+':'')+z.getiri+'%</b>';
  return '<div class="arzkutu">🆕 <b>Halka arz:</b> '+z.tarih+' tarihinde işlem görmeye başladı'+(z.arz_fiyat?' · arz fiyatı <b>'+z.arz_fiyat+' TL</b>':' (bölünmeyle geldi, arz fiyatı yok)')+g+'</div>';
+}
+// --- 🔒 kilitli taban (sinyal.kilitli_taban) ve aşırı uzamış 🚀 notu — metinler tarama.kilit_metni / uzama_metni ile aynı
+var KILIT_NOT='Geçmişte benzerlerinin ~%60\'ı 4+ tabana uzadı (normalde ~%9). Kilitli tabanda satış emri çoğu zaman gerçekleşmez. Kesin değil.';
+var UZAMA_NOT='geçmişte bu tür 🚀 girişlerinin ~%13\'ü %30+ kayıpla kapandı (diğerlerinde ~%1; taban günlerinde satılamadığı varsayımıyla), en büyük kazananların bir kısmı da bu grupta. Pozisyon büyüklüğüne dikkat.';
+function ktMetin(kt){
+ if(!kt)return '';
+ var m=kt.kilitli_bugun?kt.seri+' gündür taban, bugün gün boyu işlem neredeyse yok (kilitli)'+(kt.kesin===false?' — gün içi veri, kapanışta kesinleşir':'')
+  :kt.seri+' gündür taban, dün gün boyu işlem neredeyse yoktu (kilitli)';
+ return '🔒 kilitli taban: '+m+'. '+KILIT_NOT;
+}
+function uzamaMetin(u){
+ if(!u)return '';var ne=[];
+ if(u.dipkat&&u.dipkat>=5)ne.push('52 hafta dibinin '+String(u.dipkat).replace('.',',')+' katı');
+ if(u.r6!=null&&u.r6>=200)ne.push('6 ayda +%'+u.r6);
+ return '⚠️ Çok yükselmiş hisse ('+ne.join(', ')+'): '+UZAMA_NOT;
 }
 // --- 💬 Sade anlat · 🔎 Neden yükseldi/düştü? · önerilen alarmlar — hepsi cihazda, panodaki veriden (yapay zekâ yok).
 // Eşikler (bt/hareket, 299 hisse 2021-26): BIST 100'den ayrışma 1/5/20 günde ≥ 4/10/20 puan → günlerin ~%12-13'ü;
@@ -987,8 +1013,10 @@ function sadeHtml(k,d){
  cm.push(sv);
  // (d) en önemli tek uyarı
  var th=d.tahta||{},b=d.bilanco||{},tm=d.temettu||{},uy=null;
- if(th.seviye==='sisme')uy='🎈 <b>En önemli uyarı — şişme riski:</b> kısa sürede çok yükseldi; geçmişte bu durumdaki hisselerin ~%15-19\'u sonraki 20 günde %25+ düştü (normalde %2).';
+ // öncelik: 🔒 kilitli taban ve taban serisi en üstte (satış emrinin gerçekleşmeyebileceği / çöküş hâli), sonra 🎈
+ if(d.kt)uy='🔒 <b>En önemli uyarı — kilitli taban:</b> '+ktMetin(d.kt).replace('🔒 kilitli taban: ','');
  else if(d.patlak)uy='⚠ <b>En önemli uyarı — taban serisi:</b> son 15 günde '+d.taban15+' kez ~%10 düştü (çöküş tipi hareket).';
+ else if(th.seviye==='sisme')uy='🎈 <b>En önemli uyarı — şişme riski:</b> kısa sürede çok yükseldi; geçmişte bu durumdaki hisselerin ~%15-19\'u sonraki 20 günde %25+ düştü (normalde %2).';
  else if(th.seviye==='dagitim')uy='⚠️ <b>En önemli uyarı — dağıtım işareti:</b> hacim artarken fiyat son zirvesinden geriliyor; büyük satıcı elindekini satıyor olabilir.';
  else if(d.tuzak)uy='🪤 <b>En önemli uyarı — tuzak riski:</b> dipteki hisse düşen trendi yukarı kırdı; geçmişte bu kırılımların yarısından fazlası 15 günde geri düştü.';
  else if(d.od)uy='🔻 <b>En önemli uyarı — hisseye özel hacimli düşüş:</b> son '+d.od.u+' günde '+pyz(d.od.r)+' (BIST 100 '+pyz(d.od.xu)+', hacim ortalamanın '+kat(d.od.hk)+' katı), benzer hisseler bu kadar düşmedi. '+OD_NOT;
@@ -1066,9 +1094,10 @@ function ac(k){
    (d.sektor?' <span class="sektorb">'+d.sektor+(d.endustri&&d.endustri!==d.sektor?' · '+d.endustri:'')+'</span>':'')+'</div>'+
  sadeHtml(k,d)+
  modalOzet(k,d)+
+ (d.kt?'<div class="patlakkutu">'+ktMetin(d.kt).replace('🔒 kilitli taban:','🔒 <b>Kilitli taban:</b>')+' <span class="sgun">Tanım: üst üste 2 taban (≤ −%9), 2. gün gün içi fiyat aralığı ≤ %0,15 (alıcı yok), BIST 100 iki gün de −%4\'ten iyi. Piyasanın çöktüğü günde başlayan serileri yakalamaz. Bu hisseden AL mesajı gönderilmez.</span></div>':'')+
+ (d.patlak?'<div class="patlakkutu">⚠ <b>Taban serisi:</b> son 15 günde '+d.taban15+' kez ~%10 düştü. Fon krizi tipi çöküş olabilir; bu hisseden AL mesajı gönderilmez.</div>':'')+
  (d.tuzak?'<div class="patlakkutu">🪤 <b>Düşen trend kırılımı — tuzak riski:</b> '+d.tuzak.tarih+' günü hisse düşük seviyedeyken %'+d.tuzak.gunluk+' yükselişle düşen trend çizgisini kırdı ('+d.tuzak.kirilim_fiyat+' TL). Grafikte "AL" gibi görünür ama tüm borsada 5 yılda bu kırılımların <b>%56\'sı 15 gün içinde %5+ geri düştü</b>; kırılımda alıp 60 gün tutmak aynı hisselerde rastgele bir günden kötü sonuç verdi. Hacimli ya da güçlü kapanışlı olması tuzağı ayırmıyor.'+(d.tuzak.geri_dondu?' <b>Şu an kırılım fiyatının %5+ altına döndü.</b>':'')+'</div>':'')+
  ((d.tahta&&d.tahta.seviye)?'<div class="patlakkutu">'+(d.tahta.seviye==='sisme'?'🎈 <b>Şişme riski (tahtacı uyarısı):</b> '+d.tahta.neden.join('; ')+'. 5 yıllık veride bu durumdaki hisselerin ~%15-19\'u sonraki 20 günde %25+ çakıldı (normalde %2). Yeni alım için AL mesajı gönderilmez; elindeyse iz stop\'u sıkı takip et.':'⚠️ <b>Dağıtım işareti:</b> '+d.tahta.neden[0]+'. Büyük satıcı (tahtacı) malı dağıtıyor olabilir; bu durumdakilerin ~%10\'u 20 günde %25+ düştü (normalde %2).')+'</div>':'')+
- (d.patlak?'<div class="patlakkutu">⚠ <b>Taban serisi:</b> son 15 günde '+d.taban15+' kez ~%10 düştü. Fon krizi tipi çöküş olabilir; bu hisseden AL mesajı gönderilmez.</div>':'')+
  (d.bolunme?'<div class="arzkutu">✂️ <b>Bedelsiz/bölünme:</b> '+d.bolunme+' tarihinde fiyat tek günde sınırın ötesinde değişti; grafik ve göstergeler buna göre düzeltildi. Portföyündeyse maliyetini aracı kurumdaki yeni maliyetle güncelle.</div>':'')+
  '<div class="grafik">'+tkSonHtml(d)+((d.spark&&d.spark.w&&d.spark.w.length)?'<div class="graralik"><button id="gra6a" class="grb'+(_grAralik==='6a'?' on':'')+'" onclick="grAralikSec(\''+k+'\',\'6a\')">6 ay</button><button id="gra1y" class="grb'+(_grAralik==='1y'?' on':'')+'" onclick="grAralikSec(\''+k+'\',\'1y\')">1 yıl</button></div>':'')+
    '<div id="grkutu">'+grafik(d.spark,d.sd,_grAralik,d.tkg)+'</div><div class="leg"><span class="c1">Fiyat</span><span class="c2">SMA20</span><span class="c3">SMA50</span><span class="c4">SuperTrend</span>'+
