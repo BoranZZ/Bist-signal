@@ -6,8 +6,7 @@
     "HRKET",
     "INDES",
     "LOGO",
-    "TKFEN",
-    "YKBNK"
+    "TKFEN"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -597,9 +596,9 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1675512,
+  "kap_son": 1675538,
   "tk_gonderilen": {
-    "tarih": "2026-10-07",
+    "tarih": "2026-10-08",
     "kodlar": []
   },
   "mom_ay": {
@@ -632,16 +631,8 @@
     ]
   },
   "gunici": {
-    "tarih": "2026-10-07",
-    "g": [
-      "02336b0490faf460",
-      "0dd21bb347094b34",
-      "133ff216a141c83b",
-      "5a735c613fd638ce",
-      "a72ec59177a8689d",
-      "b11f4dd6e11c2e2f",
-      "b28ca2fed16fdc0b"
-    ]
+    "tarih": "2026-10-08",
+    "g": []
   },
-  "sabah_tarih": "2026-10-07"
+  "sabah_tarih": "2026-10-08"
 }
