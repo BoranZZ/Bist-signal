@@ -6,6 +6,7 @@
     "ENERY",
     "HRKET",
     "LOGO",
+    "ORGE",
     "TUPRS"
   ],
   "son": {
@@ -253,7 +254,7 @@
     "RALYH": "SAT",
     "REEDR": "SAT",
     "RGYAS": "SAT",
-    "RTALB": "AL",
+    "RTALB": "SAT",
     "RUBNS": "SAT",
     "RYGYO": "AL",
     "RYSAS": "SAT",
@@ -318,7 +319,7 @@
     "VSNMD": "SAT",
     "YEOTK": "SAT",
     "YIGIT": "SAT",
-    "YKBNK": "SAT",
+    "YKBNK": "AL",
     "ZERGY": "SAT",
     "ZGYO": "SAT",
     "ZOREN": "SAT"
@@ -329,22 +330,11 @@
     "ed52d36b8529c244",
     "fc9a269fa7f1b36a"
   ],
-  "ozet_tarih": "2026-10-07",
+  "ozet_tarih": "2026-10-08",
   "hafta_tarih": "2026-10-02",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {
-    "RTALB": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-10-08"
-    },
-    "YKBNK": {
-      "sinyal": "SAT",
-      "onceki": "AL",
-      "tarih": "2026-10-08"
-    }
-  },
+  "on_sinyal": {},
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
@@ -353,7 +343,7 @@
     "AGHOL": "SAT",
     "AHGAZ": "AL",
     "AKBNK": "SAT",
-    "AKCNS": "SAT",
+    "AKCNS": "AL",
     "AKENR": "SAT",
     "AKFIS": "AL",
     "AKFYE": "SAT",
@@ -361,7 +351,7 @@
     "AKSA": "SAT",
     "AKSEN": "SAT",
     "AKSUE": "SAT",
-    "ALARK": "SAT",
+    "ALARK": "AL",
     "ALBRK": "AL",
     "ALCTL": "SAT",
     "ALGYO": "SAT",
@@ -547,7 +537,7 @@
     "PCILT": "AL",
     "PEKGY": "SAT",
     "PENTA": "SAT",
-    "PETKM": "SAT",
+    "PETKM": "AL",
     "PGSUS": "SAT",
     "PKART": "SAT",
     "PRZMA": "SAT",
@@ -608,7 +598,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1677750,
+  "kap_son": 1677764,
   "tk_gonderilen": {
     "tarih": "2026-10-08",
     "kodlar": []
