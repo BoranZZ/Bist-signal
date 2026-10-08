@@ -4,7 +4,8 @@ Backtest — kuralların geçmişte gerçekten işe yarayıp yaramadığını ö
 Gerçekçi olması için:
 - Sinyal günün kapanışında oluşur, işleme ERTESİ gün açılışında girilir
   (look-ahead / geleceği görme yanılgısını önler).
-- Her işlemde çift yönlü KOMİSYON+kayma düşülür (aşırı işlemin maliyetini görürsün).
+- Her işlemde alışta ve satışta ayrı ayrı KOMİSYON (+kayma) düşülür: her yönde %0,2, gidiş-dönüş ≈ %0,4
+  (aşırı işlemin maliyetini görürsün).
 - Stop boşlukla (gap) aşılırsa çıkış stop fiyatından değil o günün açılışından yazılır.
 - Her işlem, aynı günlerde BIST 100 endeksini tutmakla kıyaslanır ("endekse göre fark").
 
@@ -291,7 +292,7 @@ tbody tr{{border-bottom:1px solid var(--line)}}tbody tr:last-child{{border-botto
 .kod{{font-weight:650}}.num{{font-variant-numeric:tabular-nums}}
 .not{{margin-top:14px;padding:14px 16px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--muted);font-size:12.5px;line-height:1.65}}
 </style></head><body><div class="wrap">
-<h1>Backtest Raporu — canlı kurallar vs eski kurallar</h1><div class="tarih">Dönem: {donem} · komisyon+kayma çift yön %{KOMISYON*100:g}</div>
+<h1>Backtest Raporu — canlı kurallar vs eski kurallar</h1><div class="tarih">Dönem: {donem} · komisyon+kayma her yönde %{KOMISYON*100:g} (alış+satış ≈ %{2*KOMISYON*100:g})</div>
 {kartlar(genel_v3, "v3 — canlı kural (🚀 trend şablonu + 20 günlük zirve kırılımı, piyasa filtresi; %20 iz stop'ta çık; kilitli tabanda satılamaz)") if genel_v3 else ""}
 {duy}
 {kartlar(genel_v2, "v2 (AL'e dönüş + piyasa + trend, aşırı oynak hariç; %20 iz stop'ta çık)") if genel_v2 else ""}

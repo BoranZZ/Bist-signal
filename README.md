@@ -22,7 +22,7 @@ Panoda **Portföyüm → + Ekle** ile hisse/adet/maliyet girersin; **cihazında*
 Sistem, v2 kurallarına uyan AL'lerde (trend içinde, aşırı oynak değil, piyasa zayıf değil) o anki fiyatı `gecmis.json`'a kaydeder; fiyat kayıttan beri görülen en yüksek kapanışın %20 altına inerse (iz stop) kapatıp sonucu yazar. `gecmis.html`'de birikir. Bu **ileriye dönük gerçek** performanstır (bugünden itibaren). `gecmis.json` otomatik oluşur, elleme.
 
 ## Backtest (geçmiş simülasyonu)
-Actions → **Backtest (elle)** → **Run workflow**. Gerçek 2 yıllık veriyle çalışır, `backtest.html` üretir. Sinyal kapanışta oluşur, işleme ertesi gün girilir, çift yön %0.2 komisyon düşülür, al-tut ile kıyaslanır.
+Actions → **Backtest (elle)** → **Run workflow**. Gerçek 2 yıllık veriyle çalışır, `backtest.html` üretir. Sinyal kapanışta oluşur, işleme ertesi gün girilir, alışta ve satışta ayrı ayrı %0.2 komisyon+kayma düşülür (gidiş-dönüş ≈ %0.4), al-tut ile kıyaslanır.
 
 ## Ayarlar (`tarama.py` en üstü)
 `BIST100` (endeks listesi, 3 ayda bir güncellenmeli) · `EK_HISSELER` (endeks dışı ama taranan) · `PORTFOY_TL`, `RISK_YUZDESI` (öneri lot) · `ASIRI_ISLEM_ESIGI`.
