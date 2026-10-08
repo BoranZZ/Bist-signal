@@ -6,7 +6,6 @@
     "ENERY",
     "HRKET",
     "LOGO",
-    "TKFEN",
     "TUPRS"
   ],
   "son": {
@@ -597,7 +596,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1676404,
+  "kap_son": 1676798,
   "tk_gonderilen": {
     "tarih": "2026-10-08",
     "kodlar": []
@@ -636,7 +635,8 @@
     "g": [
       "74a2f9d108c2ec75",
       "7b6b8730a4941985",
-      "a5248cab77799e0d"
+      "a5248cab77799e0d",
+      "b11f4dd6e11c2e2f"
     ]
   },
   "sabah_tarih": "2026-10-08"
