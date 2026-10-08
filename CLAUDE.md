@@ -255,8 +255,8 @@ değişmedi. Son 30 günde bölünme olan portföy hissesinde 'maliyetini günce
   çelişmesin) + 5g hacim ≥1,5x notu; (c) tek seviye — portföydeyse iz stop / karar çizgisi (JS, localStorage), değilse 👀 kırılım
   seviyesi (≤%3) ya da en yakın destek/direnç (±%15'ten uzaksa 'yakında seviye yok'); (d) en önemli tek uyarı (🎈 > taban > ⚠️ >
   🪤 > bilanço/temettü ≤7g > bölünme > ⚡). Sunucu tarafına portföy cümlesi YAZILMAZ.
-- `nedenHtml`/`hareket`: 1/5/20 gün hisse getirisi (grafik verisi `spark`), aynı tarihlerde BIST 100 (`XU`), aynı endüstri (≥4
-  hisse, yoksa ana sektör) diğer hisselerin ortalaması, hacim oranı (`sinyal.hacim_oranlari` → `hv`: 1g/önceki 20g, 5g/önceki
+- `nedenHtml`/`hareket`: 1/5/20 gün hisse getirisi (grafik verisi `spark`), aynı tarihlerde BIST 100 (`XU`), kıyas grubundaki
+  diğer hisselerin ortalaması, hacim oranı (`sinyal.hacim_oranlari` → `hv`: 1g/önceki 20g, 5g/önceki
   60g, 20g/önceki 60g), pencere içi tavan/taban, KAP (son 5 bildirimden pencere içindekiler, geri alım ayrı sayılır), bölünme,
   6 ay/20 gün zirve-dip, destek tepkisi/direnç, iz stop kırılımı. 'Aynı dönemde' der, sebep iddia etmez.
 - Eşikler (scratchpad bt/hareket/dagilim.py, 299 hisse, Eki 2021–Eki 2026): endeksten ayrışma ≥ 4 / 10 / 20 puan (1/5/20 gün)
@@ -266,4 +266,23 @@ değişmedi. Son 30 günde bölünme olan portföy hissesinde 'maliyetini günce
   ort +%1,4 / medyan −%1,2 / endeksi yenme %46): hisseye özel + hacimli YÜKSELİŞ (5g) ort +%2,3 / medyan −%2,4 / %44 (2.421
   olay; 1g ve 20g benzer, hacimsizler biraz daha iyi) → belirgin değil, kutuda sadece 'farklı gitmedi' notu. Hisseye özel +
   hacimli DÜŞÜŞ ise her yıl endeksin gerisinde: 5g ort −%3,8 / medyan −%5,2 / yenme %36 (839 olay), 20g −%7,4 / %33 (284) —
-  bugünkü hisselerle (hayatta kalan yanlılığı tersine çalışır). Uygulanmadı (yeni kural yok); ileride uyarı adayı.
+  bugünkü hisselerle (hayatta kalan yanlılığı tersine çalışır).
+- 🔻 **Hisseye özel hacimli düşüş** (`tarama.ozel_dusus`, kullanıcı onayıyla BİLGİ uyarısı — AL/SAT kuralı değil): 5 ya da 20 günde
+  getiri ve endeksten fark ≤ −10 / −20 puan, tür 'hisseye özel' (benzer hisseler açıklamıyor), hacim ≥1,5x. Canlı tanımla
+  sağlamlık (bt/hareket/olay2.py, 299 hisse, aynı hissede 20 günde bir olay, sonraki 20g endekse göre; parantezde tüm günler):
+  tümü 1.052 olay medyan −%4,8 / endeksi yenme %38 (−%1,1 / %46); 2021-10/2022-09 %33 (%45), **düşük faiz 2022-09/2023-06 %46
+  (%47) → fark YOK**, yüksek faiz 2023-07 sonrası %38 (%46); çökenler hariç (örneklemde taban serisi yaşamış 144 hisse çıkarılınca)
+  345 olay %39 (%45), düşük faizde yine fark yok. Metinler buna göre yumuşak: "~%38'i endeksi geçti (normalde ~%46); 2022-23 düşük
+  faizde fark yoktu; kesin değil". Canlı fonksiyon geçmiş olaylarla birebir: 25 rastgele gün × tüm hisse 6.152 hisse-gün, 5 fark
+  (4'ü 15 Temmuz tatil günü karşılaştırma artefaktı, 1 yuvarlama). Pano: tablo rozeti '🔻 özel düşüş', sözlük, sade anlat uyarı
+  önceliği (🪤'dan sonra), `bugunUyari` (sadece portföyde), neden kutusu notu; Telegram akşam portföy özetinde hisse notu.
+- Python aynası: `tarama.hareket_hepsi` = JS `hareket` (aynı girdi: spark + XU + hv + kg, aynı eşikler `HR_ESIK`/`HR_HACIM`).
+  Kontrol: 313 hissede 939 ufuk, 0 fark. Akşam portföy özetinde '🔎 Bugün hisseye özel hareket' satırı (`hareket_satiri`: 1 günde
+  tür 'hisseye özel' ve dikkat çekici olanlar; yoksa satır yok).
+- Sektör kıyas grubu (`tarama.kiyas_gruplari` → panoda `kg`): Yahoo endüstrileri çoğu hissede 2-3 hisse, ana sektör ise çok
+  geniş ('Sanayi' 77: holding+havayolu+savunma). `KIYAS_GRUP` benzer küçük endüstrileri birleştirir (Elektrik/doğalgaz,
+  Ulaştırma, Makine/metal, Gıda/içecek, Yazılım/BT, GYO, Sağlık...); grupta (kendisi dahil) <4 hisse varsa kıyas yok
+  ("karşılaştırılacak yeterli benzer hisse yok", 313 hisseden 10'u). Ana sektöre düşülmez.
+- Eskiyen önerilen alarm (`alEski`/`alGuncelle`, JS): notlu (önerilenden kurulmuş) alarmın aynı aile+yöndeki güncel önerisi
+  farklı seviyedeyse ya da yoksa '⚠ bu seviye artık güncel değil' + 'Güncelle' (güncel seviye zaten kuruluysa eskisi silinir).
+  Notsuz (elle) alarmlara dokunulmaz. Seviye değişince alarm anahtarı da değişir → yeni seviye için yeniden kurulmuş sayılır.

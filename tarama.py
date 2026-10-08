@@ -244,6 +244,150 @@ def endeks_kiyas(pf, by, seri):
     return {"n": n, "toplam_n": len(pf), "pf_yuzde": round(pfy, 1), "xu_yuzde": round(xuy, 1), "fark": round(pfy - xuy, 1)}
 
 
+# --- 🔎 Hareket açıklaması (pano.py 'hareket' JS fonksiyonuyla AYNI mantık ve eşikler; birini değiştirirsen ikisini de) ---
+# bt/hareket: BIST 100'den ayrışma 1/5/20 günde ≥ 4/10/20 puan → günlerin ~%12-13'ü; hacim ≥1,5x → ~%12,5'i.
+HR_ESIK = {1: 4, 5: 10, 20: 20}
+HR_HACIM = 1.5
+# Sektör kıyası: Yahoo endüstrileri çoğu hissede çok küçük (2-3 hisse); ana sektör ise çok geniş ('Sanayi' 77 hisse: holding,
+# havayolu, savunma...). Küçük ama benzer endüstriler bu ara gruplarda birleşir; grupta (kendisi dahil) en az KIYAS_MIN hisse
+# yoksa sektör kıyası yapılmaz ("yeterli benzer hisse yok"). Eşlemede olmayan endüstri kendi adıyla grup olur.
+KIYAS_MIN = 4
+KIYAS_GRUP = {
+    "Elektrik üretim": "Elektrik/doğalgaz", "Elektrik dağıtım": "Elektrik/doğalgaz", "Doğalgaz dağıtım": "Elektrik/doğalgaz",
+    "Finansman/faktoring": "Sigorta/finansman", "Sigorta": "Sigorta/finansman", "Hayat sigortası/emeklilik": "Sigorta/finansman",
+    "Gıda": "Gıda/içecek", "İçecek": "Gıda/içecek", "Şekerleme": "Gıda/içecek", "Farm Products": "Gıda/içecek",
+    "Perakende (market)": "Perakende", "Mağazacılık": "Perakende", "Giyim perakende": "Perakende", "Specialty Retail": "Perakende",
+    "Otomotiv bayi": "Perakende",
+    "Otomotiv": "Otomotiv", "Otomotiv yan sanayi": "Otomotiv",
+    "Tekstil": "Tekstil/giyim", "Apparel Manufacturing": "Tekstil/giyim",
+    "Turizm": "Turizm/yeme-içme", "Lodging": "Turizm/yeme-içme", "Restoran": "Turizm/yeme-içme",
+    "Beyaz eşya/mobilya": "Dayanıklı tüketim", "Tüketici elektroniği": "Dayanıklı tüketim",
+    "Denizcilik": "Ulaştırma", "Lojistik": "Ulaştırma", "Demiryolu": "Ulaştırma", "Havayolu": "Ulaştırma", "Havalimanı": "Ulaştırma",
+    "Traktör/iş makinesi": "Makine/metal", "Specialty Industrial Machinery": "Makine/metal", "Metal işleme": "Makine/metal",
+    "Specialty Business Services": "Ticari hizmet/kiralama", "Business Equipment & Supplies": "Ticari hizmet/kiralama",
+    "İnsan kaynakları hizmet": "Ticari hizmet/kiralama", "Industrial Distribution": "Ticari hizmet/kiralama",
+    "Rental & Leasing Services": "Ticari hizmet/kiralama",
+    "Madencilik": "Madencilik", "Altın madenciliği": "Madencilik", "Copper": "Madencilik",
+    "GYO": "GYO", "GYO (konut)": "GYO", "REIT - Industrial": "GYO", "REIT - Hotel & Motel": "GYO", "Real Estate - Diversified": "GYO",
+    "Gayrimenkul geliştirme": "Gayrimenkul geliştirme/hizmet", "Gayrimenkul hizmet": "Gayrimenkul geliştirme/hizmet",
+    "Yazılım": "Yazılım/BT", "BT hizmetleri": "Yazılım/BT",
+    "Telekom": "Medya/telekom", "Publishing": "Medya/telekom", "Broadcasting": "Medya/telekom", "Advertising Agencies": "Medya/telekom",
+    "Hastane": "Sağlık", "İlaç": "Sağlık", "Biotechnology": "Sağlık", "Medical Devices": "Sağlık",
+    "Health Information Services": "Sağlık", "Medical Distribution": "Sağlık",
+}
+
+
+def kiyas_gruplari(sonuclar):
+    """Her sonuca 'kg' (sektör kıyas grubu) yazar; grupta en az KIYAS_MIN hisse yoksa None. Pano da bunu kullanır."""
+    ad = {s["kod"]: (KIYAS_GRUP.get(s.get("endustri"), s.get("endustri")) or None) for s in sonuclar}
+    say = {}
+    for g in ad.values():
+        if g:
+            say[g] = say.get(g, 0) + 1
+    for s in sonuclar:
+        g = ad[s["kod"]]
+        s["kg"] = g if g and say[g] >= KIYAS_MIN else None
+
+
+def hareket_hepsi(sonuclar, seri):
+    """kod -> [{u, t0, r, xu, fark, sek, sn, hk, tavan, taban, tur, dikkat}, ...] (1/5/20 gün). Veri: panodaki grafik
+    serisi (spark) ve BIST 100 serisi — JS 'hareket' ile birebir aynı girdiler."""
+    idx = {}
+    for s in sonuclar:
+        sp = s.get("spark") or {}
+        idx[s["kod"]] = dict(zip(sp.get("t") or [], sp.get("c") or []))
+
+    def getiri(kod, t0, t1):
+        m = idx.get(kod) or {}
+        c0, c1 = m.get(t0), m.get(t1)
+        if c0 is None or c1 is None or not c0:
+            return None
+        return (c1 / c0 - 1) * 100
+
+    gruplar = {}
+    for s in sonuclar:
+        if s.get("kg"):
+            gruplar.setdefault(s["kg"], []).append(s["kod"])
+    out = {}
+    for s in sonuclar:
+        sp = s.get("spark") or {}
+        c, t = sp.get("c") or [], sp.get("t") or []
+        n = len(c)
+        if n < 2:
+            continue
+        kod, t1 = s["kod"], t[-1]
+        xu_tamam = bool(seri and seri.get("t") and seri["t"][-1] >= t1)
+        hv = s.get("hv") or [None, None, None]
+        liste = []
+        for j, u in enumerate((1, 5, 20)):
+            if n <= u:
+                continue
+            t0 = t[n - 1 - u]
+            r = getiri(kod, t0, t1)
+            if r is None:
+                continue
+            x0 = endeks_deger(seri, t0) if xu_tamam else None
+            x1 = endeks_deger(seri, t1) if xu_tamam else None
+            xu = (x1 / x0 - 1) * 100 if (x0 and x1) else None
+            top, sn = 0.0, 0
+            for k2 in gruplar.get(s.get("kg"), []):
+                if k2 == kod:
+                    continue
+                rr = getiri(k2, t0, t1)
+                if rr is not None:
+                    top += rr
+                    sn += 1
+            sek = top / sn if sn >= 2 else None
+            hk = hv[j] if j < len(hv) else None
+            tavan = taban = 0
+            for i in range(n - u, n):
+                if c[i] is None or c[i - 1] is None or not c[i - 1]:
+                    continue
+                ch = c[i] / c[i - 1] - 1
+                tavan += ch >= 0.095
+                taban += ch <= -0.095
+            T = HR_ESIK[u]
+            fark = None if xu is None else r - xu
+            if fark is None:
+                tur = "?"
+            elif abs(fark) < T:
+                tur = "piyasa"
+            elif sek is not None and abs(r - sek) < T / 2 and abs(sek - xu) >= T / 2 and (sek - xu) * fark > 0:
+                tur = "sektor"
+            else:
+                tur = "ozel"
+            dikkat = (fark is not None and abs(fark) >= T) or abs(r) >= T or (hk is not None and hk >= HR_HACIM)
+            liste.append({"u": u, "t0": t0, "r": r, "xu": xu, "fark": fark, "sek": sek, "sn": sn, "hk": hk,
+                          "tavan": tavan, "taban": taban, "tur": tur, "dikkat": bool(dikkat)})
+        out[kod] = liste
+    return out
+
+
+def ozel_dusus(hr):
+    """🔻 Hisseye özel hacimli düşüş (bilgi uyarısı, sinyal değil): 5 ya da 20 günde hem kendisi hem endeksten farkı ≤ −eşik
+    (10 / 20 puan), sektörü bunu açıklamıyor (tur 'ozel') ve hacim ≥1,5x. bt/hareket/olay2.py (299 hisse, 2021-26): sonraki 20
+    günde endeksi yenme %38 (tüm günler %46), çökenler hariç %39 / %45; düşük faiz 2022-09/2023-06'da fark yok (%46-48 / %47). Döner: en uzun ufuk {u, r, xu, hk} ya da None."""
+    bul = [x for x in (hr or []) if x["u"] in (5, 20) and x["tur"] == "ozel" and x["fark"] is not None
+           and x["fark"] <= -HR_ESIK[x["u"]] and x["r"] <= -HR_ESIK[x["u"]] and x["hk"] is not None and x["hk"] >= HR_HACIM]
+    if not bul:
+        return None
+    x = bul[-1]
+    return {"u": x["u"], "r": round(x["r"], 1), "xu": round(x["xu"], 1), "hk": x["hk"]}
+
+
+def hareket_satiri(hr):
+    """Akşam portföy özeti: bugün (1 gün) hisseye özel hareket — eşiği geçmiyorsa None."""
+    x = next((y for y in (hr or []) if y["u"] == 1), None)
+    if not x or not x["dikkat"] or x["tur"] != "ozel":
+        return None
+    m = f"{_yzd(x['r'])} (BIST 100 {_yzd(x['xu'])}"
+    if x["sek"] is not None:
+        m += f", benzer {x['sn']} hisse {_yzd(x['sek'])}"
+    if x["hk"] is not None and x["hk"] >= HR_HACIM:
+        m += f", hacim {x['hk']:.1f}x".replace(".", ",")
+    return m + ")"
+
+
 def arz_bilgisi(kod, df):
     """Son 12 ayın halka arzı ise: arz tarihi/fiyatı, arzdan beri getiri, taban serisi."""
     if kod not in HALKA_ARZ:
@@ -1053,6 +1197,10 @@ def portfoy_ozeti(sonuclar, pf, piyasa=None, endeks=None, sd_satir=None):
             notlar.append(f"📅 bilanço{ne} {tarih_tr(b['sonraki']['tarih'])} ({b['kalan_gun']} gün) — o gün fiyat sert oynayabilir")
         if s.get("bolunme") and (pd.Timestamp.now(tz="Europe/Istanbul").tz_localize(None) - pd.Timestamp(s["bolunme"])).days <= 30:
             notlar.append(f"✂️ {tarih_tr(s['bolunme'])} bedelsiz/bölünme görünüyor — maliyetini aracı kurumdaki yeni maliyetle güncelle")
+        od = s.get("od")
+        if od:
+            notlar.append(f"🔻 son {od['u']} günde hisseye özel hacimli düşüş ({_yzd(od['r'])}, BIST 100 {_yzd(od['xu'])}) — geçmişte "
+                          "bu durumdakilerin sonraki 20 günde ancak ~%38'i endeksi geçti (normalde ~%46; 2022-23 düşük faizde fark yoktu); kesin değil")
         tm = s.get("temettu")
         if tm and tm.get("ex_kalan") is not None and tm["ex_kalan"] <= 7:
             notlar.append(f"💰 temettü hak kullanım {tarih_tr(tm['ex_tarih'])} ({tm['ex_kalan']} gün) — o sabah fiyat temettü kadar düşük açılır, stop'a dikkat")
@@ -1090,6 +1238,10 @@ def portfoy_ozeti(sonuclar, pf, piyasa=None, endeks=None, sd_satir=None):
         if len(pf) >= 2 and dag[0][1] > YOGUNLASMA_ESIGI:
             metin = f"⚠️ Portföyünün <b>%{dag[0][1]:.0f}</b>'i tek sektörde ({dag[0][0]}) — o sektördeki bir haber hepsini birlikte etkiler.\n     " + metin
         parca.insert(2, "Dağılım: " + metin)
+    hs = [(kod, hareket_satiri(by[kod].get("hr"))) for kod in sorted(pf) if kod in by]
+    hs = [f"<b>{k}</b> {m}" for k, m in hs if m]
+    if hs:   # sadece eşiği geçenler (1 günde endeksten ≥4 puan ayrışan, sektörüyle açıklanmayan); yoksa satır yok
+        parca.insert(1, "🔎 <b>Bugün hisseye özel hareket</b>: " + " · ".join(hs))
     if sd_satir:
         parca.insert(1, "📍 <b>Bugün destek/direnç (kapanış)</b>\n" + "\n".join(sd_satir) + f"\n<i>{SD_NOT}</i>")
     if piyasa and piyasa.get("zayif"):
@@ -1221,6 +1373,11 @@ def main():
         s["guclu"] = bool(s["sinyal"] == "AL" and s.get("fk") and s.get("pddd")
                           and fk_med and pd_med and s["fk"] <= fk_med and s["pddd"] <= pd_med)
         s["yorum"] = yorum_uret(s, fk_med, pd_med)
+    kiyas_gruplari(sonuclar)                       # sektör kıyas grubu (pano da kullanır)
+    hr_hepsi = hareket_hepsi(sonuclar, endeks)     # 1/5/20 gün hareket açıklaması (pano JS 'hareket' ile aynı)
+    for s in sonuclar:
+        s["hr"] = hr_hepsi.get(s["kod"])
+        s["od"] = ozel_dusus(s["hr"])
 
     bugun_al = [s for s in sonuclar if s["sinyal"] == "AL"]
     simdi = pd.Timestamp.now(tz="Europe/Istanbul")

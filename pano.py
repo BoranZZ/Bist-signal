@@ -65,6 +65,11 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None, 
             sdrz += f' <span class="patlakb" title="{"; ".join(th["neden"])} — tahtacı şişirmesi olabilir">🎈 şişme</span>'
         elif th.get("seviye") == "dagitim":
             sdrz += f' <span class="gun1b" title="{th["neden"][0]}">⚠️ dağıtım</span>'
+        od = s.get("od")
+        if od:
+            sdrz += (f' <span class="gun1b" title="Son {od["u"]} günde {od["r"]:+.1f}% (BIST 100 {od["xu"]:+.1f}%), hacim ortalamanın '
+                     f'{od["hk"]} katı; benzer hisseler bu kadar düşmedi. Geçmişte bu durumdakilerin sonraki 20 günde ~%38&#39;i endeksi geçti '
+                     f'(normalde ~%46); 2022-23 düşük faizde fark yoktu. Bilgi, sinyal değil">🔻 özel düşüş</span>')
         if s.get("arz"):
             sdrz += ' <span class="arzb" title="Son 12 ayın halka arzı">ARZ</span>'
         tk = s.get("tk") or {}
@@ -134,7 +139,7 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None, 
             "al_stop": s.get("al_stop"), "al_tarih": s.get("al_tarih"), "hacim_kat": s.get("hacim_kat"),
             "hacim_teyit": bool(s.get("hacim_teyit")), "taban15": s.get("taban15"), "patlak": bool(s.get("patlak")), "tahta": s.get("tahta"), "tuzak": s.get("tuzak"),
             "arz": s.get("arz"), "sektor": s.get("sektor"), "endustri": s.get("endustri"), "mom20": s.get("mom20"), "uv": s.get("uv"), "bayrak": s.get("bayrak"), "bilanco": s.get("bilanco"), "temettu": s.get("temettu"), "kap": s.get("kap"), "tk": s.get("tk"), "guc": s.get("guc"), "momentum": bool(s.get("momentum")), "mom6": s.get("mom6"), "bolunme": s.get("bolunme"),
-            "hv": s.get("hv"),
+            "hv": s.get("hv"), "kg": s.get("kg"), "od": s.get("od"),
         }
 
     banner = ""
@@ -389,6 +394,7 @@ __ARZ__
 <div class="szgrup"><h3>Uyarılar (dikkat)</h3>
 <div class="sz"><span class="patlakb">🎈 şişme</span><span>Tahtacı şişirmesi olabilir: kısa sürede çok tavan / fiyat ikiye katlandı / aşırı şişkin ve oynak. 20 günde %25+ çakılma olasılığı normalin 7-8 katı. AL mesajı gönderilmez.</span></div>
 <div class="sz"><span class="gun1b">⚠️ dağıtım</span><span>Hacim patlarken fiyat 10 günlük zirvenin %8+ altında: büyük satıcı malı dağıtıyor olabilir (çakılma olasılığı ~4 kat).</span></div>
+<div class="sz"><span class="gun1b">🔻 özel düşüş</span><span>Son 5 ya da 20 günde endeksten belirgin fazla (10 / 20 puan) ve yüksek hacimle düştü; benzer hisseler bu kadar düşmedi. Geçmişte bu durumdakilerin sonraki 20 günde ~%38'i endeksi geçti (normalde ~%46); 2022-23 düşük faiz döneminde fark yoktu. Bilgi, sinyal değil.</span></div>
 <div class="sz"><span class="gun1b">🪤 tuzak riski</span><span>Dipteki hisse düşen trendi %4+ yükselişle kırdı. Grafikte "AL" gibi görünür ama tüm borsada bu kırılımların %56'sı 15 günde geri düştü; kırılımda almak rastgele günden kötüydü.</span></div>
 <div class="sz"><span class="patlakb">⚠ taban serisi</span><span>Son 15 günde 4+ kez ~%10 düştü (fon krizi tipi çöküş). AL mesajı gönderilmez.</span></div>
 <div class="sz"><span class="patlakb">⚡ oynak</span><span>Son 60 günde günlük oynaklık %5'ten fazla (spekülatif). v3 AL vermez.</span></div>
@@ -494,6 +500,7 @@ function bugunUyari(k,d,p){  // bir hisse için dikkat notları
  if(d.tahta&&d.tahta.seviye==='sisme')u.push('🎈 şişme');
  if(d.tahta&&d.tahta.seviye==='dagitim')u.push('⚠️ dağıtım');
  if(d.tuzak)u.push('🪤 tuzak riski');
+ if(p&&d.od)u.push('🔻 hisseye özel düşüş ('+d.od.u+' gün)');
  if(d.patlak)u.push('⚠ taban serisi');
  if(d.bilanco&&d.bilanco.kalan_gun!=null&&d.bilanco.kalan_gun>=0&&d.bilanco.kalan_gun<=7)u.push('📅 bilanço '+d.bilanco.kalan_gun+' gün sonra');
  if(d.temettu&&d.temettu.ex_kalan!=null&&d.temettu.ex_kalan<=7)u.push('💰 temettü '+d.temettu.ex_kalan+' gün sonra');
@@ -746,7 +753,8 @@ function arzHtml(d){
 // --- 💬 Sade anlat · 🔎 Neden yükseldi/düştü? · önerilen alarmlar — hepsi cihazda, panodaki veriden (yapay zekâ yok).
 // Eşikler (bt/hareket, 299 hisse 2021-26): BIST 100'den ayrışma 1/5/20 günde ≥ 4/10/20 puan → günlerin ~%12-13'ü;
 // hacim ortalamanın ≥ 1,5 katı → ~%12,5'i. Ayrışan günlerin ~%7-8'inde aynı sektör de aynı yönde gitmiş (sektörel).
-var HR_ESIK={1:4,5:10,20:20},HR_HACIM=1.5,HR_HACIM2=2.5;
+var HR_ESIK={1:4,5:10,20:20},HR_HACIM=1.5,HR_HACIM2=2.5;   // tarama.HR_ESIK / HR_HACIM ile aynı
+var OD_NOT='Geçmiş veride (2021-26, 299 hisse) bu durumdaki hisselerin sonraki 20 günde ancak ~%38\'i endeksi geçti (normalde ~%46); 2022-23 düşük faiz döneminde fark görülmedi. Kesin değil, bilgi.';
 function pyz(x){return (x>=0?'+':'−')+'%'+Math.abs(x).toFixed(1).replace('.',',');}
 function kat(x){return x.toFixed(1).replace('.',',');}
 function hEsc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
@@ -754,12 +762,8 @@ function spGetiri(sp,t0,t1){  // grafik verisinde t0 → t1 kapanış değişimi
  if(!sp||!sp.t||!sp.c)return null;var i0=sp.t.indexOf(t0),i1=sp.t.indexOf(t1);
  if(i0<0||i1<0||sp.c[i0]==null||sp.c[i1]==null||!sp.c[i0])return null;return (sp.c[i1]/sp.c[i0]-1)*100;}
 var _GRUP=null;
-function grupAd(d){  // sektör kıyası: endüstride en az 4 hisse varsa endüstri, yoksa ana sektör (en az 4)
- if(!_GRUP){_GRUP={e:{},s:{}};Object.keys(DATA).forEach(function(k){var x=DATA[k];
-  if(x.endustri)_GRUP.e[x.endustri]=(_GRUP.e[x.endustri]||0)+1;if(x.sektor)_GRUP.s[x.sektor]=(_GRUP.s[x.sektor]||0)+1;});}
- if(d.endustri&&_GRUP.e[d.endustri]>=4)return ['endustri',d.endustri];
- if(d.sektor&&_GRUP.s[d.sektor]>=4)return ['sektor',d.sektor];
- return null;}
+function grupAd(d){  // sektör kıyas grubu: tarama.kiyas_gruplari (benzer küçük endüstriler birleşik, en az 4 hisse) — yoksa kıyas yok
+ return d.kg?['kg',d.kg]:null;}
 function hareket(k,d){  // son 1/5/20 günlük hareketin bileşenleri: hisse, BIST 100, sektör, hacim, tavan/taban
  var sp=d.spark;if(!sp||!sp.c||sp.c.length<2)return null;
  var n=sp.c.length,t1=sp.t[n-1],g=grupAd(d),xuTamam=!!(XU&&XU.t&&XU.t[XU.t.length-1]>=t1),out={t1:t1,ufuk:[]};
@@ -768,7 +772,7 @@ function hareket(k,d){  // son 1/5/20 günlük hareketin bileşenleri: hisse, BI
   var x0=xuTamam?xuDeger(t0):null,x1=xuTamam?xuDeger(t1):null,xu=(x0&&x1)?(x1/x0-1)*100:null;
   var sek=null,sn=0,top=0;
   if(g)Object.keys(DATA).forEach(function(k2){if(k2===k)return;var y=DATA[k2];
-   if((g[0]==='endustri'?y.endustri:y.sektor)!==g[1])return;var rr=spGetiri(y.spark,t0,t1);if(rr==null)return;top+=rr;sn++;});
+   if(y.kg!==g[1])return;var rr=spGetiri(y.spark,t0,t1);if(rr==null)return;top+=rr;sn++;});
   if(sn>=2)sek=top/sn;
   var hk=(d.hv&&d.hv[j]!=null)?d.hv[j]:null,tavan=0,taban=0;
   for(var i=n-u;i<n;i++){if(sp.c[i]==null||sp.c[i-1]==null)continue;var ch=sp.c[i]/sp.c[i-1]-1;if(ch>=0.095)tavan++;if(ch<=-0.095)taban++;}
@@ -791,8 +795,8 @@ function nedenHtml(k,d){
   var T=HR_ESIK[x.u],gad=x.grup?hEsc(x.grup[1]):'',s='<b>'+(x.u===1?'Son gün':'Son '+x.u+' gün')+': '+pyz(x.r)+'</b>'+(x.u===1&&x.tavan?' (tavan)':'')+(x.u===1&&x.taban?' (taban)':'');
   if(x.xu!=null)s+=' · BIST 100 '+pyz(x.xu);
   if(x.tur==='piyasa')s+=Math.abs(x.r)>=T?' → <b>piyasayla birlikte</b> (endeks de benzer hareket etti).':' → endeksle uyumlu.';
-  else if(x.tur==='sektor')s+=' → <b>sektörel</b>: aynı sektördeki '+x.sn+' hissenin ('+gad+') ortalaması '+pyz(x.sek)+'.';
-  else if(x.tur==='ozel')s+=' → <b>hisseye özel</b>: endeksten '+Math.abs(x.fark).toFixed(0)+' puan '+(x.fark>0?'daha iyi':'daha kötü')+(x.sek!=null?'; sektörü ('+gad+', '+x.sn+' hisse) '+pyz(x.sek):'')+'.';
+  else if(x.tur==='sektor')s+=' → <b>sektörel</b>: benzer '+x.sn+' hissenin ('+gad+') ortalaması '+pyz(x.sek)+'.';
+  else if(x.tur==='ozel')s+=' → <b>hisseye özel</b>: endeksten '+Math.abs(x.fark).toFixed(0)+' puan '+(x.fark>0?'daha iyi':'daha kötü')+(x.sek!=null?'; benzer hisseler ('+gad+', '+x.sn+' hisse) '+pyz(x.sek):'; karşılaştırılacak yeterli benzer hisse yok')+'.';
   if(x.hk!=null&&x.hk>=HR_HACIM)s+=' Hacim '+(x.u===1?'önceki 20 günün':'önceki 60 günün')+' ortalamasının <b>'+kat(x.hk)+' katı</b>'+(x.hk>=HR_HACIM2?' (çok yüksek)':'')+'.';
   else if(x.u>1&&x.hk!=null&&x.hk<0.7&&Math.abs(x.r)>=T)s+=' Hacim ortalamanın altında (ilgi sınırlı).';
   sat.push(s);
@@ -822,7 +826,8 @@ function nedenHtml(k,d){
  if(sakin.length)x+='<div class="ns sgun">'+sakin.join(', ').replace(/^s/,'S')+': endeksle uyumlu, dikkat çekici değil.</div>';
  if(ek.length)x+='<div class="ns" style="margin-top:6px"><b>Aynı dönemde:</b></div>'+ek.map(function(s){return '<div class="ns">• '+s+'</div>';}).join('');
  var ozelH=h.ufuk.some(function(u){return u.dikkat&&u.tur==='ozel'&&u.r>0&&u.hk!=null&&u.hk>=HR_HACIM;});
- return x+'<div class="pk sgun">Bu kutu aynı dönemde olanları yan yana koyar; hareketin sebebini bilemez.'+(ozelH?' Geçmiş veride (2021-26, 299 hisse) hisseye özel, hacimli yükselişlerden sonraki 20 gün, rastgele bir günden belirgin farklı gitmedi — tek başına alım/satım işareti değildir.':'')+'</div></div>';
+ return x+'<div class="pk sgun">Bu kutu aynı dönemde olanları yan yana koyar; hareketin sebebini bilemez.'+(ozelH?' Geçmiş veride (2021-26, 299 hisse) hisseye özel, hacimli yükselişlerden sonraki 20 gün, rastgele bir günden belirgin farklı gitmedi — tek başına alım/satım işareti değildir.':'')+
+  (d.od?' 🔻 Hisseye özel hacimli düşüş: '+OD_NOT:'')+'</div></div>';
 }
 function pfBirlesik(k){  // portföyde aynı hisse birden çok satırsa toplam adet + ağırlıklı maliyet
  var p=pfOku().filter(function(x){return x.kod===k;});if(!p.length)return null;
@@ -875,6 +880,7 @@ function sadeHtml(k,d){
  else if(d.patlak)uy='⚠ <b>En önemli uyarı — taban serisi:</b> son 15 günde '+d.taban15+' kez ~%10 düştü (çöküş tipi hareket).';
  else if(th.seviye==='dagitim')uy='⚠️ <b>En önemli uyarı — dağıtım işareti:</b> hacim artarken fiyat son zirvesinden geriliyor; büyük satıcı elindekini satıyor olabilir.';
  else if(d.tuzak)uy='🪤 <b>En önemli uyarı — tuzak riski:</b> dipteki hisse düşen trendi yukarı kırdı; geçmişte bu kırılımların yarısından fazlası 15 günde geri düştü.';
+ else if(d.od)uy='🔻 <b>En önemli uyarı — hisseye özel hacimli düşüş:</b> son '+d.od.u+' günde '+pyz(d.od.r)+' (BIST 100 '+pyz(d.od.xu)+', hacim ortalamanın '+kat(d.od.hk)+' katı), benzer hisseler bu kadar düşmedi. '+OD_NOT;
  else if(b.kalan_gun!=null&&b.kalan_gun>=0&&b.kalan_gun<=7)uy='📅 <b>'+(b.kalan_gun?b.kalan_gun+' gün sonra':'Bugün')+' bilanço</b> açıklanabilir: o gün fiyat sert oynayabilir.';
  else if(tm.ex_kalan!=null&&tm.ex_kalan>=0&&tm.ex_kalan<=7)uy='💰 <b>'+(tm.ex_kalan?tm.ex_kalan+' gün sonra':'Bugün')+' temettü hak kullanımı:</b> o sabah fiyat temettü kadar düşük açılır (kayıp değil, ödeme).';
  else if(d.bolunme&&(Date.now()-new Date(d.bolunme).getTime())<30*864e5)uy='✂️ <b>'+d.bolunme+' günü bedelsiz/bölünme</b> oldu: grafik düzeltildi'+(p?'; maliyetini aracı kurumdaki yeni maliyetle güncelle.':'.');
@@ -893,6 +899,18 @@ function alOneriler(k,d){  // önerilen alarmlar: portföydeyse iz stop / karar 
  if(t.sablon&&t.durum!=='AL'&&t.kirilim_seviye&&t.kirilim_seviye>f)o.push({yon:'ust',fiyat:t.kirilim_seviye,not:'kırılım (🚀 AL) seviyesi'});
  return o.filter(function(x,i){return o.findIndex(function(y){return y.yon===x.yon&&Math.abs(y.fiyat-x.fiyat)<0.005;})===i;});
 }
+function alAile(n){n=String(n||'');return /^destek/.test(n)?'destek':(/stop$/.test(n)?'stop':n);}
+var AL_NOTLAR=['destek','direnç','stop','karar çizgisi','kırılım (🚀 AL) seviyesi'];   // önerilen alarm aileleri
+function alEski(k,d,x){  // sadece önerilenden kurulmuş (notlu) alarm: aynı aile + yönde güncel öneri farklı seviyedeyse / yoksa eskimiş
+ var ai=alAile(x.not);if(!x.not||AL_NOTLAR.indexOf(ai)<0)return null;
+ var o=alOneriler(k,d).filter(function(y){return alAile(y.not)===ai&&y.yon===x.yon;})[0];
+ if(o&&Math.abs(o.fiyat-x.fiyat)<0.005)return null;
+ return {yeni:o||null};}
+function alGuncelle(k,i){  // eskimiş alarmı güncel seviyeye taşı (güncel seviye zaten kuruluysa eskisi silinir)
+ var d=DATA[k],a=alOku(),x=a[i];if(!d||!x)return;var e=alEski(k,d,x);if(!e||!e.yeni)return;
+ if(a.some(function(y,j){return j!==i&&y.kod===k&&y.yon===e.yeni.yon&&Math.abs(y.fiyat-e.yeni.fiyat)<0.005;}))a.splice(i,1);
+ else a[i]={kod:k,yon:e.yeni.yon,fiyat:e.yeni.fiyat,not:e.yeni.not};
+ alYaz(a);ac(k);}
 function alVar(k,yon,f){return alOku().some(function(x){return x.kod===k&&x.yon===yon&&Math.abs(x.fiyat-f)<0.005;});}
 function alOneriKur(k,i){  // i: öneri sırası; 'hepsi' → kurulmamış tüm öneriler (aynı seviyeye ikinci alarm kurulmaz)
  var d=DATA[k];if(!d)return;var o=alOneriler(k,d),a=alOku();
@@ -1054,8 +1072,11 @@ function alBulutOku(){
 }
 function alarmHtml(k,d){
  var liste='';alOku().forEach(function(x,i){if(x.kod!==k)return;
+  var es=alEski(k,d,x);
   liste+='<div class="alsat">🔔 '+(x.yon==='ust'?'<b>'+x.fiyat+' TL</b> üstüne çıkınca':'<b>'+x.fiyat+' TL</b> altına inince')+(x.not?' <span class="sgun">('+hEsc(x.not)+')</span>':'')+
-   ' <button class="pfsil" title="Sil" onclick="alSil('+i+',\''+k+'\')">✕</button></div>';});
+   ' <button class="pfsil" title="Sil" onclick="alSil('+i+',\''+k+'\')">✕</button>'+
+   (es?' <span class="pfuy">⚠ bu seviye artık güncel değil'+(es.yeni?' (güncel '+hEsc(es.yeni.not)+': '+es.yeni.fiyat+' TL)':'')+'</span>'+
+     (es.yeni?' <button class="pfipt alkur" onclick="alGuncelle(\''+k+'\','+i+')">Güncelle</button>':''):'')+'</div>';});
  var on=alOneriler(k,d),oh='',kur=0;
  on.forEach(function(x,i){var kurulu=alVar(k,x.yon,x.fiyat);if(!kurulu)kur++;
   oh+='<div class="alsat"><span>'+(x.yon==='ust'?'⬆️':'⬇️')+' <b>'+x.not.charAt(0).toLocaleUpperCase('tr')+x.not.slice(1)+' '+x.fiyat+' TL</b> '+(x.yon==='ust'?'üstüne çıkınca':'altına inince')+' <span class="sgun">('+pyz((x.fiyat/d.fiyat-1)*100)+')</span></span>'+
