@@ -2,11 +2,9 @@
   "al": [
     "AHGAZ",
     "AKFIS",
-    "CELHA",
     "ENERY",
     "HRKET",
     "LOGO",
-    "RTALB",
     "TKFEN"
   ],
   "son": {
@@ -597,7 +595,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1675729,
+  "kap_son": 1675758,
   "tk_gonderilen": {
     "tarih": "2026-10-08",
     "kodlar": []
