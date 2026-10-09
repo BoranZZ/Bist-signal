@@ -876,6 +876,54 @@ def uzama_metni(u):
     return "⚠️ Çok yükselmiş hisse (" + ", ".join(ne) + "): " + UZAMA_NOT
 
 
+# 📏 Sıkı çizgi (sinyal.siki_cizgi; scratchpad cikis/c12, 2022-09…2026-10, aşırı uzamış 306 v3 pozisyonunda ilk kijun-altı kapanıştan
+# sonraki 20 gün: %5'inde 4+ taban, %11'inde %25+ düşüş, %20'sinde %25+ yükseliş). BİLGİ notu: v3 kuralı/iz stop değişmez.
+SIKI_NOT = ("Çok yükselmiş hissede bu seviyenin altında kapanış geçmişte bazen çöküşün habercisi oldu: benzer durumlarda sonraki "
+            "20 günde ~%5'inde taban serisi (4+ taban) geldi, ~%11'inde fiyat %25+ düştü; ama ~%20'sinde %25+ yükselmeye devam etti. "
+            "Kural değil, bilgi; asıl çıkış iz stop.")
+
+
+def _sayi_tr(x):
+    """4542.5 → '4.542,5' (en çok 2 ondalık; JS sayiTr ile aynı)."""
+    t = f"{abs(x):,.2f}".rstrip("0").rstrip(".")
+    return ("−" if x < 0 else "") + t.replace(",", "_").replace(".", ",").replace("_", ".")
+
+
+def _gun_ay(t):
+    """'2026-09-10' → '10.09'"""
+    return f"{t[8:10]}.{t[5:7]}"
+
+
+def siki_alt(sc):
+    """Kesinleşmiş kijun-altı kapanış tarihleri (son 5 işlem günü): kapanış kesin değilse bugünkü sayılmaz (JS scAlt ile aynı)."""
+    if not sc:
+        return []
+    a = list(sc.get("alt") or [])
+    if a and sc.get("bugun") and sc.get("kesin") is False:
+        a = a[:-1]
+    return a
+
+
+def siki_metni(sc):
+    """📏 Sıkı çizgi notu (hisse penceresi 🚀 kutusu; JS scMetin ile aynı)."""
+    if not sc:
+        return ""
+    sv = _sayi_tr(sc["s"]) + " TL"
+    a = siki_alt(sc)
+    simdi = bool(sc.get("bugun") and sc.get("kesin") is False)
+    if a:
+        m = f"📏 Sıkı çizginin altında kapandı ({', '.join(_gun_ay(x) for x in a)}). Sıkı çizgi şu an {sv} (kijun)."
+    else:
+        m = f"📏 Sıkı çizgi: {sv} (kijun)."
+    if simdi:
+        m += f" Fiyat şu an{' da' if a else ''} çizginin altında (gün içi; kapanışta kesinleşir)."
+    if sc.get("ilk") and sc["ilk"] not in a and not (simdi and sc["ilk"] == (sc.get("alt") or [None])[-1]):
+        m += f" Daha önce{' de' if (a or simdi) else ''} altında kapanmıştı (ilk kez {_gun_ay(sc['ilk'])})."
+    if sc.get("u"):
+        m += f" Hisse 🚀 girişinden sonra aşırı yükseldi (ilk kez {_gun_ay(sc['u'])}: 52 hafta dibinin 5+ katı ya da 6 ayda 3+ kat)."
+    return m + " " + SIKI_NOT
+
+
 def _sisme_ad(th, ad):
     """🎈 tetiklendi ama 20 günde hâlâ eksi: çöküş sonrası tepki tavanları — 'şişme' yanıltıcı (panodaki thDalga ile aynı)."""
     if (th.get("yuk20") or 0) < 0:
@@ -1281,6 +1329,11 @@ def portfoy_ozeti(sonuclar, pf, piyasa=None, endeks=None, sd_satir=None):
             notlar.append(f"⚠️ taban serisi ({s['taban15']} kez/15 gün)")
         if s.get("kt"):
             notlar.insert(0, kilit_metni(s["kt"]))
+        sc = (s.get("tk") or {}).get("sc") if (s.get("tk") or {}).get("durum") == "AL" else None
+        if siki_alt(sc):   # 📏 aşırı uzamış 🚀 pozisyonunda son 5 günde sıkı çizgi (kijun) altında kapanış — bilgi
+            notlar.append(f"📏 sıkı çizginin altında kapandı ({', '.join(_gun_ay(x) for x in siki_alt(sc))}; çizgi {_sayi_tr(sc['s'])} TL, kijun) — "
+                          "çok yükselmiş hissede geçmişte bazen çöküş habercisi oldu (20 günde ~%5 taban serisi, ~%11 %25+ düşüş), "
+                          "ama ~%20'sinde %25+ yükseliş sürdü; kural değil, asıl çıkış iz stop")
         th = s.get("tahta") or {}
         if th.get("seviye") == "sisme":
             notlar.append(_sisme_ad(th, "şişme riski") + ", ".join(th["neden"]) + " — geçmişte bu durumdakilerin ~%15-19'u 20 günde %25+ çakıldı; iz stop'u sıkı takip et")
@@ -1463,6 +1516,8 @@ def main():
             a["arz"] = arz
             if a.get("kt"):
                 a["kt"]["kesin"] = _bk
+            if (a.get("tk") or {}).get("sc"):
+                a["tk"]["sc"]["kesin"] = _bk   # 📏 bugünkü kijun-altı fiyat kapanışta mı (seans içinde 'şu an altında')
             if (a.get("tk") or {}).get("bugun") and not _bk:
                 a["tk"]["gk"] = gk_oran(_sim)   # kesin kapanıştan önce görünen 🚀: o saatte kapanışta tutma oranı
             o = oranlar.get(kod, [None, None, None])

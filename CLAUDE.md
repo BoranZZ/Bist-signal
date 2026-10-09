@@ -227,6 +227,32 @@ sinyal, filtre, etiket ya da çıkış olarak eklenmeye değmez.** Kullanıcı f
 - Not (değiştirilmedi): canlı karne kaydı (`gecmis_guncelle`) sadece taban serisini dışlar; Telegram AL ise 🎈 şişme ve 🔒'yi de
   dışlar → karne, mesajı gitmeyen birkaç 🎈 girişini de sayabilir (v3 girişlerinin ~1/417'si 🎈'li günde).
 
+## 📏 Sıkı çizgi · uyarlamalı çıkış araştırması (2026-10-09, scratchpad `cikis/`; kullanıcı onayıyla sadece BİLGİ notu)
+- Soru: paralı bir indikatör OZATD'den (27.08 🚀, 16.09'dan taban serisi, iz stop çıkışı kilitli tabanda −%81) erken çıkardı mı? **Tek örnekten
+  kural çıkarılmaz** — 587 hisse 2022-09…2026-10, sepet + 10 yuva, iki faiz dönemi, çökenler dahil/hariç, 200 rastgele yarım liste ile test edildi.
+- Düz çıkış araçları (c13, ~60 araç: SuperTrend, PSAR, chandelier, kijun, EMA/SMA, Donchian, Heikin-Ashi, RSI uyumsuzluğu, sıkı iz %8-15, zaman...):
+  **30'u OZATD'yi kurtarıyor ama bu 30'un hiçbiri genel testte v3'ü (iz %20) sepet hücrelerinin 3/4'ünde bile geçmiyor** (erken çıkış büyük
+  kazananları kesiyor; genelde iyi olan keltner_alt OZATD'yi kurtarmıyor).
+- Uyarlamalı (sadece aşırı uzamış pozisyonda sıkı araç, c5/c6): en sağlamı uzama/hic/kijun sepette çoğu hücrede biraz önde, ama canlı listenin
+  10 yuvasında yüksek faiz/çökenler hariç geride (+%178 vs +%213), 2026 çökenler hariç −%11 vs −%8; en büyük kazananları kesiyor
+  (RAYSG +%2.132 → +%122, KTLEV +%1.734 → +%324); kijun-altı ilk kapanıştan sonra (c12, 306 olay) 20 günde %5'inde 4+ taban, %11'inde %25+ düşüş ama %20'sinde %25+ yükseliş, 60 gün sonra %41'i satış fiyatının üstünde.
+  → **Canlı kural YAPILMADI** (v3 AL/SAT, iz stop, backtest değişmedi); kullanıcı onayıyla bilgi notu.
+- **`sinyal.siki_cizgi` → `tk.sc`** (sadece açık 🚀 pozisyonda, `trend_kirilimi` içinde; backtest/islemler/ham yolları etkilenmez): sinyal gününden
+  bugüne herhangi bir gün `asiri_uzama` (52h dibinin ≥5 katı ya da 6 ayda ≥3 kat; araştırmanın en sağlam ailesi 'uzama/hic' = girişten beri)
+  ise bugünkü **kijun** (26 günün en yüksek + en düşük ortası, bugün dahil) = `s`; `alt` = son 5 işlem gününde kijun altı kapanışlar, `ilk` =
+  pozisyondaki ilk kijun-altı kapanış (araştırmanın çıkış günü), `u` = uzama sinyal gününden sonra başladıysa ilk günü, `bugun`; tarama `kesin`
+  ekler (seans içinde bugünkü 'altında' kesin sayılmaz: 'şu an altında, kapanışta kesinleşir'). Grafik için `spark.sc` = [başlangıç sırası, değerler].
+- **Neden kijun (chandelier 3 ATR değil):** 200 rastgele yarım listede uzama/hic/kijun v3'ü 100/86/95/82 (düşük dahil/hariç, yüksek dahil/hariç),
+  chand3 100/94/87/62 — yüksek faiz çökenler hariç hücrede kijun daha sağlam; c12'de daha az yanlış alarm (306 vs 399 tetik; %25+ yükselişi
+  kaçırma %20 vs %25). İkisinden yüksek olanı seçmek (karışık tanım) test edilmedi ve c12 oranlarını geçersiz kılar. OZATD'de ikisi de 10.09.
+- Doğrulama: canlı `ilk` ↔ araştırma motoru (`cikis/ortak_c.cikis_bul`, uzama/hic/kijun) 2.031 v3 işleminde 0 fark (421'inde çizgi gösterilir,
+  369'unda iz stop'tan önce altında kapanış). OZATD 10.09 kapanış 4.450 < kijun 4.542,5 → 'altında kapandı (10.09)'. KTLEV: iz stop'tan (02.09) önce
+  altına inmedi (araştırmayla aynı). Bilinen küçük fark: araştırma 52h dibini ≥120 günle de alıyordu, canlı `asiri_uzama` 250 gün ister.
+- Pano: 🚀 kutusunda aşırı uzama notunun yanında (`scMetin`), grafikte ince pembe kesikli çizgi (#D6336C; iz stop mor), fare bilgisinde 'Sıkı çizgi',
+  sözlük + 'Grafik nasıl okunur?'. Portföyde: 'Bugün ne var?' (`bugunUyari`, son 5 günde altında kapanış) ve akşam portföy özeti notu (özet zaten günde
+  bir kez, kesin kapanıştan sonra; durum.json'a anahtar YOK). AL mesajına eklenmedi. Metin Python `tarama.siki_metni`/`siki_alt`/`_sayi_tr` =
+  JS `scMetin`/`scAlt`/`sayiTr` (3.094/3.094). Sayılar c12'den (`SIKI_NOT`); değişirse ikisini birlikte güncelle.
+
 ## 📅 Vadeler · ⏱️ gün içi görünüm · 🚀 gün içi kırılım notu (2026-10, hepsi BİLGİ — scratchpad vade_uzun, vade_gunici, vade_impl)
 - **Vadeler (`sinyal.vade_durum` → `vd` = [günlük, haftalık, aylık], +1/0/−1/None):** Günlük ↑ = kapanış > SMA50 ve SMA50 10 gün
   öncesinden yüksek, ↓ = altında ve yükselmiyor; Haftalık (Weinstein) = son TAMAMLANMIŞ haftanın (W-FRI) kapanışı > 30 haftalık ort.

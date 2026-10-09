@@ -28,6 +28,9 @@ TABAN_GETIRI, TABAN_GUN, PATLAK_TABAN = -0.09, 15, 4
 KILIT_ARALIK, KILIT_XU, KILIT_ONCE = 0.0015, -0.04, 10
 # Aşırı uzamış 🚀 girişi (bilgi notu, filtre DEĞİL): sinyal günü fiyat 52h dibinin ≥5 katı ya da 6 ayda (126 gün) ≥3 kat
 UZAMA_DIPKAT, UZAMA_R6 = 5.0, 2.0
+# 📏 Sıkı çizgi (BİLGİ notu, kural DEĞİL — scratchpad cikis 2026-10-09): açık 🚀 pozisyonda hisse sinyal gününden beri aşırı
+# uzadıysa Ichimoku kijun'u (26 günün en yüksek + en düşük fiyatının ortası); 'altında kapandı' notu son 5 işlem gününe bakar.
+SIKI_KIJUN, SIKI_SON = 26, 5
 # v2 (gece testleri, 2026-09): çıkış = AL'den sonraki en yüksek kapanışın %20 altı (iz stop). Sınırsız sepet
 # simülasyonunda stop+SAT2'ye göre düşük faizde +%9 -> +%67, 2023'te -%6 -> +%45; %18/%22 komşuları tutarlı.
 # Giriş filtresi: trend (fiyat>SMA200 ve SMA200 yükseliyor) + aşırı oynak değil (60 günlük günlük oynaklık ≤ %5).
@@ -296,7 +299,7 @@ def destek_direnc(df):
             "min_test": SD_MIN_TEST, "tepki": bool(tepki), "yaklas": bool(yaklas)}
 
 
-def _spark(d, n=130, tk_ham=None):
+def _spark(d, n=130, tk_ham=None, sc=None):
     """Grafik verisi: son n gün (~6 ay) kapanış, ortalamalar, SuperTrend, gösterge sinyali (A/S/N, fare bilgisi) ve 🚀 v3
     işlemleri: "tk" dizisi (G = kırılım/AL günü, C = iz stop çıkışı, . = yok) + "iz" (pozisyon açıkken iz stop seviyesi)."""
     t = d.tail(n)
@@ -347,6 +350,14 @@ def _spark(d, n=130, tk_ham=None):
             parca.append([i, iz[i:j]]); i = j
         if parca:
             out["iz"] = parca
+    if sc and "_j0" in sc:   # 📏 sıkı çizgi (kijun) — uzamadan/girişten bugüne, grafik penceresi içindeki kısım: [başlangıç sırası, [değerler]]
+        j0 = sc.pop("_j0")
+        bas = len(d) - len(t)
+        kj = kijun(d).values
+        k0 = max(j0, bas)
+        vals = [None if not kj[j] == kj[j] else round(float(kj[j]), 2) for j in range(k0, len(d))]
+        if vals:
+            out["sc"] = [k0 - bas, vals]
     return out
 
 
@@ -472,6 +483,9 @@ def trend_kirilimi(d, xu_ust=None, islemler=False, ham=False):
         uz = asiri_uzama(c, acik["i"])   # sinyal günü ölçülür (bilgi notu; sadece varsa yazılır)
         if uz:
             out["uzama"] = uz
+        sc = siki_cizgi(d, acik["i"])     # 📏 sinyal gününden beri aşırı uzadıysa (bilgi notu; sadece varsa yazılır)
+        if sc:
+            out["sc"] = sc
         out.update({"durum": "AL", "giris_tarih": str(idx[acik["i"]].date()), "giris_fiyat": round(acik["giris"], 2),
                     "gun": n - 1 - acik["i"], "degisim": round((fiyat / acik["giris"] - 1) * 100, 1),
                     "tepe": round(acik["tepe"], 2), "tepe_tarih": str(idx[acik["tepe_i"]].date()),
@@ -578,6 +592,40 @@ def asiri_uzama(c, i):
     if dipkat >= UZAMA_DIPKAT or (r6 is not None and r6 >= UZAMA_R6):
         return {"dipkat": round(dipkat, 1), "r6": round(r6 * 100) if r6 is not None else None}
     return None
+
+
+def kijun(d, n=SIKI_KIJUN):
+    """Ichimoku kijun-sen: son n günün (bugün dahil) en yüksek ve en düşük fiyatının ortası."""
+    return (d["High"].rolling(n).max() + d["Low"].rolling(n).min()) / 2
+
+
+def siki_cizgi(d, i):
+    """📏 Sıkı çizgi (BİLGİ notu; v3 AL/SAT kuralı, iz stop ve backtest DEĞİŞMEZ). i = açık 🚀 pozisyonun sinyal günü.
+    Hisse sinyal gününden bugüne herhangi bir gün aşırı uzamışsa (asiri_uzama: 52h dibinin ≥5 katı ya da 6 ayda ≥3 kat) bugünkü
+    kijun seviyesi + girişten (ertesi gün) ve uzamadan beri kijun altında kapanılan günler. Araştırmanın 'uzama/hic/kijun'
+    çıkışıyla aynı tetik (scratchpad cikis/ortak_c.py: kapanış < kijun, uzama 'girişten beri' modu). Değilse None.
+    Döner: {"s": bugünkü kijun, "u": uzama sinyal gününden SONRA başladıysa ilk günü (yoksa yok), "alt": son SIKI_SON işlem
+    gününde kijun altı kapanış tarihleri (eskiden yeniye), "ilk": pozisyondaki ilk kijun altı kapanış (araştırmadaki çıkış günü),
+    "bugun": son bar kijun altında, "_j0": çizginin başladığı gün sırası (grafik için; analiz_et çıkarır)}."""
+    if not _hl_var(d) or i is None:
+        return None
+    cv, n = d["Close"].values, len(d)
+    bas = next((k for k in range(i, n) if asiri_uzama(cv, k)), None)
+    if bas is None:
+        return None
+    kj = kijun(d).values
+    if not kj[-1] == kj[-1]:
+        return None
+    j0 = max(i + 1, bas)
+    altlar = [j for j in range(j0, n) if kj[j] == kj[j] and cv[j] < kj[j]]
+    idx = d.index
+    out = {"s": round(float(kj[-1]), 2),
+           "alt": [str(idx[j].date()) for j in altlar if j >= n - SIKI_SON],
+           "ilk": str(idx[altlar[0]].date()) if altlar else None,
+           "bugun": bool(altlar and altlar[-1] == n - 1), "_j0": int(min(j0, n - 1))}
+    if bas > i:
+        out["u"] = str(idx[bas].date())
+    return out
 
 
 def tahta_riski(d):
@@ -891,5 +939,5 @@ def analiz_et(df, xu_ust=None, xu=None, bar_kesin=True, bugun=None):
         "sinyal_degisim": sinyal_degisim,
         "yeni": bool(yeni),
         "tkg": tk_gecmis(d, tk_ham),
-        "spark": _spark(d, tk_ham=tk_ham),
+        "spark": _spark(d, tk_ham=tk_ham, sc=tk.get("sc")),
     }
