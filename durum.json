@@ -1,6 +1,7 @@
 {
   "al": [
     "AHGAZ",
+    "AKCNS",
     "AKFIS",
     "CELHA",
     "ENERY",
@@ -10,7 +11,6 @@
     "INDES",
     "ISDMR",
     "LMKDC",
-    "METRO",
     "ORGE",
     "OTKAR",
     "RYGYO",
@@ -26,7 +26,7 @@
     "AGROT": "SAT",
     "AHGAZ": "AL",
     "AKBNK": "SAT",
-    "AKCNS": "SAT",
+    "AKCNS": "AL",
     "AKENR": "SAT",
     "AKFIS": "AL",
     "AKFYE": "SAT",
@@ -337,27 +337,11 @@
     "ed52d36b8529c244",
     "fc9a269fa7f1b36a"
   ],
-  "ozet_tarih": "2026-10-08",
-  "hafta_tarih": "2026-10-02",
+  "ozet_tarih": "2026-10-09",
+  "hafta_tarih": "2026-10-09",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {
-    "LMKDC": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-10-09"
-    },
-    "OTKAR": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-10-09"
-    },
-    "YKBNK": {
-      "sinyal": "SAT",
-      "onceki": "AL",
-      "tarih": "2026-10-09"
-    }
-  },
+  "on_sinyal": {},
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
@@ -369,7 +353,7 @@
     "AKCNS": "AL",
     "AKENR": "SAT",
     "AKFIS": "AL",
-    "AKFYE": "SAT",
+    "AKFYE": "AL",
     "AKGRT": "SAT",
     "AKSA": "SAT",
     "AKSEN": "SAT",
@@ -541,7 +525,7 @@
     "MOBTL": "SAT",
     "MOGAN": "SAT",
     "MOPAS": "SAT",
-    "MPARK": "SAT",
+    "MPARK": "AL",
     "MRGYO": "SAT",
     "MRSHL": "SAT",
     "NTHOL": "SAT",
@@ -560,7 +544,7 @@
     "PCILT": "AL",
     "PEKGY": "SAT",
     "PENTA": "SAT",
-    "PETKM": "AL",
+    "PETKM": "SAT",
     "PGSUS": "SAT",
     "PKART": "SAT",
     "PRZMA": "SAT",
@@ -621,7 +605,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1678627,
+  "kap_son": 1678642,
   "tk_gonderilen": {
     "tarih": "2026-10-09",
     "kodlar": []
