@@ -30,8 +30,8 @@
       "giris_fiyat": 411.5,
       "stop": 329.2,
       "durum": "açık",
-      "guncel": 383.75,
-      "anlik": -6.7,
+      "guncel": 385.0,
+      "anlik": -6.4,
       "tepe": 411.5
     },
     {
@@ -40,7 +40,7 @@
       "giris_fiyat": 46.2,
       "stop": 38.06,
       "durum": "açık",
-      "guncel": 43.22,
+      "guncel": 43.18,
       "anlik": -6.5,
       "tepe": 47.58
     },
@@ -74,8 +74,8 @@
       "giris_fiyat": 44.34,
       "stop": 38.94,
       "durum": "açık",
-      "guncel": 48.4,
-      "anlik": 9.2,
+      "guncel": 48.46,
+      "anlik": 9.3,
       "tepe": 48.68
     },
     {
@@ -84,19 +84,19 @@
       "giris_fiyat": 13.36,
       "stop": 11.44,
       "durum": "açık",
-      "guncel": 14.28,
-      "anlik": 6.9,
+      "guncel": 14.26,
+      "anlik": 6.7,
       "tepe": 14.3
     },
     {
       "kod": "ISDMR",
       "giris_tarih": "2026-09-25",
       "giris_fiyat": 62.5,
-      "stop": 52.8,
+      "stop": 52.84,
       "durum": "açık",
-      "guncel": 66.0,
-      "anlik": 5.6,
-      "tepe": 66.0
+      "guncel": 66.05,
+      "anlik": 5.7,
+      "tepe": 66.05
     },
     {
       "kod": "SOKM",
@@ -114,8 +114,8 @@
       "giris_fiyat": 290.25,
       "stop": 232.2,
       "durum": "açık",
-      "guncel": 264.5,
-      "anlik": -8.9,
+      "guncel": 264.75,
+      "anlik": -8.8,
       "tepe": 290.25
     },
     {
@@ -124,7 +124,7 @@
       "giris_fiyat": 429.0,
       "stop": 343.2,
       "durum": "açık",
-      "guncel": 402.5,
+      "guncel": 402.25,
       "anlik": -6.2,
       "tepe": 429.0
     }
