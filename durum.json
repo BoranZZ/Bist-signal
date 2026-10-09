@@ -10,6 +10,7 @@
     "INDES",
     "ISDMR",
     "LOGO",
+    "METRO",
     "MIATK",
     "ORGE",
     "OTKAR",
@@ -604,7 +605,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1678425,
+  "kap_son": 1678466,
   "tk_gonderilen": {
     "tarih": "2026-10-09",
     "kodlar": []
