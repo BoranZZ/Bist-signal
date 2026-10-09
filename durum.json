@@ -8,9 +8,7 @@
     "HRKET",
     "HUNER",
     "INDES",
-    "ISDMR",
     "LMKDC",
-    "LOGO",
     "ORGE",
     "OTKAR",
     "RYGYO",
@@ -210,7 +208,7 @@
     "LIDER": "SAT",
     "LILAK": "SAT",
     "LINK": "SAT",
-    "LMKDC": "SAT",
+    "LMKDC": "AL",
     "LOGO": "AL",
     "LXGYO": "SAT",
     "LYDHO": "SAT",
@@ -241,7 +239,7 @@
     "ONRYT": "SAT",
     "ORGE": "AL",
     "ORZAX": "SAT",
-    "OTKAR": "SAT",
+    "OTKAR": "AL",
     "OYAKC": "SAT",
     "OZATD": "SAT",
     "OZSUB": "SAT",
@@ -326,7 +324,7 @@
     "VSNMD": "SAT",
     "YEOTK": "SAT",
     "YIGIT": "SAT",
-    "YKBNK": "AL",
+    "YKBNK": "SAT",
     "ZERGY": "SAT",
     "ZGYO": "SAT",
     "ZOREN": "SAT"
@@ -341,7 +339,23 @@
   "hafta_tarih": "2026-10-02",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {},
+  "on_sinyal": {
+    "LMKDC": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-10-09"
+    },
+    "OTKAR": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-10-09"
+    },
+    "YKBNK": {
+      "sinyal": "SAT",
+      "onceki": "AL",
+      "tarih": "2026-10-09"
+    }
+  },
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
