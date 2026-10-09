@@ -7,11 +7,12 @@
     "GMTAS",
     "HRKET",
     "INDES",
+    "ISDMR",
     "LOGO",
+    "METRO",
     "MIATK",
     "ORGE",
-    "OTKAR",
-    "TAVHL"
+    "OTKAR"
   ],
   "son": {
     "A1CAP": "SAT",
