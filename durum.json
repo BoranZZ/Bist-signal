@@ -1,7 +1,6 @@
 {
   "al": [
     "AHGAZ",
-    "AKCNS",
     "AKFIS",
     "CELHA",
     "ENERY",
@@ -11,6 +10,7 @@
     "INDES",
     "ISDMR",
     "LMKDC",
+    "LOGO",
     "ORGE",
     "OTKAR",
     "RYGYO",
@@ -605,7 +605,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1678567,
+  "kap_son": 1678573,
   "tk_gonderilen": {
     "tarih": "2026-10-09",
     "kodlar": []
