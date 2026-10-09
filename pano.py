@@ -323,7 +323,7 @@ td.vd{white-space:nowrap;font-size:12px}.vu,.va,.vy{font-style:normal;font-weigh
 .kart{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px 17px}
 .kart h3{margin:0 0 6px;font-size:13.5px}.kart p{margin:0;color:var(--muted);font-size:12.8px;line-height:1.55}
 .uyari{margin-top:28px;padding:13px 16px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--muted);font-size:12.2px;line-height:1.6}
-.glink{color:var(--accent);font-weight:600;text-decoration:none}.glink:hover{text-decoration:underline}
+.odabtn{display:inline-block;margin-left:10px;vertical-align:2px;font-size:12.5px;font-weight:650;color:#fff;background:#6D3FD8;border-radius:999px;padding:4px 11px;text-decoration:none}.odabtn:hover{background:#5A2FC0}.glink{color:var(--accent);font-weight:600;text-decoration:none}.glink:hover{text-decoration:underline}
 .pfbox{margin-top:18px}
 .pfbas{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:8px}
 .pfbas h2{margin:0;font-size:16px}.pftop{font-weight:650;font-size:14px}.pftop.pos{color:var(--pos)}.pftop.neg{color:var(--neg)}
@@ -367,7 +367,7 @@ table.pf{min-width:900px}
 @media(max-width:560px){.ozet .b{font-size:30px}}
 </style>
 </head><body><div class="wrap">
-<header><div><h1>BIST Sinyal Panosu</h1><div class="tarih">Son güncelleme: __TARIH__ · <a href="#" onclick="yenile();return false" title="Sayfanın en son halini getirir (önbelleği atlar)">↻ Yenile</a> · <a href="https://github.com/__REPO__/actions/workflows/tarama.yml" target="_blank" rel="noopener" title="GitHub'da 'Run workflow' ile taramayı hemen başlat; 3-5 dk sonra Yenile'ye bas">Taramayı şimdi başlat ↗</a></div></div>
+<header><div><h1>BIST Sinyal Panosu <a class="odabtn" href="oda.html" title="Sanal parayla kural robotları: panonun kurallarını 100.000 sanal TL ile deniyorlar (yatırım tavsiyesi değil)">🏢 İşlem Odası</a></h1><div class="tarih">Son güncelleme: __TARIH__ · <a href="#" onclick="yenile();return false" title="Sayfanın en son halini getirir (önbelleği atlar)">↻ Yenile</a> · <a href="https://github.com/__REPO__/actions/workflows/tarama.yml" target="_blank" rel="noopener" title="GitHub'da 'Run workflow' ile taramayı hemen başlat; 3-5 dk sonra Yenile'ye bas">Taramayı şimdi başlat ↗</a></div></div>
 <div class="ozet">
 <div><div class="b">__TKBUGUN__</div><div class="l">bugün 🚀 AL</div></div>
 <div><div class="b g">__TK5__</div><div class="l">son 5 günde 🚀 AL · __TOPLAM__ hisse taranıyor</div></div>

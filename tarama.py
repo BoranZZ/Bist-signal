@@ -13,6 +13,11 @@ from bilanco import bilancolari_al, bilanco_ozet, bilanco_metni, bilanco_yakin, 
 from sinyal import analiz_et, destek_direnc, bolunme_duzelt, tahta_riski, TABAN_GETIRI, TABAN_GUN, IZ_STOP_ORAN, KILIT_ARALIK
 from pano import pano_uret, gecmis_uret
 import gunici
+try:
+    import oda   # 🏢 İşlem Odası (sanal para); yoksa/bozuksa tarama etkilenmez
+except Exception as _e:
+    oda = None
+    print(f"İşlem odası yüklenemedi ({type(_e).__name__}).")
 
 # ================== AYARLAR ==================
 # BIST 100 bileşimi, 1 Ekim - 31 Aralık 2026 dönemi (Borsa İstanbul 3 ayda bir günceller)
@@ -1823,6 +1828,17 @@ def main():
         if tg_gonder(haftalik_ozet(sonuclar, pf, acik, kapali, simdi)):
             hafta_tarih = bugun_iso
             print("Haftalık özet gönderildi.")
+
+    # 🏢 İşlem Odası: sanal robotlar panonun bu taramadaki verisiyle (yeniden veri çekmeden) günde bir kez, kesin kapanıştan
+    # sonra karar verir; akşam tek Telegram skor özeti. Hata taramayı ASLA bozmaz.
+    if oda:
+        try:
+            _t0 = time.time()
+            _m = oda.canli_calistir(sonuclar, data, simdi, kapanis_zamani, tg_gonder, PANO_URL,
+                                    buyuk=set(BIST100) | set(EK_HISSELER))
+            print(f"İşlem odası: {_m} ({time.time() - _t0:.1f} sn).")
+        except Exception as e:
+            print(f"İşlem odası çalışmadı ({type(e).__name__}: {e}); tarama etkilenmedi.")
 
     with open(DURUM, "w", encoding="utf-8") as f:
         json.dump({"al": sorted(s["kod"] for s in bugun_al), "son": dict(sorted(son.items())),

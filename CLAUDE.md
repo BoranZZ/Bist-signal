@@ -434,3 +434,44 @@ sinyal, filtre, etiket ya da çıkış olarak eklenmeye değmez.** Kullanıcı f
 - Eskiyen önerilen alarm (`alEski`/`alGuncelle`, JS): notlu (önerilenden kurulmuş) alarmın aynı aile+yöndeki güncel önerisi
   farklı seviyedeyse ya da yoksa '⚠ bu seviye artık güncel değil' + 'Güncelle' (güncel seviye zaten kuruluysa eskisi silinir).
   Notsuz (elle) alarmlara dokunulmaz. Seviye değişince alarm anahtarı da değişir → yeni seviye için yeniden kurulmuş sayılır.
+
+## 🏢 İşlem Odası (2026-10-09, sanal para — `oda.py`, `oda_replay.py`, `oda.html`, `oda.json`, `oda_replay.json`)
+- Arkadaş önerisi 'Hızlı İşlem Odası': panonun kurallarını 100.000 **sanal** TL ile deneyen KURAL robotları (yapay zekâ yok;
+  sayfada '🧠 Yapay zekâ ekibi — yakında' boş bölüm). Pano başlığında '🏢 İşlem Odası' düğmesi → `oda.html` (ayrı sayfa; panonun
+  geri kalanı değişmedi). Yatırım tavsiyesi değil; kullanıcı portföyüyle ilgisi yok; `oda.json` herkese açık, portföy bilgisi YOK.
+- **Robotlar ve kurallar araştırmadan** (scratchpad `oda_arastirma/`: robotlar.py referans motoru birebir `oda.py`'ye alındı;
+  2022-10 → 2026-10, iki faiz dönemi; ana_tablo.txt, bekci_oneri.txt, pencere.txt, kayma_kilit.txt, baslangic.txt): 🚀 Kırılımcı (v3),
+  📏 Kırılımcı + sıkı çizgi, 👀 Erkenci (👀 ≤%3, %20 iz), 📈 Momentumcu (ayın ilk kararı, BIST 100 < SMA50 ise nakit), 🧲 Dip avcısı
+  (SMA200 üstünde destekten tepki; destek altı / direnç / 20 gün — 4 yılda ~1.300 işlem, −%40: 'çok işlem = komisyon erir' ders
+  robotu), 🌱 Uzun vadeci, ↩️ RSI dönüşçü (**TAHMİNİ**: arkadaşın AL kuralı, çıkış %20 iz varsayım), 🎲 Rastgele (o gün kaç 🚀 varsa o
+  kadar rastgele hisse, tarih tohumlu → tekrarlanabilir), 🧭 Endeksçi (BIST 100 al-tut). 10 yuva; 🛡️ Bekçi (`BEKCI`): alımda tek hisse
+  ≤%10, sonradan >%25 olanın fazlası satılır, günde −%5 → ertesi gün alım yok, zirveden −%25 → hepsini sat + 20 işlem günü dur
+  (araştırmada 4 yılda robot başına 0-2 kez; kâr aracı değil, emniyet kemeri). Motor notu: mola/durdurma bitince düşüş zirvesi o günün
+  kasasına sıfırlanır (araştırma kodu böyle; değiştirilmedi).
+- **Zamanlama/maliyet:** karar günde bir kez kesin kapanış taramasında (18:30+); emirler ERTESİ işlem gününün AÇILIŞ fiyatıyla, o
+  günün kesin kapanış taramasında yazılır (bütün günün mumu belli → 'gün boyu kilitli' kesin). Alış açılış + 1 fiyat adımı, satış −
+  1 adım, her yönde %0,2 komisyon, lot tam sayı (endeks kesirli), kilitli tabanda satış ertesi güne kalır, kilitli tavanda alım iptal.
+  Bedelsiz/bölünme gününde eldeki adet/fiyat düzeltilir (`bolunme_uygula`). Gün içi taramalar sadece `anlik` kasa değerini yazar.
+- **Canlı = tekrar oynatma:** ikisi de `oda.gun_isle` (emir_uygula + robot_karar). Canlıda gözlem `tarama.py`'nin `sonuclar`'ından
+  (`ozet_hazirla`; yeniden veri çekme yok; sadece bugün işlem görmüş hisseler; RSI 24-34 ve 📏 elindekiler için düzeltilmiş df'den
+  rsi değişimi/kijun/uzama). `tarama.py` çağrısı try/except'li (hata taramayı bozmaz; test edildi), süresi ~0,2 sn. `oda.json`: `v`,
+  `bas`, `son_tarih` (aynı gün ikinci kez işlenmez), `tg_tarih`, `xu`, `robot` {kasa: nakit, poz, bekleyen, defter (tümü), seri},
+  `olay` (son 300), `anlik`. Başlangıç 09.10.2026 (ilk akşam sessiz; ilk alımlar 12.10 açılışında). `defter`/`seri` büyür (~yılda 100-150 KB).
+- **Telegram:** kesin kapanıştan sonra günde TEK skor mesajı (`ozet_mesaji`: sıra, getiri + BIST 100 farkı + en büyük düşüş + alım,
+  Bekçi olayları, ilk 6 ay 'sıralama büyük ölçüde şans' notu); ilk gün yok, gönderilemezse sonraki taramada tekrar.
+- **`oda_replay.py`** (elle, ayda bir; Actions'ta ÇALIŞMAZ; ~1 dk): araştırmanın hazirla+sim+replay'i; 5 yıl indirir, son 250 işlem
+  günü + dürüstlük ölçüleri: 🎲 şans bandı (Rastgele 200 zar, %5/%50/%95), robot başına 'ikiz' şans yüzdeliği (her alım aynı gün
+  rastgele hisseyle, 200 deneme; ≥95 'şansla açıklanması zor', 50-95 'üst yarıda ama şans olabilir', <50 'rastgele seçimden iyi
+  değil'), 'aynı kural 4 yılda' (2022-10-10 →). Doğrulama: araştırmanın verisiyle (sg/veri5y.pkl) çıktısı araştırmanın
+  oda_replay.json'u ile 9 robotta işlem işlem ve kuruşu kuruşuna aynı; canlı yol (tüm robotlar birlikte `gun_isle`) = tek robot sim
+  (1 ve 4 yılda 0 fark). Başlangıç gününe duyarlılık büyük (baslangic.txt: 1 yılda Rastgele −%4…+%137) → tek dönemin sıralamasına güvenme.
+- **Sayfa (`oda.html`):** `oda.py`'deki `_SABLON`'dan `html_yaz` ile (sadece değişince) yazılır → fork'larda da *.py ile gelir; veri
+  gömülü değil, `fetch('oda.json')` / `fetch('oda_replay.json')` (fork'ta yoksa ana projenin GitHub Pages'inden). Kendi SVG'miz:
+  mor izometrik salon, masa + robot figürü + isim etiketi + durum rozeti, borsa tahtası, bağlantı çizgileri, işlem olunca robot
+  tahtaya yürür; sağda skor (getiri asla tek başına: BIST 100 farkı, en büyük düşüş, alım, isabet, gün, en iyi 3 işlem hariç,
+  şans yüzdeliği, 4 yıl satırı), olay akışı, robot kartı (kural, pozisyonlar, işlem geçmişi, kasa grafiği + şans bandı, komisyon+kayma
+  TL). Canlı / Tekrar oynat (1x/5x/20x, kaydırıcı). URL: `#rep=120`, `#kart=kirilimci`. Üçüncü taraf script YOK. Telefonda salon
+  yatay kayar, panel alta iner. Şablon JS değişince `node --check`.
+- **Workflow değişti** (`tarama.yml`: `git add ... oda.json oda.html`). GITHUB_TOKEN workflow dosyasını güncelleyemediği için
+  **fork'taki arkadaşlar bu satırı elle güncellemeli**; güncellemezlerse oda her taramada sıfırdan başlar ve kaydedilmez (ilk gün
+  sessiz kuralı sayesinde Telegram'a mesaj gitmez), panodaki düğme `oda.html` bulunamaz.
