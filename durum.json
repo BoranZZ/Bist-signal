@@ -10,6 +10,7 @@
     "INDES",
     "ISDMR",
     "LMKDC",
+    "METRO",
     "ORGE",
     "OTKAR",
     "RYGYO",
@@ -620,7 +621,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1678602,
+  "kap_son": 1678610,
   "tk_gonderilen": {
     "tarih": "2026-10-09",
     "kodlar": []
