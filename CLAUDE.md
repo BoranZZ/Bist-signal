@@ -455,10 +455,10 @@ sinyal, filtre, etiket ya da çıkış olarak eklenmeye değmez.** Kullanıcı f
 - **Canlı = tekrar oynatma:** ikisi de `oda.gun_isle` (emir_uygula + robot_karar). Canlıda gözlem `tarama.py`'nin `sonuclar`'ından
   (`ozet_hazirla`; yeniden veri çekme yok; sadece bugün işlem görmüş hisseler; RSI 24-34 ve 📏 elindekiler için düzeltilmiş df'den
   rsi değişimi/kijun/uzama). `tarama.py` çağrısı try/except'li (hata taramayı bozmaz; test edildi), süresi ~0,2 sn. `oda.json`: `v`,
-  `bas`, `son_tarih` (aynı gün ikinci kez işlenmez), `tg_tarih`, `xu`, `robot` {kasa: nakit, poz, bekleyen, defter (tümü), seri},
-  `olay` (son 300), `anlik`. Başlangıç 09.10.2026 (ilk akşam sessiz; ilk alımlar 12.10 açılışında). `defter`/`seri` büyür (~yılda 100-150 KB).
-- **Telegram:** kesin kapanıştan sonra günde TEK skor mesajı (`ozet_mesaji`: sıra, getiri + BIST 100 farkı + en büyük düşüş + alım,
-  Bekçi olayları, ilk 6 ay 'sıralama büyük ölçüde şans' notu); ilk gün yok, gönderilemezse sonraki taramada tekrar.
+  `bas`, `son_tarih` (aynı gün ikinci kez işlenmez), `tg_tarih`, `xu`, `robot` {kasa: nakit, poz, bekleyen, defter (tümü), seri,
+  mevduat, atla, atla_n, tem}, `olay` (son 300), `anlik`, `makro` {gram, usd, faiz, faiz_t, tufe, tcmb_t}. Başlangıç 09.10.2026 (ilk akşam sessiz; ilk alımlar 12.10 açılışında). `defter`/`seri` büyür (~yılda 100-150 KB).
+- **Telegram:** kesin kapanıştan sonra günde TEK skor mesajı (`ozet_mesaji`; 2026-10-10'dan beri sade biçim, aşağıda); ilk gün
+  yok, gönderilemezse sonraki taramada tekrar.
 - **`oda_replay.py`** (elle, ayda bir; Actions'ta ÇALIŞMAZ; ~1 dk; `--veri x.pkl` indirilmiş veriyle, `--sans N` hızlı deneme):
   araştırmanın hazirla+sim+replay'i. **2026-10-10'dan beri TEK UZUN oynatma** (eskiden son 250 gün sıfırdan): Yahoo'dan
   `UZUN_YIL` (5) + ~2 yıl ısınma indirir (canlı tarama da 2 yıl kullanıyor; 🌱 durum makinesi, v3 'pozisyon açık', Wilder ATR gibi
@@ -499,6 +499,66 @@ sinyal, filtre, etiket ya da çıkış olarak eklenmeye değmez.** Kullanıcı f
   `#rep&don=ozel:2023-01-02:2024-06-28` (dönem değişince adres çubuğu güncellenir), `#kart=kirilimci`. Üçüncü taraf script YOK.
   Telefonda salon yatay kayar, panel alta iner, dönem satırı alt satıra sarar (390 px'te yatay taşma yok). Şablon JS değişince
   `node --check`.
+- **2026-10-10 geliştirme (dal `oda-gelistir`):**
+  - **Motor düzeltmeleri (tüm robotlar):** (a) Bekçi'nin kırpması (kısmi satış) yuva AÇMAZ; kilitli tabanda bekleyen tam satış
+    (`p['kilit']` = kaç gün satılamadı) boş yuva sayılmaz; `emir_uygula` yuvalar doluyken alım yazmaz (`_red` → 'alınamadı: yuvalar
+    dolu') → 10 yuvalı robot asla 11 pozisyon taşımaz (eski motor 5 yılda 7 robotta 1-159 gün 11-12 pozisyon taşımıştı). (b) Nakit yuva
+    payının yarısından azsa (`KUCUK_ALIM` = 0,5; karar anında satışların tahmini geliri dahil, uygulamada gerçek nakit) alım yok —
+    eskiden 'kırıntı' alımlar yapılıyordu. Önce/sonra: `YUVA_DUZELTME = False` + `KUCUK_ALIM = 0` eski motoru verir (aynı veriyle eski
+    oda_replay.json'u 9/9 robotta işlem işlem üretti; scratchpad `w/karsilastir.py`, `kars.txt`). Uzun oyun kaotik olduğu için tek
+    düzeltme bile 5 yıllık yolu değiştiriyor (tümü: 🚀 +%900→+%931, 📏 +%1.348→+%1.094, 👀 +%1.791→+%2.584, 🌱 +%1.482→+%1.933,
+    ↩️ +%1.058→+%787, 🎲 +%852→+%725, 📈 +%398→+%413, 🧲 −%28→−%29; yön robottan robota değişiyor → 'düzeltme getiriyi artırır' denemez).
+    (c) **Temettü:** canlıda `temettu_isle` hak kullanım (ex) günü elde tutulan hisseye NET temettü (brüt × %85) nakit ekler (kaynak
+    tarama'nın `bilancolar`'ı = bilanco.json'daki Yahoo temettü listesi; 3 günde bir yenilendiği için kayıt birkaç gün geç gelebilir,
+    son 30 gün taranır; alış ex gününden önce olmalı; her (hisse, ex) bir kez, `kasa['tem']`). Tekrar oynatmada eklenmedi: Yahoo
+    düzeltmeli fiyatlar temettüyü brüt olarak fiyata yeniden yatırır. Neden düzeltilmemiş fiyat + net temettüye geçilmedi: sinyaller
+    (v3, destek, RSI) canlıda/backtest'te düzeltilmiş fiyatla hesaplanıyor; replay'i değiştirmek 'canlı = replay' eşitliğini ve geçmiş
+    doğrulamaları bozar; fark sadece %15 stopaj — bu evrende ortalama verim ~%1 → ~0,15 puan/yıl iyimserlik (`oda_replay.TEMETTU_NOT`,
+    sayfa notu). Bilinen küçük fark: canlıda ex günü fiyat düşüşü iz stop tepesine göre ölçülür (replay'de düzeltilmiş).
+  - **🚀 Kırılımcı · 20 yuva** (`kirilimci20`, yarışmacı, kıyas amaçlı): v3 kuralı, her hisseye %5.
+  - **💰 Birikim köşesi** (kıyas, yarışmacı DEĞİL; `KIYAS_TUR`/`BIRIKIM_TUR`; Bekçi yok; Telegram sıralamasına girmez):
+    🏦 Faizci (32 günlük TL mevduat, TCMB politika faizi = 1 hafta repo; brüt × 32/365, stopaj vadenin açıldığı/yenilendiği günün
+    oranı `STOPAJ`: 30.09.2020 %5, 01.05.2024 %7,5, 01.11.2024 %10, 01.02.2025 %15, 09.07.2025 %17,5; yenilemede o günkü politika
+    faizi; kasa değeri işlemiş net faizi içerir), 🥇 Altıncı (gram = GC=F × USDTRY=X ÷ 31,1035; makas her yönde %1, alışta %0,2 BSMV,
+    kesirli; kasa değeri satış fiyatından), 💵 Dolarcı (USDTRY=X; makas her yönde %0,5, %0,2 BSMV), ⚖️ Dengeci (1/3 mevduat, 1/3
+    altın, 1/3 BIST 100; son dengelemeden ≥90 gün sonraki ilk vade sonunda yeniden 1/3, %2'den küçük sapmada işlem yok). Kesirli
+    kodlar `KESIRLI` (XU100/ALTIN/USD; eskiden `kod == "XU100"`), mevduat `kasa['mevduat']` = {ana, t, oran, st}; defter yeni
+    türleri MEV / FAIZ / TEM; alışta `makas`/`bsmv`, satışta `makas` TL. Kartta stopaj/makas/BSMV TL. 5 yılda (2021-10 → 2026-10):
+    Faizci +%286, Altıncı +%1.185, Dolarcı +%442, Dengeci +%735, Endeksçi +%769. Altın/dolar 'açılış' fiyatı = o günün Yahoo
+    kapanışı (gün içi saat farkı yok sayıldı). Gerçek mevduat faizi politika faizinden farklı (2023-24'te üstündeydi) — kural metninde.
+  - **Canlı makro** (`makro_guncelle`, sadece kesin kapanış işleminde): Yahoo GC=F + USDTRY=X son 10 gün; TCMB politika faizi ve
+    TÜFE (`politika_faizi_tablo` / `tufe_tablo`, anahtarsız HTML sayfaları; EVDS kullanılmadı) günde bir kez; her biri ayrı
+    try/except, hata → son bilinen (`oda.json` → `makro`), o da yoksa `oda_replay.json` → `makro`. Test: üçü de çökerken gün işlendi,
+    Faizci faizi oda_replay.json'dan aldı, altın/dolar alımı ertesi güne kaldı; tarama.py'deki blok oda istisnasını yutuyor.
+  - **Reel getiri** (her robot, canlı + dönem seçici): TÜFE dönemin başladığı aydan SON AÇIKLANAN aya kadar bileşik (başlangıç ayı tam
+    sayılır); etiket 'TÜFE Eki 2025 – Eyl 2026 (son açıklanan aya kadar)'. Python `tufe_kum` = JS `tufeKum`.
+  - **Geriye uyumluluk:** `oku` artık eksik robotu reddetmiyor; kesin kapanış işleminde `ROBOTLAR`'da olup oda.json'da olmayan robot
+    o gün 100.000 TL ile eklenir (`baslangic` = o gün; skor/Telegram'da BIST 100 farkı kendi başlangıcından). `seri` öğeleri artık
+    [tarih, değer, pozisyon sayısı] (eskiler 2 elemanlı, okunur). Test: 09.10 oda.json (9 robot, bekleyen emirler) → eski emirler
+    yazıldı, 5 yeni robot eklendi.
+  - **Kaçırılan roketler:** `robot_karar` alınamayan adayları kaydeder: kırılım robotlarında `kasa['atla']` = [tarih, kod, 'yuva'|'nakit'
+    (+ canlıda `atla_guncelle` ile v3 sonucu %, kapandı)], diğerlerinde `atla_n` = [tarih, yuva, nakit] sayısı. Tekrar oynatmada robot
+    çıktısı `k` = [gün, kod, 'y'|'n', v3'ün kendi sonucu %, çıkış günü|−1] (`kacan_listesi`; sayfa sadece o güne kadar kapanmışların
+    sonucunu gösterir), `kn`, `p` (günlük pozisyon sayısı, base36). Kartta: N roket / M alındı / K yuva dolu / L nakit kalmadı,
+    atlananların ortalaması vs robotun kapattıkları, yuvaların dolu olduğu gün oranı, en uzun 3 yuva işgalcisi, son kaçanlar; olay
+    akışında '⛔ X roketi kaçtı'. Not: kaçışların çoğu 'nakit kalmadı' (para kazanan hisselerde; eskiden kırıntı alım yapılırdı).
+  - **Neden notları:** alım emrinde `not` = [ölçü, o günkü aday sayısı, boş yuva, sıra] (ölçü: 🚀 kırılan 20g zirvesi = `tk.seviye`
+    (canlıda `kirilim_seviye`, replay `hh20`), 👀 zirveye %, 🧲 destek, ↩️ RSI, 📈 6 ay %), satışta {tp tepe, iz seviyesi, k karar
+    kapanışı, kb kilitli tabanda bekleme günü}. Replay işlem listesi: A [g,'A',kod,adet,fiyat,not|0,(makas,bsmv)], S [...,neden,not|0,
+    (makas)], M [g,'M',ana,faiz%], F [g,'F',brüt,stopaj]; yeni neden kodu `dg` (Dengeci kısmi satış).
+  - **Sayfa:** salon derinliği 14,4 (viewBox −700 −185 1500 940), 🚀·20 masası [9.1,5.4], 💰 Birikim köşesi ön sırada (bağlantı çizgisi
+    yok), skor tablosunda yarışmacılar numaralı, birikim satırları ayrı başlık altında; reel satırı; robot kartında reel/stopaj/makas/
+    BSMV/temettü kutuları, kaçan roket paneli, MEVDUAT/FAİZ/TEMETTÜ satırları; **aylık getiri ısı tablosu** (salon altında; robot × ay,
+    + BIST 100 satırı, 'endeksi yendiği ay oranı'; JS günlük seriden hesaplar). Test (scratchpad `w/cdp.py`, CDP mobil öykünme):
+    390 px ve 1280 px'te 9 senaryoda yatay taşma yok, JS hatası yok. Not: `chrome --window-size=390` masaüstü penceresi ~500 px'in
+    altına inmez → taşma varmış gibi görünür; mobil testi CDP `Emulation.setDeviceMetricsOverride` ile yap.
+  - **Telegram sade:** ilk 3 + son 3 (yarışmacı + Endeksçi/Rastgele; ≤6 ise hepsi), 'Bugün: 🚀 AL X · SAT Y …', '🚫 Kasa dolu,
+    bugün N roket alınamadı' (yuva dolu + nakit kalmadı), BIST 100, '💰 Kıyas: Faiz · Altın · Dolar · TÜFE', Bekçi; şans notu sadece
+    CUMA (ilk 6 ay).
+  - **Boyutlar:** oda_replay.json ~694 KB (gzip ~235 KB; önce 409 KB — notlar, kaçan roketler, 5 yeni robot), oda_replay_sans.json
+    ~464 KB (gzip ~181 KB). Doğrulama: canlı yol (`oda_oynat`/`gun_isle`) = tek robot `calistir` 5 yılda 14/14 robot birebir
+    (scratchpad `w/testler.py esit`); yuva senaryosu testi `testler.py yuva` (eski 12 pozisyon, yeni 10). `oda_replay.py --makro x.pkl`
+    indirilmiş altın/dolar/faiz/TÜFE ile çalışır (yoksa Yahoo + TCMB'den indirir).
 - **Workflow değişti** (`tarama.yml`: `git add ... oda.json oda.html`). GITHUB_TOKEN workflow dosyasını güncelleyemediği için
   **fork'taki arkadaşlar bu satırı elle güncellemeli**; güncellemezlerse oda her taramada sıfırdan başlar ve kaydedilmez (ilk gün
   sessiz kuralı sayesinde Telegram'a mesaj gitmez), panodaki düğme `oda.html` bulunamaz.

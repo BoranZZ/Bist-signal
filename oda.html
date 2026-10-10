@@ -52,7 +52,7 @@ border:1px solid #3A2770;position:relative}
 .uyari{background:var(--chip);border-radius:12px;padding:10px 14px;color:var(--ink)}
 .perde{position:fixed;inset:0;background:#0008;display:none;align-items:flex-start;justify-content:center;padding:30px 12px;overflow-y:auto;z-index:9}
 .perde.on{display:flex}
-.pen{background:var(--panel);color:var(--ink);border-radius:16px;max-width:720px;width:100%;padding:16px 18px;border:1px solid var(--line)}
+.pen{background:var(--panel);color:var(--ink);border-radius:16px;max-width:720px;width:100%;min-width:0;padding:16px 18px;border:1px solid var(--line)}
 .pen h3{margin:0 0 4px;font-size:18px}.pen .kapat{float:right}
 .pen table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px}
 .pen th,.pen td{padding:5px 6px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}.pen th{color:var(--muted);font-weight:600}
@@ -71,6 +71,17 @@ border:1px solid #3A2770;position:relative}
 .etk-t{font-size:10px;font-weight:800;fill:#140C2A}
 .sk .not2{font-size:11px;color:var(--muted);margin-top:3px;font-style:italic}
 .uyar6{background:#D9A11B18;border-radius:10px;padding:7px 10px;font-size:12px;margin:0 0 8px;line-height:1.4}
+.bkb{margin:10px 0 2px;padding:6px 8px;border-radius:9px;background:#60A5FA14;font-size:12px;color:var(--muted)}
+.bkb b{color:var(--ink)}
+.sk.bir .g{font-size:15px}
+.isi{overflow-x:auto;font-size:11px}
+.isi table{border-collapse:collapse}
+.isi th,.isi td{padding:3px 4px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
+.isi th{color:var(--muted);font-weight:600;position:sticky;top:0;background:var(--panel)}
+.isi td.ad,.isi th.ad{text-align:left;position:sticky;left:0;background:var(--panel);z-index:1;max-width:150px;overflow:hidden;text-overflow:ellipsis}
+.isi td.c{min-width:40px;color:var(--ink)}
+.kac{background:var(--chip);border-radius:10px;padding:8px 10px;font-size:12.5px;line-height:1.5;margin:8px 0}
+.pen td.ned{white-space:normal;min-width:160px;color:var(--muted);font-size:11.5px}
 .donnot{display:none;padding:8px 18px 10px;border-bottom:1px solid var(--line);background:var(--panel);color:var(--muted);font-size:12.5px;line-height:1.5}
 .donnot.on{display:block}.donnot b{color:var(--ink)}
 .ozel{display:none;align-items:center;gap:6px;flex-wrap:wrap}.ozel.on{display:inline-flex}
@@ -87,15 +98,16 @@ border:1px solid #3A2770;position:relative}
 <input type="range" id="sur" min="0" max="0" value="0" oninput="git(+this.value)" aria-label="Gün">
 <span class="chip" id="rgun"></span></div>
 <div class="donnot" id="donnot"></div>
-<div class="ana"><div><div class="salon" id="salon"><svg id="sv" viewBox="-560 -185 1360 860" role="img" aria-label="İzometrik işlem salonu: robot masaları, borsa tahtası, Risk Bekçisi"></svg><div class="not" id="not"></div></div></div>
+<div class="ana"><div><div class="salon" id="salon"><svg id="sv" viewBox="-700 -185 1500 940" role="img" aria-label="İzometrik işlem salonu: robot masaları, borsa tahtası, Risk Bekçisi"></svg><div class="not" id="not"></div></div>
+<div class="kart" style="margin-top:14px"><h2>Aylık getiri ısı tablosu</h2><div class="sans" id="isi_not" style="margin:0 0 6px"></div><div class="isi" id="isi"></div></div></div>
 <div><div class="kart"><h2>Skor tablosu</h2><div id="uyar6"></div><div id="skor"></div><div class="sans" id="sans"></div></div>
 <div class="kart"><h2>Olay akışı</h2><div id="bek"></div><div class="akis" id="akis"></div></div></div></div>
 <div class="alt-bilgi"><div class="uyari">⚠️ <b>Sanal para; yatırım tavsiyesi değil.</b> Robotlar panonun kurallarını sanal 100.000 TL ile deniyor; gerçek emir yok, portföyünle ilgisi yok. Kararlar her işlem günü kesin kapanıştan (18:30) sonra verilir, alım-satım <b>ertesi işlem gününün açılış fiyatından</b> yazılır; her yönde %0,2 komisyon + 1 fiyat adımı kayma düşülür, lot tam sayı, kilitli tabanda satılamaz, kilitli tavanda alınamaz. Getiri tek başına bir şey söylemez: BIST 100 farkına, en büyük düşüşe, işlem sayısına ve 🎲 şans bandına birlikte bak. Bu hisse evreninde rastgele seçim bile çoğu zaman BIST 100'ü yendi — 'endeksi yendi' tek başına başarı değil. Geçmişte iyi giden kural gelecekte de iyi gitmeyebilir.</div>
 <div class="kural" id="kurallar"></div>
-<div>🛡️ <b>Risk Bekçisi</b> (Endeksçi hariç): alımda tek hisseye kasanın en fazla %10'u; sonradan kasanın %25'ini aşan hissenin fazlası satılır; kasa bir günde %5+ eridiyse ertesi gün yeni alım yok; kasa zirvesinden %25+ düşerse robot durdurulur — pozisyonları satılır, 20 işlem günü yeni alım yapmaz. <b>Bekçi kâr aracı değil, emniyet kemeri:</b> araştırmada (2022-26) robot başına 4 yılda 0-2 kez devreye girdi, getiriye etkisi dönemden döneme değişti. <b>Tekrar oynatma:</b> aynı kurallar geçmiş yılların gerçek fiyatlarıyla (Yahoo verisinin elverdiği kadar, ~5 yıl), her gün sadece o güne kadarki veriyle oynatıldı. Robotlar tek bir uzun oyunda kesintisiz çalışır; seçtiğin dönem bu oyunun bir kesitidir (dönem başındaki kasa 100.000 TL sayılır, o gün elde olan hisseler dahil). Hisse listesi bugünkü liste olduğu için (sonradan batan/çıkan hisseler yok) geriye gittikçe sonuçlar biraz iyimser. <b>🎲 şans bandı:</b> Rastgele robotun 200 farklı zarla aralığı (%5-%95). <b>Şans yüzdeliği:</b> robotun her alımı aynı gün rastgele bir hisseyle değiştirilseydi (200 deneme) robot bu denemelerin yüzde kaçından iyiydi. 🧠 Yapay zekâ ekibi henüz yok (yakında).</div></div>
+<div>🛡️ <b>Risk Bekçisi</b> (Endeksçi hariç): alımda tek hisseye kasanın en fazla %10'u; sonradan kasanın %25'ini aşan hissenin fazlası satılır; kasa bir günde %5+ eridiyse ertesi gün yeni alım yok; kasa zirvesinden %25+ düşerse robot durdurulur — pozisyonları satılır, 20 işlem günü yeni alım yapmaz. <b>Bekçi kâr aracı değil, emniyet kemeri:</b> araştırmada (2022-26) robot başına 4 yılda 0-2 kez devreye girdi, getiriye etkisi dönemden döneme değişti. <b>Tekrar oynatma:</b> aynı kurallar geçmiş yılların gerçek fiyatlarıyla (Yahoo verisinin elverdiği kadar, ~5 yıl), her gün sadece o güne kadarki veriyle oynatıldı. Robotlar tek bir uzun oyunda kesintisiz çalışır; seçtiğin dönem bu oyunun bir kesitidir (dönem başındaki kasa 100.000 TL sayılır, o gün elde olan hisseler dahil). Hisse listesi bugünkü liste olduğu için (sonradan batan/çıkan hisseler yok) geriye gittikçe sonuçlar biraz iyimser. <b>🎲 şans bandı:</b> Rastgele robotun 200 farklı zarla aralığı (%5-%95). <b>Şans yüzdeliği:</b> robotun her alımı aynı gün rastgele bir hisseyle değiştirilseydi (200 deneme) robot bu denemelerin yüzde kaçından iyiydi. <b>💰 Birikim köşesi:</b> Faizci (TL mevduat, TCMB politika faizi, stopajlı), Altıncı (gram altın), Dolarcı (dolar), Dengeci (üçte bir mevduat/altın/BIST 100) hisse seçmez; sıralamaya girmez, 'paranı hiç borsaya koymasaydın?' sorusunun kıyasıdır. Bekçi bunlara uygulanmaz. <b>Reel getiri:</b> getirinin TÜFE'ye göre düzeltilmişi; TÜFE dönemin başladığı aydan <b>son açıklanan aya kadar</b> bileşik (ay içi başlangıç tam ay sayılır; son ay henüz açıklanmadıysa dönem sonunun birkaç haftası enflasyonsuz kalır). <b>Temettü:</b> canlıda hak kullanım günü net temettü (%85) kasaya girer; tekrar oynatmada Yahoo'nun temettü düzeltmeli fiyatları kullanılır (temettü brüt olarak fiyata yeniden yatırılmış sayılır, %15 stopaj düşülmez — hisse robotlarına hafif iyimserlik; BIST 100 fiyat endeksinde temettü yok). 🧠 Yapay zekâ ekibi henüz yok (yakında).</div></div>
 <div class="perde" id="perde" onclick="if(event.target===this)kapat()"><div class="pen" id="pen"></div></div>
 <script>
-var ROB=[{"id": "kirilimci", "em": "🚀", "ad": "Kırılımcı", "kisa": "Kırılımcı", "renk": "#FF6FB5", "kural": "🚀 trend kırılımı (v3) gelen hisseyi ertesi açılışta alır; tepe kapanışın %20 altına inince satar.", "not": null, "tahmini": false, "bekci": true}, {"id": "siki", "em": "📏", "ad": "Kırılımcı + sıkı çizgi", "kisa": "Sıkı çizgi", "renk": "#E879F9", "kural": "Kırılımcı ile aynı; ayrıca hisse aşırı uzadıysa kijun (sıkı çizgi) altında kapanışta satar.", "not": null, "tahmini": false, "bekci": true}, {"id": "erkenci", "em": "👀", "ad": "Erkenci", "kisa": "Erkenci", "renk": "#5BD6FF", "kural": "Trend şablonunda, 20 günlük zirveye ≤%3 kalan hisseyi kırılımı beklemeden alır; %20 iz stop.", "not": null, "tahmini": false, "bekci": true}, {"id": "momentumcu", "em": "📈", "ad": "Momentumcu", "kisa": "Momentumcu", "renk": "#FFC94D", "kural": "Her ayın ilk kapanışında 'ayın güçlüleri' listesinin en güçlü 10'unu alır, listeden düşeni satar; BIST 100 50 günlük ortalamasının altındaysa nakitte bekler.", "not": null, "tahmini": false, "bekci": true}, {"id": "dipavcisi", "em": "🧲", "ad": "Dip avcısı", "kisa": "Dip avcısı", "renk": "#7CF29A", "kural": "'Destekten tepki' veren hisseyi alır; destek çizgisinin altında kapanışta (sıkı stop), dirence varınca ya da 20 işlem gününde satar.", "not": "Ders robotu: çok sık işlem yapıyor; komisyon + kayma kazancı eritiyor (araştırmada 4 yılda ~1.300 işlem, −%40). 'Çok işlem = komisyon erir' örneği olarak odada.", "tahmini": false, "bekci": true}, {"id": "uzunvadeci", "em": "🌱", "ad": "Uzun vadeci", "kisa": "Uzun vadeci", "renk": "#34D399", "kural": "🌱 uzun vade AL'i (yükselen trendde 50 günlüğe geri çekilip dönüş) gelince alır; 2 gün 200 günlük ortalama altında kapanışta satar.", "not": null, "tahmini": false, "bekci": true}, {"id": "rsi", "em": "↩️", "ad": "RSI dönüşçü (tahmini)", "kisa": "RSI dönüşçü", "renk": "#F97316", "kural": "RSI 25-33 arasında ve bir günde ≥2,4 puan yükselince alır (arkadaşın AL kuralı); çıkış kuralı bilinmediği için %20 iz stop varsayıldı — TAHMİNİ.", "not": "TAHMİNİ: arkadaşın AL kuralından; çıkış kuralı bilinmediği için %20 iz stop varsayıldı.", "tahmini": true, "bekci": true}, {"id": "rastgele", "em": "🎲", "ad": "Rastgele", "kisa": "Rastgele", "renk": "#FF9A62", "kural": "Şans kıyası: 🚀 kırılım gelen gün, o gün kaç kırılım varsa o kadar RASTGELE hisse alır; Kırılımcı ile aynı %20 iz stop. Kırılımcı bunu yenemiyorsa seçim becerisi yok demektir.", "not": "Kıyas: aynı gün aynı sayıda rastgele hisse. Bir robot bunu geçemiyorsa seçimi şanstan ayrılmıyor demektir. Bu hisse evreninde (2022-26) rastgele bile çoğu zaman BIST 100'ü yendi — 'endeksi yendi' tek başına başarı değil.", "tahmini": false, "bekci": true}, {"id": "endeksci", "em": "🧭", "ad": "Endeksçi", "kisa": "Endeksçi", "renk": "#B9A6FF", "kural": "İlk gün tüm parayla BIST 100'ü alır ve tutar (endeks fonu gibi; kıyas çizgisi).", "not": "Kıyas çizgisi: BIST 100 al-tut.", "tahmini": false, "bekci": false}], AYAR={"bas": 100000.0, "kom": 0.002, "tek": 10, "krp": 25, "gz": 5, "td": 25, "dg": 20, "sans": 200, "pencere": "İlk aylarda sıralama büyük ölçüde şans: araştırmada 1 aylık pencerelerde birinci robotun ertesi ay da birinci kalma oranı %13'tü (şansla aynı, ~%14)."};
+var ROB=[{"id": "kirilimci", "em": "🚀", "ad": "Kırılımcı", "kisa": "Kırılımcı", "renk": "#FF6FB5", "kural": "🚀 trend kırılımı (v3) gelen hisseyi ertesi açılışta alır; tepe kapanışın %20 altına inince satar.", "not": null, "tahmini": false, "bekci": true, "grup": "yaris", "tur": "kirilim", "yuva": 10}, {"id": "kirilimci20", "em": "🚀", "ad": "Kırılımcı · 20 yuva", "kisa": "Kırılımcı·20", "renk": "#FF9ED2", "kural": "Kırılımcı ile aynı kural (🚀 v3 kırılımı, %20 iz stop), ama kasa 20 yuvaya bölünür: her hisseye kasanın %5'i. Kıyas: 'yuvalar dolu diye kaçan roketler' ne kadar önemli?", "not": "Kıyas amaçlı: aynı kural, yarı büyüklükte 20 pozisyon. Gece araştırmasında (2022-26, 1 yıllık kayan pencereler) 20 yuva 10 yuvadan biraz daha iyi ve daha az düşüşlü çıktı; 2022-23 düşük faiz döneminde başlayan pencerelerde ise geride kaldı.", "tahmini": false, "bekci": true, "grup": "yaris", "tur": "kirilim", "yuva": 20}, {"id": "siki", "em": "📏", "ad": "Kırılımcı + sıkı çizgi", "kisa": "Sıkı çizgi", "renk": "#E879F9", "kural": "Kırılımcı ile aynı; ayrıca hisse aşırı uzadıysa kijun (sıkı çizgi) altında kapanışta satar.", "not": null, "tahmini": false, "bekci": true, "grup": "yaris", "tur": "kirilim", "yuva": 10}, {"id": "erkenci", "em": "👀", "ad": "Erkenci", "kisa": "Erkenci", "renk": "#5BD6FF", "kural": "Trend şablonunda, 20 günlük zirveye ≤%3 kalan hisseyi kırılımı beklemeden alır; %20 iz stop.", "not": null, "tahmini": false, "bekci": true, "grup": "yaris", "tur": "erken", "yuva": 10}, {"id": "momentumcu", "em": "📈", "ad": "Momentumcu", "kisa": "Momentumcu", "renk": "#FFC94D", "kural": "Her ayın ilk kapanışında 'ayın güçlüleri' listesinin en güçlü 10'unu alır, listeden düşeni satar; BIST 100 50 günlük ortalamasının altındaysa nakitte bekler.", "not": null, "tahmini": false, "bekci": true, "grup": "yaris", "tur": "momentum", "yuva": 10}, {"id": "dipavcisi", "em": "🧲", "ad": "Dip avcısı", "kisa": "Dip avcısı", "renk": "#7CF29A", "kural": "'Destekten tepki' veren hisseyi alır; destek çizgisinin altında kapanışta (sıkı stop), dirence varınca ya da 20 işlem gününde satar.", "not": "Ders robotu: çok sık işlem yapıyor; komisyon + kayma kazancı eritiyor (araştırmada 4 yılda ~1.300 işlem, −%40). 'Çok işlem = komisyon erir' örneği olarak odada.", "tahmini": false, "bekci": true, "grup": "yaris", "tur": "dip", "yuva": 10}, {"id": "uzunvadeci", "em": "🌱", "ad": "Uzun vadeci", "kisa": "Uzun vadeci", "renk": "#34D399", "kural": "🌱 uzun vade AL'i (yükselen trendde 50 günlüğe geri çekilip dönüş) gelince alır; 2 gün 200 günlük ortalama altında kapanışta satar.", "not": null, "tahmini": false, "bekci": true, "grup": "yaris", "tur": "uzun", "yuva": 10}, {"id": "rsi", "em": "↩️", "ad": "RSI dönüşçü (tahmini)", "kisa": "RSI dönüşçü", "renk": "#F97316", "kural": "RSI 25-33 arasında ve bir günde ≥2,4 puan yükselince alır (arkadaşın AL kuralı); çıkış kuralı bilinmediği için %20 iz stop varsayıldı — TAHMİNİ.", "not": "TAHMİNİ: arkadaşın AL kuralından; çıkış kuralı bilinmediği için %20 iz stop varsayıldı.", "tahmini": true, "bekci": true, "grup": "yaris", "tur": "rsi", "yuva": 10}, {"id": "rastgele", "em": "🎲", "ad": "Rastgele", "kisa": "Rastgele", "renk": "#FF9A62", "kural": "Şans kıyası: 🚀 kırılım gelen gün, o gün kaç kırılım varsa o kadar RASTGELE hisse alır; Kırılımcı ile aynı %20 iz stop. Kırılımcı bunu yenemiyorsa seçim becerisi yok demektir.", "not": "Kıyas: aynı gün aynı sayıda rastgele hisse. Bir robot bunu geçemiyorsa seçimi şanstan ayrılmıyor demektir. Bu hisse evreninde (2022-26) rastgele bile çoğu zaman BIST 100'ü yendi — 'endeksi yendi' tek başına başarı değil.", "tahmini": false, "bekci": true, "grup": "kiyas", "tur": "rastgele", "yuva": 10}, {"id": "endeksci", "em": "🧭", "ad": "Endeksçi", "kisa": "Endeksçi", "renk": "#B9A6FF", "kural": "İlk gün tüm parayla BIST 100'ü alır ve tutar (endeks fonu gibi; kıyas çizgisi).", "not": "Kıyas çizgisi: BIST 100 al-tut (fiyat endeksi; temettü yok).", "tahmini": false, "bekci": false, "grup": "kiyas", "tur": "endeks", "yuva": null}, {"id": "faizci", "em": "🏦", "ad": "Faizci", "kisa": "Faizci", "renk": "#60A5FA", "kural": "Tüm parayı 32 günlük TL vadeli mevduata koyar, vade sonunda faiziyle yeniler. Faiz: TCMB politika faizi (gerçek mevduat faizi bankaya göre farklı; 2023-24'te çoğu zaman politika faizinin üstündeydi). Brüt faiz × 32/365; stopaj vadenin açıldığı/yenilendiği günün oranıyla kesilir (%5 → %7,5 → %10 → %15 → %17,5).", "not": "Birikim kıyası (yarışmacı değil). Politika faizi gerçek mevduat faizinden farklı olabilir; kasa değeri vadenin bugüne kadar işlemiş net faizini de içerir (vade bozulursa alınmaz).", "tahmini": false, "bekci": false, "grup": "birikim", "tur": "faiz", "yuva": null}, {"id": "altinci", "em": "🥇", "ad": "Altıncı", "kisa": "Altıncı", "renk": "#FACC15", "kural": "İlk gün tüm parayla gram altın alır ve tutar (ons altın × dolar/TL ÷ 31,1035). Banka makası toplam %2 (alışta %1, satışta %1; kasa değeri satış fiyatından), alışta %0,2 BSMV; kesirli gram.", "not": "Birikim kıyası (yarışmacı değil). Fiyat: ons altın (GC=F vadeli) × USD/TL ÷ 31,1035 — Kapalıçarşı/banka fiyatından birkaç puan farklı olabilir.", "tahmini": false, "bekci": false, "grup": "birikim", "tur": "altin", "yuva": null}, {"id": "dolarci", "em": "💵", "ad": "Dolarcı", "kisa": "Dolarcı", "renk": "#4ADE80", "kural": "İlk gün tüm parayla dolar alır ve tutar (USD/TL). Makas toplam ~%1 (yarısı alışta, yarısı satışta; kasa değeri satış fiyatından), alışta %0,2 BSMV; faizsiz (döviz hesabı faizi yok sayıldı).", "not": "Birikim kıyası (yarışmacı değil). Döviz hesabının faizi yok sayıldı.", "tahmini": false, "bekci": false, "grup": "birikim", "tur": "dolar", "yuva": null}, {"id": "dengeci", "em": "⚖️", "ad": "Dengeci", "kisa": "Dengeci", "renk": "#C4B5FD", "kural": "1/3 TL mevduat (Faizci gibi), 1/3 gram altın (Altıncı gibi), 1/3 BIST 100 (Endeksçi gibi). Üç ayda bir (ilk vade sonu ≥90 gün) yeniden 1/3'e dengeler; payı %2'den az sapan kalem için işlem yapmaz.", "not": "Birikim kıyası (yarışmacı değil): mevduat + altın + BIST 100 üçte bir.", "tahmini": false, "bekci": false, "grup": "birikim", "tur": "denge", "yuva": null}], AYAR={"bas": 100000.0, "kom": 0.002, "tek": 10, "krp": 25, "gz": 5, "td": 25, "dg": 20, "sans": 200, "pencere": "İlk aylarda sıralama büyük ölçüde şans: araştırmada 1 aylık pencerelerde birinci robotun ertesi ay da birinci kalma oranı %13'tü (şansla aynı, ~%14)."};
 var CANLI=null,REP=null,REP_YUK=false,MOD='canli',I=0,OYNUYOR=false,HIZ=5,ZAM=null,SON_ADIM=0,ACIK=null;
 var ANA='https://boranzz.github.io/Bist-signal/',KAYNAK='',DON=null,SANS=null,SANS_YUK=false,BCACHE={};
 var RID=ROB.map(function(r){return r.id;}),RB={};ROB.forEach(function(r){RB[r.id]=r;});
@@ -119,8 +131,10 @@ function kutu(g,x,y,z,w,d,h,ust,sol,sag,op){
 function zeminYazi(g,x,y,metin,renk,boy){var p=P(x,y,0);var t=el('text',{transform:'matrix(1,0.5,-1,0.5,'+p[0]+','+p[1]+')','font-size':boy||15,'font-weight':700,fill:renk,'letter-spacing':'3','font-family':'ui-monospace,Consolas,monospace'},g);t.textContent=metin;return t;}
 function bolge(g,x,y,w,d,renk,kesik){el('polygon',{points:pts([P(x,y),P(x+w,y),P(x+w,y+d),P(x,y+d)]),fill:renk+'10',stroke:renk,'stroke-opacity':.55,'stroke-width':1.4,'stroke-dasharray':kesik?'7 6':'none'},g);}
 var MASA={kirilimci:[1.0,2.0],siki:[3.7,2.0],erkenci:[6.4,2.0],momentumcu:[9.1,2.0],dipavcisi:[1.0,5.4],uzunvadeci:[3.7,5.4],rsi:[6.4,5.4],
- rastgele:[12.6,2.2],endeksci:[12.6,5.4],bekci:[14.0,8.9],ai1:[1.6,9.0],ai2:[4.6,9.0]};
-var W=16.8,D=11.6,H=3.8,TAHTA=[5.0,12.6],TAHTA_ON=[8.8,0.8];
+ kirilimci20:[9.1,5.4],rastgele:[12.6,2.2],endeksci:[12.6,5.4],bekci:[14.0,8.9],ai1:[1.6,9.0],ai2:[4.6,9.0],
+ faizci:[1.0,12.1],altinci:[3.7,12.1],dolarci:[6.4,12.1],dengeci:[9.1,12.1]};
+var KESIR={XU100:1,ALTIN:1,USD:1},MAKAS={ALTIN:.01,USD:.005},TF=null;
+var W=16.8,D=14.4,H=3.8,TAHTA=[5.0,12.6],TAHTA_ON=[8.8,0.8];
 var FIG={};
 function robotCiz(g,id,renk,ad,em,hayalet,tahmini){
  var m=MASA[id]||[0,0],x=m[0],y=m[1];
@@ -180,8 +194,9 @@ function sahne(){
  bolge(g,12.2,1.5,2.9,5.8,'#5BD6FF',false);zeminYazi(g,12.35,7.15,'KIYAS','#5BD6FF',13);
  bolge(g,13.6,8.1,2.8,3.0,'#FFC94D',false);zeminYazi(g,13.75,10.95,'RİSK','#FFC94D',12);
  bolge(g,0.6,8.2,7.0,3.0,'#8E7BC9',true);zeminYazi(g,0.8,11.05,'YAPAY ZEKÂ EKİBİ · YAKINDA','#7A68B4',11);
+ bolge(g,0.6,11.4,11.2,2.7,'#60A5FA',false);zeminYazi(g,0.8,13.95,'💰 BİRİKİM KÖŞESİ · KIYAS','#60A5FA',12);
  FIG.hat={};
- RID.forEach(function(id){var m=MASA[id],a=P(m[0]+0.95,m[1]+0.55),b=P(m[0]+0.95,TAHTA_ON[1]),c=P(TAHTA_ON[0],TAHTA_ON[1]);
+ RID.forEach(function(id){if(RB[id].grup==='birikim')return;var m=MASA[id],a=P(m[0]+0.95,m[1]+0.55),b=P(m[0]+0.95,TAHTA_ON[1]),c=P(TAHTA_ON[0],TAHTA_ON[1]);
   FIG.hat[id]=el('polyline',{points:pts([a,b,c]),fill:'none',stroke:RB[id].renk,'stroke-width':1.6,opacity:.34,'class':'akan'},g);});
  FIG.bhat={};
  RID.forEach(function(id){if(!RB[id].bekci)return;var m=MASA[id],b=MASA.bekci,a=P(b[0]+0.95,b[1]+0.55),c=P(m[0]+1.6,m[1]+0.9);
@@ -195,42 +210,82 @@ function sahne(){
 }
 /* ---------- veri: canlı (oda.json) ve tekrar oynatma (oda_replay.json) tek görünüme ---------- */
 function mdd(seri){var t=-1e18,m=0;for(var i=0;i<seri.length;i++){var v=seri[i];if(v==null)continue;if(v>t)t=v;var d=v/t-1;if(d<m)m=d;}return m*100;}
-function istat(df,kasa,f){ // df: [tarih,rid,yon,kod,adet,fiyat,neden,kz%,kzTL,kismi]; f: dönem ölçeği (canlıda 1)
- var al=0,kap=0,kaz=0,mal=0,kzl=[];
- df.forEach(function(x){var tut=x[4]*x[5];mal+=tut*AYAR.kom+(x[3]==='XU100'?0:x[4]*adim(x[5]));
-  if(x[2]==='A')al++;else{if(x[8]!=null)kzl.push(x[8]);if(!x[9]){kap++;if(x[7]>0)kaz++;}}});
+function istat(df,kasa,f){ // df: [tarih,rid,yon(A/S/M/F/T),kod,adet,fiyat,neden,kz%,kzTL,kismi,not,maliyet{m,b,s,net}]; f: dönem ölçeği (canlıda 1)
+ var al=0,kap=0,kaz=0,mal=0,mk=0,bs=0,st=0,tem=0,kzl=[],kzy=[];
+ df.forEach(function(x){var y=x[2],c=x[11]||{};
+  if(y==='A'||y==='S'){var tut=x[4]*x[5];
+   if(MAKAS[x[3]]){mk+=c.m||0;bs+=c.b||0;}else mal+=tut*AYAR.kom+(KESIR[x[3]]?0:x[4]*adim(x[5]));
+   if(y==='A')al++;else{if(x[8]!=null)kzl.push(x[8]);if(!x[9]){kap++;if(x[7]>0)kaz++;if(x[7]!=null)kzy.push(x[7]);}}}
+  else if(y==='F')st+=c.s||0;else if(y==='T'){st+=c.s||0;tem+=c.net||0;}});
  kzl.sort(function(a,b){return b-a;});var ilk3=kzl.slice(0,3).reduce(function(s,v){return s+Math.max(0,v);},0);
- return {islem:al,kapanan:kap,kazanan:kaz,maliyet:mal*(f||1),ilk3:kzl.length>=3?((kasa-ilk3)/AYAR.bas-1)*100:null};}
-function canliGor(){var C=CANLI;if(!C)return null;var xs=C.xu.map(function(x){return x[1];}),an=C.anlik;
+ return {islem:al,kapanan:kap,kazanan:kaz,maliyet:mal*(f||1),makas:mk*(f||1),bsmv:bs*(f||1),stopaj:st*(f||1),temettu:tem*(f||1),
+  kzort:kzy.length?kzy.reduce(function(a,b){return a+b;},0)/kzy.length:null,ilk3:kzl.length>=3?((kasa-ilk3)/AYAR.bas-1)*100:null};}
+function tufeKum(tf,bas,son){if(!tf||!bas||!son)return null;var a=bas.slice(0,7),b=son.slice(0,7),c=1,ay=[];
+ Object.keys(tf).sort().forEach(function(k){if(k>=a&&k<=b){c*=1+tf[k]/100;ay.push(k);}});
+ return ay.length?{o:(c-1)*100,a:ay[0],b:ay[ay.length-1]}:null;}
+function ayTr(k){var A=['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];return A[+k.slice(5,7)-1]+' '+k.slice(0,4);}
+function reelAl(g,bas,son){var t=tufeKum(TF,bas,son);if(!t)return null;return {r:((1+g/100)/(1+t.o/100)-1)*100,t:t};}
+function tufeEt(t){return t?'TÜFE '+ayTr(t.a)+' – '+ayTr(t.b)+' '+yz(t.o,0)+' (son açıklanan aya kadar)':'TÜFE: bu dönem için henüz açıklanan ay yok';}
+function kacanOzet(r){var k=r.kac||[],y=k.filter(function(x){return x.n==='y';}),n=k.filter(function(x){return x.n==='n';});
+ var kp=k.filter(function(x){return x.kap;}),ort=kp.length?kp.reduce(function(s,x){return s+x.r;},0)/kp.length:null;
+ return {say:r.islem+y.length+n.length,yuva:y.length,nakit:n.length,kapanan:kp.length,ort:ort};}
+function dfCanli(e,id){var y={AL:'A',SAT:'S',MEV:'M',FAIZ:'F',TEM:'T'}[e.yon]||'?',c=null,n=e.not||null;
+ if(e.makas!=null||e.bsmv!=null)c={m:e.makas||0,b:e.bsmv||0};if(y==='F')c={s:e.stopaj,br:e.brut};if(y==='T')c={s:e.stopaj,net:e.net};
+ if(y==='S'&&n&&!Array.isArray(n))n=[n.tp,n.iz,n.k,n.kb||0];
+ return [e.t,id,y,e.kod,y==='M'?e.adet:(y==='T'?e.adet:(e.adet||0)),y==='M'?e.oran:(y==='T'?e.hisse_basi:(e.fiyat||0)),e.neden||'',y==='S'?e.kz_yuzde:null,y==='S'?e.kz:null,!!e.kismi,n,c];}
+function isgalci(liste){return liste.sort(function(a,b){return b.gun-a.gun;}).slice(0,3);}
+function canliGor(){var C=CANLI;if(!C)return null;var xs=C.xu.map(function(x){return x[1];}),an=C.anlik,xt={};
+ C.xu.forEach(function(x,j){xt[x[0]]=j;});TF=(C.makro&&C.makro.tufe)||(REP&&REP.makro&&REP.makro.tufe)||null;
  var v={t:C.son_tarih,bas:C.bas,canli:true,r:{},olay:C.olay.slice().reverse(),tlist:C.xu.map(function(x){return x[0];}),xseri:xs.slice(),anlik:an?an.t:null};
  if(an&&an.xu)v.xseri.push(an.xu);
  v.xu=v.xseri.length>1?(v.xseri[v.xseri.length-1]/v.xseri[0]-1)*100:0;v.gun=C.xu.length;
  var hepsi=[];
- RID.forEach(function(id){var k=C.robot[id];if(!k)return;var seri=k.seri.map(function(s){return s[1];});var kasa=an&&an.k?an.k[id]:k.deger;if(an)seri.push(kasa);
-  var df=k.defter.map(function(e){return [e.t,id,e.yon==='AL'?'A':'S',e.kod,e.adet,e.fiyat,e.neden||'',e.yon==='SAT'?e.kz_yuzde:null,e.yon==='SAT'?e.kz:null,!!e.kismi];});
-  hepsi=hepsi.concat(df);var s=istat(df,kasa);
-  v.r[id]={kasa:kasa,seri:seri,durum:k.durdu>0?(k.durdu_neden==='dusus_aktif'?'durdu':'mola'):'aktif',bek:k.bekleyen||[],df:df,mdd:mdd(seri),
+ RID.forEach(function(id){var k=C.robot[id];if(!k)return;var seri=k.seri.map(function(s){return s[1];}),seriG=seri.slice();var kasa=an&&an.k&&an.k[id]!=null?an.k[id]:k.deger;if(an)seri.push(kasa);
+  var df=k.defter.map(function(e){return dfCanli(e,id);});
+  hepsi=hepsi.concat(df.filter(function(x){return x[2]==='A'||x[2]==='S';}));var s=istat(df,kasa);
+  var b0=k.seri.length?k.seri[0][0]:(C.son_tarih||C.bas),o=xt[b0]!=null?xt[b0]:v.xseri.length-1,xr=(v.xseri[v.xseri.length-1]/v.xseri[o]-1)*100;
+  var dol=k.seri.filter(function(q){return q.length>2;}),yv=RB[id].yuva;
+  var kac=(k.atla||[]).map(function(a){return {t:a[0],kod:a[1],n:a[2]==='yuva'?'y':'n',r:a[3]!=null?a[3]:null,kap:a[4]===1};});
+  var kn=(k.atla_n||[]).reduce(function(s,a){return s+a[1];},0);
+  var tut={},isg=[];k.defter.forEach(function(e){if(e.yon==='AL')tut[e.kod]=e.t;else if(e.yon==='SAT'&&!e.kismi&&tut[e.kod]){isg.push({kod:e.kod,gun:k.seri.filter(function(q){return q[0]>=tut[e.kod]&&q[0]<e.t;}).length,r:e.kz_yuzde});delete tut[e.kod];}});
+  Object.keys(k.poz).forEach(function(kod){var p=k.poz[kod];if(!KESIR[kod])isg.push({kod:kod,gun:p.gun,r:(p.fiyat/p.maliyet-1)*100,acik:true});});
+  v.r[id]={kasa:kasa,seri:seri,durum:k.durdu>0?(k.durdu_neden==='dusus_aktif'?'durdu':'mola'):'aktif',bek:k.bekleyen||[],df:df,mdd:mdd(seri),seriG:seriG,bas:b0,xu:xr,
    poz:Object.keys(k.poz).map(function(kod){var p=k.poz[kod];return {kod:kod,adet:p.adet,fiyat:p.maliyet,tarih:p.tarih,son:p.fiyat,gun:p.gun};}),
-   islem:s.islem,kapanan:s.kapanan,kazanan:s.kazanan,maliyet:s.maliyet,ilk3:s.ilk3};});
+   mev:k.mevduat||null,kac:kac,kn:kn,isg:isgalci(isg),dolu:yv&&dol.length?dol.filter(function(q){return q[2]>=yv;}).length/dol.length*100:null,
+   islem:s.islem,kapanan:s.kapanan,kazanan:s.kazanan,maliyet:s.maliyet,makas:s.makas,bsmv:s.bsmv,stopaj:s.stopaj,temettu:s.temettu,kzort:s.kzort,ilk3:s.ilk3};});
  hepsi.sort(function(a,b){return a[0]<b[0]?-1:a[0]>b[0]?1:0;});v.defter=hepsi;v.bugun=C.son_tarih;return v;}
 function repRobot(id){for(var j=0;j<REP.robot.length;j++)if(REP.robot[j].id===id)return REP.robot[j];return null;}
-function repGor(i){var R=REP;if(!R||!DON)return null;var a=DON.a,son=R.gun.length-1;
+function repGor(i){var R=REP;if(!R||!DON)return null;var a=DON.a,son=R.gun.length-1;TF=(R.makro&&R.makro.tufe)||null;
  var v={t:R.gun[i],bas:R.gun[a],gun:i-a+1,canli:false,r:{},olay:[],defter:[]};
  v.xu=(R.xu[i]/R.xu[a]-1)*100;v.xseri=R.xu.slice(a,i+1);v.tlist=R.gun.slice(a,i+1);
- RID.forEach(function(id){var rr=repRobot(id);if(!rr)return;var f=AYAR.bas/rr.d[a],poz={},df=[],al={};
-  rr.i.forEach(function(x){if(x[0]>i)return;var t=R.gun[x[0]],ic=x[0]>=a;
-   if(x[1]==='A'){poz[x[2]]={kod:x[2],adet:x[3],fiyat:x[4],tarih:t,gi:x[0]};al[x[2]]=x[4];if(ic)df.push([t,id,'A',x[2],x[3],x[4],'',null,null,false]);}
-   else{var kis=x[6]==='kr',baz=(al[x[2]]||x[4])*(1+AYAR.kom)*x[3],kztl=baz*x[5]/100*f;
-    if(ic)df.push([t,id,'S',x[2],x[3],x[4],(R.neden[x[6]]||x[6]),x[5],kztl,kis]);
-    if(kis&&poz[x[2]])poz[x[2]].adet-=x[3];else delete poz[x[2]];}});
+ RID.forEach(function(id){var rr=repRobot(id);if(!rr)return;var f=AYAR.bas/rr.d[a],poz={},df=[],al={},isg=[],mev=null;
+  rr.i.forEach(function(x){if(x[0]>i)return;var t=R.gun[x[0]],ic=x[0]>=a,y=x[1];
+   if(y==='A'){var c=x[6]?{m:x[6][0],b:x[6][1]}:null;
+    if(poz[x[2]]&&KESIR[x[2]]){var q=poz[x[2]];q.fiyat=(q.adet*q.fiyat+x[3]*x[4])/(q.adet+x[3]);q.adet+=x[3];}
+    else poz[x[2]]={kod:x[2],adet:x[3],fiyat:x[4],tarih:t,gi:x[0]};
+    al[x[2]]=poz[x[2]].fiyat;if(ic)df.push([t,id,'A',x[2],x[3],x[4],'',null,null,false,x[5]||null,c]);}
+   else if(y==='S'){var kis=x[6]==='kr'||x[6]==='dg',baz=(al[x[2]]||x[4])*(1+AYAR.kom)*x[3],kztl=baz*x[5]/100*f;
+    if(ic)df.push([t,id,'S',x[2],x[3],x[4],(R.neden[x[6]]||x[6]),x[5],kztl,kis,x[7]||null,x[8]?{m:x[8][0]}:null]);
+    if(kis&&poz[x[2]])poz[x[2]].adet-=x[3];else{if(poz[x[2]]&&!KESIR[x[2]])isg.push({kod:x[2],gun:x[0]-poz[x[2]].gi,r:x[5],bit:x[0]});delete poz[x[2]];}}
+   else if(y==='M'){mev={ana:x[2],t:t,oran:x[3]};if(ic)df.push([t,id,'M','MEVDUAT',x[2],x[3],'',null,null,false,null,null]);}
+   else if(y==='F'){if(ic)df.push([t,id,'F','MEVDUAT',0,0,'',null,null,false,null,{br:x[2],s:x[3]}]);}});
   var seri=rr.d.slice(a,i+1).map(function(x){return x*f;}),kasa=rr.d[i]*f,ds=(rr.dur||'').charAt(i),s=istat(df,kasa,f);
+  var yv=RB[id].yuva,pd=(rr.p||'').slice(a,i+1),dl=null;
+  if(yv&&pd.length){var c2=0;for(var j=0;j<pd.length;j++)if(parseInt(pd.charAt(j),36)>=yv)c2++;dl=c2/pd.length*100;}
+  var kac=(rr.k||[]).filter(function(x){return x[0]>=a&&x[0]<=i;}).map(function(x){var kap=x[4]>=0&&x[4]<=i;return {t:R.gun[x[0]],g:x[0],kod:x[1],n:x[2],r:kap?x[3]:null,kap:kap};});
+  var kn=(rr.kn||[]).reduce(function(s,x){return x[0]>=a&&x[0]<=i?s+x[1]:s;},0);
+  isg=isg.filter(function(q){return q.bit>=a;});
+  Object.keys(poz).forEach(function(k){var p=poz[k];if(!KESIR[k])isg.push({kod:k,gun:i-p.gi,r:null,acik:true});});
   v.r[id]={kasa:kasa,seri:seri,durum:ds==='d'?'durdu':(ds==='m'?'mola':'aktif'),poz:Object.keys(poz).map(function(k){var p=poz[k];p.gun=i-p.gi;return p;}),bek:[],
-   islem:s.islem,kapanan:s.kapanan,kazanan:s.kazanan,maliyet:s.maliyet,ilk3:s.ilk3,mdd:mdd(seri),df:df,
+   islem:s.islem,kapanan:s.kapanan,kazanan:s.kazanan,maliyet:s.maliyet,makas:s.makas,bsmv:s.bsmv,stopaj:s.stopaj,temettu:s.temettu,kzort:s.kzort,ilk3:s.ilk3,
+   mdd:mdd(seri),df:df,bas:R.gun[a],xu:v.xu,mev:mev,kac:kac,kn:kn,isg:isgalci(isg),dolu:dl,
    sans:(rr.sans&&DON.b===son)?rr.sans[DON.id]:null};
-  v.defter=v.defter.concat(df);});
+  v.defter=v.defter.concat(df.filter(function(x){return x[2]==='A'||x[2]==='S';}));});
  v.defter.sort(function(a,b){return a[0]<b[0]?-1:a[0]>b[0]?1:0;});
  var k0=Math.max(a,i-30),bas=R.gun[k0],ol=[];
- v.defter.forEach(function(x){if(x[0]<bas)return;ol.push([x[0],x[1],x[2]==='A'?(x[3]+' aldı: '+sy(x[4],x[3]==='XU100'?2:0)+' × '+sy(x[5],2)+' TL'):(x[3]+(x[9]?' kısmen':'')+' sattı ('+x[6]+') '+yz(x[7]))]);});
+ v.defter.forEach(function(x){if(x[0]<bas)return;ol.push([x[0],x[1],x[2]==='A'?(x[3]+' aldı: '+sy(x[4],KESIR[x[3]]?2:0)+(x[3]==='ALTIN'?' gr':'')+' × '+sy(x[5],2)+' TL'):(x[3]+(x[9]?' kısmen':'')+' sattı ('+x[6]+') '+yz(x[7]))]);});
+ RID.forEach(function(id){var r=v.r[id];if(!r||!r.kac)return;var gun={};r.kac.forEach(function(x){if(x.g>=k0)(gun[x.t]=gun[x.t]||[]).push(x.kod);});
+  Object.keys(gun).forEach(function(t){var L=gun[t];ol.push([t,id,'⛔ '+L.slice(0,6).join(', ')+(L.length>6?' +'+(L.length-6):'')+(L.length>1?' roketleri':' roketi')+' kaçtı: kasa dolu (yuva ya da nakit yok)']);});});
  (R.olay||[]).forEach(function(o){if(o[0]<=i&&o[0]>=k0)ol.push([R.gun[o[0]],o[1],o[2]]);});
  ol.sort(function(a,b){return a[0]<b[0]?1:a[0]>b[0]?-1:0;});v.olay=ol.slice(0,150);v.bugun=R.gun[i];
  var B=bantAl();if(B){v.bantS=B;v.bant=[B.p5[i-a],B.p50[i-a],B.p95[i-a]];}
@@ -289,7 +344,7 @@ function guncelle(anim){var v=gor();if(!v)return;
  RID.forEach(function(id){var r=v.r[id];if(!r)return;var g=(r.kasa/AYAR.bas-1)*100;var e=FIG[id+'_ekran'];e.textContent=yz(g);e.setAttribute('fill',g>=0?'#7CF29A':'#FF8A7A');rozet(id,v);
   var s=r.seri.slice(-40),mn=Math.min.apply(null,s),mx=Math.max.apply(null,s),b=FIG[id+'_spb'];
   FIG[id+'_sp'].setAttribute('points',s.length>1?pts(s.map(function(x,k){return P(b[0]+0.78*k/(s.length-1),b[1],b[2]+(mx>mn?0.2*(x-mn)/(mx-mn):0.1));})):'');
-  FIG.hat[id].setAttribute('opacity',r.durum==='durdu'?.1:.34);if(FIG.bhat[id])FIG.bhat[id].setAttribute('opacity',r.durum==='durdu'?.9:(r.durum==='mola'?.6:.25));});
+  if(FIG.hat[id])FIG.hat[id].setAttribute('opacity',r.durum==='durdu'?.1:.34);if(FIG.bhat[id])FIG.bhat[id].setAttribute('opacity',r.durum==='durdu'?.9:(r.durum==='mola'?.6:.25));});
  var dur=RID.filter(function(id){return v.r[id]&&v.r[id].durum==='durdu';}).length,mol=RID.filter(function(id){return v.r[id]&&v.r[id].durum==='mola';}).length;
  FIG.bekci_roz.setAttribute('fill',dur?'#E5484D':(mol?'#E2A400':'#2FB36D'));FIG.bekci_rozt.textContent=dur?String(dur):(mol?'‖':'✓');
  FIG.bekci_ekran.textContent=dur?dur+' durdu':(mol?mol+' mola':'tamam');FIG.bekci_ekran.setAttribute('fill',dur?'#FF8A7A':'#7CF29A');
@@ -297,40 +352,67 @@ function guncelle(anim){var v=gor();if(!v)return;
  for(var k=0;k<5;k++){var x=bug[k];FIG.tahta[k].textContent=x?(RB[x[1]].em+' '+(x[2]==='A'?'AL ':'SAT ')+x[3]+' '+sy(x[5],2)+(x[7]!=null?' '+yz(x[7]):'')):(k===0&&!bug.length?(v.t?'bugün işlem yok':'ilk işlemler ilk kapanıştan sonra'):'');
   FIG.tahta[k].setAttribute('fill',x?(x[2]==='A'?'#7CF29A':'#FF9A8A'):'#8E7BC9');}
  if(bug.length>5)FIG.tahta[4].textContent='… +'+(bug.length-4)+' işlem daha';
- skorCiz(v);akisCiz(v);
+ skorCiz(v);akisCiz(v);isiCiz(v);
  if(anim){var yapan={};bug.forEach(function(x){yapan[x[1]]=(yapan[x[1]]||[]).concat([x]);});Object.keys(yapan).forEach(function(id){yuru(id,yapan[id]);});}
  if(ACIK&&document.getElementById('perde').classList.contains('on'))kartAc(ACIK);}
-function skorCiz(v){var sira=RID.filter(function(id){return v.r[id];}).sort(function(a,b){return v.r[b].kasa-v.r[a].kasa;});
+function skorSatir(v,id,no){var r=v.r[id],b=RB[id],g=(r.kasa/AYAR.bas-1)*100,fark=g-r.xu,bir=b.grup==='birikim';
+ var d=r.durum==='durdu'?'<span class="dur d">durduruldu</span>':(r.durum==='mola'?'<span class="dur m">mola</span>':(bir?'':(r.poz.length?'<span class="dur p">'+r.poz.length+' pozisyon</span>':'<span class="dur n">nakitte</span>')));
+ if(b.tahmini)d+=' <span class="dur m">TAHMİNİ</span>';
+ var isa=r.kapanan?'%'+sy(100*r.kazanan/r.kapanan,0)+' ('+r.kazanan+'/'+r.kapanan+')':'—';
+ var se=r.sans?sansEtiket(r.sans.yuzde):null,re=reelAl(g,r.bas,v.t);
+ var m=bir?('BIST 100\'e göre <span class="'+cl(fark)+'">'+pz(fark)+'</span> · en büyük düşüş '+yz(r.mdd)+(re?' · reel <span class="'+cl(re.r)+'">'+yz(re.r)+'</span>':'')):
+  ('BIST 100\'e göre <span class="'+cl(fark)+'">'+pz(fark)+'</span> · en büyük düşüş '+yz(r.mdd)+(re?' · reel <span class="'+cl(re.r)+'">'+yz(re.r)+'</span>':'')+'<br>'+r.islem+' alım · isabet '+isa+' · '+v.gun+' gün'+
+  (r.ilk3!=null?' · en iyi 3 işlem hariç '+yz(r.ilk3):'')+(se?'<br>🎲 şans yüzdeliği '+r.sans.yuzde+': <span class="'+se[1]+'">'+se[0]+'</span>':''));
+ if(v.canli&&r.bas&&r.bas>v.bas)m+='<br><i>'+tr(r.bas)+'\'den beri (sonradan katıldı)</i>';
+ return '<div class="sk'+(bir?' bir':'')+'" onclick="kartAc(\''+id+'\')"><div class="no">'+no+'</div><div class="ad"><b>'+b.em+' '+esc(b.ad)+'</b>'+d+
+  '<div class="m">'+m+'</div>'+(uzunSatir(id)?'<div class="not2">'+esc(uzunSatir(id))+'</div>':'')+'</div>'+
+  '<div class="g '+cl(g)+'">'+yz(g)+'<small>'+sy(r.kasa)+' TL</small></div></div>';}
+function skorCiz(v){var ids=RID.filter(function(id){return v.r[id];}),sir=function(a,b){return v.r[b].kasa-v.r[a].kasa;};
+ var yar=ids.filter(function(id){return RB[id].grup!=='birikim';}).sort(sir),bir=ids.filter(function(id){return RB[id].grup==='birikim';}).sort(sir);
  document.getElementById('uyar6').innerHTML=(v.gun<126)?'<div class="uyar6">⏳ '+esc(AYAR.pencere)+' Şu an '+v.gun+'. işlem günü.</div>':'';
- var h='';sira.forEach(function(id,k){var r=v.r[id],b=RB[id],g=(r.kasa/AYAR.bas-1)*100,fark=g-v.xu;
-  var d=r.durum==='durdu'?'<span class="dur d">durduruldu</span>':(r.durum==='mola'?'<span class="dur m">mola</span>':(r.poz.length?'<span class="dur p">'+r.poz.length+' pozisyon</span>':'<span class="dur n">nakitte</span>'));
-  if(b.tahmini)d+=' <span class="dur m">TAHMİNİ</span>';
-  var isa=r.kapanan?'%'+sy(100*r.kazanan/r.kapanan,0)+' ('+r.kazanan+'/'+r.kapanan+')':'—';
-  var se=r.sans?sansEtiket(r.sans.yuzde):null;
-  h+='<div class="sk" onclick="kartAc(\''+id+'\')"><div class="no">'+(k+1)+'</div><div class="ad"><b>'+b.em+' '+esc(b.ad)+'</b>'+d+
-  '<div class="m">BIST 100\'e göre <span class="'+cl(fark)+'">'+pz(fark)+'</span> · en büyük düşüş '+yz(r.mdd)+'<br>'+r.islem+' alım · isabet '+isa+' · '+v.gun+' gün'+
-  (r.ilk3!=null?' · en iyi 3 işlem hariç '+yz(r.ilk3):'')+(se?'<br>🎲 şans yüzdeliği '+r.sans.yuzde+': <span class="'+se[1]+'">'+se[0]+'</span>':'')+'</div>'+
-  (uzunSatir(id)?'<div class="not2">'+esc(uzunSatir(id))+'</div>':'')+'</div>'+
-  '<div class="g '+cl(g)+'">'+yz(g)+'<small>'+sy(r.kasa)+' TL</small></div></div>';});
+ var h='';yar.forEach(function(id,k){h+=skorSatir(v,id,k+1);});
+ if(bir.length){h+='<div class="bkb">💰 <b>Birikim köşesi</b> — kıyas satırları, sıralamaya girmez: paran hiç borsaya girmeseydi?</div>';bir.forEach(function(id){h+=skorSatir(v,id,'·');});}
  document.getElementById('skor').innerHTML=h;
- var s='BIST 100 aynı dönemde <b class="'+cl(v.xu)+'">'+yz(v.xu)+'</b>. ';
+ var s='BIST 100 aynı dönemde <b class="'+cl(v.xu)+'">'+yz(v.xu)+'</b>. ',tt=tufeKum(TF,v.bas,v.t);
+ s+='<b>Reel</b> = '+tufeEt(tt)+' ile düzeltilmiş getiri. ';
  if(v.bant)s+='🎲 <b>Şans bandı</b> (Rastgele robotun '+(v.bantS&&v.bantS.n?v.bantS.n:AYAR.sans)+' farklı zarı, dönem başında 100.000 TL): %5 '+yz((v.bant[0]/AYAR.bas-1)*100)+' · ortanca '+yz((v.bant[1]/AYAR.bas-1)*100)+' · %95 '+yz((v.bant[2]/AYAR.bas-1)*100)+'. Bu bandın içindeki robot şanstan ayrılmıyor.';
  else if(v.canli)s+='🎲 Şans bandı ve şans yüzdeliği tekrar oynatmada görünür; canlıda kıyas 🎲 Rastgele robot.';
  else s+=(SANS===false?'🎲 Bu dönemin şans bandı alınamadı.':'🎲 Şans bandı hesaplanıyor…');
  if(!v.canli&&DON&&DON.id==='ozel')s+=' Şans yüzdeliği sadece hazır dönemlerde (bugüne kadar) hesaplı; özel dönemde şans bandı '+(v.bantS&&v.bantS.n?v.bantS.n:100)+' zarla.';
  document.getElementById('sans').innerHTML=s;}
+function isiCiz(v){var el2=document.getElementById('isi');if(!el2)return;var tl=v.tlist||[],n=tl.length;
+ if(n<2){el2.innerHTML='<div style="color:var(--muted)">Ay sonu verisi henüz yok.</div>';document.getElementById('isi_not').innerHTML='';return;}
+ var ay=[],son={};for(var j=0;j<n;j++){var k=tl[j].slice(0,7);if(!(k in son))ay.push(k);son[k]=j;}
+ function aylik(seri){var o=tl.length-seri.length,out={},once=null;ay.forEach(function(k){var j=son[k]-o;if(j<0){return;}var b=once==null?seri[0]:seri[once];out[k]=(seri[j]/b-1)*100;once=j;});return out;}
+ var X=aylik(v.xseri.slice(0,n)),sat=[],ids=RID.filter(function(id){return v.r[id]&&(v.r[id].seriG||v.r[id].seri).length>1;});
+ var h='<table><tr><th class="ad">Robot</th>';ay.forEach(function(k){h+='<th>'+ayTr(k).replace(' 20',' \'')+'</th>';});h+='<th>Endeksi yendiği ay</th></tr>';
+ function hucre(x){if(x==null||isNaN(x))return '<td class="c"></td>';var a=Math.min(1,Math.abs(x)/15)*0.55+0.06;return '<td class="c" style="background:'+(x>=0?'rgba(27,138,82,':'rgba(194,65,47,')+a.toFixed(2)+')">'+(x>=0?'+':'−')+sy(Math.abs(x),0)+'</td>';}
+ ids.forEach(function(id){var A=aylik((v.r[id].seriG||v.r[id].seri).slice(0,n)),yen=0,top=0;h+='<tr><td class="ad">'+RB[id].em+' '+esc(RB[id].kisa||RB[id].ad)+'</td>';
+  ay.forEach(function(k){h+=hucre(A[k]);if(A[k]!=null&&X[k]!=null){top++;if(A[k]>X[k])yen++;}});
+  h+='<td>'+(top?'%'+sy(100*yen/top,0)+' <span style="color:var(--muted)">('+yen+'/'+top+')</span>':'—')+'</td></tr>';});
+ h+='<tr><td class="ad"><b>BIST 100</b></td>';ay.forEach(function(k){h+=hucre(X[k]);});h+='<td></td></tr></table>';
+ el2.innerHTML=h;el2.scrollLeft=el2.scrollWidth;
+ document.getElementById('isi_not').innerHTML='Her hücre o ayın getirisi (%, ay sonu kasasına göre; ilk ve son ay kısmi olabilir). Son sütun: robotun BIST 100\'ü geçtiği ay oranı. Tablo sağa kayar; en yeni ay sağda.';}
 function kim(w){return w==='bekci'?'🛡️ Risk Bekçisi':(RB[w]?RB[w].em+' '+RB[w].ad:esc(w));}
 function akisCiz(v){var h='',bek=[];
  if(v.canli){RID.forEach(function(id){((v.r[id]||{}).bek||[]).forEach(function(o){bek.push(RB[id].em+' '+(o.yon==='AL'?'AL ':'SAT ')+esc(o.kod));});});}
  document.getElementById('bek').innerHTML=bek.length?'<div class="bek">⏭️ <b>Bekleyen emirler</b> (bir sonraki işlem gününün açılış fiyatından yazılır, kayıt akşam): '+bek.join(' · ')+'</div>':'';
  v.olay.slice(0,80).forEach(function(o){h+='<div class="ol'+(o[1]==='bekci'?' bk':'')+'"><span class="t">'+trk(o[0])+'</span><span><b>'+kim(o[1])+'</b> · '+esc(o[2])+'</span></div>';});
  document.getElementById('akis').innerHTML=h||'<div class="ol"><span>Henüz olay yok.</span></div>';}
+function notMetin(x,id){var n=x[10],t=RB[id].tur;if(!n||!n.length)return '';
+ if(x[2]==='A'){var o=n[0],s='';
+  if(t==='kirilim'&&o!=null)s='20 günlük zirve '+sy(o,2)+' kırıldı';else if(t==='erken'&&o!=null)s='zirveye %'+sy(o,1)+' kalmıştı';
+  else if(t==='dip'&&o!=null)s='destek '+sy(o,2)+' TL\'den tepki';else if(t==='rsi'&&o!=null)s='RSI '+sy(o,1);
+  else if(t==='momentum'&&o!=null)s='6 ay getirisi '+yz(o,0);else if(t==='uzun')s='🌱 uzun vade AL';else if(t==='rastgele')s='rastgele seçim';
+  var ad=t==='kirilim'?'roket':(t==='rastgele'?'rastgele aday':'aday');
+  return s+(s?' · ':'')+'o gün '+n[1]+' '+ad+', '+n[2]+' boş yuva, sırası '+n[3];}
+ var p=[];if(n[0]!=null)p.push('tepe '+sy(n[0],2));if(n[1]!=null)p.push('iz '+sy(n[1],2));if(n[2]!=null)p.push('karar kapanışı '+sy(n[2],2));if(n[3])p.push('🔒 kilitli tabanda '+n[3]+' gün bekledi');return p.join(' · ');}
 /* ---------- yürüme: işlem yapan robot borsa tahtasına gidip döner ---------- */
 var YURUYOR={};
 function yuru(id,isl){var F=FIG[id];if(!F)return;var isik=FIG[id+'_isik'];isik.setAttribute('class','yan');setTimeout(function(){isik.removeAttribute('class');},1800);
- var h=FIG.hat[id];h.classList.add('parla');setTimeout(function(){h.classList.remove('parla');},1500);
+ var h=FIG.hat[id];if(h){h.classList.add('parla');setTimeout(function(){h.classList.remove('parla');},1500);}
  if(YURUYOR[id]||(MOD==='rep'&&HIZ>=20))return;var sure=Math.max(500,Math.min(2200,2400/Math.max(1,HIZ/2)));
- YURUYOR[id]=1;var a=F.ev,m=MASA[id],b=P(TAHTA_ON[0]+(RID.indexOf(id)-4)*0.45,TAHTA_ON[1]+0.15,0);
+ YURUYOR[id]=1;var a=F.ev,m=MASA[id],b=P(TAHTA_ON[0]+(RID.indexOf(id)-6)*0.4,TAHTA_ON[1]+0.15,0);
  var yol=[a,P(m[0]+0.95,TAHTA_ON[1]+0.15,0),b];
  var bal=el('g',{},F.g);var al=isl.filter(function(x){return x[2]==='A';}).length,sat=isl.length-al;
  var yzi=(al?'AL '+al:'')+(al&&sat?' · ':'')+(sat?'SAT '+sat:'');var w=yzi.length*6.6+14;
@@ -357,29 +439,50 @@ function cizgi(seri,xs,bant){var w=640,h=180,n=seri.length;if(n<2)return '<div s
  g+='<path d="'+yolu(xk)+'" fill="none" stroke="#8E7BC9" stroke-width="1.5" stroke-dasharray="5 4"/><path d="'+yolu(seri)+'" fill="none" stroke="var(--accent)" stroke-width="2.2"/>';
  g+='<text x="54" y="'+(h-6)+'" font-size="10.5" fill="var(--muted)">— robot kasası · - - BIST 100 (aynı 100.000 TL ile)'+(bant?' · gri bant: 🎲 şans bandı (%5-%95)':'')+'</text></svg>';return g;}
 function kartAc(id){var v=gor();if(!v)return;ACIK=id;var pen=document.getElementById('pen'),h;
- if(id==='bekci'){h='<button class="btn kapat" onclick="kapat()">✕</button><h3>🛡️ Risk Bekçisi</h3><p style="color:var(--muted);font-size:13px;line-height:1.5">Endeksçi hariç tüm robotları izler: alımda tek hisseye kasanın en fazla %'+AYAR.tek+'\'u; sonradan kasanın %'+AYAR.krp+'\'ini aşan hissenin fazlası satılır; kasa bir günde %'+AYAR.gz+'+ eridiyse ertesi gün yeni alım yok (mola); kasa zirvesinden %'+AYAR.td+'+ düşerse robotu durdurur — pozisyonları ertesi açılışta satılır, '+AYAR.dg+' işlem günü yeni alım yapmaz.<br><b>Kâr aracı değil, emniyet kemeri.</b></p><div class="tb"><table><tr><th>Tarih</th><th>Olay</th></tr>';
+ if(id==='bekci'){h='<button class="btn kapat" onclick="kapat()">✕</button><h3>🛡️ Risk Bekçisi</h3><p style="color:var(--muted);font-size:13px;line-height:1.5">Endeksçi ve 💰 birikim robotları hariç tüm robotları izler: alımda tek hisseye kasanın en fazla %'+AYAR.tek+'\'u; sonradan kasanın %'+AYAR.krp+'\'ini aşan hissenin fazlası satılır (pozisyon kapanmaz, yeni yuva açmaz); kasa bir günde %'+AYAR.gz+'+ eridiyse ertesi gün yeni alım yok (mola); kasa zirvesinden %'+AYAR.td+'+ düşerse robotu durdurur — pozisyonları ertesi açılışta satılır, '+AYAR.dg+' işlem günü yeni alım yapmaz.<br><b>Kâr aracı değil, emniyet kemeri.</b></p><div class="tb"><table><tr><th>Tarih</th><th>Olay</th></tr>';
   v.olay.filter(function(o){return o[1]==='bekci';}).forEach(function(o){h+='<tr><td>'+tr(o[0])+'</td><td style="white-space:normal">'+esc(o[2])+'</td></tr>';});
   pen.innerHTML=h+'</table></div>';document.getElementById('perde').classList.add('on');return;}
- var r=v.r[id],b=RB[id];if(!r)return;var g=(r.kasa/AYAR.bas-1)*100,se=r.sans?sansEtiket(r.sans.yuzde):null;
- h='<button class="btn kapat" onclick="kapat()">✕</button><h3>'+b.em+' '+esc(b.ad)+(b.tahmini?' <span class="dur m">TAHMİNİ</span>':'')+'</h3><div style="color:var(--muted);font-size:13px;line-height:1.5">'+esc(b.kural)+'</div>';
+ var r=v.r[id],b=RB[id];if(!r)return;var g=(r.kasa/AYAR.bas-1)*100,se=r.sans?sansEtiket(r.sans.yuzde):null,bir=b.grup==='birikim',re=reelAl(g,r.bas,v.t);
+ h='<button class="btn kapat" onclick="kapat()">✕</button><h3>'+b.em+' '+esc(b.ad)+(b.tahmini?' <span class="dur m">TAHMİNİ</span>':'')+(bir?' <span class="dur n">kıyas</span>':'')+'</h3><div style="color:var(--muted);font-size:13px;line-height:1.5">'+esc(b.kural)+'</div>';
  if(b.not)h+='<div class="uyar6" style="margin-top:8px">'+esc(b.not)+'</div>';
- h+='<div class="ist"><div>Kasa<b>'+sy(r.kasa)+' TL</b></div><div>Getiri<b class="'+cl(g)+'">'+yz(g)+'</b></div><div>BIST 100\'e göre<b class="'+cl(g-v.xu)+'">'+pz(g-v.xu)+'</b></div><div>En büyük düşüş<b>'+yz(r.mdd)+'</b></div><div>Alım<b>'+r.islem+'</b></div><div>İsabet<b>'+(r.kapanan?'%'+sy(100*r.kazanan/r.kapanan,0):'—')+'</b></div><div>Gün<b>'+v.gun+'</b></div>'+
-  '<div>En iyi 3 işlem hariç<b>'+(r.ilk3!=null?yz(r.ilk3):'—')+'</b></div><div>Komisyon + kayma<b>'+sy(r.maliyet)+' TL</b></div><div>Durum<b>'+(r.durum==='durdu'?'durduruldu':(r.durum==='mola'?'mola':'aktif'))+'</b></div></div>';
+ h+='<div class="ist"><div>Kasa<b>'+sy(r.kasa)+' TL</b></div><div>Getiri<b class="'+cl(g)+'">'+yz(g)+'</b></div><div>Reel getiri<b class="'+(re?cl(re.r):'')+'">'+(re?yz(re.r):'—')+'</b></div><div>BIST 100\'e göre<b class="'+cl(g-r.xu)+'">'+pz(g-r.xu)+'</b></div><div>En büyük düşüş<b>'+yz(r.mdd)+'</b></div>';
+ if(!bir)h+='<div>Alım<b>'+r.islem+'</b></div><div>İsabet<b>'+(r.kapanan?'%'+sy(100*r.kazanan/r.kapanan,0):'—')+'</b></div><div>Gün<b>'+v.gun+'</b></div><div>En iyi 3 işlem hariç<b>'+(r.ilk3!=null?yz(r.ilk3):'—')+'</b></div>';
+ if(r.maliyet>0.5||!bir)h+='<div>Komisyon + kayma<b>'+sy(r.maliyet)+' TL</b></div>';
+ if(r.makas>0.5)h+='<div>Makas<b>'+sy(r.makas)+' TL</b></div>';if(r.bsmv>0.5)h+='<div>BSMV<b>'+sy(r.bsmv)+' TL</b></div>';
+ if(r.stopaj>0.5||b.tur==='faiz'||b.tur==='denge')h+='<div>Stopaj ('+(r.temettu>0?'temettü':'faiz')+')<b>'+sy(r.stopaj)+' TL</b></div>';
+ if(r.temettu>0.5)h+='<div>Temettü (net)<b>'+sy(r.temettu)+' TL</b></div>';
+ if(!bir)h+='<div>Durum<b>'+(r.durum==='durdu'?'durduruldu':(r.durum==='mola'?'mola':'aktif'))+'</b></div>';
+ h+='</div><div style="font-size:12px;color:var(--muted);margin:-4px 0 6px">Reel: '+esc(tufeEt(re?re.t:null))+'. '+(v.canli&&r.bas>v.bas?'Bu robot canlıya '+tr(r.bas)+'\'de katıldı; getiri ve BIST 100 farkı o günden.':'')+'</div>';
  if(se)h+='<div style="font-size:13px;margin:4px 0 8px">🎲 <b>Şans yüzdeliği '+r.sans.yuzde+'</b> — <span class="'+se[1]+'">'+se[0]+'</span>. Her alımı aynı gün rastgele hisseyle değiştirilmiş '+AYAR.sans+' ikizin bu dönemdeki %5-%95 aralığı '+yz(r.sans.p5)+' … '+yz(r.sans.p95)+' (ortanca '+yz(r.sans.med)+').</div>';
  if(uzunSatir(id))h+='<div style="font-size:13px;margin:4px 0 8px">📜 '+esc(uzunSatir(id))+'</div>';
- h+=cizgi(r.seri,v.xseri.slice(-r.seri.length),v.bantS||null);
+ h+=cizgi(r.seri,v.xseri.slice(-r.seri.length),bir?null:(v.bantS||null));
  if(!v.canli)h+='<div style="color:var(--muted);font-size:12px">Dönem başındaki kasa 100.000 TL\'ye ölçeklendi (uzun oyunun kesiti); işlem adetleri uzun oyundaki gerçek adetler, satış sonucu ilk alış fiyatına göre.</div>';
+ if(!bir){var ko=kacanOzet(r);h+='<div class="kac">';
+  if(b.tur==='kirilim'){h+='🚀 <b>Kaçırılan roketler:</b> bu dönemde <b>'+ko.say+'</b> roket geldi, <b>'+r.islem+'</b>\'i alındı, <b>'+ko.yuva+'</b>\'i yuva dolu diye, <b>'+ko.nakit+'</b>\'i nakit kalmadığı için (para hisselerde; eskiden kırıntı alım yapılıyordu) atlandı. ';
+   if(ko.kapanan)h+='Atlananlardan kapanmış '+ko.kapanan+' tanesinin ortalama sonucu (v3\'ün kendi işlemi: ertesi açılış → %20 iz stop) <b class="'+cl(ko.ort)+'">'+yz(ko.ort)+'</b>'+(r.kzort!=null?'; robotun bu dönemde kapattığı işlemlerin ortalaması <b class="'+cl(r.kzort)+'">'+yz(r.kzort)+'</b>':'')+'. ';
+   else if(ko.yuva)h+='Atlananların hiçbiri henüz kapanmadı. ';}
+  else if(r.kn)h+='⛔ Bu dönemde <b>'+r.kn+'</b> aday sinyal yuvalar dolu olduğu için alınamadı. ';
+  if(r.dolu!=null)h+='Yuvaların <b>dolu olduğu gün oranı %'+sy(r.dolu,0)+'</b>. ';
+  if(r.isg&&r.isg.length)h+='<br>En uzun yuva işgalcileri: '+r.isg.map(function(q){return '<b>'+esc(q.kod)+'</b> '+q.gun+' gün'+(q.r!=null?' ('+yz(q.r)+(q.acik?', açık':'')+')':(q.acik?' (açık)':''));}).join(' · ');
+  if(b.tur==='kirilim'&&r.kac&&r.kac.length){var sk=r.kac.slice(-8).reverse();if(sk.length)h+='<br>Son kaçanlar: '+sk.map(function(x){return trk(x.t)+' '+esc(x.kod)+(x.r!=null?' '+yz(x.r):(x.kap?'':' (açık)'));}).join(' · ');}
+  h+='</div>';}
  h+='<h4 style="margin:12px 0 2px">Açık pozisyonlar ('+r.poz.length+')</h4>';
- if(r.poz.length){h+='<div class="tb"><table><tr><th>Hisse</th><th class="r">Adet</th><th>Alış</th><th class="r">Alış fiyatı</th>'+(v.canli?'<th class="r">Son</th><th class="r">Getiri</th>':'')+'<th class="r">Gün</th></tr>';
-  r.poz.forEach(function(p){var gg=p.son?(p.son/p.fiyat-1)*100:null;h+='<tr><td><b>'+esc(p.kod)+'</b></td><td class="r">'+sy(p.adet,p.kod==='XU100'?2:0)+'</td><td>'+tr(p.tarih)+'</td><td class="r">'+sy(p.fiyat,2)+'</td>'+(v.canli?'<td class="r">'+sy(p.son,2)+'</td><td class="r '+cl(gg)+'">'+yz(gg)+'</td>':'')+'<td class="r">'+(p.gun!=null?p.gun:'')+'</td></tr>';});
-  h+='</table></div>';}else h+='<div style="color:var(--muted);font-size:13px">Nakitte.</div>';
+ if(r.mev)h+='<div style="font-size:13px;margin:2px 0 6px">🏦 TL mevduat: '+(v.canli?sy(r.mev.ana)+' TL anapara, ':'')+'son açılış/yenileme '+tr(r.mev.t)+', yıllık %'+sy(r.mev.oran*(v.canli?100:1),2)+(v.canli?', stopaj %'+sy(r.mev.st*100,1):'')+' (32 günde bir faiziyle yenilenir)</div>';
+ if(r.poz.length){h+='<div class="tb"><table><tr><th>Varlık</th><th class="r">Adet</th><th>Alış</th><th class="r">Alış fiyatı</th>'+(v.canli?'<th class="r">Son</th><th class="r">Getiri</th>':'')+'<th class="r">Gün</th></tr>';
+  r.poz.forEach(function(p){var gg=p.son?(p.son/p.fiyat-1)*100:null;h+='<tr><td><b>'+esc(p.kod)+'</b></td><td class="r">'+sy(p.adet,KESIR[p.kod]?2:0)+(p.kod==='ALTIN'?' gr':'')+'</td><td>'+tr(p.tarih)+'</td><td class="r">'+sy(p.fiyat,2)+'</td>'+(v.canli?'<td class="r">'+sy(p.son,2)+'</td><td class="r '+cl(gg)+'">'+yz(gg)+'</td>':'')+'<td class="r">'+(p.gun!=null?p.gun:'')+'</td></tr>';});
+  h+='</table></div>';}else if(!r.mev)h+='<div style="color:var(--muted);font-size:13px">Nakitte.</div>';
  if(v.canli&&r.bek&&r.bek.length)h+='<div style="font-size:13px;margin-top:6px">⏭️ Bekleyen emirler (sonraki açılıştan): '+r.bek.map(function(o){return (o.yon==='AL'?'AL ':'SAT ')+esc(o.kod);}).join(' · ')+'</div>';
- var df=r.df.slice().reverse().slice(0,40);
+ var df=r.df.slice().reverse().slice(0,40),YN={A:'AL',S:'SAT',M:'MEVDUAT',F:'FAİZ',T:'TEMETTÜ'};
  h+='<h4 style="margin:12px 0 2px">İşlem geçmişi (son '+df.length+')</h4>';
- if(df.length){h+='<div class="tb"><table><tr><th>Tarih</th><th></th><th>Hisse</th><th class="r">Adet</th><th class="r">Fiyat</th><th>Sebep</th><th class="r">Sonuç</th></tr>';
-  df.forEach(function(x){h+='<tr><td>'+tr(x[0])+'</td><td class="'+(x[2]==='A'?'pos':'neg')+'">'+(x[2]==='A'?'AL':'SAT')+'</td><td><b>'+esc(x[3])+'</b></td><td class="r">'+sy(x[4],x[3]==='XU100'?2:0)+'</td><td class="r">'+sy(x[5],2)+'</td><td>'+esc(x[6])+'</td><td class="r '+cl(x[7])+'">'+(x[7]!=null?yz(x[7]):'')+'</td></tr>';});
+ if(df.length){h+='<div class="tb"><table><tr><th>Tarih</th><th></th><th>Varlık</th><th class="r">Adet</th><th class="r">Fiyat</th><th>Neden</th><th class="r">Sonuç</th></tr>';
+  df.forEach(function(x){var y=x[2],c=x[11]||{},ned=esc(x[6]),nt=notMetin(x,id),son2=x[7]!=null?yz(x[7]):'';
+   if(y==='M'){ned='32 gün, yıllık %'+sy(x[5],2);}
+   if(y==='F'){ned='vade doldu: brüt faiz '+sy(c.br)+' TL, stopaj '+sy(c.s)+' TL';}
+   if(y==='T'){ned='net '+sy(c.net)+' TL (stopaj '+sy(c.s)+' TL)';}
+   if(c.m)nt=(nt?nt+' · ':'')+'makas '+sy(c.m)+' TL'+(c.b?', BSMV '+sy(c.b)+' TL':'');
+   h+='<tr><td>'+tr(x[0])+'</td><td class="'+(y==='A'||y==='M'?'pos':(y==='S'?'neg':''))+'">'+(YN[y]||y)+'</td><td><b>'+esc(x[3])+'</b></td><td class="r">'+(y==='F'?'':sy(x[4],y==='M'?0:(KESIR[x[3]]?2:0)))+'</td><td class="r">'+(y==='F'||y==='M'?'':sy(x[5],2))+'</td><td class="ned">'+ned+(nt?(ned?'<br>':'')+esc(nt):'')+'</td><td class="r '+cl(x[7])+'">'+son2+'</td></tr>';});
   h+='</table></div>';}else h+='<div style="color:var(--muted);font-size:13px">Henüz işlem yok.</div>';
- h+='<p style="color:var(--muted);font-size:12px;margin-top:10px">Satış sonucu komisyon ve kayma düşülmüş nettir. Sanal para; yatırım tavsiyesi değil.</p>';
+ h+='<p style="color:var(--muted);font-size:12px;margin-top:10px">Satış sonucu komisyon ve kayma (altın/dolarda makas) düşülmüş nettir. Sanal para; yatırım tavsiyesi değil.</p>';
  pen.innerHTML=h;document.getElementById('perde').classList.add('on');}
 function kapat(){ACIK=null;document.getElementById('perde').classList.remove('on');}
 /* ---------- mod / oynatma ---------- */
@@ -401,7 +504,9 @@ function adimla(t){if(!OYNUYOR)return;if(!SON_ADIM)SON_ADIM=t;
  ZAM=requestAnimationFrame(adimla);}
 function oynat(){if(!REP||!DON)return;if(OYNUYOR){durdur();return;}if(I>=DON.b)I=DON.a;OYNUYOR=true;SON_ADIM=0;document.getElementById('b_oyn').textContent='⏸ Durdur';ZAM=requestAnimationFrame(adimla);}
 function durdur(){OYNUYOR=false;if(ZAM)cancelAnimationFrame(ZAM);ZAM=null;var b=document.getElementById('b_oyn');if(b)b.textContent='▶ Oynat';}
-function kurallar(){var h='';ROB.forEach(function(r){h+='<div><b>'+r.em+' '+esc(r.ad)+'</b>'+(r.tahmini?' <span class="dur m">TAHMİNİ</span>':'')+'<br>'+esc(r.kural)+(r.not?'<br><i style="color:var(--muted)">'+esc(r.not)+'</i>':'')+'</div>';});document.getElementById('kurallar').innerHTML=h;}
+function kurallar(){var h='',G=[['yaris','Kural robotları (yarışmacı)'],['kiyas','Kıyas: şans ve endeks'],['birikim','💰 Birikim köşesi (sıralamaya girmez)']];
+ G.forEach(function(gg){ROB.forEach(function(r){if(r.grup!==gg[0])return;h+='<div><b>'+r.em+' '+esc(r.ad)+'</b>'+(r.tahmini?' <span class="dur m">TAHMİNİ</span>':'')+' <span class="dur n">'+esc(gg[1])+'</span><br>'+esc(r.kural)+(r.not?'<br><i style="color:var(--muted)">'+esc(r.not)+'</i>':'')+'</div>';});});
+ document.getElementById('kurallar').innerHTML=h;}
 function hashKart(){var h=/kart=([a-z0-9]+)/.exec(location.hash);if(h&&(RB[h[1]]||h[1]==='bekci'))kartAc(h[1]);}
 function basla(){sahne();kurallar();var sl=document.getElementById('salon');if(sl.scrollWidth>sl.clientWidth)sl.scrollLeft=(sl.scrollWidth-sl.clientWidth)*0.45;
  fetch('oda.json?v='+Date.now(),{cache:'no-store'}).then(function(r){if(!r.ok)throw 0;return r.json();})

@@ -47,13 +47,14 @@ SANS_OZEL_N = 100             # oda_replay_sans.json'daki Rastgele zarı (özel 
 NEDEN = {"iz": "iz stop (tepeden %20 düşüş)", "sk": "sıkı çizgi altında kapanış", "dk": "destek kırıldı",
          "dr": "dirence ulaştı", "sr": "süre doldu", "uv": "🌱 SAT: 2 gün 200 günlük ortalama altı",
          "ls": "ayın güçlüleri listesinden düştü", "pz": "piyasa zayıf: nakite geçti", "sb": "trend şablonu bozuldu",
-         "bk": "🛡️ Bekçi: toplam düşüş limiti", "kr": "🛡️ Bekçi: tek hisse sınırı aşıldı (fazlası satıldı)"}
+         "bk": "🛡️ Bekçi: toplam düşüş limiti", "kr": "🛡️ Bekçi: tek hisse sınırı aşıldı (fazlası satıldı)",
+         "dg": "dengeleme (1/3'e; kısmi satış)"}
 
 
 def neden_kod(t):
     t = t or ""
     for a, k in (("iz stop", "iz"), ("sıkı", "sk"), ("destek", "dk"), ("dirence", "dr"), ("gün doldu", "sr"), ("🌱", "uv"),
-                 ("listeden", "ls"), ("piyasa", "pz"), ("şablon", "sb"), ("düşüş limiti", "bk"), ("aştı", "kr")):
+                 ("listeden", "ls"), ("piyasa", "pz"), ("şablon", "sb"), ("düşüş limiti", "bk"), ("aştı", "kr"), ("dengeleme", "dg")):
         if a in t:
             return k
     return "?"
@@ -165,7 +166,13 @@ def ozellik(d, xu_ust, xu):
     sab = S.trend_sablonu(d).fillna(False).values.astype(bool)
     hh20 = c.rolling(S.KIRILIM_GUN).max().shift(1).values
     uzak = np.round((hh20 / cv - 1) * 100, 1)
+    F["hh20"] = hh20.copy()
     uzak[~sab | acik] = np.nan
+    tg, tc = np.full(n, np.nan), np.full(n, -1.0)   # sinyal gününde: v3 girişi (ertesi açılış) ve çıkış günü (-1 = açık)
+    for x in tum:
+        tg[x["i"]] = x["giris"]
+        tc[x["i"]] = x["cik"] if x["cik"] is not None else -1
+    F["tk_giris"], F["tk_cik"] = tg, tc
     F["tk_bugun"], F["tk_acik"], F["sablon"], F["kir_uzak"] = bugun, acik, sab, uzak
     F["oynak"] = (r.rolling(60).std() > S.OYNAK_ESIK).values
     F["mom20"] = (c / c.shift(20) - 1).values
@@ -225,6 +232,8 @@ def hazirla(g):
         F = ozellik(d, xu_ust, xu)
         F["O"], F["H"], F["L"], F["C"] = (d[k].values.astype(float) for k in ("Open", "High", "Low", "Close"))
         pos = gun.get_indexer(d.index)
+        tc = F["tk_cik"]          # hisse içi sıra → oynatma (BIST 100 günleri) sırası
+        F["tk_cik"] = np.where(tc >= 0, pos[np.maximum(tc, 0).astype(int)], -1).astype(float)
         for k, arr in F.items():
             A.setdefault(k, {"dt": arr.dtype, "rows": {}})["rows"][kod] = (pos, arr)
         tamam.append(kod)
@@ -264,7 +273,8 @@ def ozet(D, k, t):
     kj = A["kijun"][k, t]
     return {"fiyat": float(f),
             "tk": {"bugun": bool(A["tk_bugun"][k, t]), "sablon": bool(A["sablon"][k, t]),
-                   "kirilima_uzak": None if uz != uz else float(uz), "durum": "AL" if A["tk_acik"][k, t] else None},
+                   "kirilima_uzak": None if uz != uz else float(uz), "durum": "AL" if A["tk_acik"][k, t] else None,
+                   "seviye": None if A["hh20"][k, t] != A["hh20"][k, t] else float(A["hh20"][k, t])},
             "oynak": bool(A["oynak"][k, t]),
             "sd": {"tepki": bool(A["sd_tepki"][k, t]), "destek": None if sdd != sdd else float(sdd),
                    "direnc": None if sdr != sdr else float(sdr),
@@ -287,7 +297,7 @@ def gun_verisi(D, t, tut, ay_ilk, momentum=True, rastgele=True, filtre=True):
     idx = set(np.flatnonzero(m).tolist()) | {D["ki"][k] for k in tut if k in D["ki"] and var[D["ki"][k]]}
     kod = D["kod"]
     gv = {"tarih": D["tarih"][t], "ay_ilk": ay_ilk, "xu": {"fiyat": float(D["xu"].iloc[t]), "ust": bool(D["xu_ust"].iloc[t])},
-          "hisseler": {kod[k]: ozet(D, k, t) for k in idx}, "evren": []}
+          "hisseler": {kod[k]: ozet(D, k, t) for k in idx}, "evren": [], "piyasa": piyasa(D, t)}
     if rastgele:
         e = var & (A["gecmis"][:, t] >= 250)
         if filtre:
@@ -296,10 +306,23 @@ def gun_verisi(D, t, tut, ay_ilk, momentum=True, rastgele=True, filtre=True):
     return gv
 
 
+def piyasa(D, t):
+    M = D.get("makro") or {}
+    g = lambda k: (float(M[k][t]) if k in M and M[k][t] == M[k][t] else None)
+    return {oda.ALTIN: g("gram"), oda.USD: g("usd"), "faiz": g("faiz")}
+
+
 def acilis(D, t, kodlar):
     A = D["A"]
     out = {}
     for kod in kodlar:
+        if kod in (oda.ALTIN, oda.USD, oda.MEVDUAT):
+            pv = piyasa(D, t)
+            if kod == oda.MEVDUAT:
+                out[kod] = {"fiyat": 1.0, "faiz": pv["faiz"]}
+            elif pv[kod]:
+                out[kod] = {"fiyat": pv[kod]}
+            continue
         if kod == oda.XU:
             o = D["xu_open"].iloc[t]
             out[kod] = {"fiyat": float(o) if o == o and o > 0 else float(D["xu"].iloc[t])}
@@ -371,7 +394,7 @@ def islemler(kasa):
 
 
 def olc(D, kasa):
-    sr = pd.Series([v for _, v in kasa["seri"]], index=pd.DatetimeIndex([t for t, _ in kasa["seri"]]))
+    sr = pd.Series([x[1] for x in kasa["seri"]], index=pd.DatetimeIndex([x[0] for x in kasa["seri"]]))
     T = islemler(kasa)
     g = np.array([x["getiri"] for x in T]) if T else np.array([0.0])
     ay = sr.resample("ME").last()
@@ -442,19 +465,69 @@ def ikiz(D, kasa, robot, n=200, tohum=0, seri=False):
     return (son / oda.BASLANGIC - 1) * 100
 
 
+def _yuv(x, n=2):
+    return None if x is None else round(float(x), n)
+
+
 def islem_listesi(kasa, ix):
-    """Defter → sayfanın kısa işlem listesi: [gün, 'A', kod, adet, fiyat] / [gün, 'S', kod, adet, fiyat, kz%, neden kodu]."""
+    """Defter → sayfanın kısa işlem listesi:
+    [gün, 'A', kod, adet, fiyat, not|0, (makas, bsmv)]   not = [ölçü, o günkü aday sayısı, boş yuva, sıra] (oda._al_notu)
+    [gün, 'S', kod, adet, fiyat, kz%, neden kodu, not|0, (makas)]   not = [tepe, iz seviyesi, karar kapanışı, kilitli bekleme günü]
+    [gün, 'M', anapara, yıllık faiz %]  (mevduat açıldı)   [gün, 'F', brüt faiz TL, stopaj TL]  (vade doldu)"""
     il = []
     for e in kasa["defter"]:
         g = ix.get(e["t"])
         if g is None:
             continue
-        a = round(e["adet"], 4) if e["kod"] == oda.XU else int(e["adet"])
-        if e["yon"] == "AL":
-            il.append([g, "A", e["kod"], a, round(e["fiyat"], 2)])
+        y = e["yon"]
+        if y == "MEV":
+            il.append([g, "M", round(e["adet"]), e["oran"]]); continue
+        if y == "FAIZ":
+            il.append([g, "F", round(e["brut"]), round(e["stopaj"])]); continue
+        if y not in ("AL", "SAT"):
+            continue
+        a = round(e["adet"], 4) if e["kod"] in oda.KESIRLI else int(e["adet"])
+        if y == "AL":
+            x = [g, "A", e["kod"], a, round(e["fiyat"], 2)]
+            n = e.get("not")
+            if n or "makas" in e:
+                x.append([_yuv(n[0], 2), n[1], n[2], n[3]] if n else 0)
+            if "makas" in e:
+                x.append([round(e["makas"]), round(e["bsmv"])])
         else:
-            il.append([g, "S", e["kod"], a, round(e["fiyat"], 2), round(e["kz_yuzde"], 1), neden_kod(e.get("neden"))])
+            x = [g, "S", e["kod"], a, round(e["fiyat"], 2), round(e["kz_yuzde"], 1), neden_kod(e.get("neden"))]
+            n = e.get("not")
+            if n or "makas" in e:
+                x.append([_yuv(n.get("tp")), _yuv(n.get("iz")), _yuv(n.get("k")), n.get("kb") or 0] if n else 0)
+            if "makas" in e:
+                x.append([round(e["makas"])])
+        il.append(x)
     return il
+
+
+def kacan_listesi(D, kasa, ix, i0, i1):
+    """Kaçan 🚀 roketler (sadece kırılım robotları): [gün, kod, 'y' yuva dolu | 'n' nakit az, v3'ün kendi sonucu %, çıkış günü
+    (oynatma sırası; −1 = hâlâ açık, sonuç son güne göre)]. Sonuç = v3 işlemi: ertesi açılıştan giriş, %20 iz stop kapanışı."""
+    A = D["A"]
+    out = []
+    for t, kod, ned in kasa.get("atla", ()):
+        g = ix.get(t)
+        k = D["ki"].get(kod)
+        if g is None or k is None:
+            continue
+        ta = g + i0
+        gi, ci = A["tk_giris"][k, ta], int(A["tk_cik"][k, ta])
+        if not (gi == gi and gi > 0):
+            continue
+        if ci >= i1:
+            ci = -1
+        son = A["C"][k, ci] if ci >= 0 else A["Cf"][k, i1 - 1]
+        out.append([g, kod, ned[0], round(float(son / gi - 1) * 100, 1), ci - i0 if ci >= 0 else -1])
+    return out
+
+
+def _b36(n):
+    return "0123456789abcdefghijklmnopqrstuvwxyz"[max(0, min(35, n))]
 
 
 def yuzdelik(G, d, a):
@@ -467,11 +540,17 @@ def yuzdelik(G, d, a):
 
 def robot_cikti(D, rid, kasa, ix, n_sans, donem):
     rb = oda.ROBOTLAR[rid]
-    d = np.array([v for _, v in kasa["seri"]], float)
+    d = np.array([x[1] for x in kasa["seri"]], float)
     r = {"id": rid, "d": [int(round(v)) for v in d], "i": islem_listesi(kasa, ix)}
     if rid == "rsi":
         r["tahmini"] = True
-    if rb["tur"] not in ("endeks", "rastgele") and n_sans:
+    if rb["tur"] not in oda.KIYAS_TUR:
+        r["p"] = "".join(_b36(x[2]) for x in kasa["seri"])          # günlük açık pozisyon sayısı (yuva doluluğu)
+        if rb["tur"] == "kirilim":
+            r["k"] = kacan_listesi(D, kasa, ix, kasa["_i0"], kasa["_i1"])
+        elif kasa.get("atla_n"):
+            r["kn"] = [[ix[t], a, b] for t, a, b in kasa["atla_n"] if t in ix]
+    if rb["tur"] not in oda.KIYAS_TUR and rb["tur"] != "rastgele" and n_sans:
         G = ikiz(D, kasa, rb, n=n_sans, tohum=1, seri=True)
         r["sans"] = {x["id"]: yuzdelik(G, d, x["a"]) for x in donem}
     return r
@@ -507,7 +586,7 @@ def uret(D, i0, i1, cikti=CIKTI, cikti_sans=CIKTI_SANS, n_sans=oda.SANS_N):
     bant = []
     for s in range(n_sans):
         rb = dict(oda.ROBOTLAR["rastgele"]); rb["tohum"] = s
-        bant.append([v for _, v in calistir(D, "rastgele", i0, i1, robot=rb)["seri"]])
+        bant.append([x[1] for x in calistir(D, "rastgele", i0, i1, robot=rb)["seri"]])
         if s % 20 == 19:
             print(f"  🎲 şans bandı {s + 1}/{n_sans} ({time.time() - t0:.0f} sn)", flush=True)
     B = np.array(bant, float)
@@ -520,7 +599,8 @@ def uret(D, i0, i1, cikti=CIKTI, cikti_sans=CIKTI_SANS, n_sans=oda.SANS_N):
                   "%0,2 komisyon + 1 fiyat adımı kayma. Yatırım tavsiyesi değildir.",
            "veri_bas": D["tarih"][0], "isinma": i0, "sans_n": n_sans, "sans_dosya": os.path.basename(cikti_sans),
            "gun": tarih, "xu": [round(float(D["xu"].iloc[t]), 1) for t in range(i0, i1)], "neden": NEDEN,
-           "donem": donem, "varsayilan": VARSAYILAN, "robot": robots, "bant": bantlar, "olay": olay}
+           "donem": donem, "varsayilan": VARSAYILAN, "robot": robots, "bant": bantlar, "olay": olay,
+           "makro": makro_cikti(D, i1), "temettu_not": TEMETTU_NOT}
     s = json.dumps(out, ensure_ascii=False, separators=(",", ":"))
     with open(cikti, "w", encoding="utf-8") as f:
         f.write(s)
@@ -538,6 +618,53 @@ def uret(D, i0, i1, cikti=CIKTI, cikti_sans=CIKTI_SANS, n_sans=oda.SANS_N):
     return out
 
 
+TEMETTU_NOT = ("Tekrar oynatmada fiyatlar Yahoo'nun temettü düzeltmeli fiyatı: temettü brüt olarak hisseye yeniden yatırılmış "
+               "sayılır (%15 stopaj düşülmez; bu evrende ortalama temettü verimi ~%1 → hisse robotlarına yılda ~0,15 puan iyimserlik). "
+               "Canlıda hak kullanım günü "
+               "net temettü (%85) kasaya nakit girer. BIST 100 fiyat endeksi temettü içermez (Endeksçi'nin aleyhine).")
+
+
+def makro_yukle(argv, gun):
+    """Altın/dolar (Yahoo) + TCMB politika faizi ve TÜFE. --makro dosya.pkl: {'yahoo': yf.download çıktısı, 'pf': Series|liste,
+    'tufe': DataFrame(aylik)|sözlük} (deneme/karşılaştırma için aynı veri)."""
+    if "--makro" in argv:
+        m = pd.read_pickle(argv[argv.index("--makro") + 1])
+        y, pf, tf = m["yahoo"], m["pf"], m["tufe"]
+        if isinstance(pf, pd.Series):
+            pf = [(str(t.date()), float(v)) for t, v in pf.items()]
+        if isinstance(tf, pd.DataFrame):
+            tf = {f"{t.year}-{t.month:02d}": float(v) for t, v in tf["aylik"].items()}
+    else:
+        print("Altın/dolar (Yahoo) ve TCMB politika faizi / TÜFE indiriliyor...", flush=True)
+        y = yf.download(["GC=F", "USDTRY=X"], start=str(gun[0].date()), interval="1d", group_by="ticker", auto_adjust=True,
+                        progress=False)
+        pf, tf = oda.politika_faizi_tablo(), oda.tufe_tablo()
+    return {"yahoo": y, "pf": sorted(pf), "tufe": dict(sorted(tf.items()))}
+
+
+def makro_hazirla(D, mk):
+    """BIST işlem günlerine hizalı: gram altın (ons × USD/TL ÷ 31,1035), USD/TL, o gün geçerli politika faizi (%)."""
+    gun = D["gun"]
+    y = mk["yahoo"]
+    def hiza(t):
+        c = y[t]["Close"].dropna()
+        c.index = pd.DatetimeIndex(c.index).tz_localize(None)
+        return c.reindex(c.index.union(gun)).ffill().reindex(gun)
+    usd, gc = hiza("USDTRY=X"), hiza("GC=F")
+    pf = pd.Series({pd.Timestamp(t): v for t, v in mk["pf"]}).sort_index()
+    faiz = pf.reindex(pf.index.union(gun)).ffill().reindex(gun)
+    D["makro"] = {"usd": usd.values.astype(float), "gram": (gc * usd / oda.ONS_GRAM).values.astype(float),
+                  "faiz": faiz.values.astype(float), "pf": mk["pf"], "tufe": mk["tufe"]}
+
+
+def makro_cikti(D, i1):
+    M = D.get("makro") or {}
+    son = D["tarih"][i1 - 1]
+    pf = [x for x in M.get("pf", []) if x[0] <= son]
+    return {"faiz": list(pf[-1]) if pf else None, "tufe": {k: v for k, v in (M.get("tufe") or {}).items() if k >= D["tarih"][0][:7]},
+            "gram_son": _yuv(M["gram"][i1 - 1]) if "gram" in M else None, "usd_son": _yuv(M["usd"][i1 - 1], 4) if "usd" in M else None}
+
+
 def baslangic_sirasi(D, i1):
     """Uzun oynatmanın ilk günü: ısınma (ISINMA işlem günü) bittikten sonra, en fazla UZUN_YIL yıl geriden."""
     sinir = pd.Timestamp(D["tarih"][i1 - 1]) - pd.DateOffset(years=UZUN_YIL)
@@ -553,6 +680,7 @@ def main(argv=None):
         g = indir(tarama.KODLAR)
     n_sans = int(argv[argv.index("--sans") + 1]) if "--sans" in argv else oda.SANS_N
     D = hazirla(g)
+    makro_hazirla(D, makro_yukle(argv, D["gun"]))
     print(f"Özellikler hazır: {len(D['kod'])} hisse, veri {D['tarih'][0]} → {D['tarih'][-1]} ({time.time() - t0:.0f} sn)", flush=True)
     simdi = pd.Timestamp.now(tz="Europe/Istanbul")
     i1 = len(D["gun"])

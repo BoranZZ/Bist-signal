@@ -1830,12 +1830,13 @@ def main():
             print("Haftalık özet gönderildi.")
 
     # 🏢 İşlem Odası: sanal robotlar panonun bu taramadaki verisiyle (yeniden veri çekmeden) günde bir kez, kesin kapanıştan
-    # sonra karar verir; akşam tek Telegram skor özeti. Hata taramayı ASLA bozmaz.
+    # sonra karar verir; akşam tek Telegram skor özeti. Sadece 💰 birikim kıyasları için o işlemde Yahoo'dan altın/dolar ve
+    # TCMB'den politika faizi/TÜFE çekilir (her biri ayrı try/except; hata = son bilinen değer). Hata taramayı ASLA bozmaz.
     if oda:
         try:
             _t0 = time.time()
             _m = oda.canli_calistir(sonuclar, data, simdi, kapanis_zamani, tg_gonder, PANO_URL,
-                                    buyuk=set(BIST100) | set(EK_HISSELER))
+                                    buyuk=set(BIST100) | set(EK_HISSELER), temettu=bilancolar)
             print(f"İşlem odası: {_m} ({time.time() - _t0:.1f} sn).")
         except Exception as e:
             print(f"İşlem odası çalışmadı ({type(e).__name__}: {e}); tarama etkilenmedi.")
