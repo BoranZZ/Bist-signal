@@ -435,7 +435,7 @@ sinyal, filtre, etiket ya da çıkış olarak eklenmeye değmez.** Kullanıcı f
   farklı seviyedeyse ya da yoksa '⚠ bu seviye artık güncel değil' + 'Güncelle' (güncel seviye zaten kuruluysa eskisi silinir).
   Notsuz (elle) alarmlara dokunulmaz. Seviye değişince alarm anahtarı da değişir → yeni seviye için yeniden kurulmuş sayılır.
 
-## 🏢 İşlem Odası (2026-10-09, sanal para — `oda.py`, `oda_replay.py`, `oda.html`, `oda.json`, `oda_replay.json`)
+## 🏢 İşlem Odası (2026-10-09, sanal para — `oda.py`, `oda_replay.py`, `oda.html`, `oda.json`, `oda_replay.json`, `oda_replay_sans.json`)
 - Arkadaş önerisi 'Hızlı İşlem Odası': panonun kurallarını 100.000 **sanal** TL ile deneyen KURAL robotları (yapay zekâ yok;
   sayfada '🧠 Yapay zekâ ekibi — yakında' boş bölüm). Pano başlığında '🏢 İşlem Odası' düğmesi → `oda.html` (ayrı sayfa; panonun
   geri kalanı değişmedi). Yatırım tavsiyesi değil; kullanıcı portföyüyle ilgisi yok; `oda.json` herkese açık, portföy bilgisi YOK.
@@ -459,19 +459,46 @@ sinyal, filtre, etiket ya da çıkış olarak eklenmeye değmez.** Kullanıcı f
   `olay` (son 300), `anlik`. Başlangıç 09.10.2026 (ilk akşam sessiz; ilk alımlar 12.10 açılışında). `defter`/`seri` büyür (~yılda 100-150 KB).
 - **Telegram:** kesin kapanıştan sonra günde TEK skor mesajı (`ozet_mesaji`: sıra, getiri + BIST 100 farkı + en büyük düşüş + alım,
   Bekçi olayları, ilk 6 ay 'sıralama büyük ölçüde şans' notu); ilk gün yok, gönderilemezse sonraki taramada tekrar.
-- **`oda_replay.py`** (elle, ayda bir; Actions'ta ÇALIŞMAZ; ~1 dk): araştırmanın hazirla+sim+replay'i; 5 yıl indirir, son 250 işlem
-  günü + dürüstlük ölçüleri: 🎲 şans bandı (Rastgele 200 zar, %5/%50/%95), robot başına 'ikiz' şans yüzdeliği (her alım aynı gün
-  rastgele hisseyle, 200 deneme; ≥95 'şansla açıklanması zor', 50-95 'üst yarıda ama şans olabilir', <50 'rastgele seçimden iyi
-  değil'), 'aynı kural 4 yılda' (2022-10-10 →). Doğrulama: araştırmanın verisiyle (sg/veri5y.pkl) çıktısı araştırmanın
-  oda_replay.json'u ile 9 robotta işlem işlem ve kuruşu kuruşuna aynı; canlı yol (tüm robotlar birlikte `gun_isle`) = tek robot sim
-  (1 ve 4 yılda 0 fark). Başlangıç gününe duyarlılık büyük (baslangic.txt: 1 yılda Rastgele −%4…+%137) → tek dönemin sıralamasına güvenme.
+- **`oda_replay.py`** (elle, ayda bir; Actions'ta ÇALIŞMAZ; ~1 dk; `--veri x.pkl` indirilmiş veriyle, `--sans N` hızlı deneme):
+  araştırmanın hazirla+sim+replay'i. **2026-10-10'dan beri TEK UZUN oynatma** (eskiden son 250 gün sıfırdan): Yahoo'dan
+  `UZUN_YIL` (5) + ~2 yıl ısınma indirir (canlı tarama da 2 yıl kullanıyor; 🌱 durum makinesi, v3 'pozisyon açık', Wilder ATR gibi
+  geçmişe bağlı alanlar oturur — 1 yıl ısınmayla 🌱 4 yılda +%641, 2 yılla +%1.162 çıktı; 6 ve 7 yıllık indirme aynı), oynatma
+  en erken `ISINMA` (260) işlem günü sonra, en fazla 5 yıl geriden başlar (şu an 11.10.2021 → bugün, ~1.250 gün). Robotlar
+  baştan 100.000 TL ile kesintisiz çalışır. Hazır dönemler `DONEMLER` (son 6 ay=125 / 1 yıl=250 / 2 yıl=500 / 4 yıl=1000 işlem
+  günü / tümü; varsayılan 1 yıl) için: 🎲 şans bandı (Rastgele 200 zar, dönem başında 100.000'e ölçekli %5/%50/%95) ve robot
+  başına 'ikiz' şans yüzdeliği (her alım aynı gün rastgele hisseyle, 200 deneme; ikizlerin TAM serisi tutulur, her dönemin
+  getirisi ayrı sıralanır; ≥95 'şansla açıklanması zor', 50-95 'üst yarıda ama şans olabilir', <50 'rastgele seçimden iyi değil').
+  `oda_replay.json` (v2: gun, xu, robot{d: günlük kasa, i: işlemler, dur, sans{dönem}}, donem[{id,ad,a}], bant{dönem}, olay,
+  veri_bas, isinma) ~410 KB / sıkıştırılmış ~135 KB; `oda_replay_sans.json` Rastgele'nin ilk 100 zarının günlük getirisi
+  (on binde bir) ~460 KB / ~180 KB — sayfa SADECE özel dönem seçilince indirir. Eski 'aynı kural 4 yılda' alanı (`uzun`) yok;
+  sayfa aynı satırı tüm oynatmadan hesaplar ('Aynı kural ~5 yılda').
+  Doğrulama (2026-10-10): yeni kod araştırma verisiyle (sg/veri5y.pkl) araştırmanın oda_replay.json'unu 9/9 robotta işlem işlem
+  üretiyor; eski 250 günlük dosyanın penceresi sıfırdan oynatılınca 7/9 robot işlem işlem ve kuruşu kuruşuna aynı (🧲 744→744
+  işlem ama birkaç fiyat farkı, 🎲 70→62: eski dosya 09.10 öğlen indirilen veriyle üretilmişti); canlı yol (`gun_isle`) = tek robot
+  sim 5 yılda 9/9 aynı. **Uzun oyun KAOTİK:** aynı gün iki kez indirilen veride Yahoo'nun düzeltilmiş fiyatları ~1e-7 oranında
+  farklı geliyor (temettü katsayısı yuvarlaması) → eşit fiyat karşılaştırmaları (destek testi, 20g zirve) birkaç hisse-günde
+  değişiyor → 🧲 ve özellikle 🎲 Rastgele'nin 5 yıllık yolu tamamen değişebiliyor (tümü +%430 ↔ +%852). Diğer robotlar iki
+  indirmede aynıydı. Bu yüzden tek zarın sonucu değil şans bandı esas. Uzun oyunun son 250 günü eski sıfırdan oynatmayla aynı
+  DEĞİL (dönem başında elde pozisyon var, kasa büyüklüğü/yuva doluluğu farklı; ortak işlem 📈 %86, 🧲 %99, diğerleri %36-53,
+  🎲 ~%0) — tasarım gereği.
 - **Sayfa (`oda.html`):** `oda.py`'deki `_SABLON`'dan `html_yaz` ile (sadece değişince) yazılır → fork'larda da *.py ile gelir; veri
-  gömülü değil, `fetch('oda.json')` / `fetch('oda_replay.json')` (fork'ta yoksa ana projenin GitHub Pages'inden). Kendi SVG'miz:
-  mor izometrik salon, masa + robot figürü + isim etiketi + durum rozeti, borsa tahtası, bağlantı çizgileri, işlem olunca robot
-  tahtaya yürür; sağda skor (getiri asla tek başına: BIST 100 farkı, en büyük düşüş, alım, isabet, gün, en iyi 3 işlem hariç,
-  şans yüzdeliği, 4 yıl satırı), olay akışı, robot kartı (kural, pozisyonlar, işlem geçmişi, kasa grafiği + şans bandı, komisyon+kayma
-  TL). Canlı / Tekrar oynat (1x/5x/20x, kaydırıcı). URL: `#rep=120`, `#kart=kirilimci`. Üçüncü taraf script YOK. Telefonda salon
-  yatay kayar, panel alta iner. Şablon JS değişince `node --check`.
+  gömülü değil, `fetch('oda.json')` / `fetch('oda_replay.json')` (fork'ta yoksa YA DA eski v1 biçimindeyse ana projenin GitHub
+  Pages'inden; `oda_replay_sans.json` da aynı kaynaktan). Kendi SVG'miz: mor izometrik salon, masa + robot figürü + isim etiketi +
+  durum rozeti, borsa tahtası, bağlantı çizgileri, işlem olunca robot tahtaya yürür; sağda skor (getiri asla tek başına: BIST 100
+  farkı, en büyük düşüş, alım, isabet, gün, en iyi 3 işlem hariç, şans yüzdeliği, 'aynı kural ~5 yılda' satırı), olay akışı, robot
+  kartı (kural, pozisyonlar, işlem geçmişi, kasa grafiği + şans bandı, komisyon+kayma TL). Canlı / Tekrar oynat (1x/5x/20x/60x,
+  kaydırıcı). **Dönem seçici** (tekrar oynatmada): Son 6 ay / 1 yıl / 2 yıl / 4 yıl / Tümü / Özel… (iki tarih, en az 20 işlem
+  günü). Seçilen dönem uzun oyunun DİLİMİ: dönem başındaki kasa 100.000 TL'ye ölçeklenir (o gün eldeki hisseler dahil); getiri,
+  BIST 100 farkı, en büyük düşüş, alım/isabet (dönemdeki alım ve satışlar), komisyon, sıralama, şans bandı o döneme göre. Neden
+  yeniden 100.000'den başlatma değil: her tarih aralığı tarayıcıda anında hesaplanır (yeniden başlatma tüm hisse verisini ister),
+  dönemler birbiriyle tutarlı, 'hepsi ilk gün alındı' etkisi yok (baslangic.txt'deki aşırı başlangıç duyarlılığının kaynağı).
+  Bedeli: dönem başında robotun önceki alımları elde; satış sonucu ilk alış fiyatına göre; Bekçi'nin zirve ölçümü öncesinden gelir.
+  Şans yüzdeliği sadece hazır dönemlerde; özel dönemde şans bandı 100 zarla tarayıcıda hesaplanır. Sayfada dönem notu: tarih
+  aralığı, oyunun başlangıcı, verinin başlangıcı + ısınma günü, 'başlangıç günü sonucu çok değiştirir (🎲 −%4…+%137)'.
+  URL: `#rep=120` (seçili dönemin 120. günü; varsayılan dönem 1 yıl → eski bağlantılar aynı anlamda), `#rep&don=2y`,
+  `#rep&don=ozel:2023-01-02:2024-06-28` (dönem değişince adres çubuğu güncellenir), `#kart=kirilimci`. Üçüncü taraf script YOK.
+  Telefonda salon yatay kayar, panel alta iner, dönem satırı alt satıra sarar (390 px'te yatay taşma yok). Şablon JS değişince
+  `node --check`.
 - **Workflow değişti** (`tarama.yml`: `git add ... oda.json oda.html`). GITHUB_TOKEN workflow dosyasını güncelleyemediği için
   **fork'taki arkadaşlar bu satırı elle güncellemeli**; güncellemezlerse oda her taramada sıfırdan başlar ve kaydedilmez (ilk gün
   sessiz kuralı sayesinde Telegram'a mesaj gitmez), panodaki düğme `oda.html` bulunamaz.

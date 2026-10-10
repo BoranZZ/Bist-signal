@@ -14,7 +14,8 @@ ZAMANLAMA (canlı = tekrar oynatma, aynı `gun_isle`):
   tabanda satılamaz (emir ertesi güne kalır), kilitli tavanda alınamaz (emir iptal).
 
 Dosyalar: oda.json (canlı durum, HERKESE AÇIK — sadece sanal robot kasaları), oda.html (bu dosyadaki şablondan yazılır,
-veriyi fetch ile okur), oda_replay.json (son 1 yılın tekrar oynatması + 4 yıl / şans istatistikleri; `python oda_replay.py`).
+veriyi fetch ile okur), oda_replay.json (~5 yıllık tek uzun tekrar oynatma + hazır dönemlerin şans istatistikleri; sayfada dönem seçici;
+oda_replay_sans.json: özel dönem şans bandı için, sayfa tembel yükler; `python oda_replay.py`).
 """
 import hashlib
 import json
@@ -722,24 +723,33 @@ border:1px solid #3A2770;position:relative}
 .etk-t{font-size:10px;font-weight:800;fill:#140C2A}
 .sk .not2{font-size:11px;color:var(--muted);margin-top:3px;font-style:italic}
 .uyar6{background:#D9A11B18;border-radius:10px;padding:7px 10px;font-size:12px;margin:0 0 8px;line-height:1.4}
+.donnot{display:none;padding:8px 18px 10px;border-bottom:1px solid var(--line);background:var(--panel);color:var(--muted);font-size:12.5px;line-height:1.5}
+.donnot.on{display:block}.donnot b{color:var(--ink)}
+.ozel{display:none;align-items:center;gap:6px;flex-wrap:wrap}.ozel.on{display:inline-flex}
+.ozel input{border:1px solid var(--line);background:var(--chip);color:var(--ink);border-radius:9px;padding:5px 7px;font:inherit;font-size:13px;color-scheme:light dark}
+@media(max-width:560px){.donnot{padding:8px 12px 10px}.oyn input[type=range]{min-width:100%;order:9}}
 </style></head><body>
 <div class="ust"><div><h1>🏢 İşlem Odası</h1><div class="alt">Sanal parayla kural robotları · <a href="index.html">← Panoya dön</a></div></div>
-<div class="sag"><div class="seg"><button id="m_canli" class="on" onclick="mod('canli')">● Canlı</button><button id="m_rep" onclick="mod('rep')">⟲ Tekrar oynat (son 1 yıl)</button></div>
+<div class="sag"><div class="seg"><button id="m_canli" class="on" onclick="mod('canli')">● Canlı</button><button id="m_rep" onclick="mod('rep')">⟲ Tekrar oynat</button></div>
 <span class="chip" id="gun">yükleniyor…</span></div></div>
-<div class="oyn" id="oyn"><button class="btn" id="b_oyn" onclick="oynat()">▶ Oynat</button>
-<select class="btn" id="hiz" onchange="HIZ=+this.value" title="Hız: saniyede kaç işlem günü"><option value="1">1x</option><option value="5" selected>5x</option><option value="20">20x</option></select>
+<div class="oyn" id="oyn"><select class="btn" id="don" onchange="donSec(this.value)" title="Hangi dönemi oynatayım?" aria-label="Dönem"></select>
+<span class="ozel" id="ozel"><input type="date" id="oz_a" aria-label="Başlangıç"> → <input type="date" id="oz_b" aria-label="Bitiş"><button class="btn" onclick="ozelUygula()">Uygula</button></span>
+<button class="btn" id="b_oyn" onclick="oynat()">▶ Oynat</button>
+<select class="btn" id="hiz" onchange="HIZ=+this.value" title="Hız: saniyede kaç işlem günü"><option value="1">1x</option><option value="5" selected>5x</option><option value="20">20x</option><option value="60">60x</option></select>
 <input type="range" id="sur" min="0" max="0" value="0" oninput="git(+this.value)" aria-label="Gün">
 <span class="chip" id="rgun"></span></div>
+<div class="donnot" id="donnot"></div>
 <div class="ana"><div><div class="salon" id="salon"><svg id="sv" viewBox="-560 -185 1360 860" role="img" aria-label="İzometrik işlem salonu: robot masaları, borsa tahtası, Risk Bekçisi"></svg><div class="not" id="not"></div></div></div>
 <div><div class="kart"><h2>Skor tablosu</h2><div id="uyar6"></div><div id="skor"></div><div class="sans" id="sans"></div></div>
 <div class="kart"><h2>Olay akışı</h2><div id="bek"></div><div class="akis" id="akis"></div></div></div></div>
 <div class="alt-bilgi"><div class="uyari">⚠️ <b>Sanal para; yatırım tavsiyesi değil.</b> Robotlar panonun kurallarını sanal 100.000 TL ile deniyor; gerçek emir yok, portföyünle ilgisi yok. Kararlar her işlem günü kesin kapanıştan (18:30) sonra verilir, alım-satım <b>ertesi işlem gününün açılış fiyatından</b> yazılır; her yönde %__KOM__ komisyon + 1 fiyat adımı kayma düşülür, lot tam sayı, kilitli tabanda satılamaz, kilitli tavanda alınamaz. Getiri tek başına bir şey söylemez: BIST 100 farkına, en büyük düşüşe, işlem sayısına ve 🎲 şans bandına birlikte bak. Bu hisse evreninde rastgele seçim bile çoğu zaman BIST 100'ü yendi — 'endeksi yendi' tek başına başarı değil. Geçmişte iyi giden kural gelecekte de iyi gitmeyebilir.</div>
 <div class="kural" id="kurallar"></div>
-<div>🛡️ <b>Risk Bekçisi</b> (Endeksçi hariç): alımda tek hisseye kasanın en fazla %__TEK__'u; sonradan kasanın %__KRP__'ini aşan hissenin fazlası satılır; kasa bir günde %__GZ__+ eridiyse ertesi gün yeni alım yok; kasa zirvesinden %__TD__+ düşerse robot durdurulur — pozisyonları satılır, __DG__ işlem günü yeni alım yapmaz. <b>Bekçi kâr aracı değil, emniyet kemeri:</b> araştırmada (2022-26) robot başına 4 yılda 0-2 kez devreye girdi, getiriye etkisi dönemden döneme değişti. <b>Tekrar oynatma:</b> aynı kurallar son ~1 yılın gerçek fiyatlarıyla, her gün sadece o güne kadarki veriyle baştan oynatıldı. <b>🎲 şans bandı:</b> Rastgele robotun __SANS__ farklı zarla aralığı (%5-%95). <b>Şans yüzdeliği:</b> robotun her alımı aynı gün rastgele bir hisseyle değiştirilseydi (200 deneme) robot bu denemelerin yüzde kaçından iyiydi. 🧠 Yapay zekâ ekibi henüz yok (yakında).</div></div>
+<div>🛡️ <b>Risk Bekçisi</b> (Endeksçi hariç): alımda tek hisseye kasanın en fazla %__TEK__'u; sonradan kasanın %__KRP__'ini aşan hissenin fazlası satılır; kasa bir günde %__GZ__+ eridiyse ertesi gün yeni alım yok; kasa zirvesinden %__TD__+ düşerse robot durdurulur — pozisyonları satılır, __DG__ işlem günü yeni alım yapmaz. <b>Bekçi kâr aracı değil, emniyet kemeri:</b> araştırmada (2022-26) robot başına 4 yılda 0-2 kez devreye girdi, getiriye etkisi dönemden döneme değişti. <b>Tekrar oynatma:</b> aynı kurallar geçmiş yılların gerçek fiyatlarıyla (Yahoo verisinin elverdiği kadar, ~5 yıl), her gün sadece o güne kadarki veriyle oynatıldı. Robotlar tek bir uzun oyunda kesintisiz çalışır; seçtiğin dönem bu oyunun bir kesitidir (dönem başındaki kasa 100.000 TL sayılır, o gün elde olan hisseler dahil). Hisse listesi bugünkü liste olduğu için (sonradan batan/çıkan hisseler yok) geriye gittikçe sonuçlar biraz iyimser. <b>🎲 şans bandı:</b> Rastgele robotun __SANS__ farklı zarla aralığı (%5-%95). <b>Şans yüzdeliği:</b> robotun her alımı aynı gün rastgele bir hisseyle değiştirilseydi (200 deneme) robot bu denemelerin yüzde kaçından iyiydi. 🧠 Yapay zekâ ekibi henüz yok (yakında).</div></div>
 <div class="perde" id="perde" onclick="if(event.target===this)kapat()"><div class="pen" id="pen"></div></div>
 <script>
 var ROB=__ROBOTLAR__, AYAR=__AYAR__;
 var CANLI=null,REP=null,REP_YUK=false,MOD='canli',I=0,OYNUYOR=false,HIZ=5,ZAM=null,SON_ADIM=0,ACIK=null;
+var ANA='https://boranzz.github.io/Bist-signal/',KAYNAK='',DON=null,SANS=null,SANS_YUK=false,BCACHE={};
 var RID=ROB.map(function(r){return r.id;}),RB={};ROB.forEach(function(r){RB[r.id]=r;});
 var NS='http://www.w3.org/2000/svg',U=46;
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
@@ -837,12 +847,12 @@ function sahne(){
 }
 /* ---------- veri: canlı (oda.json) ve tekrar oynatma (oda_replay.json) tek görünüme ---------- */
 function mdd(seri){var t=-1e18,m=0;for(var i=0;i<seri.length;i++){var v=seri[i];if(v==null)continue;if(v>t)t=v;var d=v/t-1;if(d<m)m=d;}return m*100;}
-function istat(df,kasa){ // df: [tarih,rid,yon,kod,adet,fiyat,neden,kz%,kzTL,kismi]
+function istat(df,kasa,f){ // df: [tarih,rid,yon,kod,adet,fiyat,neden,kz%,kzTL,kismi]; f: dönem ölçeği (canlıda 1)
  var al=0,kap=0,kaz=0,mal=0,kzl=[];
  df.forEach(function(x){var tut=x[4]*x[5];mal+=tut*AYAR.kom+(x[3]==='XU100'?0:x[4]*adim(x[5]));
   if(x[2]==='A')al++;else{if(x[8]!=null)kzl.push(x[8]);if(!x[9]){kap++;if(x[7]>0)kaz++;}}});
  kzl.sort(function(a,b){return b-a;});var ilk3=kzl.slice(0,3).reduce(function(s,v){return s+Math.max(0,v);},0);
- return {islem:al,kapanan:kap,kazanan:kaz,maliyet:mal,ilk3:kzl.length>=3?((kasa-ilk3)/AYAR.bas-1)*100:null};}
+ return {islem:al,kapanan:kap,kazanan:kaz,maliyet:mal*(f||1),ilk3:kzl.length>=3?((kasa-ilk3)/AYAR.bas-1)*100:null};}
 function canliGor(){var C=CANLI;if(!C)return null;var xs=C.xu.map(function(x){return x[1];}),an=C.anlik;
  var v={t:C.son_tarih,bas:C.bas,canli:true,r:{},olay:C.olay.slice().reverse(),tlist:C.xu.map(function(x){return x[0];}),xseri:xs.slice(),anlik:an?an.t:null};
  if(an&&an.xu)v.xseri.push(an.xu);
@@ -856,38 +866,78 @@ function canliGor(){var C=CANLI;if(!C)return null;var xs=C.xu.map(function(x){re
    islem:s.islem,kapanan:s.kapanan,kazanan:s.kazanan,maliyet:s.maliyet,ilk3:s.ilk3};});
  hepsi.sort(function(a,b){return a[0]<b[0]?-1:a[0]>b[0]?1:0;});v.defter=hepsi;v.bugun=C.son_tarih;return v;}
 function repRobot(id){for(var j=0;j<REP.robot.length;j++)if(REP.robot[j].id===id)return REP.robot[j];return null;}
-function repGor(i){var R=REP;if(!R)return null;var v={t:R.gun[i],bas:R.gun[0],gun:i+1,canli:false,r:{},olay:[],defter:[]};
- v.xu=(R.xu[i]/R.xu[0]-1)*100;v.xseri=R.xu.slice(0,i+1);v.tlist=R.gun.slice(0,i+1);
- RID.forEach(function(id){var rr=repRobot(id);if(!rr)return;var poz={},df=[],al={};
-  rr.i.forEach(function(x){if(x[0]>i)return;var t=R.gun[x[0]];
-   if(x[1]==='A'){poz[x[2]]={kod:x[2],adet:x[3],fiyat:x[4],tarih:t,gi:x[0]};al[x[2]]=x[4];df.push([t,id,'A',x[2],x[3],x[4],'',null,null,false]);}
-   else{var kis=x[6]==='kr',baz=(al[x[2]]||x[4])*(1+AYAR.kom)*x[3],kztl=baz*x[5]/100;
-    df.push([t,id,'S',x[2],x[3],x[4],(R.neden[x[6]]||x[6]),x[5],kztl,kis]);
+function repGor(i){var R=REP;if(!R||!DON)return null;var a=DON.a,son=R.gun.length-1;
+ var v={t:R.gun[i],bas:R.gun[a],gun:i-a+1,canli:false,r:{},olay:[],defter:[]};
+ v.xu=(R.xu[i]/R.xu[a]-1)*100;v.xseri=R.xu.slice(a,i+1);v.tlist=R.gun.slice(a,i+1);
+ RID.forEach(function(id){var rr=repRobot(id);if(!rr)return;var f=AYAR.bas/rr.d[a],poz={},df=[],al={};
+  rr.i.forEach(function(x){if(x[0]>i)return;var t=R.gun[x[0]],ic=x[0]>=a;
+   if(x[1]==='A'){poz[x[2]]={kod:x[2],adet:x[3],fiyat:x[4],tarih:t,gi:x[0]};al[x[2]]=x[4];if(ic)df.push([t,id,'A',x[2],x[3],x[4],'',null,null,false]);}
+   else{var kis=x[6]==='kr',baz=(al[x[2]]||x[4])*(1+AYAR.kom)*x[3],kztl=baz*x[5]/100*f;
+    if(ic)df.push([t,id,'S',x[2],x[3],x[4],(R.neden[x[6]]||x[6]),x[5],kztl,kis]);
     if(kis&&poz[x[2]])poz[x[2]].adet-=x[3];else delete poz[x[2]];}});
-  var seri=rr.d.slice(0,i+1),ds=(rr.dur||'').charAt(i),s=istat(df,rr.d[i]);
-  v.r[id]={kasa:rr.d[i],seri:seri,durum:ds==='d'?'durdu':(ds==='m'?'mola':'aktif'),poz:Object.keys(poz).map(function(k){var p=poz[k];p.gun=i-p.gi;return p;}),bek:[],
-   islem:s.islem,kapanan:s.kapanan,kazanan:s.kazanan,maliyet:s.maliyet,ilk3:s.ilk3,mdd:mdd(seri),df:df,sans:rr.sans,uzun:rr.uzun,oz:rr.oz};
+  var seri=rr.d.slice(a,i+1).map(function(x){return x*f;}),kasa=rr.d[i]*f,ds=(rr.dur||'').charAt(i),s=istat(df,kasa,f);
+  v.r[id]={kasa:kasa,seri:seri,durum:ds==='d'?'durdu':(ds==='m'?'mola':'aktif'),poz:Object.keys(poz).map(function(k){var p=poz[k];p.gun=i-p.gi;return p;}),bek:[],
+   islem:s.islem,kapanan:s.kapanan,kazanan:s.kazanan,maliyet:s.maliyet,ilk3:s.ilk3,mdd:mdd(seri),df:df,
+   sans:(rr.sans&&DON.b===son)?rr.sans[DON.id]:null};
   v.defter=v.defter.concat(df);});
  v.defter.sort(function(a,b){return a[0]<b[0]?-1:a[0]>b[0]?1:0;});
- var bas=R.gun[Math.max(0,i-30)],ol=[];
+ var k0=Math.max(a,i-30),bas=R.gun[k0],ol=[];
  v.defter.forEach(function(x){if(x[0]<bas)return;ol.push([x[0],x[1],x[2]==='A'?(x[3]+' aldı: '+sy(x[4],x[3]==='XU100'?2:0)+' × '+sy(x[5],2)+' TL'):(x[3]+(x[9]?' kısmen':'')+' sattı ('+x[6]+') '+yz(x[7]))]);});
- (R.olay||[]).forEach(function(o){if(o[0]<=i&&o[0]>=i-30)ol.push([R.gun[o[0]],o[1],o[2]]);});
+ (R.olay||[]).forEach(function(o){if(o[0]<=i&&o[0]>=k0)ol.push([R.gun[o[0]],o[1],o[2]]);});
  ol.sort(function(a,b){return a[0]<b[0]?1:a[0]>b[0]?-1:0;});v.olay=ol.slice(0,150);v.bugun=R.gun[i];
- if(R.bant)v.bant=[R.bant.p5[i],R.bant.p50[i],R.bant.p95[i]];
+ var B=bantAl();if(B){v.bantS=B;v.bant=[B.p5[i-a],B.p50[i-a],B.p95[i-a]];}
  return v;}
+/* ---------- dönem seçici: uzun oyunun dilimi (dönem başı kasa = 100.000 TL) ---------- */
+function donemBul(id){for(var k=0;k<REP.donem.length;k++)if(REP.donem[k].id===id)return REP.donem[k];return null;}
+function gunSira(t,ileri){var g=REP.gun,lo=0,hi=g.length-1;if(ileri){if(t>g[hi])return hi;while(lo<hi){var m=(lo+hi)>>1;if(g[m]<t)lo=m+1;else hi=m;}return lo;}
+ if(t<g[0])return 0;while(lo<hi){var m=(lo+hi+1)>>1;if(g[m]>t)hi=m-1;else lo=m;}return lo;}
+function donKur(id){var son=REP.gun.length-1,m=/^ozel:(\d{4}-\d\d-\d\d):(\d{4}-\d\d-\d\d)$/.exec(id||'');
+ if(m){var a=gunSira(m[1],true),b=gunSira(m[2],false);if(b-a>=19){DON={id:'ozel',a:a,b:b,ad:'Özel'};return true;}return false;}
+ var d=donemBul(id);if(!d)return false;DON={id:d.id,a:d.a,b:son,ad:d.ad};return true;}
+function donArayuz(){var sel=document.getElementById('don'),h='';
+ REP.donem.forEach(function(d){h+='<option value="'+d.id+'">'+esc(d.ad)+'</option>';});sel.innerHTML=h+'<option value="ozel">Özel…</option>';sel.value=DON.id;
+ var oz=document.getElementById('ozel'),ia=document.getElementById('oz_a'),ib=document.getElementById('oz_b');
+ ia.min=ib.min=REP.gun[0];ia.max=ib.max=REP.gun[REP.gun.length-1];ia.value=REP.gun[DON.a];ib.value=REP.gun[DON.b];
+ oz.className='ozel'+(DON.id==='ozel'?' on':'');
+ var s=document.getElementById('sur');s.min=DON.a;s.max=DON.b;s.value=I;donNot();}
+function donNot(){var R=REP,y=Math.round(R.gun.length/250);
+ var h='📅 <b>'+tr(R.gun[DON.a])+' → '+tr(R.gun[DON.b])+'</b> ('+(DON.b-DON.a+1)+' işlem günü). Robotlar <b>'+tr(R.gun[0])+'</b>\'den beri (~'+y+' yıl) tek bir oyunda kesintisiz çalışıyor; seçtiğin dönem bu oyunun kesiti: dönem başındaki kasa 100.000 TL sayılır, o gün elde olan hisseler de dahil. '+
+  'Veri '+tr(R.veri_bas)+'\'te başlıyor; ilk '+R.isinma+' işlem günü göstergelerin (200 günlük ortalama vb.) ısınmasına ayrıldı, oynatma bu yüzden daha geriden başlamıyor.'+
+  '<br>⚠️ <b>Dönemin başlangıç günü sonucu çok değiştirir:</b> araştırmada 1 yıllık dönemin başı 20 farklı güne kaydırılınca 🎲 Rastgele %−4 ile %+137 arasında çıktı. Tek dönemin sıralamasına güvenme; birkaç dönemi karşılaştır.';
+ document.getElementById('donnot').innerHTML=h;}
+function donSec(id){if(!REP)return;durdur();
+ if(id==='ozel'){document.getElementById('ozel').className='ozel on';return;}
+ if(!donKur(id))return;I=DON.b;donArayuz();donHash();guncelle(false);}
+function ozelUygula(){var a=document.getElementById('oz_a').value,b=document.getElementById('oz_b').value;
+ if(!a||!b||a>=b||!donKur('ozel:'+a+':'+b)){document.getElementById('donnot').innerHTML='⚠️ Başlangıç bitişten önce olmalı ve arada en az 20 işlem günü bulunmalı ('+tr(REP.gun[0])+' → '+tr(REP.gun[REP.gun.length-1])+' arası).';return;}
+ durdur();I=DON.b;donArayuz();donHash();guncelle(false);}
+function donHash(){try{var h='#rep&don='+(DON.id==='ozel'?'ozel:'+REP.gun[DON.a]+':'+REP.gun[DON.b]:DON.id);history.replaceState(null,'',h);}catch(e){}}
+function yuzdelik(a,q){var x=(a.length-1)*q,i=Math.floor(x),f=x-i;return i+1<a.length?a[i]+(a[i+1]-a[i])*f:a[i];}
+function bantAl(){var R=REP;if(!DON)return null;
+ for(var k=0;k<R.donem.length;k++)if(R.donem[k].a===DON.a&&R.bant[R.donem[k].id])return R.bant[R.donem[k].id];
+ if(BCACHE[DON.a])return BCACHE[DON.a];if(!SANS){sansYukle();return null;}
+ var a=DON.a,n=SANS.r.length,L=R.gun.length-a,c=[],o={p5:[],p50:[],p95:[]};for(var j=0;j<n;j++)c.push(1);
+ for(var t=0;t<L;t++){var col=[];for(var j=0;j<n;j++){if(t)c[j]*=1+SANS.r[j][a+t]/1e4;col.push(c[j]);}col.sort(function(x,y){return x-y;});
+  o.p5.push(AYAR.bas*yuzdelik(col,.05));o.p50.push(AYAR.bas*yuzdelik(col,.5));o.p95.push(AYAR.bas*yuzdelik(col,.95));}
+ o.n=n;BCACHE[a]=o;return o;}
+function sansYukle(){if(SANS_YUK||SANS===false)return;SANS_YUK=true;var ad=REP.sans_dosya||'oda_replay_sans.json';
+ fetch(KAYNAK+ad).then(function(r){if(!r.ok)throw 0;return r.json();})
+ .then(function(d){if(!d||d.gun0!==REP.gun[0]||d.gun_n!==REP.gun.length)throw 0;SANS=d;})
+ .catch(function(){SANS=false;}).then(function(){SANS_YUK=false;if(MOD==='rep')guncelle(false);});}
 function gor(){return MOD==='canli'?canliGor():repGor(I);}
 function sansEtiket(y){if(y==null)return null;if(y>=95)return ['şansla açıklanması zor','pos'];if(y>=50)return ['üst yarıda ama şans olabilir',''];return ['rastgele seçimden iyi değil','neg'];}
-function uzunSatir(id){var rr=REP&&repRobot(id);if(!rr||!rr.uzun)return '';var u=rr.uzun;
- return 'Aynı kural 4 yılda ('+tr(u.bas)+' →): '+yz(u.get,0)+', en büyük düşüş '+yz(u.dd,0)+(u.yuzde!=null?', şans yüzdeliği '+u.yuzde:'');}
+function uzunSatir(id){var rr=REP&&repRobot(id);if(!rr||!REP.donem||(MOD==='rep'&&DON&&DON.a===0&&DON.b===REP.gun.length-1))return '';
+ var d=rr.d,y=Math.round(d.length/250),sn=rr.sans&&rr.sans.tum;
+ return 'Aynı kural ~'+y+' yılda ('+tr(REP.gun[0])+' →): '+yz((d[d.length-1]/d[0]-1)*100,0)+', en büyük düşüş '+yz(mdd(d),0)+(sn?', şans yüzdeliği '+sn.yuzde:'');}
 /* ---------- çizim güncelle ---------- */
 function rozet(id,v){var r=v.r[id],c,t;if(!r)return;if(r.durum==='durdu'){c='#E5484D';t='■';}else if(r.durum==='mola'){c='#E2A400';t='‖';}else if(r.poz.length){c='#2FB36D';t=String(r.poz.length);}else{c='#6F6890';t='·';}
  FIG[id+'_roz'].setAttribute('fill',c);FIG[id+'_rozt'].textContent=t;}
 function guncelle(anim){var v=gor();if(!v)return;
  var gunEl=document.getElementById('gun');
  if(MOD==='canli')gunEl.innerHTML=v.t?('Canlı · <b>'+tr(v.t)+'</b> kapanışı · '+v.gun+'. gün'+(v.anlik?' · gün içi '+esc(v.anlik.slice(11)):'')):'Canlı · <b>başlıyor</b>';
- else{gunEl.innerHTML='Tekrar · <b>'+tr(v.t)+'</b>';document.getElementById('rgun').textContent=(I+1)+'/'+REP.gun.length+' işlem günü';}
+ else{gunEl.innerHTML='Tekrar · <b>'+tr(v.t)+'</b>';document.getElementById('rgun').textContent=(I-DON.a+1)+'/'+(DON.b-DON.a+1)+' işlem günü';}
  var not=document.getElementById('not');
- not.innerHTML=(MOD==='canli'&&!v.t)?'Canlı oda <b>'+tr(v.bas)+'</b> akşamı açılıyor: robotlar ilk kararlarını kesin kapanıştan (18:30) sonra verir, ilk alımlar ertesi işlem gününün açılışında yazılır. O zamana kadar <b>⟲ Tekrar oynat</b> ile son 1 yılı izleyebilirsin.':'';
+ not.innerHTML=(MOD==='canli'&&!v.t)?'Canlı oda <b>'+tr(v.bas)+'</b> akşamı açılıyor: robotlar ilk kararlarını kesin kapanıştan (18:30) sonra verir, ilk alımlar ertesi işlem gününün açılışında yazılır. O zamana kadar <b>⟲ Tekrar oynat</b> ile geçmiş yılları izleyebilirsin.':'';
  RID.forEach(function(id){var r=v.r[id];if(!r)return;var g=(r.kasa/AYAR.bas-1)*100;var e=FIG[id+'_ekran'];e.textContent=yz(g);e.setAttribute('fill',g>=0?'#7CF29A':'#FF8A7A');rozet(id,v);
   var s=r.seri.slice(-40),mn=Math.min.apply(null,s),mx=Math.max.apply(null,s),b=FIG[id+'_spb'];
   FIG[id+'_sp'].setAttribute('points',s.length>1?pts(s.map(function(x,k){return P(b[0]+0.78*k/(s.length-1),b[1],b[2]+(mx>mn?0.2*(x-mn)/(mx-mn):0.1));})):'');
@@ -916,8 +966,10 @@ function skorCiz(v){var sira=RID.filter(function(id){return v.r[id];}).sort(func
   '<div class="g '+cl(g)+'">'+yz(g)+'<small>'+sy(r.kasa)+' TL</small></div></div>';});
  document.getElementById('skor').innerHTML=h;
  var s='BIST 100 aynı dönemde <b class="'+cl(v.xu)+'">'+yz(v.xu)+'</b>. ';
- if(v.bant)s+='🎲 <b>Şans bandı</b> (Rastgele robotun '+AYAR.sans+' farklı zarı): %5 '+yz((v.bant[0]/AYAR.bas-1)*100)+' · ortanca '+yz((v.bant[1]/AYAR.bas-1)*100)+' · %95 '+yz((v.bant[2]/AYAR.bas-1)*100)+'. Bu bandın içindeki robot şanstan ayrılmıyor.';
- else s+='🎲 Şans bandı ve şans yüzdeliği tekrar oynatmada (son 1 yıl) görünür; canlıda kıyas 🎲 Rastgele robot.';
+ if(v.bant)s+='🎲 <b>Şans bandı</b> (Rastgele robotun '+(v.bantS&&v.bantS.n?v.bantS.n:AYAR.sans)+' farklı zarı, dönem başında 100.000 TL): %5 '+yz((v.bant[0]/AYAR.bas-1)*100)+' · ortanca '+yz((v.bant[1]/AYAR.bas-1)*100)+' · %95 '+yz((v.bant[2]/AYAR.bas-1)*100)+'. Bu bandın içindeki robot şanstan ayrılmıyor.';
+ else if(v.canli)s+='🎲 Şans bandı ve şans yüzdeliği tekrar oynatmada görünür; canlıda kıyas 🎲 Rastgele robot.';
+ else s+=(SANS===false?'🎲 Bu dönemin şans bandı alınamadı.':'🎲 Şans bandı hesaplanıyor…');
+ if(!v.canli&&DON&&DON.id==='ozel')s+=' Şans yüzdeliği sadece hazır dönemlerde (bugüne kadar) hesaplı; özel dönemde şans bandı '+(v.bantS&&v.bantS.n?v.bantS.n:100)+' zarla.';
  document.getElementById('sans').innerHTML=s;}
 function kim(w){return w==='bekci'?'🛡️ Risk Bekçisi':(RB[w]?RB[w].em+' '+RB[w].ad:esc(w));}
 function akisCiz(v){var h='',bek=[];
@@ -965,9 +1017,10 @@ function kartAc(id){var v=gor();if(!v)return;ACIK=id;var pen=document.getElement
  if(b.not)h+='<div class="uyar6" style="margin-top:8px">'+esc(b.not)+'</div>';
  h+='<div class="ist"><div>Kasa<b>'+sy(r.kasa)+' TL</b></div><div>Getiri<b class="'+cl(g)+'">'+yz(g)+'</b></div><div>BIST 100\'e göre<b class="'+cl(g-v.xu)+'">'+pz(g-v.xu)+'</b></div><div>En büyük düşüş<b>'+yz(r.mdd)+'</b></div><div>Alım<b>'+r.islem+'</b></div><div>İsabet<b>'+(r.kapanan?'%'+sy(100*r.kazanan/r.kapanan,0):'—')+'</b></div><div>Gün<b>'+v.gun+'</b></div>'+
   '<div>En iyi 3 işlem hariç<b>'+(r.ilk3!=null?yz(r.ilk3):'—')+'</b></div><div>Komisyon + kayma<b>'+sy(r.maliyet)+' TL</b></div><div>Durum<b>'+(r.durum==='durdu'?'durduruldu':(r.durum==='mola'?'mola':'aktif'))+'</b></div></div>';
- if(se)h+='<div style="font-size:13px;margin:4px 0 8px">🎲 <b>Şans yüzdeliği '+r.sans.yuzde+'</b> — <span class="'+se[1]+'">'+se[0]+'</span>. Her alımı aynı gün rastgele hisseyle değiştirilmiş 200 ikizin %5-%95 aralığı '+yz(r.sans.p5)+' … '+yz(r.sans.p95)+' (ortanca '+yz(r.sans.med)+').</div>';
+ if(se)h+='<div style="font-size:13px;margin:4px 0 8px">🎲 <b>Şans yüzdeliği '+r.sans.yuzde+'</b> — <span class="'+se[1]+'">'+se[0]+'</span>. Her alımı aynı gün rastgele hisseyle değiştirilmiş '+AYAR.sans+' ikizin bu dönemdeki %5-%95 aralığı '+yz(r.sans.p5)+' … '+yz(r.sans.p95)+' (ortanca '+yz(r.sans.med)+').</div>';
  if(uzunSatir(id))h+='<div style="font-size:13px;margin:4px 0 8px">📜 '+esc(uzunSatir(id))+'</div>';
- h+=cizgi(r.seri,v.xseri.slice(-r.seri.length),MOD==='rep'&&REP?REP.bant:null);
+ h+=cizgi(r.seri,v.xseri.slice(-r.seri.length),v.bantS||null);
+ if(!v.canli)h+='<div style="color:var(--muted);font-size:12px">Dönem başındaki kasa 100.000 TL\'ye ölçeklendi (uzun oyunun kesiti); işlem adetleri uzun oyundaki gerçek adetler, satış sonucu ilk alış fiyatına göre.</div>';
  h+='<h4 style="margin:12px 0 2px">Açık pozisyonlar ('+r.poz.length+')</h4>';
  if(r.poz.length){h+='<div class="tb"><table><tr><th>Hisse</th><th class="r">Adet</th><th>Alış</th><th class="r">Alış fiyatı</th>'+(v.canli?'<th class="r">Son</th><th class="r">Getiri</th>':'')+'<th class="r">Gün</th></tr>';
   r.poz.forEach(function(p){var gg=p.son?(p.son/p.fiyat-1)*100:null;h+='<tr><td><b>'+esc(p.kod)+'</b></td><td class="r">'+sy(p.adet,p.kod==='XU100'?2:0)+'</td><td>'+tr(p.tarih)+'</td><td class="r">'+sy(p.fiyat,2)+'</td>'+(v.canli?'<td class="r">'+sy(p.son,2)+'</td><td class="r '+cl(gg)+'">'+yz(gg)+'</td>':'')+'<td class="r">'+(p.gun!=null?p.gun:'')+'</td></tr>';});
@@ -983,26 +1036,29 @@ function kartAc(id){var v=gor();if(!v)return;ACIK=id;var pen=document.getElement
 function kapat(){ACIK=null;document.getElementById('perde').classList.remove('on');}
 /* ---------- mod / oynatma ---------- */
 function mod(m){MOD=m;document.getElementById('m_canli').className=m==='canli'?'on':'';document.getElementById('m_rep').className=m==='rep'?'on':'';
- document.getElementById('oyn').className='oyn'+(m==='rep'?' on':'');durdur();
+ document.getElementById('oyn').className='oyn'+(m==='rep'?' on':'');document.getElementById('donnot').className='donnot'+(m==='rep'?' on':'');durdur();
  if(m==='rep'&&!REP){document.getElementById('gun').textContent='tekrar oynatma verisi yükleniyor…';repYukle();return;}
  guncelle(m==='canli');}
-function repYukle(){if(REP_YUK)return;REP_YUK=true;var ana='https://boranzz.github.io/Bist-signal/oda_replay.json';
- fetch('oda_replay.json').then(function(r){if(!r.ok)throw 0;return r.json();}).catch(function(){return fetch(ana).then(function(r){if(!r.ok)throw 0;return r.json();});})
- .then(function(d){REP=d;var s=document.getElementById('sur');s.max=REP.gun.length-1;var h=/rep=(\d+)/.exec(location.hash);I=h?Math.min(+h[1],REP.gun.length-1):REP.gun.length-1;s.value=I;
+function repAl(kok){return fetch(kok+'oda_replay.json').then(function(r){if(!r.ok)throw 0;return r.json();})
+ .then(function(d){if(!d||!(d.v>=2)||!d.donem)throw 0;KAYNAK=kok;return d;});}
+function repYukle(){if(REP_YUK)return;REP_YUK=true;
+ repAl('').catch(function(){return repAl(ANA);})
+ .then(function(d){REP=d;var hd=/don=([a-z0-9:-]+)/.exec(location.hash);if(!(hd&&donKur(hd[1]))&&!donKur(REP.varsayilan))donKur('tum');
+  var h=/rep=(\d+)/.exec(location.hash);I=h?Math.min(DON.a+(+h[1]),DON.b):DON.b;donArayuz();
   if(MOD==='rep')guncelle(!!h);else guncelle(false);hashKart();})
  .catch(function(){REP_YUK=false;if(MOD==='rep')document.getElementById('gun').textContent='tekrar oynatma verisi alınamadı';});}
-function git(i){I=Math.max(0,Math.min(REP.gun.length-1,i));document.getElementById('sur').value=I;guncelle(false);}
+function git(i){if(!DON)return;I=Math.max(DON.a,Math.min(DON.b,i));document.getElementById('sur').value=I;guncelle(false);}
 function adimla(t){if(!OYNUYOR)return;if(!SON_ADIM)SON_ADIM=t;
- if(t-SON_ADIM>=1000/HIZ){SON_ADIM=t;if(I>=REP.gun.length-1){durdur();return;}I++;document.getElementById('sur').value=I;guncelle(true);}
+ if(t-SON_ADIM>=1000/HIZ){SON_ADIM=t;if(I>=DON.b){durdur();return;}I++;document.getElementById('sur').value=I;guncelle(true);}
  ZAM=requestAnimationFrame(adimla);}
-function oynat(){if(!REP)return;if(OYNUYOR){durdur();return;}if(I>=REP.gun.length-1)I=0;OYNUYOR=true;SON_ADIM=0;document.getElementById('b_oyn').textContent='⏸ Durdur';ZAM=requestAnimationFrame(adimla);}
+function oynat(){if(!REP||!DON)return;if(OYNUYOR){durdur();return;}if(I>=DON.b)I=DON.a;OYNUYOR=true;SON_ADIM=0;document.getElementById('b_oyn').textContent='⏸ Durdur';ZAM=requestAnimationFrame(adimla);}
 function durdur(){OYNUYOR=false;if(ZAM)cancelAnimationFrame(ZAM);ZAM=null;var b=document.getElementById('b_oyn');if(b)b.textContent='▶ Oynat';}
 function kurallar(){var h='';ROB.forEach(function(r){h+='<div><b>'+r.em+' '+esc(r.ad)+'</b>'+(r.tahmini?' <span class="dur m">TAHMİNİ</span>':'')+'<br>'+esc(r.kural)+(r.not?'<br><i style="color:var(--muted)">'+esc(r.not)+'</i>':'')+'</div>';});document.getElementById('kurallar').innerHTML=h;}
 function hashKart(){var h=/kart=([a-z0-9]+)/.exec(location.hash);if(h&&(RB[h[1]]||h[1]==='bekci'))kartAc(h[1]);}
 function basla(){sahne();kurallar();var sl=document.getElementById('salon');if(sl.scrollWidth>sl.clientWidth)sl.scrollLeft=(sl.scrollWidth-sl.clientWidth)*0.45;
  fetch('oda.json?v='+Date.now(),{cache:'no-store'}).then(function(r){if(!r.ok)throw 0;return r.json();})
  .then(function(d){CANLI=d;if(MOD==='canli'){guncelle(true);hashKart();}repYukle();})
- .catch(function(){document.getElementById('gun').textContent='canlı veri yok';document.getElementById('not').innerHTML='Canlı oda verisi (oda.json) okunamadı. <b>⟲ Tekrar oynat</b> ile son 1 yılı izleyebilirsin.';repYukle();});}
+ .catch(function(){document.getElementById('gun').textContent='canlı veri yok';document.getElementById('not').innerHTML='Canlı oda verisi (oda.json) okunamadı. <b>⟲ Tekrar oynat</b> ile geçmiş yılları izleyebilirsin.';repYukle();});}
 document.addEventListener('keydown',function(e){if(e.key==='Escape')kapat();});
 basla();if(/^#rep/.test(location.hash))mod('rep');
 </script></body></html>

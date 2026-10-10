@@ -1,18 +1,25 @@
 # -*- coding: utf-8 -*-
-"""🏢 İşlem Odası — TEKRAR OYNATMA dosyası üreticisi → oda_replay.json (oda.html '⟲ Tekrar oynat' bunu okur).
+"""🏢 İşlem Odası — TEKRAR OYNATMA dosyası üreticisi → oda_replay.json (+ oda_replay_sans.json; oda.html '⟲ Tekrar oynat').
 
-Elle çalıştırılır (ayda bir yeterli; Actions'ta her taramada ÇALIŞMAZ, ~5-10 dk sürer):  python oda_replay.py
+Elle çalıştırılır (ayda bir yeterli; Actions'ta her taramada ÇALIŞMAZ):  python oda_replay.py
+(İndirilmiş veriyle denemek için:  python oda_replay.py --veri dosya.pkl   — yf.download çıktısının pickle'ı.)
 Paralel araştırmanın (scratchpad oda_arastirma: hazirla.py + sim.py + replay.py) projeye taşınmış hali; robot motoru
 oda.py'de (robot_karar / emir_uygula / gun_isle — canlıyla aynı kod yolu).
-  1) Veri: tarama.KODLAR + BIST 100, Yahoo 5 yıl günlük (canlı taramayla aynı kaynak), bolunme_duzelt.
+  1) Veri: tarama.KODLAR + BIST 100, Yahoo günlük (canlı taramayla aynı kaynak), UZUN_YIL + ısınma kadar geriden; bolunme_duzelt.
   2) Her hisse-gün için robotların gördüğü alanlar, canlı fonksiyonların gün gün karşılığı (araştırmada dogrula_canli.py ile
      analiz_et → ozet_hazirla yolu ile karşılaştırıldı): v3 kırılımı, trend şablonu/20g zirveye uzaklık, destekten tepki,
      🌱 uzun vade, RSI, momentum, taban serisi/🔒/🎈, kilitli taban/tavan, sıkı çizgi (kijun, aşırı uzama).
-  3) Son ~1 yıl (250 işlem günü) gün gün: oda.gun_isle (dünkü emirler bugünün açılışıyla, bugünün kapanışıyla karar).
-  4) Dürüstlük ölçüleri: 🎲 şans bandı (Rastgele robot SANS_N farklı zarla, %5/%50/%95), her robot için 'ikiz' testi
-     (her alımı aynı gün rastgele hisseyle değiştir, SANS_N deneme → şans yüzdeliği), aynı kural 4 yılda (2022-10 →).
-Bilinen sınırlar: evren bugünkü liste (hayatta kalan yanlılığı); fiyatlar bölünme/temettü düzeltmeli; 5 yıllık veriyle
-v3'ün 'pozisyon açık mı' durumu canlı taramanın 2 yıllık verisinden eski işlemlerde birkaç hissede farklı olabilir."""
+  3) TEK uzun oynatma (verinin ilk ISINMA işlem günü göstergelerin ısınması için atlanır; en fazla UZUN_YIL yıl): robotlar
+     baştan 100.000 TL ile başlar ve kesintisiz çalışır; oda.gun_isle (dünkü emirler bugünün açılışıyla, kapanışla karar).
+     Sayfadaki dönem seçici (son 6 ay / 1 / 2 / 4 yıl / tümü / özel) bu uzun oyunun DİLİMİNİ gösterir: dönem başındaki kasa
+     100.000 TL'ye ölçeklenir (elde kalan pozisyonlar dahil). Yeniden başlatma yok → her dönem tarayıcıda anında hesaplanır
+     ve 'hepsi ilk gün alındı' etkisi (başlangıç gününe aşırı duyarlılık, araştırma baslangic.txt) azalır.
+  4) Dürüstlük ölçüleri (hazır dönemlerin her biri için): 🎲 şans bandı (Rastgele robot SANS_N farklı zarla, %5/%50/%95,
+     dönem başında 100.000'e ölçekli), her robot için 'ikiz' testi (her alımı aynı gün rastgele hisseyle değiştir, SANS_N
+     deneme → dönemdeki getirinin şans yüzdeliği). Özel dönemde şans bandı için oda_replay_sans.json (Rastgele'nin SANS_N
+     zarının günlük getirileri, sayfa sadece özel dönem seçilince indirir).
+Bilinen sınırlar: evren bugünkü liste (hayatta kalan yanlılığı; geriye gittikçe artar); fiyatlar bölünme/temettü düzeltmeli;
+uzun veriyle v3'ün 'pozisyon açık mı' durumu canlı taramanın 2 yıllık verisinden eski işlemlerde birkaç hissede farklı olabilir."""
 import json
 import os
 import sys
@@ -27,8 +34,16 @@ import sinyal as S
 import tarama
 
 CIKTI = "oda_replay.json"
-PENCERE = 250                 # tekrar oynatılan işlem günü (~1 yıl)
-UZUN_BAS = "2022-10-10"       # 'aynı kural 4 yılda' başlangıcı (araştırmayla aynı)
+CIKTI_SANS = "oda_replay_sans.json"   # özel dönem şans bandı için Rastgele zarları (sayfa tembel yükler)
+UZUN_YIL = 5                  # tekrar oynatma en fazla bu kadar yıl geriye gider
+ISINMA = 260                  # en az bu kadar işlem günü sadece göstergeler için (oynatma başlamaz): SMA200 + 20 gün eğim
+                              # (trend şablonu, 🌱), 250 günlük dip (aşırı uzama), 🎲 evreninde ≥250 gün geçmiş, 6 ay momentum
+INDIR_GUN = 2 * 365 + 40      # UZUN_YIL'ın önüne eklenen takvim günü: her oynatma gününde ~2 yıllık geçmiş olsun (canlı tarama da
+                              # 2 yıl indiriyor; 🌱 durum makinesi, v3 'pozisyon açık' durumu gibi geçmişe bağlı alanlar oturur)
+DONEMLER = [("6a", "Son 6 ay", 125), ("1y", "Son 1 yıl", 250), ("2y", "Son 2 yıl", 500), ("4y", "Son 4 yıl", 1000),
+            ("tum", "Tümü", None)]   # işlem günü; '1y' = eski 250 günlük görünüm (#rep=N bu dönemin N. günü)
+VARSAYILAN = "1y"
+SANS_OZEL_N = 100             # oda_replay_sans.json'daki Rastgele zarı (özel dönem şans bandı)
 NEDEN = {"iz": "iz stop (tepeden %20 düşüş)", "sk": "sıkı çizgi altında kapanış", "dk": "destek kırıldı",
          "dr": "dirence ulaştı", "sr": "süre doldu", "uv": "🌱 SAT: 2 gün 200 günlük ortalama altı",
          "ls": "ayın güçlüleri listesinden düştü", "pz": "piyasa zayıf: nakite geçti", "sb": "trend şablonu bozuldu",
@@ -45,10 +60,11 @@ def neden_kod(t):
 
 
 # ================== 1-2) veri ve gün gün özellikler (araştırma hazirla.py) ==================
-def indir(kodlar):
+def indir(kodlar, bas=None):
     tickers = [k + ".IS" for k in kodlar] + [tarama.ENDEKS + ".IS"]
-    print(f"{len(tickers)} sembol indiriliyor (5 yıl günlük)...", flush=True)
-    return yf.download(tickers, period="5y", interval="1d", group_by="ticker", auto_adjust=True, progress=False, threads=True)
+    bas = bas or (pd.Timestamp.now() - pd.DateOffset(years=UZUN_YIL) - pd.Timedelta(days=INDIR_GUN)).strftime("%Y-%m-%d")
+    print(f"{len(tickers)} sembol indiriliyor ({bas} → bugün, günlük)...", flush=True)
+    return yf.download(tickers, start=bas, interval="1d", group_by="ticker", auto_adjust=True, progress=False, threads=True)
 
 
 def sd_seri(d):
@@ -368,9 +384,9 @@ def olc(D, kasa):
             "ay": ay_r}
 
 
-def ikiz(D, kasa, robot, n=200, tohum=0):
+def ikiz(D, kasa, robot, n=200, tohum=0, seri=False):
     """Robotun HER alımını aynı gün, aynı kasa payıyla RASTGELE bir hisseyle değiştirir ve robotun çıkış gününde satar
-    (aynı zamanlama, aynı tutuş süresi). Döner: n tohumun toplam getirileri (%)."""
+    (aynı zamanlama, aynı tutuş süresi). Döner: n tohumun toplam getirileri (%); seri=True ise n × gün kasa değerleri."""
     A = D["A"]
     tix = {t: i for i, t in enumerate(D["tarih"])}
     i0, i1 = kasa["_i0"], kasa["_i1"]
@@ -402,7 +418,7 @@ def ikiz(D, kasa, robot, n=200, tohum=0):
     for j, (a, b) in enumerate(trades):
         if b is not None:
             cik_gun.setdefault(b, []).append(j)
-    son = None
+    son, kayit = None, []
     for t in range(i0, i1):
         for j in cik_gun.get(t, []):
             if j in adet:
@@ -419,12 +435,15 @@ def ikiz(D, kasa, robot, n=200, tohum=0):
                 adet[j] = (k, u)
         deger = nakit + sum(u * Cf[k, t] for k, u in adet.values())
         son = deger.copy()
+        if seri:
+            kayit.append(son)
+    if seri:
+        return np.array(kayit).T
     return (son / oda.BASLANGIC - 1) * 100
 
 
-def robot_cikti(D, rid, kasa, ix, n_sans, uzun_kasa=None):
-    rb = oda.ROBOTLAR[rid]
-    m = olc(D, kasa)
+def islem_listesi(kasa, ix):
+    """Defter → sayfanın kısa işlem listesi: [gün, 'A', kod, adet, fiyat] / [gün, 'S', kod, adet, fiyat, kz%, neden kodu]."""
     il = []
     for e in kasa["defter"]:
         g = ix.get(e["t"])
@@ -435,70 +454,111 @@ def robot_cikti(D, rid, kasa, ix, n_sans, uzun_kasa=None):
             il.append([g, "A", e["kod"], a, round(e["fiyat"], 2)])
         else:
             il.append([g, "S", e["kod"], a, round(e["fiyat"], 2), round(e["kz_yuzde"], 1), neden_kod(e.get("neden"))])
-    r = {"id": rid, "ad": rb["ad"], "aciklama": rb["aciklama"], "d": [int(round(v)) for _, v in kasa["seri"]], "i": il,
-         "oz": {"get": round(m["getiri"], 1), "dd": round(m["dd"], 1), "n": m["islem"], "isabet": round(m["isabet"]),
-                "iyi": [m["en_iyi"][0], round(m["en_iyi"][1], 1)] if m["en_iyi"] else None,
-                "kotu": [m["en_kotu"][0], round(m["en_kotu"][1], 1)] if m["en_kotu"] else None,
-                "ay": [round(x * 100, 1) for x in m["ay"].values], "ay_t": [str(t.date())[:7] for t in m["ay"].index]}}
+    return il
+
+
+def yuzdelik(G, d, a):
+    """Dönem (a → son gün) getirisinin şans yüzdeliği: G = ikiz kasaları (n × gün), d = robot kasası (gün)."""
+    g = d[-1] / d[a] - 1
+    s = (G[:, -1] / G[:, a] - 1) * 100
+    return {"p5": round(float(np.percentile(s, 5)), 1), "med": round(float(np.median(s)), 1),
+            "p95": round(float(np.percentile(s, 95)), 1), "yuzde": int(round((s < g * 100).mean() * 100))}
+
+
+def robot_cikti(D, rid, kasa, ix, n_sans, donem):
+    rb = oda.ROBOTLAR[rid]
+    d = np.array([v for _, v in kasa["seri"]], float)
+    r = {"id": rid, "d": [int(round(v)) for v in d], "i": islem_listesi(kasa, ix)}
     if rid == "rsi":
         r["tahmini"] = True
     if rb["tur"] not in ("endeks", "rastgele") and n_sans:
-        g_ = ikiz(D, kasa, rb, n=n_sans, tohum=1)
-        r["sans"] = {"p5": round(float(np.percentile(g_, 5)), 1), "med": round(float(np.median(g_)), 1),
-                     "p95": round(float(np.percentile(g_, 95)), 1), "yuzde": int(round((g_ < m["getiri"]).mean() * 100))}
-    if uzun_kasa is not None:
-        m4 = olc(D, uzun_kasa)
-        u = {"get": round(m4["getiri"]), "dd": round(m4["dd"], 1), "bas": uzun_kasa["seri"][0][0]}
-        if rb["tur"] not in ("endeks", "rastgele") and n_sans:
-            g4 = ikiz(D, uzun_kasa, rb, n=n_sans, tohum=1)
-            u["yuzde"] = int(round((g4 < m4["getiri"]).mean() * 100))
-        r["uzun"] = u
+        G = ikiz(D, kasa, rb, n=n_sans, tohum=1, seri=True)
+        r["sans"] = {x["id"]: yuzdelik(G, d, x["a"]) for x in donem}
     return r
 
 
-def uret(D, i0, i1, cikti=CIKTI, n_sans=oda.SANS_N, uzun=True):
+def donemler(T, gun):
+    """Hazır dönemler: [{id, ad, a (uzun oynatmadaki ilk gün sırası)}]; veri yetmeyen (≥ tümü) dönem atlanır."""
+    out = []
+    for did, ad, n in DONEMLER:
+        if n is None:
+            out.append({"id": did, "ad": f"Tümü ({gun[0][:4]} →)", "a": 0})
+        elif n < T:
+            out.append({"id": did, "ad": ad, "a": T - n})
+    return out
+
+
+def uret(D, i0, i1, cikti=CIKTI, cikti_sans=CIKTI_SANS, n_sans=oda.SANS_N):
+    """Tek uzun oynatma (i0 → i1) + hazır dönemlerin şans ölçüleri → oda_replay.json, Rastgele zarları → oda_replay_sans.json."""
     t0 = time.time()
     dz, olay, dur = oda_oynat(D, i0, i1)
     tarih = D["tarih"][i0:i1]
+    T = len(tarih)
     ix = {t: i for i, t in enumerate(tarih)}
-    print(f"Ana oynatma ({tarih[0]} → {tarih[-1]}, {len(tarih)} gün): {time.time() - t0:.0f} sn", flush=True)
-    u0 = int(D["gun"].searchsorted(pd.Timestamp(UZUN_BAS)))
-    dz4 = oda_oynat(D, u0, i1)[0] if uzun and u0 < i0 else None
-    if dz4:
-        print(f"4 yıl oynatma ({D['tarih'][u0]} →): {time.time() - t0:.0f} sn", flush=True)
+    donem = donemler(T, tarih)
+    print(f"Uzun oynatma ({tarih[0]} → {tarih[-1]}, {T} gün): {time.time() - t0:.0f} sn", flush=True)
     robots = []
     for rid in oda.ROBOTLAR:
-        robots.append(dict(robot_cikti(D, rid, dz["robot"][rid], ix, n_sans, dz4["robot"][rid] if dz4 else None), dur=dur[rid]))
-        print(f"  {rid:<11} {robots[-1]['oz']['get']:+7.1f}%  alım {robots[-1]['oz']['n']:>4}  "
-              f"şans yüzdeliği {robots[-1].get('sans', {}).get('yuzde', '—')}  4y {robots[-1].get('uzun', {}).get('get', '—')}", flush=True)
+        robots.append(dict(robot_cikti(D, rid, dz["robot"][rid], ix, n_sans, donem), dur=dur[rid]))
+        d = robots[-1]["d"]
+        print(f"  {rid:<11} " + "  ".join(f"{x['id']} {(d[-1] / d[x['a']] - 1) * 100:+7.1f}%"
+                                         + (f" ({robots[-1]['sans'][x['id']]['yuzde']})" if "sans" in robots[-1] else "")
+                                         for x in donem), flush=True)
     bant = []
     for s in range(n_sans):
         rb = dict(oda.ROBOTLAR["rastgele"]); rb["tohum"] = s
         bant.append([v for _, v in calistir(D, "rastgele", i0, i1, robot=rb)["seri"]])
-    B = np.array(bant)
-    out = {"v": 1, "uretim": str(pd.Timestamp.now(tz="Europe/Istanbul").strftime("%Y-%m-%d %H:%M")), "bas_tl": int(oda.BASLANGIC),
+        if s % 20 == 19:
+            print(f"  🎲 şans bandı {s + 1}/{n_sans} ({time.time() - t0:.0f} sn)", flush=True)
+    B = np.array(bant, float)
+    bantlar = {}
+    for x in donem:
+        Bx = B[:, x["a"]:] / B[:, x["a"]:x["a"] + 1] * oda.BASLANGIC
+        bantlar[x["id"]] = {k: [int(round(v)) for v in np.percentile(Bx, q, axis=0)] for k, q in (("p5", 5), ("p50", 50), ("p95", 95))}
+    out = {"v": 2, "uretim": str(pd.Timestamp.now(tz="Europe/Istanbul").strftime("%Y-%m-%d %H:%M")), "bas_tl": int(oda.BASLANGIC),
            "not": "Sanal para ile kural robotları; geçmiş veriyle tekrar oynatma. Alım ertesi gün açılış fiyatından, "
                   "%0,2 komisyon + 1 fiyat adımı kayma. Yatırım tavsiyesi değildir.",
-           "gun": tarih, "xu": [round(float(D["xu"].iloc[t]), 1) for t in range(i0, i1)], "neden": NEDEN, "robot": robots,
-           "bant": {"p5": [int(x) for x in np.percentile(B, 5, axis=0)], "p50": [int(x) for x in np.percentile(B, 50, axis=0)],
-                    "p95": [int(x) for x in np.percentile(B, 95, axis=0)]},
-           "olay": olay}
+           "veri_bas": D["tarih"][0], "isinma": i0, "sans_n": n_sans, "sans_dosya": os.path.basename(cikti_sans),
+           "gun": tarih, "xu": [round(float(D["xu"].iloc[t]), 1) for t in range(i0, i1)], "neden": NEDEN,
+           "donem": donem, "varsayilan": VARSAYILAN, "robot": robots, "bant": bantlar, "olay": olay}
     s = json.dumps(out, ensure_ascii=False, separators=(",", ":"))
     with open(cikti, "w", encoding="utf-8") as f:
         f.write(s)
-    print(f"{cikti}: {len(s.encode('utf-8')) / 1024:.0f} KB, {len(tarih)} gün, {time.time() - t0:.0f} sn", flush=True)
+    # özel dönem şans bandı: ilk SANS_OZEL_N zarın günlük getirisi (on binde bir; sayfa dönem başından çarparak 100.000'e
+    # ölçekler). 200 yerine 100 zar: dosya yarıya iner (~180 KB sıkıştırılmış), %5-%95 aralığı için yeterli.
+    Bo = B[:SANS_OZEL_N]
+    R = np.zeros_like(Bo)
+    R[:, 1:] = Bo[:, 1:] / Bo[:, :-1] - 1
+    ss = json.dumps({"v": 2, "gun0": tarih[0], "gun_n": T, "n": len(Bo),
+                     "r": [[int(round(v)) for v in row] for row in R * 1e4]}, separators=(",", ":"))
+    with open(cikti_sans, "w", encoding="utf-8") as f:
+        f.write(ss)
+    print(f"{cikti}: {len(s.encode('utf-8')) / 1024:.0f} KB, {cikti_sans}: {len(ss) / 1024:.0f} KB, {T} gün, "
+          f"{time.time() - t0:.0f} sn", flush=True)
     return out
 
 
-def main():
+def baslangic_sirasi(D, i1):
+    """Uzun oynatmanın ilk günü: ısınma (ISINMA işlem günü) bittikten sonra, en fazla UZUN_YIL yıl geriden."""
+    sinir = pd.Timestamp(D["tarih"][i1 - 1]) - pd.DateOffset(years=UZUN_YIL)
+    return max(ISINMA, int(D["gun"].searchsorted(sinir)))
+
+
+def main(argv=None):
+    argv = list(sys.argv[1:] if argv is None else argv)
     t0 = time.time()
-    D = hazirla(indir(tarama.KODLAR))
-    print(f"Özellikler hazır: {len(D['kod'])} hisse ({time.time() - t0:.0f} sn)", flush=True)
+    if "--veri" in argv:
+        g = pd.read_pickle(argv[argv.index("--veri") + 1])
+    else:
+        g = indir(tarama.KODLAR)
+    n_sans = int(argv[argv.index("--sans") + 1]) if "--sans" in argv else oda.SANS_N
+    D = hazirla(g)
+    print(f"Özellikler hazır: {len(D['kod'])} hisse, veri {D['tarih'][0]} → {D['tarih'][-1]} ({time.time() - t0:.0f} sn)", flush=True)
     simdi = pd.Timestamp.now(tz="Europe/Istanbul")
     i1 = len(D["gun"])
     if D["tarih"][-1] == simdi.strftime("%Y-%m-%d") and simdi.hour * 60 + simdi.minute < tarama.KAPANIS_DAKIKA:
         i1 -= 1   # bugünün mumu henüz kesin değil
-    uret(D, max(0, i1 - PENCERE), i1)
+    uret(D, baslangic_sirasi(D, i1), i1, n_sans=n_sans)
 
 
 if __name__ == "__main__":
