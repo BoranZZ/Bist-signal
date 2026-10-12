@@ -8,10 +8,8 @@
     "HRKET",
     "INDES",
     "ISDMR",
-    "LMKDC",
     "OTKAR",
-    "RYGYO",
-    "TKFEN"
+    "RYGYO"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -602,7 +600,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1679187,
+  "kap_son": 1679334,
   "tk_gonderilen": {
     "tarih": "2026-10-12",
     "kodlar": []
