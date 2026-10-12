@@ -1,7 +1,6 @@
 {
   "al": [
     "AHGAZ",
-    "AKCNS",
     "AKFIS",
     "CELHA",
     "ENERY",
@@ -11,6 +10,7 @@
     "INDES",
     "ISDMR",
     "LMKDC",
+    "METRO",
     "ORGE",
     "OTKAR",
     "RYGYO",
@@ -605,9 +605,9 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1678699,
+  "kap_son": 1678788,
   "tk_gonderilen": {
-    "tarih": "2026-10-09",
+    "tarih": "2026-10-12",
     "kodlar": []
   },
   "mom_ay": {
@@ -640,8 +640,8 @@
     ]
   },
   "gunici": {
-    "tarih": "2026-10-09",
+    "tarih": "2026-10-12",
     "g": []
   },
-  "sabah_tarih": "2026-10-09"
+  "sabah_tarih": "2026-10-12"
 }
