@@ -4,12 +4,12 @@
     "AKFIS",
     "CELHA",
     "ENERY",
+    "ENJSA",
     "GLYHO",
     "HRKET",
     "INDES",
     "OTKAR",
-    "RYGYO",
-    "TRMET"
+    "RYGYO"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -112,7 +112,7 @@
     "EMPAE": "SAT",
     "ENDAE": "SAT",
     "ENERY": "AL",
-    "ENJSA": "SAT",
+    "ENJSA": "AL",
     "ENKAI": "SAT",
     "ENPRA": "SAT",
     "ENSRI": "SAT",
@@ -337,6 +337,11 @@
   "karar_kirilim_g": [],
   "alarm_tetik": [],
   "on_sinyal": {
+    "ENJSA": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-10-12"
+    },
     "GLYHO": {
       "sinyal": "AL",
       "onceki": "SAT",
