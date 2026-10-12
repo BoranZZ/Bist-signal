@@ -6,8 +6,8 @@
       "giris_fiyat": 34.38,
       "stop": 27.5,
       "durum": "açık",
-      "guncel": 32.88,
-      "anlik": -4.4,
+      "guncel": 32.8,
+      "anlik": -4.6,
       "tepe": 34.38
     },
     {
@@ -40,8 +40,8 @@
       "giris_fiyat": 46.2,
       "stop": 38.06,
       "durum": "açık",
-      "guncel": 43.44,
-      "anlik": -6.0,
+      "guncel": 43.46,
+      "anlik": -5.9,
       "tepe": 47.58
     },
     {
@@ -50,8 +50,8 @@
       "giris_fiyat": 5827.5,
       "stop": 4662.0,
       "durum": "açık",
-      "guncel": 5052.5,
-      "anlik": -13.3,
+      "guncel": 5060.0,
+      "anlik": -13.2,
       "tepe": 5827.5
     },
     {
@@ -74,19 +74,19 @@
       "giris_fiyat": 44.34,
       "stop": 39.02,
       "durum": "açık",
-      "guncel": 48.74,
-      "anlik": 9.9,
+      "guncel": 48.7,
+      "anlik": 9.8,
       "tepe": 48.78
     },
     {
       "kod": "ENERY",
       "giris_tarih": "2026-09-25",
       "giris_fiyat": 13.36,
-      "stop": 11.62,
+      "stop": 11.69,
       "durum": "açık",
-      "guncel": 14.52,
-      "anlik": 8.7,
-      "tepe": 14.52
+      "guncel": 14.61,
+      "anlik": 9.4,
+      "tepe": 14.61
     },
     {
       "kod": "ISDMR",
@@ -94,8 +94,8 @@
       "giris_fiyat": 62.5,
       "stop": 52.88,
       "durum": "açık",
-      "guncel": 65.3,
-      "anlik": 4.5,
+      "guncel": 65.25,
+      "anlik": 4.4,
       "tepe": 66.1
     },
     {
@@ -104,8 +104,8 @@
       "giris_fiyat": 58.2,
       "stop": 46.72,
       "durum": "açık",
-      "guncel": 57.55,
-      "anlik": -1.1,
+      "guncel": 57.6,
+      "anlik": -1.0,
       "tepe": 58.4
     },
     {
@@ -114,8 +114,8 @@
       "giris_fiyat": 290.25,
       "stop": 232.2,
       "durum": "açık",
-      "guncel": 265.25,
-      "anlik": -8.6,
+      "guncel": 265.5,
+      "anlik": -8.5,
       "tepe": 290.25
     },
     {
@@ -124,7 +124,7 @@
       "giris_fiyat": 429.0,
       "stop": 343.2,
       "durum": "açık",
-      "guncel": 398.75,
+      "guncel": 398.5,
       "anlik": -7.1,
       "tepe": 429.0
     }
