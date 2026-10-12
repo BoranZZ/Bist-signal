@@ -7,9 +7,9 @@
     "GLYHO",
     "HRKET",
     "INDES",
-    "ORGE",
     "OTKAR",
-    "RYGYO"
+    "RYGYO",
+    "TRMET"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -112,7 +112,7 @@
     "EMPAE": "SAT",
     "ENDAE": "SAT",
     "ENERY": "AL",
-    "ENJSA": "AL",
+    "ENJSA": "SAT",
     "ENKAI": "SAT",
     "ENPRA": "SAT",
     "ENSRI": "SAT",
@@ -332,33 +332,17 @@
     "ed52d36b8529c244",
     "fc9a269fa7f1b36a"
   ],
-  "ozet_tarih": "2026-10-09",
+  "ozet_tarih": "2026-10-12",
   "hafta_tarih": "2026-10-09",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {
-    "ENJSA": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-10-12"
-    },
-    "GLYHO": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-10-12"
-    },
-    "TRMET": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-10-12"
-    }
-  },
+  "on_sinyal": {},
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
     "ADESE": "SAT",
     "AEFES": "SAT",
-    "AGHOL": "SAT",
+    "AGHOL": "AL",
     "AHGAZ": "AL",
     "AKBNK": "SAT",
     "AKCNS": "AL",
@@ -616,7 +600,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1679706,
+  "kap_son": 1679730,
   "tk_gonderilen": {
     "tarih": "2026-10-12",
     "kodlar": []
