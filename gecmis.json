@@ -6,8 +6,8 @@
       "giris_fiyat": 34.38,
       "stop": 27.5,
       "durum": "açık",
-      "guncel": 32.9,
-      "anlik": -4.3,
+      "guncel": 32.86,
+      "anlik": -4.4,
       "tepe": 34.38
     },
     {
@@ -30,8 +30,8 @@
       "giris_fiyat": 411.5,
       "stop": 329.2,
       "durum": "açık",
-      "guncel": 382.0,
-      "anlik": -7.2,
+      "guncel": 378.75,
+      "anlik": -8.0,
       "tepe": 411.5
     },
     {
@@ -40,8 +40,8 @@
       "giris_fiyat": 46.2,
       "stop": 38.06,
       "durum": "açık",
-      "guncel": 43.28,
-      "anlik": -6.3,
+      "guncel": 43.52,
+      "anlik": -5.8,
       "tepe": 47.58
     },
     {
@@ -50,8 +50,8 @@
       "giris_fiyat": 5827.5,
       "stop": 4662.0,
       "durum": "açık",
-      "guncel": 5137.5,
-      "anlik": -11.8,
+      "guncel": 5112.5,
+      "anlik": -12.3,
       "tepe": 5827.5
     },
     {
@@ -74,19 +74,19 @@
       "giris_fiyat": 44.34,
       "stop": 38.94,
       "durum": "açık",
-      "guncel": 48.4,
-      "anlik": 9.2,
+      "guncel": 48.54,
+      "anlik": 9.5,
       "tepe": 48.68
     },
     {
       "kod": "ENERY",
       "giris_tarih": "2026-09-25",
       "giris_fiyat": 13.36,
-      "stop": 11.46,
+      "stop": 11.49,
       "durum": "açık",
-      "guncel": 14.32,
-      "anlik": 7.2,
-      "tepe": 14.32
+      "guncel": 14.36,
+      "anlik": 7.5,
+      "tepe": 14.36
     },
     {
       "kod": "ISDMR",
@@ -94,19 +94,19 @@
       "giris_fiyat": 62.5,
       "stop": 52.88,
       "durum": "açık",
-      "guncel": 65.85,
-      "anlik": 5.4,
+      "guncel": 66.0,
+      "anlik": 5.6,
       "tepe": 66.1
     },
     {
       "kod": "SOKM",
       "giris_tarih": "2026-09-25",
       "giris_fiyat": 58.2,
-      "stop": 46.56,
+      "stop": 46.72,
       "durum": "açık",
-      "guncel": 58.2,
-      "anlik": 0.0,
-      "tepe": 58.2
+      "guncel": 58.4,
+      "anlik": 0.3,
+      "tepe": 58.4
     },
     {
       "kod": "TOASO",
@@ -114,8 +114,8 @@
       "giris_fiyat": 290.25,
       "stop": 232.2,
       "durum": "açık",
-      "guncel": 266.5,
-      "anlik": -8.2,
+      "guncel": 265.0,
+      "anlik": -8.7,
       "tepe": 290.25
     },
     {
@@ -124,8 +124,8 @@
       "giris_fiyat": 429.0,
       "stop": 343.2,
       "durum": "açık",
-      "guncel": 403.0,
-      "anlik": -6.1,
+      "guncel": 404.5,
+      "anlik": -5.7,
       "tepe": 429.0
     }
   ]
