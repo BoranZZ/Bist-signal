@@ -11,6 +11,7 @@
     "ISDMR",
     "LMKDC",
     "MAVI",
+    "MPARK",
     "ORGE",
     "OTKAR",
     "RYGYO",
@@ -606,7 +607,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1678929,
+  "kap_son": 1678958,
   "tk_gonderilen": {
     "tarih": "2026-10-12",
     "kodlar": []
