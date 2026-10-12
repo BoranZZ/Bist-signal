@@ -4,7 +4,6 @@
     "AKFIS",
     "CELHA",
     "ENERY",
-    "ENJSA",
     "GLYHO",
     "HRKET",
     "INDES",
@@ -616,7 +615,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1679536,
+  "kap_son": 1679658,
   "tk_gonderilen": {
     "tarih": "2026-10-12",
     "kodlar": []
