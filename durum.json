@@ -7,9 +7,9 @@
     "GLYHO",
     "HRKET",
     "INDES",
+    "ORGE",
     "OTKAR",
-    "RYGYO",
-    "TRMET"
+    "RYGYO"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -600,9 +600,9 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1679809,
+  "kap_son": 1679875,
   "tk_gonderilen": {
-    "tarih": "2026-10-12",
+    "tarih": "2026-10-13",
     "kodlar": []
   },
   "mom_ay": {
@@ -635,8 +635,8 @@
     ]
   },
   "gunici": {
-    "tarih": "2026-10-12",
+    "tarih": "2026-10-13",
     "g": []
   },
-  "sabah_tarih": "2026-10-12"
+  "sabah_tarih": "2026-10-13"
 }
