@@ -4,14 +4,14 @@
     "CELHA",
     "ENERY",
     "GLYHO",
+    "GMTAS",
     "HRKET",
     "INDES",
     "MAVI",
     "METRO",
     "OTKAR",
     "SOKM",
-    "TRMET",
-    "TUPRS"
+    "TRMET"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -639,7 +639,8 @@
   "gunici": {
     "tarih": "2026-10-13",
     "g": [
-      "343bb42cde06e4ff"
+      "343bb42cde06e4ff",
+      "f948a1b9c75c280b"
     ]
   },
   "sabah_tarih": "2026-10-13"
