@@ -5,10 +5,12 @@
     "ENERY",
     "GLYHO",
     "GMTAS",
+    "HKTM",
     "HRKET",
     "INDES",
     "OTKAR",
-    "SOKM"
+    "SOKM",
+    "TRMET"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -615,7 +617,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1680838,
+  "kap_son": 1680959,
   "tk_gonderilen": {
     "tarih": "2026-10-13",
     "kodlar": []
