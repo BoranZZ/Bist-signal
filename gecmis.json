@@ -6,8 +6,8 @@
       "giris_fiyat": 34.38,
       "stop": 27.5,
       "durum": "açık",
-      "guncel": 32.9,
-      "anlik": -4.3,
+      "guncel": 32.96,
+      "anlik": -4.1,
       "tepe": 34.38
     },
     {
@@ -30,8 +30,8 @@
       "giris_fiyat": 411.5,
       "stop": 329.2,
       "durum": "açık",
-      "guncel": 386.75,
-      "anlik": -6.0,
+      "guncel": 386.0,
+      "anlik": -6.2,
       "tepe": 411.5
     },
     {
@@ -40,8 +40,8 @@
       "giris_fiyat": 46.2,
       "stop": 38.06,
       "durum": "açık",
-      "guncel": 43.7,
-      "anlik": -5.4,
+      "guncel": 43.84,
+      "anlik": -5.1,
       "tepe": 47.58
     },
     {
@@ -50,7 +50,7 @@
       "giris_fiyat": 5827.5,
       "stop": 4662.0,
       "durum": "açık",
-      "guncel": 5035.0,
+      "guncel": 5032.5,
       "anlik": -13.6,
       "tepe": 5827.5
     },
@@ -74,8 +74,8 @@
       "giris_fiyat": 44.34,
       "stop": 39.2,
       "durum": "açık",
-      "guncel": 48.8,
-      "anlik": 10.1,
+      "guncel": 48.78,
+      "anlik": 10.0,
       "tepe": 49.0
     },
     {
@@ -84,9 +84,9 @@
       "giris_fiyat": 13.36,
       "stop": 11.78,
       "durum": "açık",
-      "guncel": 14.71,
-      "anlik": 10.1,
-      "tepe": 14.72
+      "guncel": 14.73,
+      "anlik": 10.3,
+      "tepe": 14.73
     },
     {
       "kod": "ISDMR",
@@ -104,8 +104,8 @@
       "giris_fiyat": 58.2,
       "stop": 46.72,
       "durum": "açık",
-      "guncel": 58.05,
-      "anlik": -0.3,
+      "guncel": 58.1,
+      "anlik": -0.2,
       "tepe": 58.4
     },
     {
@@ -114,8 +114,8 @@
       "giris_fiyat": 290.25,
       "stop": 232.2,
       "durum": "açık",
-      "guncel": 258.25,
-      "anlik": -11.0,
+      "guncel": 258.5,
+      "anlik": -10.9,
       "tepe": 290.25
     },
     {
@@ -124,7 +124,7 @@
       "giris_fiyat": 429.0,
       "stop": 343.2,
       "durum": "açık",
-      "guncel": 407.0,
+      "guncel": 407.25,
       "anlik": -5.1,
       "tepe": 429.0
     }
