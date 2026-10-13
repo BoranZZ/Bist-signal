@@ -8,9 +8,7 @@
     "HKTM",
     "HRKET",
     "INDES",
-    "METRO",
     "OTKAR",
-    "RYSAS",
     "SOKM",
     "TRMET"
   ],
@@ -603,7 +601,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1680622,
+  "kap_son": 1680838,
   "tk_gonderilen": {
     "tarih": "2026-10-13",
     "kodlar": []
