@@ -3,6 +3,7 @@
     "AHGAZ",
     "CELHA",
     "ENERY",
+    "ENJSA",
     "GLYHO",
     "GMTAS",
     "HRKET",
@@ -11,7 +12,8 @@
     "METRO",
     "OTKAR",
     "SOKM",
-    "TRMET"
+    "TRMET",
+    "YKBNK"
   ],
   "son": {
     "A1CAP": "SAT",
