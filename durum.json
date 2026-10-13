@@ -8,6 +8,7 @@
     "HKTM",
     "HRKET",
     "INDES",
+    "METRO",
     "OTKAR",
     "SOKM",
     "TRMET"
@@ -56,7 +57,7 @@
     "AYGAZ": "SAT",
     "BAHKM": "SAT",
     "BALSU": "SAT",
-    "BERA": "AL",
+    "BERA": "SAT",
     "BESTE": "SAT",
     "BETAE": "SAT",
     "BIGEN": "SAT",
@@ -156,7 +157,7 @@
     "HDFGS": "SAT",
     "HEDEF": "SAT",
     "HEKTS": "SAT",
-    "HKTM": "SAT",
+    "HKTM": "AL",
     "HLGYO": "SAT",
     "HOROZ": "SAT",
     "HRKET": "AL",
@@ -277,7 +278,7 @@
     "SMRVA": "SAT",
     "SNGYO": "SAT",
     "SOHOE": "SAT",
-    "SOKM": "SAT",
+    "SOKM": "AL",
     "SSAAT": "SAT",
     "SUNTK": "SAT",
     "SURGY": "SAT",
@@ -337,7 +338,23 @@
   "hafta_tarih": "2026-10-09",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {},
+  "on_sinyal": {
+    "BERA": {
+      "sinyal": "SAT",
+      "onceki": "AL",
+      "tarih": "2026-10-13"
+    },
+    "HKTM": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-10-13"
+    },
+    "SOKM": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-10-13"
+    }
+  },
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
