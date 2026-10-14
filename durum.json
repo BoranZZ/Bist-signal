@@ -7,7 +7,6 @@
     "GMTAS",
     "HRKET",
     "INDES",
-    "METRO",
     "RYGYO",
     "TUPRS"
   ],
@@ -637,6 +636,7 @@
   "gunici": {
     "tarih": "2026-10-14",
     "g": [
+      "343bb42cde06e4ff",
       "4670b8611601aedd",
       "6130cd6d1f951117",
       "801f91a3ac608dbc"
