@@ -8,10 +8,10 @@
     "HKTM",
     "HRKET",
     "INDES",
-    "ORGE",
     "OTKAR",
     "RYGYO",
-    "SOKM"
+    "SOKM",
+    "TRMET"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -602,9 +602,9 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1681308,
+  "kap_son": 1681331,
   "tk_gonderilen": {
-    "tarih": "2026-10-13",
+    "tarih": "2026-10-14",
     "kodlar": []
   },
   "mom_ay": {
@@ -637,11 +637,8 @@
     ]
   },
   "gunici": {
-    "tarih": "2026-10-13",
-    "g": [
-      "343bb42cde06e4ff",
-      "f948a1b9c75c280b"
-    ]
+    "tarih": "2026-10-14",
+    "g": []
   },
-  "sabah_tarih": "2026-10-13"
+  "sabah_tarih": "2026-10-14"
 }
