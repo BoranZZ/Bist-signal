@@ -40,7 +40,7 @@ BIST100 = [
 EK_HISSELER = [
  "AGROT","ALFAS","BUCIM","EUPWR","GESAN","ISGYO","IZENR","KAYSE","KLKIM",
  "KLSER","KMPUR","KONTR","KONYA","PAPIL","PENTA","QUAGR","REEDR","SDTTR",
- "SKBNK","ULUUN","VESBE","YEOTK",
+ "SKBNK","ULUUN","VESBE","YEOTK","AFYON",
 ]
 
 # Son 12 ayın halka arzları: kod -> (borsada işlem başlangıcı, halka arz fiyatı TL). Kaynak: halkarz.com
