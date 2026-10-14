@@ -4,13 +4,11 @@
     "CELHA",
     "GLYHO",
     "GMTAS",
-    "HKTM",
     "HRKET",
     "INDES",
     "METRO",
     "RYGYO",
-    "TUPRS",
-    "YKBNK"
+    "TUPRS"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -642,6 +640,7 @@
       "1bff897681512a10",
       "343bb42cde06e4ff",
       "4670b8611601aedd",
+      "5cfb2b45a6faeba9",
       "5d5a9795aacf4ebf",
       "6130cd6d1f951117",
       "801f91a3ac608dbc",
