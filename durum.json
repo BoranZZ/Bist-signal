@@ -11,6 +11,7 @@
     "ORGE",
     "OTKAR",
     "RYGYO",
+    "RYSAS",
     "TUPRS"
   ],
   "son": {
@@ -262,7 +263,7 @@
     "RTALB": "SAT",
     "RUBNS": "SAT",
     "RYGYO": "AL",
-    "RYSAS": "SAT",
+    "RYSAS": "AL",
     "SAFKR": "SAT",
     "SAHOL": "SAT",
     "SANFM": "SAT",
@@ -340,6 +341,11 @@
   "karar_kirilim_g": [],
   "alarm_tetik": [],
   "on_sinyal": {
+    "RYSAS": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-10-14"
+    },
     "TKFEN": {
       "sinyal": "SAT",
       "onceki": "AL",
