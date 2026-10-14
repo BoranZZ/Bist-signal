@@ -1,14 +1,15 @@
 {
   "al": [
     "AHGAZ",
-    "AKFIS",
     "CELHA",
     "GLYHO",
     "GMTAS",
+    "HKTM",
     "HRKET",
     "INDES",
     "RYGYO",
-    "TUPRS"
+    "TUPRS",
+    "YKBNK"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -636,10 +637,14 @@
   "gunici": {
     "tarih": "2026-10-14",
     "g": [
+      "0dca56fda8c4cfd1",
+      "1bff897681512a10",
       "343bb42cde06e4ff",
       "4670b8611601aedd",
+      "5d5a9795aacf4ebf",
       "6130cd6d1f951117",
-      "801f91a3ac608dbc"
+      "801f91a3ac608dbc",
+      "c84f577eff19113d"
     ]
   },
   "sabah_tarih": "2026-10-14"
