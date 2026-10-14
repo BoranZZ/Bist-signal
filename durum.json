@@ -4,14 +4,12 @@
     "CELHA",
     "GLYHO",
     "GMTAS",
-    "HKTM",
     "HRKET",
+    "HUNER",
     "INDES",
-    "MRGYO",
-    "ORGE",
     "OTKAR",
     "RYGYO",
-    "TUPRS"
+    "RYSAS"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -602,7 +600,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1681389,
+  "kap_son": 1681454,
   "tk_gonderilen": {
     "tarih": "2026-10-14",
     "kodlar": []
