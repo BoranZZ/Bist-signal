@@ -1,7 +1,6 @@
 {
   "al": [
     "AHGAZ",
-    "AKFIS",
     "CELHA",
     "GLYHO",
     "GMTAS",
@@ -635,7 +634,11 @@
   },
   "gunici": {
     "tarih": "2026-10-14",
-    "g": []
+    "g": [
+      "4670b8611601aedd",
+      "6130cd6d1f951117",
+      "801f91a3ac608dbc"
+    ]
   },
   "sabah_tarih": "2026-10-14"
 }
