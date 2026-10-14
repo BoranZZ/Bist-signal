@@ -19,6 +19,7 @@
     "ADEL": "SAT",
     "ADESE": "SAT",
     "AEFES": "SAT",
+    "AFYON": "NÖTR",
     "AGHOL": "SAT",
     "AGROT": "SAT",
     "AHGAZ": "AL",
@@ -293,7 +294,7 @@
     "TERA": "SAT",
     "TGSAS": "SAT",
     "THYAO": "SAT",
-    "TKFEN": "AL",
+    "TKFEN": "SAT",
     "TMPOL": "SAT",
     "TNZTP": "SAT",
     "TOASO": "SAT",
@@ -338,7 +339,13 @@
   "hafta_tarih": "2026-10-09",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {},
+  "on_sinyal": {
+    "TKFEN": {
+      "sinyal": "SAT",
+      "onceki": "AL",
+      "tarih": "2026-10-14"
+    }
+  },
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
