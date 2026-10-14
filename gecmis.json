@@ -6,8 +6,8 @@
       "giris_fiyat": 34.38,
       "stop": 27.5,
       "durum": "açık",
-      "guncel": 32.18,
-      "anlik": -6.4,
+      "guncel": 32.12,
+      "anlik": -6.6,
       "tepe": 34.38
     },
     {
@@ -30,8 +30,8 @@
       "giris_fiyat": 411.5,
       "stop": 329.2,
       "durum": "açık",
-      "guncel": 393.5,
-      "anlik": -4.4,
+      "guncel": 392.5,
+      "anlik": -4.6,
       "tepe": 411.5
     },
     {
@@ -40,8 +40,8 @@
       "giris_fiyat": 46.2,
       "stop": 38.06,
       "durum": "açık",
-      "guncel": 44.68,
-      "anlik": -3.3,
+      "guncel": 44.34,
+      "anlik": -4.0,
       "tepe": 47.58
     },
     {
@@ -50,8 +50,8 @@
       "giris_fiyat": 5827.5,
       "stop": 4662.0,
       "durum": "açık",
-      "guncel": 4860.0,
-      "anlik": -16.6,
+      "guncel": 4840.0,
+      "anlik": -16.9,
       "tepe": 5827.5
     },
     {
@@ -74,8 +74,8 @@
       "giris_fiyat": 44.34,
       "stop": 39.2,
       "durum": "açık",
-      "guncel": 47.34,
-      "anlik": 6.8,
+      "guncel": 47.28,
+      "anlik": 6.6,
       "tepe": 49.0
     },
     {
@@ -84,8 +84,8 @@
       "giris_fiyat": 13.36,
       "stop": 11.78,
       "durum": "açık",
-      "guncel": 14.19,
-      "anlik": 6.2,
+      "guncel": 14.21,
+      "anlik": 6.4,
       "tepe": 14.73
     },
     {
@@ -94,8 +94,8 @@
       "giris_fiyat": 62.5,
       "stop": 52.88,
       "durum": "açık",
-      "guncel": 62.1,
-      "anlik": -0.6,
+      "guncel": 61.8,
+      "anlik": -1.1,
       "tepe": 66.1
     },
     {
@@ -104,8 +104,8 @@
       "giris_fiyat": 58.2,
       "stop": 47.24,
       "durum": "açık",
-      "guncel": 58.9,
-      "anlik": 1.2,
+      "guncel": 58.65,
+      "anlik": 0.8,
       "tepe": 59.05
     },
     {
@@ -114,8 +114,8 @@
       "giris_fiyat": 290.25,
       "stop": 232.2,
       "durum": "açık",
-      "guncel": 254.75,
-      "anlik": -12.2,
+      "guncel": 253.75,
+      "anlik": -12.6,
       "tepe": 290.25
     },
     {
@@ -124,8 +124,8 @@
       "giris_fiyat": 429.0,
       "stop": 343.2,
       "durum": "açık",
-      "guncel": 408.5,
-      "anlik": -4.8,
+      "guncel": 407.25,
+      "anlik": -5.1,
       "tepe": 429.0
     }
   ]
