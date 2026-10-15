@@ -3,6 +3,7 @@
     "CELHA",
     "GLYHO",
     "GMTAS",
+    "HKTM",
     "HRKET",
     "INDES",
     "YKBNK"
@@ -614,7 +615,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1682675,
+  "kap_son": 1682716,
   "tk_gonderilen": {
     "tarih": "2026-10-15",
     "kodlar": []
