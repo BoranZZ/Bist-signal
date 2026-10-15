@@ -1,9 +1,11 @@
 {
   "al": [
     "AKFIS",
+    "ALARK",
     "CELHA",
     "GLYHO",
     "GMTAS",
+    "HKTM",
     "HRKET",
     "INDES",
     "TAVHL"
@@ -599,7 +601,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1682491,
+  "kap_son": 1682527,
   "tk_gonderilen": {
     "tarih": "2026-10-15",
     "kodlar": []
