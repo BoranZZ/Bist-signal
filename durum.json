@@ -1,7 +1,6 @@
 {
   "al": [
     "AKFIS",
-    "ALARK",
     "CELHA",
     "GLYHO",
     "GMTAS",
@@ -638,7 +637,10 @@
     "tarih": "2026-10-15",
     "g": [
       "5cfb2b45a6faeba9",
-      "b623a15ea190c132"
+      "9abf38824ea3cb0f",
+      "b623a15ea190c132",
+      "d17d2ae0325488b6",
+      "dcd5ab0ba30bde3d"
     ]
   },
   "sabah_tarih": "2026-10-15"
