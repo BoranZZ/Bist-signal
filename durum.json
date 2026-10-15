@@ -1,11 +1,12 @@
 {
   "al": [
-    "AHGAZ",
     "CELHA",
     "GLYHO",
     "GMTAS",
+    "HKTM",
     "HRKET",
-    "INDES"
+    "INDES",
+    "METRO"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -614,7 +615,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1682737,
+  "kap_son": 1682747,
   "tk_gonderilen": {
     "tarih": "2026-10-15",
     "kodlar": []
