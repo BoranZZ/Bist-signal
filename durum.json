@@ -3,9 +3,9 @@
     "CELHA",
     "GLYHO",
     "GMTAS",
-    "HKTM",
     "HRKET",
-    "INDES"
+    "INDES",
+    "YKBNK"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -318,7 +318,7 @@
     "VSNMD": "SAT",
     "YEOTK": "SAT",
     "YIGIT": "SAT",
-    "YKBNK": "SAT",
+    "YKBNK": "AL",
     "ZERGY": "SAT",
     "ZGYO": "SAT",
     "ZOREN": "SAT"
@@ -342,6 +342,11 @@
     "TRMET": {
       "sinyal": "SAT",
       "onceki": "AL",
+      "tarih": "2026-10-15"
+    },
+    "YKBNK": {
+      "sinyal": "AL",
+      "onceki": "SAT",
       "tarih": "2026-10-15"
     }
   },
