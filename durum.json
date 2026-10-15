@@ -5,7 +5,8 @@
     "GLYHO",
     "GMTAS",
     "HRKET",
-    "INDES"
+    "INDES",
+    "METRO"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -598,7 +599,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1682650,
+  "kap_son": 1682653,
   "tk_gonderilen": {
     "tarih": "2026-10-15",
     "kodlar": []
