@@ -6,7 +6,7 @@
     "GMTAS",
     "HRKET",
     "INDES",
-    "ISDMR"
+    "TAVHL"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -599,7 +599,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1682532,
+  "kap_son": 1682541,
   "tk_gonderilen": {
     "tarih": "2026-10-15",
     "kodlar": []
