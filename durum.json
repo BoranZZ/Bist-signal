@@ -6,6 +6,7 @@
     "GMTAS",
     "HRKET",
     "INDES",
+    "METRO",
     "TAVHL"
   ],
   "son": {
@@ -599,7 +600,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1682547,
+  "kap_son": 1682552,
   "tk_gonderilen": {
     "tarih": "2026-10-15",
     "kodlar": []
