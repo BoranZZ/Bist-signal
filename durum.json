@@ -6,7 +6,7 @@
     "GMTAS",
     "HRKET",
     "INDES",
-    "RYGYO",
+    "METRO",
     "TAVHL"
   ],
   "son": {
@@ -636,7 +636,10 @@
   },
   "gunici": {
     "tarih": "2026-10-15",
-    "g": []
+    "g": [
+      "5cfb2b45a6faeba9",
+      "b623a15ea190c132"
+    ]
   },
   "sabah_tarih": "2026-10-15"
 }
