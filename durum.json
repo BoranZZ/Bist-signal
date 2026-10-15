@@ -3,7 +3,6 @@
     "CELHA",
     "GLYHO",
     "GMTAS",
-    "HKTM",
     "HRKET",
     "INDES"
   ],
@@ -202,7 +201,7 @@
     "LIDER": "SAT",
     "LILAK": "SAT",
     "LINK": "SAT",
-    "LMKDC": "AL",
+    "LMKDC": "SAT",
     "LOGO": "AL",
     "LXGYO": "SAT",
     "LYDHO": "SAT",
@@ -296,7 +295,7 @@
     "TRENJ": "SAT",
     "TRGYO": "SAT",
     "TRHOL": "SAT",
-    "TRMET": "AL",
+    "TRMET": "SAT",
     "TSKB": "SAT",
     "TSPOR": "SAT",
     "TTKOM": "SAT",
@@ -333,7 +332,18 @@
   "hafta_tarih": "2026-10-09",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {},
+  "on_sinyal": {
+    "LMKDC": {
+      "sinyal": "SAT",
+      "onceki": "AL",
+      "tarih": "2026-10-15"
+    },
+    "TRMET": {
+      "sinyal": "SAT",
+      "onceki": "AL",
+      "tarih": "2026-10-15"
+    }
+  },
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
