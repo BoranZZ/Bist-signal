@@ -1,13 +1,9 @@
 {
   "al": [
-    "CELHA",
     "GLYHO",
     "GMTAS",
     "HKTM",
-    "HRKET",
-    "INDES",
-    "METRO",
-    "RYSAS"
+    "HRKET"
   ],
   "son": {
     "A1CAP": "SAT",
