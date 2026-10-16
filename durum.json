@@ -1,10 +1,10 @@
 {
   "al": [
+    "CELHA",
     "GMTAS",
     "HRKET",
     "INDES",
-    "METRO",
-    "RYSAS"
+    "MARTI"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -633,7 +633,11 @@
   },
   "gunici": {
     "tarih": "2026-10-16",
-    "g": []
+    "g": [
+      "9abf38824ea3cb0f",
+      "d17d2ae0325488b6",
+      "dcd5ab0ba30bde3d"
+    ]
   },
   "sabah_tarih": "2026-10-16"
 }
