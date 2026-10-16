@@ -1,10 +1,7 @@
 {
   "al": [
-    "CELHA",
     "GMTAS",
-    "HRKET",
-    "INDES",
-    "MARTI"
+    "HRKET"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -634,9 +631,16 @@
   "gunici": {
     "tarih": "2026-10-16",
     "g": [
+      "310b03e5a612e717",
+      "6208d9d28d82784e",
+      "7271832a9d0fb2cd",
+      "8709d769aa81f3e2",
       "9abf38824ea3cb0f",
+      "a7839e544f9eef28",
+      "c1e3c788478c09ab",
       "d17d2ae0325488b6",
-      "dcd5ab0ba30bde3d"
+      "dcd5ab0ba30bde3d",
+      "f82cbb724cc4170b"
     ]
   },
   "sabah_tarih": "2026-10-16"
