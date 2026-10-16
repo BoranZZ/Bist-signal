@@ -280,7 +280,7 @@
     "TABGD": "SAT",
     "TARKM": "SAT",
     "TATEN": "SAT",
-    "TAVHL": "AL",
+    "TAVHL": "SAT",
     "TCELL": "SAT",
     "TCKRC": "SAT",
     "TEHOL": "SAT",
@@ -344,6 +344,11 @@
       "tarih": "2026-10-16"
     },
     "AKFIS": {
+      "sinyal": "SAT",
+      "onceki": "AL",
+      "tarih": "2026-10-16"
+    },
+    "TAVHL": {
       "sinyal": "SAT",
       "onceki": "AL",
       "tarih": "2026-10-16"
@@ -613,7 +618,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1683259,
+  "kap_son": 1683282,
   "tk_gonderilen": {
     "tarih": "2026-10-16",
     "kodlar": []
