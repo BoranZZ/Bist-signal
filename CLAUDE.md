@@ -148,7 +148,7 @@ sinyal, filtre, etiket ya da çıkış olarak eklenmeye değmez.** Kullanıcı f
 ## v3 — 🚀 trend kırılımı (2026-09 gece araştırması, canlı AL kuralı)
 - AL mesajı artık gösterge oylamasından (SINYAL) DEĞİL: `sinyal.trend_kirilimi` — Minervini trend şablonu (fiyat > SMA50 >
   SMA150 > SMA200, SMA200 20 günde yükselmiş, 52h zirvesinin ≥%75'i, 52h dibinin ≥%30 üstü) iken önceki 20 günün en yüksek
-  kapanışının ilk kez aşılması + XU100 > SMA50 + 60g oynaklık ≤ %5. Çıkış: girişten beri tepe kapanışın %20 altı (iz stop).
+  kapanışının ilk kez aşılması + XU100 > SMA50 + 60g oynaklık ≤ %5. Çıkış: girişten beri tepe kapanışın %20 altı (iz stop). **2026-10-19'dan beri + 🔐 kâr kilidi** (aşağıda).
   Pozisyon açıkken yeni kırılım sayılmaz. Canlı fonksiyon backtest işlemlerini birebir üretir (124 hisse, 467 işlem, 0 fark).
 - Neden: 13 gösterge/strateji aynı düzenekle (sınırsız sepet, 3 evren × 2 faiz dönemi, 2022-09-26'dan) kıyaslandı
   (scratchpad bt/gece12-14). Minervini 6 hücrenin 6'sında v2'den iyi (çökenler hariç düşük/yüksek faiz +%83/+%263 vs
@@ -175,8 +175,55 @@ sinyal, filtre, etiket ya da çıkış olarak eklenmeye değmez.** Kullanıcı f
   önceden açık kalan pozisyon); açık pozisyonlarda 4 hissede giriş tarihi farklı, iz stop aynı. Düzeltmek için `veri_cek` period'u
   uzatılabilir (yapılmadı: tüm göstergeleri/uv durumunu ve çalışma süresini etkiler).
 
+## 🔐 Kâr kilidi — v3 çıkışına ek (2026-10-19, dal `kar-kilidi`; scratchpad `cikis2/`, `finalcikis/`, `karkilidi/`)
+- **Kural:** v3 girişi aynen; çıkış %20 iz stop (girişten beri tepe kapanış × 0,80) AYNEN, ama kapanışta en az bir kez giriş fiyatının
+  ≥ +%8 üstü görüldüyse stop = max(tepe × 0,80, giriş × 1,05) (kilit bir kez açılınca kalıcı; tepe düşmez). Giriş = sinyalin ertesi
+  açılışı, tepe başlangıcı = giriş, kapanış < stop → o kapanışta sat (kilitli tabanda `gercekci_cikis` aynen). Ayar TEK yerde:
+  `sinyal.KAR_KILIT_ESIK = 0.08` ('A4'), `KAR_KILIT_SEVIYE = 0.05`; 'A1' = eşik 0.10; `KAR_KILIT_ESIK = 0` → eski v3 (kilitsiz).
+  Metin sayıları `KAR_KILIT_ARASTIRMA`'dan (ayar değişirse eşleşen satır yoksa sayı yazılmaz; JS `KK` = [eşik %, seviye %] | null).
+- **Araştırma (Ekim 2017 → 16.10.2026, 286 hisse: ana 123 + küçük 163; 200 rastgele yarım liste, 10 yuva, iki 'dengeli puan' tanımı):**
+  ~400 kural (iz %10-30, kademeli iz, chandelier/ATR merdiveni, ilk zarar stopu, başarısız kırılım, zaman stopu, SMA/EMA/kijun, kısmi
+  kâr, giriş filtreleri: uzama, geri test, hacim, piyasa, RS, yeniden giriş yasağı). Kâr kilidi içeren kurallar açık ara önde; A4 dengeli
+  puanda 1. (iki tanımda da ilk 3), 2018-26'da ana 9/9, küçük 9/9 yıl v3'ten iyi; 2017-21'de seçilen ayar 2022-26'da da tutuyor (ve
+  tersi); +%6-12 eşik / +%3-7 kilit geniş plato. İsabet %52 → %72 (ana) / %51 → %68 (küçük); kârdan zarara dönen işlem %22 → %4-6;
+  tepeden geri verme %22 → %17; 10 yuva portföy kârı v3'ün %140 / %122'si; son 12 ayda (ana) isabet %28 → %63. ATR×3 merdiveni tek
+  başına v3'ten belirgin iyi değil (isabet artmıyor, sepet %64-89, GLYHO'da büyük trendi kaçırıyor) → eklenmedi. Girişe filtre: fayda yok.
+- **Bedeller (kullanıcıya açık söylendi):** her işleme eşit para koyan sınırsız sepette toplam kâr v3'ün %91 / %88'i (A1: %95 / %91) →
+  **sepet kârı ~%5-15 düşer**; işlem başı ortalama +%30 → +%21 (backtest.py 10y: endekse göre +18,1 → +12,7 puan); **kilitle
+  kapananların ~%23'ü (A1 %20) eski kuralla +%30'un üstünde biterdi** (büyük yükselişin başında +%5'te satış); işlem sayısı +%28;
+  'satıp daha yukarıdan yeniden alım' %39 → %48; 2024 gibi kesintisiz yükselen yılda v3'ten az (ana +44 vs +58); 20 yuvada ana %90.
+  İsabet artışı mekanik (rastgele hisseye aynı çıkış da ~%70 isabet) — 'daha iyi hisse seçimi' değil. TAVHL 334 → 268 değişmez (+%8
+  hiç görülmedi); RYSAS 27,1 → 28,24 (+%4, eskiden 23,8), RYSAS 14 → 13,86 (−%1, eskiden 12,23), ALARK 103,2 → 106,6 (+%3, eskiden 86,8).
+- **Kod (stop seviyesi TEK fonksiyonda):** `sinyal.iz_seviye(giris, tepe, kk)` → (stop, kilit) — ATR merdiveni ya da başka bileşen
+  eklenecekse buraya bir max() daha; `iz_yuru` pozisyonu gün gün yürütür (`izs` = her günün stop'u, `kk_i`, `kk_cik`); `trend_kirilimi(...,
+  kar_kilit=None|False|(eşik, seviye))`. Açık/kapanmış `tk`'ye `iz20`, `kk`, `kilit`, `kilit_seviye`, `kilit_esik_fiyat`, `kilit_tarih`,
+  `kilit_cik` eklendi (analiz_et `iz` override'ına da). `tkg` 5. eleman artık BİT alanı: 1 = çıkış günü kilitli taban, 2 = 🔐 kâr kilidiyle
+  çıkış, 4 = açık + kilit devrede. `spark.tk`'de 'K' = 🔐 çıkışı; `spark.iz` parçası [başlangıç, değerler(, kilidin devreye girdiği parça içi
+  sıra)] — **çizgi değerleri Python'dan hazır gelir, JS hesaplamaz** (kural değişince pano kodu değişmez).
+- **Nerelere girdi:** canlı 🚀 AL/SAT (AL sinyalleri de değişir: erken çıkıştan sonra yeni kırılım sayılır), grafik ▼ SAT (kilitle
+  çıkışta 'SAT 🔐'), mor iz stop çizgisi (kilit devredeyse en az giriş × 1,05; devreye girdiği gün çizgi üstünde küçük 🔐; fare bilgisinde
+  'İz stop X 🔐'), `tkSonHtml`, Sinyal geçmişi ('🔐 kâr kilidiyle çıktı'), Son roketler, `tkHtml`, `pozHtml`/`pozPlan` (`izNeden`),
+  `sadeHtml`, sözlük + 'Sistemi nasıl kullanırım?' / 'Grafik nasıl okunur?' / 'Çıkış ve hedef' (yer tutucular `__KKSOZ__`, `__KKCUMLE__`,
+  `__KKGRAFIK__`, `pano.kk_metinleri`), Telegram (`tarama.kk_metni`, `iz_aciklama`: AL satırı, portföy planı, '🔐 kâr kilidi
+  seviyesinin altında' SAT başlığı), backtest.py (`v3` = kilitli; `v3_eski` = 'v3 (eski, kilitsiz)' kıyas kartı + dönem satırı + not;
+  sebep '🔐 kâr kilidi', `kar_kilidi` sayısı).
+- **Karne (gecmis.json) İLERİYE DÖNÜK:** geçmiş kayıtlar yeniden yazılmadı. Kural açıkken açılan yeni kayıtlar `kar_kilit` = [eşik,
+  seviye] taşır; sadece KESİN kapanış taramasında fiyat ≥ kayıt fiyatı × 1,08 görülünce `kk` = o gün yazılır (gün içi fiyat saymaz), stop
+  `iz_seviye` ile; sebep '🔐 kâr kilidi'. Bu alanı olmayan kayıtlar (o an açık olanlar dahil) eski %20 iz stop'la kapanır. gecmis.html
+  notunda (`__KKKARNE__`) ve tabloda 🔐. (Karnenin giriş fiyatı kendi tanımı: sinyal günü kapanışı.)
+- **İşlem Odası ETKİLENMEZ:** robotlar kilitsiz v3 ile araştırıldı. `analiz_et` → `tk_oda` (= `trend_kirilimi(kar_kilit=False)`);
+  tarama oda'ya `tk` yerine `tk_oda`'yı geçirir (canlı kilitli `tk` → `tk_kk`); `oda_replay.ozellik` `kar_kilit=False`. oda.py'ye dokunulmadı.
+  Ayrı '🔐' robotunu başka dal ekliyor.
+- **Bilinen:** portföy iz stop'u son giriş v3 DEĞİLSE (gösterge AL'i daha yeni) eski gösterge iz'i (kilitsiz) — değişmedi.
+- **Doğrulama (scratchpad `karkilidi/`):** canlı `trend_kirilimi` + `gercekci_cikis` = `finalcikis/motor2.py` işlem işlem, 10y 286 hisse:
+  A4 2.280 / A1 2.096 / kilitsiz 1.783 işlem, **0 fark** (A4'te 982 kâr kilidi çıkışı; `cikis2/motor.py` A1 ile de 0 fark) (`t1_motor2.py`).
+  `KAR_KILIT_ESIK = 0` iken `analiz_et` çıktısı main'deki eski kodla 286 hissede (2y ve 10y) tüm alanlarda birebir; kilit açıkken `tk_oda`
+  = eski `tk`, `oda_replay.ozellik` 27 alanın hepsi 286 hissede eski kodla aynı (`t3_esit.py`, `t4_oda.py`). Örnekler `t2_ornek.py`, karne
+  `t6_karne.py`, Telegram `t7_telegram.py`, backtest `t5_backtest.py`. Gerçek tarama (Telegram'sız kopya) → index.html: `node --check`
+  tamam; headless Chrome CDP 390/1280 px (RYSAS, GLYHO, ALARK + sahte portföy + Son roketler): JS hatası yok, yatay taşma yok (`cdp_test.mjs`).
+
 ## 🚀 Sinyal geçmişi · son AL/SAT grafikte · Son roketler filtresi (2026-10, hepsi BİLGİ)
-- `sinyal.tk_gecmis` → `tkg`: son 6 v3 işlemi `[sinyal günü, giriş (ertesi açılış), çıkış günü|null, çıkış kapanışı|null(, 1 = çıkış günü kilitli taban)]`
+- `sinyal.tk_gecmis` → `tkg`: son 6 v3 işlemi `[sinyal günü, giriş (ertesi açılış), çıkış günü|null, çıkış kapanışı|null(, bit alanı: 1 = çıkış günü kilitli taban, 2 = 🔐 kâr kilidiyle çıkış, 4 = açık + kilit devrede)]`
   (canlı `trend_kirilimi(ham=True)`; komisyonsuz). Portföyden bağımsız. `tk.kisa` = veri <250 gün (yeni arz: sinyal çıkamaz).
 - Modal grafik: ▲ AL (yeşil, 🚀 girişi) / ▼ SAT (kırmızı, iz stop çıkışı), mor kesikli iz stop; üstte `tkSonHtml` özet satırı;
   '6 ay / 1 yıl' düğmesi — 1 yılda grafik penceresinden önceki ~6 ay HAFTALIK kapanış (`spark.w0` pazartesi + `spark.w`, x ekseni

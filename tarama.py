@@ -11,6 +11,7 @@ import yfinance as yf
 from kap import kap_guncelle, kap_mesaji
 from bilanco import bilancolari_al, bilanco_ozet, bilanco_metni, bilanco_yakin, tarih_tr, temettu_ozet
 from sinyal import analiz_et, destek_direnc, bolunme_duzelt, tahta_riski, TABAN_GETIRI, TABAN_GUN, IZ_STOP_ORAN, KILIT_ARALIK
+from sinyal import kar_kilit_ayar, iz_seviye
 from pano import pano_uret, gecmis_uret
 import gunici
 try:
@@ -547,7 +548,7 @@ def yorum_uret(s, fk_med, pddd_med):
                  else "grup medyanının üstünde, görece pahalı.") + " (Enflasyonda yanıltıcı olabilir.)")
     if sn == "AL" and s.get("stop"):
         p.append(f"Alırsan çıkış kuralı iz stop: şimdilik {round(s['fiyat'] * (1 - IZ_STOP_ORAN), 2)} TL; fiyat yükseldikçe "
-                 f"tepe kapanışın %20 altına taşınır, kapanış altına inerse çık.")
+                 f"tepe kapanışın %20 altına taşınır, kapanış altına inerse çık." + (f" {kk_metni()}." if kk_metni() else ""))
     if s.get("guclu"):
         p.insert(0, "★ AL+: hem grafik hem değerleme olumlu — listenin öne çıkanı.")
     return " ".join(p)
@@ -734,6 +735,35 @@ def _tl(x):
     return f"{'+' if x >= 0 else '−'}{abs(round(x)):,.0f}".replace(",", ".") + " TL"
 
 
+def _pct(x):
+    """0.1 → '10', 0.075 → '7,5' (Türkçe ondalık)."""
+    v = round(x * 100, 1)
+    return (f"{v:g}").replace(".", ",")
+
+
+def kk_metni(kisa=False):
+    """🔐 kâr kilidi kuralının tek cümlelik anlatımı (sabitler sinyal.KAR_KILIT_*'tan; kural kapalıysa boş)."""
+    kk = kar_kilit_ayar()
+    if not kk:
+        return ""
+    if kisa:
+        return f"🔐 kapanışta +%{_pct(kk[0])} görülürse stop en az alış +%{_pct(kk[1])}"
+    return (f"🔐 kâr kilidi: kapanışta bir kez alışın +%{_pct(kk[0])} üstü görülünce stop en az alış +%{_pct(kk[1])} olur "
+            f"(kâr zarara dönmeden çıkılır)")
+
+
+def iz_aciklama(iz):
+    """Açık v3 pozisyonunun stop'u nereden geliyor? iz: analiz_et 'iz' (ya da tk) sözlüğü."""
+    if iz.get("kilit") and iz.get("kilit_seviye") is not None and iz.get("iz20") is not None and iz["kilit_seviye"] >= iz["iz20"]:
+        return f"🔐 kâr kilidi: +%{_pct(iz['kk'][0] / 100)} görüldü, stop alış +%{_pct(iz['kk'][1] / 100)}"
+    t = f"AL'den beri tepe {iz.get('tepe')} TL'nin %20 altı"
+    if iz.get("kilit"):
+        t += f"; 🔐 kâr kilidi devrede (en az {iz.get('kilit_seviye')} TL)"
+    elif iz.get("kilit_esik_fiyat") is not None:
+        t += f"; kapanış {iz['kilit_esik_fiyat']} TL'yi görürse 🔐 stop en az {iz['kilit_seviye']} TL"
+    return t
+
+
 def _yz(x):
     return f"%{x:+.1f}".replace("+-", "-").replace("-", "−")
 
@@ -765,10 +795,12 @@ def pozisyon_plani(s, p):
     # v2: çıkış kuralı iz stop (AL'den beri tepe kapanışın %20 altı); SAT sinyali tek başına "çık" demek değil
     iz = s.get("iz")
     if iz and iz.get("cikti"):
-        plan["iz_cikti"] = iz["cikis_tarih"]
+        plan["iz_cikti"], plan["kilit_cik"] = iz["cikis_tarih"], bool(iz.get("kilit_cik"))
         stop = None
     elif iz:
         stop, plan["iz"], plan["tepe"] = iz["stop"], True, iz["tepe"]
+        plan["iz_neden"] = iz_aciklama(iz)
+        plan["kilit"] = bool(iz.get("kilit"))
     else:
         stop = s.get("al_stop") or s.get("stop")
     plan["stop"] = stop
@@ -812,10 +844,10 @@ def plan_metni(s, p, girinti="     "):
         sp = s.get("spark") or {}
         o_gun = sp.get("c", [None])[sp.get("t", []).index(pl["iz_cikti"])] if pl["iz_cikti"] in sp.get("t", []) else None
         fark = f" O günkü kapanış {o_gun:g} TL, o günden beri {_yz((pl['fiyat'] / o_gun - 1) * 100)}." if o_gun else ""
-        t.append(f"📍 İz stop {pl['iz_cikti']} tarihinde kırıldı — kurala göre çıkış zamanı geçti.{fark}")
+        t.append(f"📍 {'🔐 Kâr kilidi stop' + chr(39) + 'u' if pl.get('kilit_cik') else 'İz stop'} {pl['iz_cikti']} tarihinde kırıldı — kurala göre çıkış zamanı geçti.{fark}")
     elif pl.get("stop"):
         if pl.get("iz"):
-            t.append(f"📍 İz stop: {pl['stop']} TL (AL'den beri tepe {pl['tepe']} TL'nin %20 altı) — {_yz(pl['stop_uzak'])} aşağıda. "
+            t.append(f"📍 İz stop: {pl['stop']} TL ({pl['iz_neden']}) — {_yz(pl['stop_uzak'])} aşağıda. "
                      f"Kapanış bunun altına inerse çık; buraya inerse: {_tl(pl['stop_kz'])}" + (" (yine kârda)" if pl["stop_kz"] >= 0 else ""))
         elif pl["stop_asildi"]:
             t.append(f"📍 Fiyat çıkış seviyesinin ({pl['stop']} TL) ALTINDA — sistemin kuralına göre çıkış zamanı.")
@@ -1113,7 +1145,8 @@ def _al_satiri(s, pf):
     tk = s.get("tk") or {}
     kir = f"20 günlük zirve {tk['kirilim_seviye']} TL aşıldı, trend şablonunda" if tk.get("kirilim_seviye") else "trend kırılımı"
     t = (f"{isaret} <b>{s['kod']}</b>{y}{h}  {s['fiyat']} TL  ({fk}, RSI {s['rsi']}{m})\n"
-         f"     🚀 {kir}. İz stop {iz0} TL (tepe kapanışın %20 altı, fiyat yükseldikçe yukarı taşınır){lot}")
+         f"     🚀 {kir}. İz stop {iz0} TL (tepe kapanışın %20 altı, fiyat yükseldikçe yukarı taşınır"
+         + (f"; {kk_metni(True)}" if kk_metni() else "") + f"){lot}")
     if tk.get("uzama"):   # bilgi notu, AL engellenmez
         t += "\n     " + uzama_metni(tk["uzama"])
     if s["kod"] in pf:
@@ -1203,8 +1236,10 @@ def telegram_mesaji(yeni_al, yeni_sat, sat_teyit, pf, uyari, piyasa=None, karar_
             satir.append(f"❗ <b>{s['kod']}</b>  {s['fiyat']} TL  (RSI {s['rsi']})\n     " + plan_metni(s, pf[s["kod"]]))
         parca.append("🔴 <b>Portföyünde SAT'a dönenler</b> <i>(bilgi — çıkış kuralı iz stop)</i>\n" + "\n".join(satir))
     if sat_teyit:   # v2: iz stop kırılanlar (çıkış zamanı)
-        satir = [f"📉 <b>{s['kod']}</b>  {s['fiyat']} TL — kapanış iz stop'un altında: <b>kurala göre çıkış zamanı.</b>\n     "
-                 + plan_metni(s, pf[s["kod"]]) for s in sat_teyit]
+        satir = [f"📉 <b>{s['kod']}</b>  {s['fiyat']} TL — kapanış "
+                 + (f"🔐 kâr kilidi seviyesinin ({(s.get('iz') or {}).get('stop')} TL, alış +%{_pct(kar_kilit_ayar()[1])}) altında"
+                    if ((s.get("iz") or {}).get("kilit_cik") and kar_kilit_ayar()) else "iz stop'un altında")
+                 + ": <b>kurala göre çıkış zamanı.</b>\n     " + plan_metni(s, pf[s["kod"]]) for s in sat_teyit]
         parca.append("📉 <b>İz stop kırıldı</b>\n" + "\n".join(satir))
     if diger_al:
         parca.append(f"<i>Trend dışı AL ({len(diger_al)}, v2 filtresine takıldı — bilgi):</i> "
@@ -1414,6 +1449,9 @@ def _kapa(r, fiyat, sebep, bugun):
 def gecmis_guncelle(by_kod, bugun, piyasa=None, yeni_kayit=True):
     """Canlı karne, canlıdaki (v3) kuralların aynısını ölçer: 🚀 trend kırılımında gir (şablon + 20g zirve, piyasa
     zayıf değil, aşırı oynak/taban serisi değil); iz stop (kayıttan beri tepe kapanışın %20 altı) kırılınca çık.
+    🔐 Kâr kilidi İLERİYE DÖNÜK: kural açıkken açılan kayıtlar 'kar_kilit' = [eşik, seviye] taşır; bu kayıtlarda kesin kapanış
+    taramasında fiyat ≥ giriş × (1 + eşik) görülünce 'kk' = o gün yazılır ve stop en az giriş × (1 + seviye) olur. Bu alanı
+    olmayan eski kayıtlar (açık olanlar dahil) eski %20 iz stop kuralıyla kapanır; geçmiş kayıtlar yeniden yazılmaz.
     Yeni kayıt sadece kesin kapanışla (yeni_kayit). (Eylül 2026 öncesi kayıtlar eski kurallarla açıldı.)"""
     try:
         with open(GECMIS, encoding="utf-8") as f:
@@ -1430,9 +1468,13 @@ def gecmis_guncelle(by_kod, bugun, piyasa=None, yeni_kayit=True):
         r["guncel"] = s["fiyat"]
         r["anlik"] = round((s["fiyat"] / r["giris_fiyat"] - 1) * 100, 1)
         r["tepe"] = max(r.get("tepe") or r["giris_fiyat"], s["fiyat"])
-        r["stop"] = round(r["tepe"] * (1 - IZ_STOP_ORAN), 2)
+        kk = r.get("kar_kilit")   # 🔐 sadece bu alanla açılmış (2026-10 sonrası) kayıtlarda; eski kayıtlar eski kuralla kapanır
+        if kk and yeni_kayit and not r.get("kk") and s["fiyat"] / r["giris_fiyat"] - 1 >= kk[0]:
+            r["kk"] = bugun          # eşik KESİN kapanışta görüldü (gün içi fiyat saymaz)
+        st, kilit = iz_seviye(r["giris_fiyat"], r["tepe"], kk if r.get("kk") else None)
+        r["stop"] = round(st, 2)
         if s["fiyat"] < r["stop"]:
-            _kapa(r, s["fiyat"], "iz stop", bugun)
+            _kapa(r, s["fiyat"], "🔐 kâr kilidi" if (kilit and st > r["tepe"] * (1 - IZ_STOP_ORAN)) else "iz stop", bugun)
 
     acik = {r["kod"] for r in kayitlar if r["durum"] == "açık"}
     kayitli = {(r["kod"], r.get("sinyal_tarih")) for r in kayitlar}
@@ -1444,6 +1486,7 @@ def gecmis_guncelle(by_kod, bugun, piyasa=None, yeni_kayit=True):
                              "stop": round(s["fiyat"] * (1 - IZ_STOP_ORAN), 2), "tepe": s["fiyat"], "durum": "açık",
                              "guncel": s["fiyat"], "anlik": 0.0,
                              "sinyal_tarih": tk.get("giris_tarih"), "kural": "v3",
+                             **({"kar_kilit": list(kar_kilit_ayar())} if kar_kilit_ayar() else {}),
                              "piyasa": "zayıf" if (piyasa and piyasa.get("zayif")) else "normal",
                              "hacim": bool(s.get("hacim_teyit"))})
 
@@ -1835,7 +1878,9 @@ def main():
     if oda:
         try:
             _t0 = time.time()
-            _m = oda.canli_calistir(sonuclar, data, simdi, kapanis_zamani, tg_gonder, PANO_URL,
+            # oda robotları kendi kurallarıyla çalışır: 'tk' = kilitsiz v3 (tk_oda); canlı (kâr kilitli) v3 'tk_kk' olarak durur
+            _oda_s = [dict(s, tk=s["tk_oda"], tk_kk=s.get("tk")) if s.get("tk_oda") is not None else s for s in sonuclar]
+            _m = oda.canli_calistir(_oda_s, data, simdi, kapanis_zamani, tg_gonder, PANO_URL,
                                     buyuk=set(BIST100) | set(EK_HISSELER), temettu=bilancolar)
             print(f"İşlem odası: {_m} ({time.time() - _t0:.1f} sn).")
         except Exception as e:

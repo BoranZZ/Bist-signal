@@ -158,7 +158,7 @@ def ozellik(d, xu_ust, xu):
     hh = d["High"]; ll = d["Low"]; v = d["Volume"].replace(0, np.nan)
     r = c.pct_change()
     F = {}
-    tum = S.trend_kirilimi(d, xu_ust, ham=True)
+    tum = S.trend_kirilimi(d, xu_ust, ham=True, kar_kilit=False)   # oda robotları kilitsiz v3 girişiyle (kâr kilidi canlı panoda)
     bugun = np.zeros(n, bool); acik = np.zeros(n, bool)
     for x in tum:
         bugun[x["i"]] = True
