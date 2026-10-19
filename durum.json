@@ -77,7 +77,7 @@
     "CANTE": "SAT",
     "CATES": "SAT",
     "CCOLA": "SAT",
-    "CELHA": "AL",
+    "CELHA": "SAT",
     "CEMZY": "SAT",
     "CGCAM": "SAT",
     "CIMSA": "SAT",
@@ -203,7 +203,7 @@
     "LILAK": "SAT",
     "LINK": "SAT",
     "LMKDC": "SAT",
-    "LOGO": "AL",
+    "LOGO": "SAT",
     "LXGYO": "SAT",
     "LYDHO": "SAT",
     "MAGEN": "SAT",
@@ -231,9 +231,9 @@
     "OFSYM": "SAT",
     "ONCSM": "SAT",
     "ONRYT": "SAT",
-    "ORGE": "AL",
+    "ORGE": "SAT",
     "ORZAX": "SAT",
-    "OTKAR": "AL",
+    "OTKAR": "SAT",
     "OYAKC": "SAT",
     "OZATD": "SAT",
     "OZSUB": "SAT",
@@ -281,7 +281,7 @@
     "TABGD": "SAT",
     "TARKM": "SAT",
     "TATEN": "SAT",
-    "TAVHL": "SAT",
+    "TAVHL": "AL",
     "TCELL": "SAT",
     "TCKRC": "SAT",
     "TEHOL": "SAT",
@@ -302,7 +302,7 @@
     "TTKOM": "SAT",
     "TTRAK": "SAT",
     "TUKAS": "SAT",
-    "TUPRS": "AL",
+    "TUPRS": "SAT",
     "TUREX": "NÖTR",
     "TURSG": "SAT",
     "UCAYM": "SAT",
@@ -334,7 +334,38 @@
   "hafta_tarih": "2026-10-16",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {},
+  "on_sinyal": {
+    "CELHA": {
+      "sinyal": "SAT",
+      "onceki": "AL",
+      "tarih": "2026-10-19"
+    },
+    "LOGO": {
+      "sinyal": "SAT",
+      "onceki": "AL",
+      "tarih": "2026-10-19"
+    },
+    "ORGE": {
+      "sinyal": "SAT",
+      "onceki": "AL",
+      "tarih": "2026-10-19"
+    },
+    "OTKAR": {
+      "sinyal": "SAT",
+      "onceki": "AL",
+      "tarih": "2026-10-19"
+    },
+    "TAVHL": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-10-19"
+    },
+    "TUPRS": {
+      "sinyal": "SAT",
+      "onceki": "AL",
+      "tarih": "2026-10-19"
+    }
+  },
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
@@ -599,7 +630,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1683872,
+  "kap_son": 1683877,
   "tk_gonderilen": {
     "tarih": "2026-10-19",
     "kodlar": []
