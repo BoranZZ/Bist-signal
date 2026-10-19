@@ -1,11 +1,12 @@
 {
   "al": [
+    "EFOR",
     "GLYHO",
     "GMTAS",
-    "HRKET",
     "INDES",
     "RYSAS",
-    "SOKM"
+    "SOKM",
+    "TAVHL"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -599,7 +600,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1683450,
+  "kap_son": 1683460,
   "tk_gonderilen": {
     "tarih": "2026-10-19",
     "kodlar": []
