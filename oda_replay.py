@@ -51,12 +51,13 @@ NEDEN = {"iz": "iz stop (tepeden %20 düşüş)", "sk": "sıkı çizgi altında 
          "bk": "🛡️ Bekçi: toplam düşüş limiti", "kr": "🛡️ Bekçi: tek hisse sınırı aşıldı (fazlası satıldı)",
          "dg": "dengeleme (1/3'e; kısmi satış)", "gp": "güç puanı 3 ya da altına düştü", "bu": "bulut altında kapanış",
          "kj": "kijun altında kapanış", "d20": "20 günlük dibin altında kapanış", "cm": "para çıkışı (CMF −0,10 altı)",
-         "kk": "kâr kilidi (+%8 görüldükten sonra alışın %5 üstü kırıldı)"}
+         "kk": "kâr kilidi (+%8 görüldükten sonra alışın %5 üstü kırıldı)", "di": "yön aşağı döndü (−DI > +DI)",
+         "em": "EMA10 EMA30'un altına indi", "r50": "RSI 50'nin altına indi"}
 
 
 def neden_kod(t):
     t = t or ""
-    for a, k in (("güç puanı", "gp"), ("bulut altında", "bu"), ("kijun altında", "kj"), ("günlük dibin", "d20"),
+    for a, k in (("−DI > +DI", "di"), ("EMA10 EMA30", "em"), ("RSI 50'nin altına", "r50"), ("güç puanı", "gp"), ("bulut altında", "bu"), ("kijun altında", "kj"), ("günlük dibin", "d20"),
                  ("para çıkışı", "cm"), ("kâr kilidi", "kk"), ("iz stop", "iz"), ("sıkı", "sk"), ("destek", "dk"), ("dirence", "dr"), ("gün doldu", "sr"), ("🌱", "uv"),
                  ("listeden", "ls"), ("piyasa", "pz"), ("şablon", "sb"), ("düşüş limiti", "bk"), ("aştı", "kr"), ("dengeleme", "dg")):
         if a in t:
@@ -158,7 +159,8 @@ def uv_seri(d):
 
 def guc_seri(d, sab):
     """sinyal.guc_puani(d, ham=True)'nın her gün için karşılığı (aynı formüller; d: SMA50/SMA200'lü günlük veri, sab: trend
-    şablonu). Döner: {g_p: puan, g_b0..g_b6: bileşenler, g_cmf, g_cmf1, g_tenkan, g_kijun, g_bu, g_ba, g_c26, g_dip20, g_s50}."""
+    şablonu). Döner: {g_p: puan, g_b0..g_b6: bileşenler, g_cmf, g_cmf1, g_tenkan, g_kijun, g_bu, g_ba, g_c26, g_dip20, g_s50,
+    g_pdi, g_ndi}."""
     c = d["Close"]
     hl = "High" in d and "Low" in d and d["High"].notna().any()
     h = d["High"] if hl else c
@@ -199,6 +201,7 @@ def guc_seri(d, sab):
     F["g_c26"] = c.shift(26).values.astype(float)
     F["g_dip20"] = c.rolling(20).min().shift(1).values.astype(float)
     F["g_s50"] = d["SMA50"].values.astype(float)
+    F["g_pdi"], F["g_ndi"] = pdi.values.astype(float), ndi.values.astype(float)   # 📶 ADX robotunun çıkışı (−DI > +DI)
     return F
 
 
@@ -258,6 +261,8 @@ def ozellik(d, xu_ust, xu):
     F["kijun"] = S.kijun(d).values
     F["gecmis"] = np.arange(1, n + 1)
     F.update(guc_seri(d, sab))
+    w = S.weinstein_evre2(c, xu).reindex(d.index).fillna(False).values.astype(float)   # 🪜 (d zaten yalnız BIST 100 günleri)
+    F["g_w2"], F["g_w2d"] = w, np.r_[0.0, w[:-1]]
     return F
 
 
@@ -315,11 +320,19 @@ def hazirla(g):
 def guc_aday(M):
     """💪 güç robotlarının olası AL günleri (gun_verisi'ne girsinler diye; asıl koşul oda.guc_giris). Geniş tutulur:
     puan ≥ en düşük al_puan, şablon, bulut üstü, 55g zirve bölgesi + CMF, CMF sıfırı yukarı kesti."""
+    # 📶 〽️ ⚖️ tek bileşen robotları: bileşenleri (b4, b5, b6) de aday. Eski robotların kararları aday kümesinin genişliğinden
+    # bağımsız (kendi koşulları zaten adayda; elde tutulanlar her gün gün verisinde).
     al = [r["al_puan"] for r in oda.ROBOTLAR.values() if r["tur"] == "guc"]
+    turler = {r["tur"] for r in oda.ROBOTLAR.values()}
     with np.errstate(invalid="ignore"):
         m = M["g_p"] >= (min(al) if al else 99)
-        if any(r["tur"] in oda.GUC_TUR for r in oda.ROBOTLAR.values()):
+        if turler & oda.GUC_TUR:
             m = m | M["g_b0"] | (M["C"] > M["g_bu"]) | (M["g_b2"] & (M["g_cmf"] > 0)) | ((M["g_cmf1"] <= 0) & (M["g_cmf"] > 0))
+        for tur, i in oda.GUC_BILESEN.items():
+            if tur in turler:
+                m = m | M[f"g_b{i}"]
+        if "weinstein" in turler:
+            m = m | ((M["g_w2"] > 0) & ~(M["g_w2d"] > 0))
     return m & (M["gecmis"] >= 250)
 
 
@@ -356,7 +369,7 @@ def guc_ozet(A, k, t):
     if p != p:
         return None
     o = {"p": int(p), "b": [bool(A[f"g_b{i}"][k, t]) for i in range(7)]}
-    for a in ("cmf", "cmf1", "tenkan", "kijun", "bu", "ba", "c26", "dip20", "s50"):
+    for a in oda.GUC_HAM:
         x = A["g_" + a][k, t]
         o[a] = None if x != x else float(x)
     return o

@@ -233,7 +233,8 @@ sinyal, filtre, etiket ya da çıkış olarak eklenmeye değmez.** Kullanıcı f
 - **İşlem Odası ETKİLENMEZ:** robotlar kilitsiz v3 ile araştırıldı. `analiz_et` → `tk_oda` (= `trend_kirilimi(kar_kilit=False)`);
   tarama oda'ya `tk` yerine `tk_oda`'yı geçirir (canlı kilitli `tk` → `tk_kk`); `oda_replay.ozellik` `kar_kilit=False`. Odadaki 🔐 robot
   (`kilitli_kirilimci`, İşlem Odası bölümündeki '💪 güç robotları + 🔐' maddesi) aynı A4 kuralını (+%8 → alış +%5) `oda.robot_karar` içinde
-  kendi pozisyonuna uygular; girdisi yine kilitsiz `tk` (giriş sinyalleri Kırılımcı'yla aynı).
+  kendi pozisyonuna uygular; girdisi yine kilitsiz `tk` (giriş sinyalleri Kırılımcı'yla aynı). 2026-10-20'den beri aynı kilit
+  ☁️🔐 Bulutçu (iz stop'suz), 📐🔐 Şabloncu ve 🪜 Weinstein robotlarında da ('ÇIKIŞ DENEMESİ' köşesi).
 - **Bilinen:** portföy iz stop'u son giriş v3 DEĞİLSE (gösterge AL'i daha yeni) eski gösterge iz'i (kilitsiz) — değişmedi.
 - **Doğrulama (scratchpad `karkilidi/`):** canlı `trend_kirilimi` + `gercekci_cikis` = `finalcikis/motor2.py` işlem işlem, 10y 286 hisse:
   A4 2.280 / A1 2.096 / kilitsiz 1.783 işlem, **0 fark** (A4'te 982 kâr kilidi çıkışı; `cikis2/motor.py` A1 ile de 0 fark) (`t1_motor2.py`).
@@ -660,6 +661,55 @@ sinyal, filtre, etiket ya da çıkış olarak eklenmeye değmez.** Kullanıcı f
   1660 1030), '💪 GÜÇ ROBOTLARI' sırası y=8,8, Yapay zekâ köşesi y=12,4, 🔐 'ÇIKIŞ DENEMESİ' [9,6, 12,4], Birikim y=15,5, Bekçi [14,6, 9,5];
   390/1280 px 7 senaryoda taşma/JS hatası yok. Yeni neden kodları gp/bu/kj/d20/cm/kk. oda_replay.json 693 → 1.009 KB (gzip 235 → ~335 KB;
   6 robot), replay ~4-7 dk (ikiz testleri), sans dosyası aynı.
+- **2026-10-20: 6 yarışmacı daha → 26 robot (dal `guc-robot2`; analiz scratchpad `bulutcu/RAPOR.md` + `ucretli/RAPOR.md`, testler
+  `gucrobot2/`).** Hepsi 10 yuva, 🛡️ Bekçi, riskli/kısa geçmişli hisse yok, sıra = güç puanı yüksek önce, eşitse son 20 günde az yükselen
+  (`guc_giris`; hepsi `GUC_TUR`'da, 'kaçan aday' sayacı yok). AL koşulu 'durum' (sürdükçe aday), Weinstein hariç.
+  📶 ADX yön (`adxci`, tur `adx`): güç bileşeni b[4] (ADX14 > 25 ve +DI > −DI) al; kapanışta −DI > +DI sat (iz yok).
+  〽️ EMA 10/30 (`emaci`, `ema`): b[5] al, b[5] yanlış (EMA10 ≤ EMA30) sat. ⚖️ RSI 50 (`rsi50`, `rsi50`; id `rsi` = ↩️ dönüşçü): b[6]
+  al, RSI ≤ 50 sat. (`GUC_BILESEN` = {adx: 4, ema: 5, rsi50: 6}.) ☁️🔐 Bulutçu + kâr kilidi (`bulutcu_kilit`, tur `bulut`,
+  `kar_kilit: (0.08, 0.05)`, iz YOK): Bulutçu girişi; bulut altı kapanış VEYA tepe kapanış ≥ alış×1,08 olduktan sonra kapanış < alış×1,05.
+  📐🔐 Şabloncu + kâr kilidi (`sablon_kilit`, tur `sablon`, `iz: 0.20` + `kar_kilit`, `kendi_cikis: False`): şablon girişi, çıkış sadece
+  %20 iz + A4 (şablon bozulması çıkış değil). 🪜 Weinstein evre 2 + kâr kilidi (`weinstein`, tur `weinstein`, iz %20 + A4): kapanış >
+  SMA200, SMA200 > 20 gün önceki, Mansfield RS = (hisse/XU100) ÷ SMA250(hisse/XU100) − 1 > 0 — üçü bugün İLK KEZ birlikte (dün değil)
+  → al (`sinyal.weinstein_evre2`, scratchpad `ucretli/gosterge.weinstein(n=200)` ile 286 hissede 506.407 hisse-gün 0 fark; sadece
+  XU100 günleri, Yahoo tatil satırları atılır).
+  **Kod:** `oda.robot_karar` kâr kilidi artık iz stop'suz robotta da (`if kk:`; `iz_sev is None` ise stop = kilit seviyesi; satış notunda
+  `iz` = o seviye) — iz'li robotlarda davranış aynı (20 eski robot birebir). `guc_ozet` alanları tek listede `oda.GUC_HAM` (+ `pdi`,
+  `ndi`, `w2`, `w2d`); canlı: `guc_puani(ham=True)` pdi/ndi, `analiz_et` w2/w2d (try/except; 286 hissede +0,13 sn); replay:
+  `guc_seri` g_pdi/g_ndi, `ozellik` g_w2/g_w2d, `guc_aday` bu robotlar varsa b4/b5/b6 ve Weinstein giriş günü (aday kümesi büyür ama
+  eski robotların kararları ondan bağımsız — test edildi). Yeni neden kodları di/em/r50. Sayfa: salon derinliği 21,2 (viewBox
+  −1015 −185 1815 1110); '💪 GÜÇ ROBOTLARI' y=8,8 (5), '💪 TEK BİLEŞEN' y=12,2 (📶 〽️ ⚖️), '🔐 ÇIKIŞ DENEMESİ · KÂR KİLİDİ' [8,6-16,7 ×
+  11,4-17,4]: 🔐 Kırılımcı, ☁️🔐, 📐🔐 (y=12,2) + 🪜 [11,8, 15,6]; Yapay zekâ köşesi y=15,6 solda; 💰 Birikim y=19,0; `#kart=` artık alt
+  çizgili id'leri de açar (eskiden `kilitli_kirilimci` açılmıyordu).
+  **Testler (hepsi geçti):** `oda_oynat` = tek robot `calistir` 26/26; eski 20 robot önce/sonra birebir (işlemler, kasa, şans, kaçanlar,
+  olaylar; `oda_replay_sans.json` aynı; önce çıktısı git'teki oda_replay.json ile `uretim` hariç aynı); canlı alanlar = replay 556
+  hisse-günde puan/bileşen/w2 0 fark (fiyat düzeyleri bilinen 12 bölünme vakasında sabit çarpanla farklı, pdi/ndi 1'inde ~1e-5),
+  Weinstein giriş günü ±1 240 hisse-günde 0 fark; git'teki oda.json (20 robot) + yapay 20.10 mumu → 6 yeni robot o gün 100.000 TL ile
+  eklendi, eski 20 robotun durumu ve olayları kodun eski hâliyle birebir, Telegram metni aynı (sadece sıra numaraları); `node --check`;
+  CDP 390/1280 px 10 senaryo + 6 kart: yatay taşma ve JS hatası yok, etiket–etiket/etiket–figür çakışması yok (etiketin arka sıradaki
+  masanın ekran üstüne ~10 px binmesi eski düzende de var). **Boyut:** oda_replay.json 1.009 → 1.329 KB (gzip 336 → 432 KB; robot
+  başına ~53 KB, en büyük ⚖️ RSI 50'nin 521 alımı); replay ~13 dk (950 sn). Küçültme (uygulanmadı, sayfa biçimi değişir): kilitli
+  tabanda 'satılamadı' olaylarını sayıya çevirmek (~60 KB), güç robotlarının alım notunu atmak (~8 KB/robot), `d`'yi fark kodlamak.
+  **5 yıl replay (2021-10 → 2026-10, tümü):** ☁️🔐 +%7.750 (yılda +%139, düşüş −%33, isabet %64), 📐🔐 +%4.246, 〽️ +%4.153 (düşüş
+  −%42), 🪜 +%2.719 (isabet %68), ⚖️ +%2.684 (düşüş −%48, 521 alım), 📶 +%1.451; ☁️ +%4.238, 🔐 Kırılımcı +%1.635, 🚀 +%931, BIST 100
+  +%727; şans yüzdeliği (tümü) 96-100. 10 yıllık sınavın ışığında oku (aşağıda).
+  **Bulutçu analizinin özeti (scratchpad `bulutcu/RAPOR.md`, 10 yıl, Bekçisiz motor, ana 123 / küçük 163):**
+  1. 'Onlarca kat' algısı: 5 yılda +%4.238'e karşı +%931 = yılda +%113'e karşı +%59 (BIST 100 +%53); bileşik büyüme farkı büyütüyor.
+     Ana listede Bulutçu v3'ün gerisinde (5 yıl +%498 / yılda +%43 vs +%1.278 / +%69); farkın tamamı küçük hisselerden.
+  2. Küçüklerdeki kâr Ichimoku'dan değil: hayatta kalan yanlılığı (bugünkü küçük listesi geçmişte zaten yükselmiş; rastgele hisse alıp
+     bulut altında satan ikiz de 10 yılda ×113, Bulutçu şans yüzdeliği 62, ana listede 14) + birkaç dev işlem (TERA +%3.296, RTALB
+     +%1.430, ODINE +%1.046; en iyi 10 işlem sıfırlanınca küçüklerde yılda +%73 → +%22). Bedeli: küçüklerde Ağu → 16 Eki 2026 −%70.
+  3. Diğer güç bileşenleri (ADX, EMA, RSI 50) aynı desen: küçüklerde v3'ten çok (yılda +%54…+%87, düşüş −%50…−%73), ana listede v3
+     yanında; 2017-21'de seçilen sıra 2022-26'da küçüklerde tutmuyor (sıra benzerliği 0,26). Sağlam tek istisna 📐 Şabloncu + A4
+     (ana listede iki dönemde de dengeli puanda 1., yılda +%66, şans 98; küçüklerde v3+🔐 kadar).
+  4. Kâr kilidi isabet aracı (her robotta +6…+20 puan), getiriye etkisi ± (26 durumun 12'sinde arttı); en çok Bulutçu'ya yarıyor: ana
+     listede yılda +%36 → +%52, isabet %38 → %56, düşüş −%38 → −%30, şans 14 → 90, 9 yılın 8'inde daha iyi. Çok işlem yapan (RSI 50,
+     Şabloncu kendi çıkışı) robotlarda gereksiz.
+  5. **Hüküm: panodaki AL/SAT değişmez — v3 + 🔐 A4 kalır** (iki listede de en az düşüş, rastgele ikizin belirgin üstünde: şans 95/88).
+     Bulutçu'ya geçmek ana listede kötüleştirir; 'v3 + bulut üstü şartı' iki listede de kötü. Yeni robotlar odada yarışmacı olarak izlenir;
+     Nisan 2027'de canlı karneyle yeniden bakılacak (📐🔐 ana listede canlıda da v3+🔐'ü geçerse panoya aday olur, bugün değil).
+  🪜 Weinstein (scratchpad `ucretli/RAPOR.md` 'Aday 2'): kanıt zayıf DENEME robotu — 10 yılda ana +%49 / küçük +%75 yılda, isabet %71/%66,
+  dengeli puanda canlının gerisinde; panoyla farkını gerçek zamanda görmek için.
 - **Workflow değişti** (`tarama.yml`: `git add ... oda.json oda.html`). GITHUB_TOKEN workflow dosyasını güncelleyemediği için
   **fork'taki arkadaşlar bu satırı elle güncellemeli**; güncellemezlerse oda her taramada sıfırdan başlar ve kaydedilmez (ilk gün
   sessiz kuralı sayesinde Telegram'a mesaj gitmez), panodaki düğme `oda.html` bulunamaz.

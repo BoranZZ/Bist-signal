@@ -839,8 +839,22 @@ def guc_puani(d, ham=False):
                       "tenkan": f(tenkan.iloc[-1]), "kijun": f(kijun.iloc[-1]), "bu": f(bulut.iloc[-1]), "ba": f(ba.iloc[-1]),
                       "c26": f(c.iloc[-27]) if len(c) > 26 else None, "dip20": f(c.iloc[-21:-1].min()) if len(c) > 20 else None,
                       "s50": f(c.tail(50).mean()) if len(c) >= 50 else None,
+                      "pdi": f(pdi.iloc[-1]), "ndi": f(ndi.iloc[-1]),      # +DI / −DI (📶 ADX robotunun çıkışı: −DI > +DI)
                       "b": [x["durum"] for x in detay]}
     return out
+
+
+def weinstein_evre2(c, xu, n=200):
+    """🪜 Weinstein evre 2 (İşlem Odası `weinstein` robotu; scratchpad ucretli/gosterge.weinstein n=200 ile birebir): kapanış >
+    SMA200, SMA200 > 20 işlem günü önceki SMA200, Mansfield RS > 0 (RS = (hisse / XU100) ÷ SMA250(hisse / XU100) − 1). Sadece
+    XU100'ün de olduğu günlerde hesaplanır (tekrar oynatma yalnız BIST 100 günlerini kullanır; Yahoo tatil satırları atılır).
+    Döner: bool seri (o günlerin indeksiyle; NaN karşılaştırma = False)."""
+    c = c[c.index.isin(xu.index)]
+    x = xu.reindex(c.index)
+    ma = c.rolling(n).mean()
+    rs = c / x
+    mrs = rs / rs.rolling(250).mean() - 1
+    return (c > ma) & (ma > ma.shift(20)) & (mrs > 0)
 
 
 def _vade_ok(c, s, yukseliyor):
@@ -919,6 +933,14 @@ def analiz_et(df, xu_ust=None, xu=None, bar_kesin=True, bugun=None):
     d = gostergeler(df)
     _guc = guc_puani(d, ham=True)
     _gh = _guc.pop("ham") if _guc else None
+    if _gh is not None and xu is not None:
+        try:                                   # 🪜 oda robotu: bugün / dün evre 2 mi (hata analizi bozmaz)
+            _w = weinstein_evre2(d["Close"], xu)
+            _bugun_var = len(_w) > 1 and _w.index[-1] == d.index[-1]
+            _gh["w2"] = bool(_w.iloc[-1]) if _bugun_var else None
+            _gh["w2d"] = bool(_w.iloc[-2]) if _bugun_var else None
+        except Exception:
+            _gh["w2"] = _gh["w2d"] = None
     son, onceki = d.iloc[-1], d.iloc[-2]
     hl = _hl_var(df)
     detay, ek = _detay(son, hl)
