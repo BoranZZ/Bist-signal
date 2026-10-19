@@ -3,7 +3,9 @@
     "GLYHO",
     "GMTAS",
     "HRKET",
-    "INDES"
+    "INDES",
+    "SOKM",
+    "TAVHL"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -635,6 +637,7 @@
     "tarih": "2026-10-19",
     "g": [
       "2561ffc378b849fa",
+      "343bb42cde06e4ff",
       "e4d35a23683d147d",
       "eb382d8aca17f87c"
     ]
