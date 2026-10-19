@@ -4,7 +4,6 @@
     "GMTAS",
     "HRKET",
     "INDES",
-    "SOKM",
     "TAVHL"
   ],
   "son": {
@@ -303,7 +302,7 @@
     "TTRAK": "SAT",
     "TUKAS": "SAT",
     "TUPRS": "SAT",
-    "TUREX": "NÖTR",
+    "TUREX": "SAT",
     "TURSG": "SAT",
     "UCAYM": "SAT",
     "ULKER": "SAT",
@@ -363,6 +362,11 @@
     "TUPRS": {
       "sinyal": "SAT",
       "onceki": "AL",
+      "tarih": "2026-10-19"
+    },
+    "TUREX": {
+      "sinyal": "SAT",
+      "onceki": "NÖTR",
       "tarih": "2026-10-19"
     }
   },
@@ -630,7 +634,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1683960,
+  "kap_son": 1684013,
   "tk_gonderilen": {
     "tarih": "2026-10-19",
     "kodlar": []
@@ -675,10 +679,14 @@
       "41ce039d26f5106e",
       "521cbbc8465eb32f",
       "6189469f7560cd41",
+      "6208d9d28d82784e",
       "6aec999fb9809b73",
       "7175ddc66d12038c",
+      "72feb494f897ca98",
       "87d9680ae95e7822",
+      "9a37921a324ac06b",
       "b5310038d21353a9",
+      "c1fa012703af089d",
       "c839adb1a350cfb1",
       "e4d35a23683d147d",
       "eb382d8aca17f87c",
