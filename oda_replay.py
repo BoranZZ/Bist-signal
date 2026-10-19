@@ -50,7 +50,7 @@ NEDEN = {"iz": "iz stop (tepeden %20 düşüş)", "sk": "sıkı çizgi altında 
          "bk": "🛡️ Bekçi: toplam düşüş limiti", "kr": "🛡️ Bekçi: tek hisse sınırı aşıldı (fazlası satıldı)",
          "dg": "dengeleme (1/3'e; kısmi satış)", "gp": "güç puanı 3 ya da altına düştü", "bu": "bulut altında kapanış",
          "kj": "kijun altında kapanış", "d20": "20 günlük dibin altında kapanış", "cm": "para çıkışı (CMF −0,10 altı)",
-         "kk": "kâr kilidi (+%10 görüldükten sonra alışın %5 üstü kırıldı)"}
+         "kk": "kâr kilidi (+%8 görüldükten sonra alışın %5 üstü kırıldı)"}
 
 
 def neden_kod(t):

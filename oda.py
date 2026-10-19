@@ -44,10 +44,10 @@ ROBOTLAR = {
     "kirilimci20": {"ad": "🚀 Kırılımcı · 20 yuva", "tur": "kirilim", "yuva": 20, "iz": 0.20, "filtre": True,
                     "aciklama": "Kırılımcı ile aynı kural (🚀 v3 kırılımı, %20 iz stop), ama kasa 20 yuvaya bölünür: her hisseye "
                                 "kasanın %5'i. Kıyas: 'yuvalar dolu diye kaçan roketler' ne kadar önemli?"},
-    "kilitli_kirilimci": {"ad": "🔐 Kırılımcı + kâr kilidi", "tur": "kirilim", "yuva": 10, "iz": 0.20, "kar_kilit": (0.10, 0.05),
+    "kilitli_kirilimci": {"ad": "🔐 Kırılımcı + kâr kilidi", "tur": "kirilim", "yuva": 10, "iz": 0.20, "kar_kilit": (0.08, 0.05),
                           "filtre": True,
-                          "aciklama": "Kırılımcı ile aynı giriş (🚀 v3) ve %20 iz stop; ama kapanışta bir kez +%10 kâr görüldüyse "
-                                      "stop en az alış fiyatının %5 üstüne çekilir (kâr kilidi): kazanç zarara dönmeden satar."},
+                          "aciklama": "Kırılımcı ile aynı giriş (🚀 v3) ve %20 iz stop; ama kapanışta bir kez +%8 kâr görüldüyse "
+                                      "stop en az alış fiyatının %5 üstüne çekilir ve orada kalır (kâr kilidi): kazanç zarara dönmeden satar."},
     "siki": {"ad": "📏 Kırılımcı + sıkı çizgi", "tur": "kirilim", "yuva": 10, "iz": 0.20, "siki": True, "filtre": True,
              "aciklama": "Kırılımcı ile aynı; ayrıca hisse aşırı uzadıysa kijun (sıkı çizgi) altında kapanışta satar."},
     "erkenci": {"ad": "👀 Erkenci", "tur": "erken", "yuva": 10, "iz": 0.20, "uzak": 3.0, "filtre": True,
@@ -705,8 +705,8 @@ ROBOT_EK = {
                            "başlayan pencerelerde ise geride kaldı."},
     "siki": {"renk": "#E879F9", "kisa": "Sıkı çizgi"},
     "kilitli_kirilimci": {"renk": "#FDE047", "kisa": "Kâr kilidi",
-                          "not": "Çıkış araştırması (2017-26, 286 hisse, 'A1'): isabet %51 → %67, 9 yılın 9'unda dengeli ölçütte "
-                                 "(isabet + tepeden geri verme + düşüş) Kırılımcı'dan iyi; kâr tek başına her yıl değil."},
+                          "not": "Çıkış araştırması (2017-26, 286 hisse, 'A4' = +%8 eşik; kafa kafaya testte seçildi): isabet %51 → %70, dengeli ölçütte "
+                                 "(isabet + tepeden geri verme + düşüş) 9 yılın 9'unda Kırılımcı'dan iyi; kâr tek başına her yıl değil."},
     "erkenci": {"renk": "#5BD6FF"},
     "momentumcu": {"renk": "#FFC94D"},
     "dipavcisi": {"renk": "#7CF29A",
