@@ -3,7 +3,6 @@
     "GLYHO",
     "GMTAS",
     "INDES",
-    "METRO",
     "TAVHL"
   ],
   "son": {
@@ -598,7 +597,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1683565,
+  "kap_son": 1683570,
   "tk_gonderilen": {
     "tarih": "2026-10-19",
     "kodlar": []
