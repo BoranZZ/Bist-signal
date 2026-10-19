@@ -102,6 +102,12 @@ KAPANIS_DAKIKA = 18 * 60 + 30
 SINYAL_DAKIKA = 17 * 60 + 30
 SADECE_KAPANIS_MESAJI = True   # False: gün içi her taramada (eski davranış)
 MIN_GUN = 60      # sinyal için gereken en az işlem günü (sinyal.analiz_et)
+# Günlük veri penceresi. v3 (🚀) zincirli bir durum makinesi (pozisyon açıkken yeni AL yok) ve 250 gün ısınma ister: 2 yılda
+# ilk yıl görünmüyordu → daha önceden açık pozisyonlar grafikte/Sinyal geçmişinde 'hayalet' AL olarak çıkıyordu (2026-10
+# denetimi: son 1 yılda 41 fazladan işlem, ör. TAVHL 10.12.2025). 10 yıllık veriyle kıyas (scratchpad veripencere, 286 hisse):
+# 3y'de 3 fark kalıyor, 4y'de son 1 yılın işlemleri, açık pozisyonlar, iz stop ve 🌱 durumu birebir aynı. Süre: tam tarama ~+3 sn.
+VERI_DONEM = "4y"
+ENDEKS_GUNLUK_YIL = 2   # endeks_serisi: son 2 yıl günlük, öncesi haftalık (index.html büyümesin)
 
 # 🚀 gün içi kırılım (kesin kapanıştan önce görünen): o saatte saatlik kapanışı 20 günlük zirvenin üstünde olan şablondaki
 # hisselerin kaçı gün sonunda da üstünde kapattı (scratchpad vade_gunici/v3_yanlis.py, 2023-11 → 2026-10, 611 aday gün).
@@ -153,7 +159,7 @@ def _gun_ici_indir(tickers, gun):
 
 
 def veri_cek(kodlar, kesin_kapanis=False, gunici_gun=None, ara=None):
-    """Günlük veri (2 yıl: SMA200 tabanlı sinyaller için) + kapanış düzeltmesi. Yahoo'nun BIST günlük barlarında kapanış
+    """Günlük veri (VERI_DONEM = 4 yıl: v3 ısınması + zincirli durum için) + kapanış düzeltmesi. Yahoo'nun BIST günlük barlarında kapanış
     çoğu zaman resmi kapanıştan farklı (Eylül 2026 kontrolü: günlerin ~%30'unda >%0,3; THYAO 24.09 günlük 288,5, resmi
     289,5) ve son günün kapanışı boş geliyor. Gün içi verinin gün sonu fiyatı resmi kapanışla birebir tuttu (16/16).
     Bu yüzden son KAPANIS_DUZELT_GUN günün kapanışı gün içi veriden alınır; kesin kapanıştan sonra son gün Yahoo'nun anlık
@@ -163,7 +169,7 @@ def veri_cek(kodlar, kesin_kapanis=False, gunici_gun=None, ara=None):
     saatlik indirmeye düşülür (gün içi görünüm o taramada boş kalır)."""
     tickers = [k + ".IS" for k in kodlar] + [ENDEKS + ".IS"]
     print(f"{len(tickers)} hisse indiriliyor...")
-    g = yf.download(tickers, period="2y", interval="1d", group_by="ticker", auto_adjust=True, progress=False, threads=True)
+    g = yf.download(tickers, period=VERI_DONEM, interval="1d", group_by="ticker", auto_adjust=True, progress=False, threads=True)
     try:
         s = _gun_ici_indir(tickers, gunici_gun)
         if ara is not None:
@@ -251,7 +257,9 @@ def endeks_serisi(data=None):
             except Exception:
                 yakin = None
         if yakin is None or yakin.empty:
-            yakin = xu[xu.index >= xu.index[-1] - pd.DateOffset(years=2)]
+            yakin = xu
+        # tarama VERI_DONEM (4 yıl) indirir; panoya gömülen günlük kısım yine son 2 yıl (index.html büyümesin)
+        yakin = yakin[yakin.index >= yakin.index[-1] - pd.DateOffset(years=ENDEKS_GUNLUK_YIL)]
         eski = xu[xu.index < yakin.index[0]]
         eski = eski.groupby(eski.index.to_period("W")).tail(1)   # haftanın son kapanışı
         xu = pd.concat([eski, yakin])

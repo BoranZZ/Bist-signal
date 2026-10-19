@@ -339,7 +339,8 @@ def _spark(d, n=130, tk_ham=None, sc=None):
                 tepe = max(tepe, float(cv[j]))
                 if j >= bas:
                     iz[j - bas] = round(tepe * (1 - IZ_STOP_ORAN), 2)
-        out["tk"] = "".join(isr)
+        if any(x != "." for x in isr):   # pencerede işaret yoksa boş dizi yazılmaz (4 yıllık veride eski işlemler, sayfa büyümesin)
+            out["tk"] = "".join(isr)
         parca, i = [], 0   # iz stop parçaları [başlangıç sırası, [değerler]] (boş günler sayfayı şişirmesin)
         while i < m:
             if iz[i] is None:
@@ -499,6 +500,7 @@ def trend_kirilimi(d, xu_ust=None, islemler=False, ham=False):
 
 
 TK_GECMIS_N = 6   # hisse penceresindeki 'Sinyal geçmişi' ve '🚀 Son roketler' için saklanan en son v3 işlemi sayısı
+TKG_YIL = 2       # tkg'ye sadece çıkışı son 2 yılda olan (ya da açık) işlemler girer: tarama 4 yıl indirir, sayfa büyümesin
 
 
 def tk_gecmis(d, tum, n=TK_GECMIS_N):
@@ -938,6 +940,7 @@ def analiz_et(df, xu_ust=None, xu=None, bar_kesin=True, bugun=None):
         "sinyal_tarih": sinyal_tarih,
         "sinyal_degisim": sinyal_degisim,
         "yeni": bool(yeni),
-        "tkg": tk_gecmis(d, tk_ham),
+        "tkg": tk_gecmis(d, [x for x in tk_ham if x["cik"] is None
+                             or d.index[x["cik"]] >= d.index[-1] - pd.DateOffset(years=TKG_YIL)]),
         "spark": _spark(d, tk_ham=tk_ham, sc=tk.get("sc")),
     }

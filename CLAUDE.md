@@ -169,15 +169,29 @@ sinyal, filtre, etiket ya da çıkış olarak eklenmeye değmez.** Kullanıcı f
 - Geç giriş (çökenler hariç, 2022-26): sinyalden 0/5/10/20/40 gün sonra (pozisyon hâlâ açıksa) girince ort +%20/+%19/
   +%18/+%15/+%8, isabet %52/51/50/47/35 → panoda ≤5 gün '🚀 AL Ng önce', sonrası 'trendde · Ng' (yeni alım değil).
 - Pano: 🚀 KIRILIM (bugün) / 🚀 Ng (pozisyon) / 👀 kırılıma %x (şablonda, ≤%3) rozetleri; modalda tkHtml kutusu.
-- **Veri penceresi uyarısı (2026-10-08 kontrolü):** tarama 2 yıllık veri indirir, kural 250 gün ısınma ister → canlı işlem listesi
-  en fazla son ~1 yıl. Aynı veride `tk_gecmis` = backtest.py v3 (313 hisse, 5y 1.083 + 2y 316 işlem, 0 fark), ama 2y pencere 5y
-  veriye göre: son ~8 ayın işlemleri birebir (son 90 gün 0 fark), daha eskilerde 284 hisseden 41'inde ≥1 işlem farklı (5y'de daha
-  önceden açık kalan pozisyon); açık pozisyonlarda 4 hissede giriş tarihi farklı, iz stop aynı. Düzeltmek için `veri_cek` period'u
-  uzatılabilir (yapılmadı: tüm göstergeleri/uv durumunu ve çalışma süresini etkiler).
+- **Veri penceresi (2026-10-19'dan beri 4 yıl, `tarama.VERI_DONEM`):** v3 zincirli durum makinesi (pozisyon açıkken yeni AL yok) +
+  250 gün ısınma. Eskiden 2 yıl iniyordu → ilk yıl görünmüyor, daha önceden açık pozisyonlar grafikte/Sinyal geçmişinde 'hayalet'
+  🚀 AL olarak çıkıyordu (denetim: son 1 yılda 41 fazladan + 78 eksik/farklı işlem, 77 hisse; TAVHL gerçek giriş 17.03.2025 sinyal /
+  263,02 → grafikte 09.12.2025 287,45; GLYHO 03.03.2025 5,90 → 31.10.2025 11,67; ASELS 2024-04 → 2025-12). Ölçüm (scratchpad
+  `veripencere/` p1-p6, 286 hisse, 10 yıllık veri = doğru kabul, grafikte görünen son 1 yıl: sinyali ya da çıkışı 16.10.2025+ veya açık):
+  2y 41 hayalet / 78 eksik, 3y 3/3 (ASELS, ENKAI, ISKPL — 2+ yıl açık kalan pozisyonlar), **4y ve 5y 0 fark** (352/352); 4y'de açık
+  pozisyonlar, iz stop, `tkg`, grafik `spark.tk/iz`, 🌱 durumu da 10y ile aynı — kalan farklar sadece 2,5+ yıl önce kapanmış işlemler
+  (9 hissede `tk.durum` CIKTI 2022-23 ↔ yok, OTKAR'ın 2023 girişi, HEKTS 🌱 SAT 2023 ↔ yok) ve eski bölünme tarihi (`bolunme`).
+  Diğer tüm `analiz_et` alanları (gösterge oyları, RSI/ADX/SuperTrend, güç puanı, vadeler, destek/direnç, hacim, 🔒, 🎈, 📏, 6A/1Y grafik
+  serileri) 2y ile aynı (EWM ısınması 2 yılda zaten oturmuş). 2y → 4y geçişte değişenler: 4 açık pozisyonun giriş tarihi/fiyatı
+  (BIMAS, GLYHO, RGYAS, TRGYO; iz stop aynı), 23 hissede son işlemin girişi, 51 hissede 'son 🚀 çıkış' bilgisi (2y'de yoktu), 21 hissede
+  🌱 tarihi/durumu (16'sı yok → eski SAT; Telegram'a mesaj gitmez: `uv_son`'da önceki yoksa sessiz), EREGL/GSDDE/ULUUN grafik iz stop
+  çizgisi. İşlem Odası `ozet_hazirla`: sadece `tk.durum` None→CIKTI (51) ve `uv.durum` None→SAT (16) — robot kararlarını değiştirmez
+  (🌱 robotu elindeki hissede SAT'a bakar; o hisselerde durum aynı). Sayfa büyümesin diye: `tkg` sadece çıkışı son 2 yılda olan ya da
+  açık işlemler (`sinyal.TKG_YIL`; 4y = 10y ile 0 fark), `spark.tk` pencerede işaret yoksa yazılmaz, `endeks_serisi` günlük kısmı
+  yine son 2 yıl (`ENDEKS_GUNLUK_YIL`) → index.html 3.510 → 3.518 KB (+8 KB, %0,2; artış `tkg`/`tk`'deki doğru eski işlemler).
+  Süre: yerel ölçümde indirme 2y ~5,8 sn → 4y ~6,2 sn, analiz ~6,0 → ~6,5 sn; Telegram'sız tam
+  tarama.py (seans içi, 2'şer tur) 42-44 sn → 46-47 sn (~+3 sn, ~%7) → önbellek gerekmedi.
+  Workflow değişmedi (fork'lar *.py ile otomatik alır). backtest.py (5y) ve oda_replay (5y + ısınma) ayrı indirir, etkilenmedi.
 
 ## 🚀 Sinyal geçmişi · son AL/SAT grafikte · Son roketler filtresi (2026-10, hepsi BİLGİ)
 - `sinyal.tk_gecmis` → `tkg`: son 6 v3 işlemi `[sinyal günü, giriş (ertesi açılış), çıkış günü|null, çıkış kapanışı|null(, 1 = çıkış günü kilitli taban)]`
-  (canlı `trend_kirilimi(ham=True)`; komisyonsuz). Portföyden bağımsız. `tk.kisa` = veri <250 gün (yeni arz: sinyal çıkamaz).
+  (canlı `trend_kirilimi(ham=True)`; komisyonsuz; sadece çıkışı son 2 yılda olan ya da açık işlemler — `TKG_YIL`). Portföyden bağımsız. `tk.kisa` = veri <250 gün (yeni arz: sinyal çıkamaz).
 - Modal grafik: ▲ AL (yeşil, 🚀 girişi) / ▼ SAT (kırmızı, iz stop çıkışı), mor kesikli iz stop; üstte `tkSonHtml` özet satırı;
   '6 ay / 1 yıl' düğmesi — 1 yılda grafik penceresinden önceki ~6 ay HAFTALIK kapanış (`spark.w0` pazartesi + `spark.w`, x ekseni
   tarihe göre), eski işlemlerin işaretleri `tkg`'den. Kullanılmayan `spark.sg` (eski oylama dizisi) kaldırıldı. Altta `tkGecmisHtml`
@@ -256,7 +270,7 @@ sinyal, filtre, etiket ya da çıkış olarak eklenmeye değmez.** Kullanıcı f
 ## 📅 Vadeler · ⏱️ gün içi görünüm · 🚀 gün içi kırılım notu (2026-10, hepsi BİLGİ — scratchpad vade_uzun, vade_gunici, vade_impl)
 - **Vadeler (`sinyal.vade_durum` → `vd` = [günlük, haftalık, aylık], +1/0/−1/None):** Günlük ↑ = kapanış > SMA50 ve SMA50 10 gün
   öncesinden yüksek, ↓ = altında ve yükselmiyor; Haftalık (Weinstein) = son TAMAMLANMIŞ haftanın (W-FRI) kapanışı > 30 haftalık ort.
-  ve ort. 4 hafta öncesinden yüksek; Aylık = son tamamlanmış ay > 10 aylık ort. ve ort. bir önceki aydan yüksek; aksi →. Mumlar 2 yıllık
+  ve ort. 4 hafta öncesinden yüksek; Aylık = son tamamlanmış ay > 10 aylık ort. ve ort. bir önceki aydan yüksek; aksi →. Mumlar 4 yıllık
   günlükten türetilir; hafta/ay 'tamam' = son gün kesin (18:30+ ya da geçmiş gün) ve sonraki iş günü ya da bugün yeni dönemde
   (`analiz_et(bar_kesin, bugun)`). 11 aydan kısa geçmişte aylık —. Doğrulama (vade_impl/t_vade.py, 258 hisse × son 120 gün = 30.960
   hisse-gün): 2y pencere = 5y veri 0 fark; araştırma `durum.py` ile günlük/aylık 0, haftalık 33 fark (hepsi 30.04.2026: 1 Mayıs tatili,
@@ -319,7 +333,7 @@ sinyal, filtre, etiket ya da çıkış olarak eklenmeye değmez.** Kullanıcı f
 - 🌱 Uzun vade sinyali (`sinyal.uzun_vade`): yükselen trendde (fiyat>SMA200, SMA200 20 günde yükselmiş) SMA50'ye
   %2 yakın geri çekilip yükselişle kapanış → AL; 2 gün SMA200 altı → SAT. Backtest (çökenler hariç): düşük faiz
   endekse göre +%10.7/isabet %65, yüksek faiz +%3.4 — günlük sinyalden iyi ama en iyi 10 işlem hariç hafif eksi.
-  Alternatifler (altın kesişim: kırılgan; haftalık MACD: +8.5/+2.2) daha zayıf. SMA200 için tarama 2 yıl veri çeker.
+  Alternatifler (altın kesişim: kırılgan; haftalık MACD: +8.5/+2.2) daha zayıf. SMA200 ve durum makinesi için tarama 4 yıl veri çeker (2y pencerede 21 hissede 🌱 tarihi/durumu yanlıştı).
   Telegram: kapanış sonrası (18:30+) `uv_son` ile geçişler; AL herkese, SAT portföye.
 - 🚩 Bayrak kırılımı (`sinyal.bayrak_kirilimi`): isabet %46 (günlük %34) ama endekse göre fark günlükten düşük
   ve kırılımların %70-85'i zaten AL ile aynı gün → sadece bilgi etiketi, ayrı sinyal değil.
@@ -461,7 +475,7 @@ sinyal, filtre, etiket ya da çıkış olarak eklenmeye değmez.** Kullanıcı f
   yok, gönderilemezse sonraki taramada tekrar.
 - **`oda_replay.py`** (elle, ayda bir; Actions'ta ÇALIŞMAZ; ~1 dk; `--veri x.pkl` indirilmiş veriyle, `--sans N` hızlı deneme):
   araştırmanın hazirla+sim+replay'i. **2026-10-10'dan beri TEK UZUN oynatma** (eskiden son 250 gün sıfırdan): Yahoo'dan
-  `UZUN_YIL` (5) + ~2 yıl ısınma indirir (canlı tarama da 2 yıl kullanıyor; 🌱 durum makinesi, v3 'pozisyon açık', Wilder ATR gibi
+  `UZUN_YIL` (5) + ~2 yıl ısınma indirir (canlı tarama 4 yıl kullanıyor, 2026-10-19 öncesi 2 yıl; 🌱 durum makinesi, v3 'pozisyon açık', Wilder ATR gibi
   geçmişe bağlı alanlar oturur — 1 yıl ısınmayla 🌱 4 yılda +%641, 2 yılla +%1.162 çıktı; 6 ve 7 yıllık indirme aynı), oynatma
   en erken `ISINMA` (260) işlem günü sonra, en fazla 5 yıl geriden başlar (şu an 11.10.2021 → bugün, ~1.250 gün). Robotlar
   baştan 100.000 TL ile kesintisiz çalışır. Hazır dönemler `DONEMLER` (son 6 ay=125 / 1 yıl=250 / 2 yıl=500 / 4 yıl=1000 işlem

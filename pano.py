@@ -675,7 +675,7 @@ function tkP(x){return x==null?'—':(x>=0?'+':'−')+Math.abs(x).toFixed(1).rep
 function tkC(x){return x==null?'':(x>=0?'pos':'neg');}
 function tkSonHtml(d){  // grafiğin üstünde tek satır: son 🚀 AL ya da son SAT (iz stop)
  var a=d.tkg||[],t=d.tk||{};
- if(!a.length)return '<div class="tkson sgun">🚀 '+(t.kisa?'Henüz 🚀 sinyali olamaz: kural en az 1 yıllık (250 işlem günü) fiyat geçmişi ister.':'Son ~1 yılda 🚀 AL sinyali yok.')+'</div>';
+ if(!a.length)return '<div class="tkson sgun">🚀 '+(t.kisa?'Henüz 🚀 sinyali olamaz: kural en az 1 yıllık (250 işlem günü) fiyat geçmişi ister.':'Son ~2 yılda 🚀 AL sinyali yok.')+'</div>';
  var x=tkIslem(d,a[a.length-1]),h;
  if(x.acik&&t.bugun)h='▲ <b>Bugün 🚀 AL</b> — kapanış '+tlS(x.g)+'; kurala göre giriş yarın açılışta. Çıkış: tepe kapanışın %20 altı (iz stop).';
  else if(x.acik)h='▲ <b>Son 🚀 AL: '+tTam(x.t)+'</b> · giriş '+tlS(x.g)+' → şu an <b class="'+tkC(x.r)+'">'+tkY(x.r)+'</b> (pozisyon açık'+(t.stop!=null?' · iz stop '+tlS(t.stop):'')+')'+
@@ -692,8 +692,8 @@ function tkGecmisHtml(d){  // hisse penceresi: bu hissenin son v3 işlemleri (bi
   h+='<tr><td>'+tTam(s.t)+(es?' <span class="sgun" title="6 aydan eski: aşağıdaki nota bak">≈</span>':'')+'</td><td class="num">'+tlS(s.g)+'</td>'+
    '<td>'+(s.acik?'<span class="tkb izle">açık</span> şu an '+tlS(s.son):tTam(s.ct)+' · '+tlS(s.c)+(s.kil?KIL_CIKIS:''))+'</td>'+
    '<td class="num '+tkC(s.r)+'">'+tkY(s.r)+'</td><td class="num '+tkC(s.fark)+'">'+tkP(s.fark)+'</td></tr>';});
- h+='</tbody></table></div><div class="pk sgun">Giriş: sinyalin ertesi günü açılış; çıkış: iz stop kırılan günün kapanışı; komisyonsuz. Pano 2 yıllık veriyle çalışır, kural 1 yıllık geçmiş ister: liste en fazla son ~1 yılı kapsar'+
-  (ev?'; ≈ işaretli (6 aydan eski) işlemler, daha önceden açık kalmış bir pozisyon yüzünden 5 yıllık testtekinden farklı olabilir':'')+
+ h+='</tbody></table></div><div class="pk sgun">Giriş: sinyalin ertesi günü açılış; çıkış: iz stop kırılan günün kapanışı; komisyonsuz. Liste çıkışı son 2 yıl içinde olan ya da hâlâ açık işlemleri gösterir (pano 4 yıllık veriyle çalışır: kuralın 1 yıllık ısınması ve önceden açık kalan pozisyonlar doğru hesaplanır)'+
+  (ev?'; ≈ işaretli işlemler 6 aydan eski (grafiğin günlük kısmında değil; 2 yıldan eski günlerde BIST 100 farkı haftalık veriyle yaklaşık)':'')+
   '. <b>Tek hissenin geçmiş işlemleri geleceğini göstermez</b>; kural tek hissede değil, yüzlerce hissede birlikte test edildi.</div></div>';
  return h;
 }
