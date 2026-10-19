@@ -44,6 +44,10 @@ ROBOTLAR = {
     "kirilimci20": {"ad": "🚀 Kırılımcı · 20 yuva", "tur": "kirilim", "yuva": 20, "iz": 0.20, "filtre": True,
                     "aciklama": "Kırılımcı ile aynı kural (🚀 v3 kırılımı, %20 iz stop), ama kasa 20 yuvaya bölünür: her hisseye "
                                 "kasanın %5'i. Kıyas: 'yuvalar dolu diye kaçan roketler' ne kadar önemli?"},
+    "kilitli_kirilimci": {"ad": "🔐 Kırılımcı + kâr kilidi", "tur": "kirilim", "yuva": 10, "iz": 0.20, "kar_kilit": (0.10, 0.05),
+                          "filtre": True,
+                          "aciklama": "Kırılımcı ile aynı giriş (🚀 v3) ve %20 iz stop; ama kapanışta bir kez +%10 kâr görüldüyse "
+                                      "stop en az alış fiyatının %5 üstüne çekilir (kâr kilidi): kazanç zarara dönmeden satar."},
     "siki": {"ad": "📏 Kırılımcı + sıkı çizgi", "tur": "kirilim", "yuva": 10, "iz": 0.20, "siki": True, "filtre": True,
              "aciklama": "Kırılımcı ile aynı; ayrıca hisse aşırı uzadıysa kijun (sıkı çizgi) altında kapanışta satar."},
     "erkenci": {"ad": "👀 Erkenci", "tur": "erken", "yuva": 10, "iz": 0.20, "uzak": 3.0, "filtre": True,
@@ -60,6 +64,21 @@ ROBOTLAR = {
     "rsi": {"ad": "↩️ RSI dönüşçü (tahmini)", "tur": "rsi", "yuva": 10, "iz": 0.20, "filtre": True,
             "aciklama": "RSI 25-33 arasında ve bir günde ≥2,4 puan yükselince alır (arkadaşın AL kuralı); çıkış kuralı "
                         "bilinmediği için %20 iz stop varsayıldı — TAHMİNİ."},
+    # 💪 güç robotları (2026-10-19): panodaki Güç puanının göstergeleriyle alım yapar (scratchpad gucrobot/RAPOR.md)
+    "guclu": {"ad": "💪 Güçlü", "tur": "guc", "yuva": 10, "iz": 0.20, "al_puan": 6, "sat_puan": 3, "filtre": True,
+              "aciklama": "Güç puanı (7 göstergeden kaçı olumlu) 6 ya da 7 olan hisseyi alır; puan 3'e düşünce ya da tepe "
+                          "kapanışın %20 altına inince satar."},
+    "sablonci": {"ad": "📐 Şabloncu", "tur": "sablon", "yuva": 10, "filtre": True,
+                 "aciklama": "Minervini trend şablonundaki hisseyi kırılımı beklemeden alır; şablon bozulunca satar."},
+    "bulutcu": {"ad": "☁️ Bulutçu", "tur": "bulut", "yuva": 10, "cik": "bulut", "filtre": True,
+                "aciklama": "Ichimoku: fiyat bulutun ve kijun'un üstünde, tenkan > kijun ve fiyat 26 gün öncesinin üstünde "
+                            "(chikou teyidi) iken alır; fiyat bulutun altında kapanınca satar."},
+    "zirveci": {"ad": "🏔️ Zirveci", "tur": "zirve", "yuva": 10, "iz": 0.20, "cmf": 0.05, "filtre": True,
+                "aciklama": "Son 55 günün zirvesine %3'ten yakın ve para girişi olan (CMF > 0,05) hisseyi alır; önceki 20 "
+                            "günün en düşük kapanışının altına inince ya da tepe kapanışın %20 altına inince satar."},
+    "paraci": {"ad": "💧 Para akışı", "tur": "para", "yuva": 10, "cmf_sat": -0.10, "filtre": True,
+               "aciklama": "Para akışı (CMF, son 20 gün) eksiden artıya döndüğü gün fiyat 50 günlük ortalamanın üstündeyse "
+                           "alır; CMF −0,10'un altına inince (para çıkışı) satar."},
     "rastgele": {"ad": "🎲 Rastgele", "tur": "rastgele", "yuva": 10, "iz": 0.20, "filtre": True,
                  "aciklama": "Şans kıyası: 🚀 kırılım gelen gün, o gün kaç kırılım varsa o kadar RASTGELE hisse alır; "
                              "Kırılımcı ile aynı %20 iz stop. Kırılımcı bunu yenemiyorsa seçim becerisi yok demektir."},
@@ -166,7 +185,8 @@ def ozet_hazirla(s, d=None, buyuk=False):
          "buyuk": bool(buyuk),
          # tarama._riskli ile aynı: taban serisi / 🔒 kilitli taban / 🎈 şişme
          "riskli": bool(s.get("patlak") or s.get("kt") or th.get("seviye") == "sisme"),
-         "uzama": False, "kijun": None}
+         "uzama": False, "kijun": None,
+         "kisa": bool(tk.get("kisa")), "g": guc_ozet(s.get("guc"), s.get("gh"))}
     if d is not None and len(d) > 2:
         import sinyal as S
         r = d["RSI"] if "RSI" in d else S.rsi(d["Close"])
@@ -176,6 +196,19 @@ def ozet_hazirla(s, d=None, buyuk=False):
         kj = S.kijun(d).iloc[-1]
         o["kijun"] = float(kj) if kj == kj else None
         o["uzama"] = bool(S.asiri_uzama(d["Close"], len(d) - 1))
+    return o
+
+
+def guc_ozet(guc, gh):
+    """💪 güç robotlarının gördüğü alanlar (canlı: analiz_et'in `guc` + `gh`; tekrar oynatma: oda_replay.ozet aynı anahtarlar).
+    p: güç puanı 0-7; b: 7 bileşen (şablon, Ichimoku, 55g zirve, CMF, ADX, EMA, RSI); cmf / cmf1 (dün); tenkan, kijun,
+    bu / ba (bulutun üstü / altı), c26 (26 işlem günü önceki kapanış, chikou teyidi), dip20 (önceki 20 günün en düşük
+    kapanışı), s50 (SMA50)."""
+    if not guc:
+        return None
+    o = {"p": guc.get("puan"), "b": [bool(x["durum"]) for x in guc.get("detay") or []]}
+    for k in ("cmf", "cmf1", "tenkan", "kijun", "bu", "ba", "c26", "dip20", "s50"):
+        o[k] = (gh or {}).get(k)
     return o
 
 
@@ -217,6 +250,53 @@ def _rng(tarih, rid):
     return random.Random(int(hashlib.sha1(f"{rid}|{tarih}".encode()).hexdigest()[:12], 16))
 
 
+GUC_TUR = {"guc", "sablon", "bulut", "zirve", "para"}       # 💪 güç robotları (2026-10-19)
+
+
+def guc_giris(robot, h):
+    """💪 güç robotlarının AL koşulu. Döner: sıralama anahtarı (küçük önce: güç puanı yüksek, eşitse son 20 günde az
+    yükselen) ya da None. Veri geçmişi 250 günden kısa (yeni arz) hisse alınmaz."""
+    g, tur, f = h.get("g"), robot["tur"], h.get("fiyat")
+    if not g or g.get("p") is None or not f or h.get("kisa"):
+        return None
+    if tur == "guc":
+        ok = g["p"] >= robot["al_puan"]
+    elif tur == "sablon":
+        ok = h["tk"]["sablon"]
+    elif tur == "bulut":
+        bu, tn, kj, c26 = g.get("bu"), g.get("tenkan"), g.get("kijun"), g.get("c26")
+        ok = None not in (bu, tn, kj, c26) and f > bu and f > kj and tn > kj and f > c26
+    elif tur == "zirve":
+        ok = bool(g["b"][2]) and g.get("cmf") is not None and g["cmf"] > robot.get("cmf", 0.05)
+    elif tur == "para":
+        c0, c1, s50 = g.get("cmf"), g.get("cmf1"), g.get("s50")
+        ok = None not in (c0, c1, s50) and c1 <= 0 < c0 and f > s50
+    else:
+        ok = False
+    return (-g["p"], h["mom20"]) if ok else None
+
+
+def guc_cikis(robot, h, f):
+    """💪 güç robotlarının kendi SAT koşulu (iz stop ayrıca robot_karar'da). Döner: neden metni ya da None."""
+    g, tur = h.get("g"), robot["tur"]
+    if not g or not f:
+        return None
+    if tur == "guc" and g.get("p") is not None and g["p"] <= robot["sat_puan"]:
+        return f"güç puanı {g['p']}/7'ye düştü"
+    if tur == "sablon" and not h.get("tk", {}).get("sablon"):
+        return "trend şablonu bozuldu"
+    if tur == "bulut":
+        if robot.get("cik") == "kijun" and g.get("kijun") is not None and f < g["kijun"]:
+            return "kijun altında kapanış"
+        if g.get("ba") is not None and f < g["ba"]:
+            return "bulut altında kapanış"
+    if tur == "zirve" and g.get("dip20") is not None and f < g["dip20"]:
+        return "20 günlük dibin altında kapanış"
+    if tur == "para" and g.get("cmf") is not None and g["cmf"] < robot.get("cmf_sat", -0.10):
+        return "para çıkışı (CMF " + f"{robot.get('cmf_sat', -0.10):.2f}".replace("-", "−").replace(".", ",") + " altı)"
+    return None
+
+
 def _al_adaylari(robot, gv, kasa):
     """Bugünkü giriş adayları (öncelik sırasıyla)."""
     hs, tur = gv["hisseler"], robot["tur"]
@@ -245,6 +325,10 @@ def _al_adaylari(robot, gv, kasa):
             r, dr = h.get("rsi"), h.get("rsi_degisim")
             if r is not None and dr is not None and 25 <= r <= 33 and dr >= 2.4:
                 aday.append((h["mom20"], kod))
+        elif tur in GUC_TUR:
+            a = guc_giris(robot, h)
+            if a is not None:
+                aday.append((a, kod))
     aday.sort()
     return [k for _, k in aday]
 
@@ -275,6 +359,10 @@ def _al_notu(tur, h, n, bos, sira):
         o = _r(h.get("rsi"), 1)
     elif tur == "momentum" and h.get("mom6") is not None:
         o = _r(h["mom6"] * 100, 1)
+    elif tur in ("zirve", "para"):
+        o = _r((h.get("g") or {}).get("cmf"), 3)
+    elif tur in GUC_TUR:
+        o = (h.get("g") or {}).get("p")
     return [o, n, bos, sira]
 
 
@@ -401,7 +489,17 @@ def robot_karar(rid, gun_verisi, kasa, robot=None, bekci=None):
         h = hs.get(kod) or {}
         f = p.get("fiyat")
         neden = None
-        if robot.get("iz") and f < p["tepe"] * (1 - robot["iz"]):
+        iz_sev = p["tepe"] * (1 - robot["iz"]) if robot.get("iz") else None
+        kk = robot.get("kar_kilit")      # 🔐 (eşik, kilit): tepe kapanış alışın ≥ eşik üstündeyse stop ≥ alış × (1 + kilit)
+        if kk and iz_sev is not None:
+            giris = p["maliyet"] / (1 + KOMISYON)                 # alış fiyatı (maliyet = fiyat × (1 + komisyon))
+            if p["tepe"] >= giris * (1 + kk[0]) and giris * (1 + kk[1]) > iz_sev:
+                iz_sev = giris * (1 + kk[1])
+                if f < iz_sev:
+                    neden = f"kâr kilidi (alış +%{kk[1] * 100:.0f} altı)"
+        if neden:
+            pass
+        elif robot.get("iz") and f < iz_sev:
             neden = f"iz stop (tepe {p['tepe']:.2f})"
         elif robot.get("siki") and p.get("uzadi") and h.get("kijun") and f < h["kijun"]:
             neden = "sıkı çizgi altında kapanış"
@@ -418,12 +516,14 @@ def robot_karar(rid, gun_verisi, kasa, robot=None, bekci=None):
                 neden = "listeden düştü" if ay_listesi or not robot.get("piyasa") else "piyasa zayıf: nakite geç"
         elif tur == "erken" and robot.get("sablon_cik") and not h.get("tk", {}).get("sablon") and h.get("tk", {}).get("durum") != "AL":
             neden = "şablon bozuldu"
+        elif tur in GUC_TUR:
+            neden = guc_cikis(robot, h, f)
         if not neden and robot.get("sure") and p["gun"] >= robot["sure"]:
             neden = f"{robot['sure']} işlem günü doldu"
         if neden:
             p["sat"] = neden
             # satışın 'neden'i: tepe kapanış, iz seviyesi, karar günü kapanışı (+ kilitli tabanda bekleme emir_uygula'da)
-            p["sat_not"] = {"tp": _r(p["tepe"]), "k": _r(f), **({"iz": _r(p["tepe"] * (1 - robot["iz"]))} if robot.get("iz") else {})}
+            p["sat_not"] = {"tp": _r(p["tepe"]), "k": _r(f), **({"iz": _r(iz_sev)} if robot.get("iz") else {})}
             emir.append({"kod": kod, "yon": "SAT", "neden": neden})
     # 3b) 🛡️ kırpma: bir hisse kasanın B['kirp'] oranını aştıysa fazlası satılır (pozisyon kapanmaz → yuva AÇMAZ)
     if B.get("kirp"):
@@ -473,7 +573,7 @@ def robot_karar(rid, gun_verisi, kasa, robot=None, bekci=None):
         if atla:
             if tur == "kirilim":     # 🚀 kaçan roketler (sonuçları canlıda tk'den, tekrar oynatmada v3 işleminden)
                 kasa.setdefault("atla", []).extend([gv["tarih"], k, n] for k, n in atla)
-            else:
+            elif tur not in GUC_TUR:  # güç robotlarında her gün çok aday var: sayaç anlamsız (dosya büyümesin)
                 kasa.setdefault("atla_n", []).append([gv["tarih"], sum(1 for _, n in atla if n == "yuva"),
                                                       sum(1 for _, n in atla if n == "nakit")])
     kasa["bekleyen"] = emir
@@ -604,6 +704,9 @@ ROBOT_EK = {
                            "pencereler) 20 yuva 10 yuvadan biraz daha iyi ve daha az düşüşlü çıktı; 2022-23 düşük faiz döneminde "
                            "başlayan pencerelerde ise geride kaldı."},
     "siki": {"renk": "#E879F9", "kisa": "Sıkı çizgi"},
+    "kilitli_kirilimci": {"renk": "#FDE047", "kisa": "Kâr kilidi",
+                          "not": "Çıkış araştırması (2017-26, 286 hisse, 'A1'): isabet %51 → %67, 9 yılın 9'unda dengeli ölçütte "
+                                 "(isabet + tepeden geri verme + düşüş) Kırılımcı'dan iyi; kâr tek başına her yıl değil."},
     "erkenci": {"renk": "#5BD6FF"},
     "momentumcu": {"renk": "#FFC94D"},
     "dipavcisi": {"renk": "#7CF29A",
@@ -614,6 +717,12 @@ ROBOT_EK = {
     "rastgele": {"renk": "#FF9A62", "not": "Kıyas: aynı gün aynı sayıda rastgele hisse. Bir robot bunu geçemiyorsa seçimi "
                                            "şanstan ayrılmıyor demektir. Bu hisse evreninde (2022-26) rastgele bile "
                                            "çoğu zaman BIST 100'ü yendi — 'endeksi yendi' tek başına başarı değil."},
+    "guclu": {"renk": "#F43F5E", "not": "Güç puanı panodaki 💪 Güç sütunuyla aynı (7 gösterge). Araştırmada puan sonraki ~20 "
+                                        "günü biraz ayırıyordu; alım sinyali olarak denenmemişti — bu robot onu dener."},
+    "sablonci": {"renk": "#A3E635"},
+    "bulutcu": {"renk": "#94A3B8"},
+    "zirveci": {"renk": "#2DD4BF"},
+    "paraci": {"renk": "#38BDF8", "kisa": "Para akışı"},
     "endeksci": {"renk": "#B9A6FF", "not": "Kıyas çizgisi: BIST 100 al-tut (fiyat endeksi; temettü yok)."},
     "faizci": {"renk": "#60A5FA", "not": "Birikim kıyası (yarışmacı değil). Politika faizi gerçek mevduat faizinden farklı olabilir; "
                                          "kasa değeri vadenin bugüne kadar işlemiş net faizini de içerir (vade bozulursa alınmaz)."},
@@ -1282,7 +1391,7 @@ border:1px solid #3A2770;position:relative}
 <input type="range" id="sur" min="0" max="0" value="0" oninput="git(+this.value)" aria-label="Gün">
 <span class="chip" id="rgun"></span></div>
 <div class="donnot" id="donnot"></div>
-<div class="ana"><div><div class="salon" id="salon"><svg id="sv" viewBox="-700 -185 1500 940" role="img" aria-label="İzometrik işlem salonu: robot masaları, borsa tahtası, Risk Bekçisi"></svg><div class="not" id="not"></div></div>
+<div class="ana"><div><div class="salon" id="salon"><svg id="sv" viewBox="-860 -185 1660 1030" role="img" aria-label="İzometrik işlem salonu: robot masaları, borsa tahtası, Risk Bekçisi"></svg><div class="not" id="not"></div></div>
 <div class="kart" style="margin-top:14px"><h2>Aylık getiri ısı tablosu</h2><div class="sans" id="isi_not" style="margin:0 0 6px"></div><div class="isi" id="isi"></div></div></div>
 <div><div class="kart"><h2>Skor tablosu</h2><div id="uyar6"></div><div id="skor"></div><div class="sans" id="sans"></div></div>
 <div class="kart"><h2>Olay akışı</h2><div id="bek"></div><div class="akis" id="akis"></div></div></div></div>
@@ -1315,10 +1424,11 @@ function kutu(g,x,y,z,w,d,h,ust,sol,sag,op){
 function zeminYazi(g,x,y,metin,renk,boy){var p=P(x,y,0);var t=el('text',{transform:'matrix(1,0.5,-1,0.5,'+p[0]+','+p[1]+')','font-size':boy||15,'font-weight':700,fill:renk,'letter-spacing':'3','font-family':'ui-monospace,Consolas,monospace'},g);t.textContent=metin;return t;}
 function bolge(g,x,y,w,d,renk,kesik){el('polygon',{points:pts([P(x,y),P(x+w,y),P(x+w,y+d),P(x,y+d)]),fill:renk+'10',stroke:renk,'stroke-opacity':.55,'stroke-width':1.4,'stroke-dasharray':kesik?'7 6':'none'},g);}
 var MASA={kirilimci:[1.0,2.0],siki:[3.7,2.0],erkenci:[6.4,2.0],momentumcu:[9.1,2.0],dipavcisi:[1.0,5.4],uzunvadeci:[3.7,5.4],rsi:[6.4,5.4],
- kirilimci20:[9.1,5.4],rastgele:[12.6,2.2],endeksci:[12.6,5.4],bekci:[14.0,8.9],ai1:[1.6,9.0],ai2:[4.6,9.0],
- faizci:[1.0,12.1],altinci:[3.7,12.1],dolarci:[6.4,12.1],dengeci:[9.1,12.1]};
+ kirilimci20:[9.1,5.4],rastgele:[12.6,2.2],endeksci:[12.6,5.4],bekci:[14.6,9.5],ai1:[1.6,12.4],ai2:[4.6,12.4],
+ kilitli_kirilimci:[9.6,12.4],guclu:[1.0,8.8],sablonci:[3.7,8.8],bulutcu:[6.4,8.8],zirveci:[9.1,8.8],paraci:[11.8,8.8],
+ faizci:[1.0,15.5],altinci:[3.7,15.5],dolarci:[6.4,15.5],dengeci:[9.1,15.5]};
 var KESIR={XU100:1,ALTIN:1,USD:1},MAKAS={ALTIN:.01,USD:.005},TF=null;
-var W=16.8,D=14.4,H=3.8,TAHTA=[5.0,12.6],TAHTA_ON=[8.8,0.8];
+var W=16.8,D=17.8,H=3.8,TAHTA=[5.0,12.6],TAHTA_ON=[8.8,0.8];
 var FIG={};
 function robotCiz(g,id,renk,ad,em,hayalet,tahmini){
  var m=MASA[id]||[0,0],x=m[0],y=m[1];
@@ -1368,17 +1478,19 @@ function sahne(){
  el('polygon',{points:pts([P(0,0),P(W,0),P(W,D),P(0,D)]),fill:'url(#zg)',stroke:'#5A3DA8','stroke-width':1.5},g);
  for(var x=1;x<W;x++){var a=P(x,0),b=P(x,D);el('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:'#3B2A72','stroke-width':.7},g);}
  for(var y=1;y<D;y++){var a=P(0,y),b=P(W,y);el('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:'#3B2A72','stroke-width':.7},g);}
- var wp=P(0,9.4,3.0);var wt=el('text',{transform:'matrix(1,-0.5,0,1,'+wp[0]+','+wp[1]+')','font-size':17,'font-weight':800,fill:'#B596FF','letter-spacing':'2'},g);wt.textContent='🏢 İŞLEM ODASI';
- var wp2=P(0,9.4,2.5);var wt2=el('text',{transform:'matrix(1,-0.5,0,1,'+wp2[0]+','+wp2[1]+')','font-size':11.5,fill:'#8E7BC9'},g);wt2.textContent='sanal para · kural robotları';
+ var wp=P(0,11.1,3.0);var wt=el('text',{transform:'matrix(1,-0.5,0,1,'+wp[0]+','+wp[1]+')','font-size':17,'font-weight':800,fill:'#B596FF','letter-spacing':'2'},g);wt.textContent='🏢 İŞLEM ODASI';
+ var wp2=P(0,11.1,2.5);var wt2=el('text',{transform:'matrix(1,-0.5,0,1,'+wp2[0]+','+wp2[1]+')','font-size':11.5,fill:'#8E7BC9'},g);wt2.textContent='sanal para · kural robotları';
  var tg=el('g',{},g),t0=TAHTA[0],t1=TAHTA[1];
  el('polygon',{points:pts([P(t0,0.02,1.0),P(t1,0.02,1.0),P(t1,0.02,3.6),P(t0,0.02,3.6)]),fill:'#0C0720',stroke:'#7C5CFF','stroke-width':2},tg);
  var hp=P(t0+0.25,0.02,3.25);var ht=el('text',{transform:'matrix(1,0.5,0,1,'+hp[0]+','+hp[1]+')','font-size':13,'font-weight':800,fill:'#B596FF','letter-spacing':'2','font-family':'ui-monospace,Consolas,monospace'},tg);ht.textContent='BORSA TAHTASI';FIG.tahta_bas=ht;
  FIG.tahta=[];for(var k=0;k<5;k++){var lp=P(t0+0.25,0.02,2.83-k*0.35);var lt=el('text',{transform:'matrix(1,0.5,0,1,'+lp[0]+','+lp[1]+')','font-size':11.5,fill:'#DCD3FF','font-family':'ui-monospace,Consolas,monospace'},tg);FIG.tahta.push(lt);}
  bolge(g,0.6,1.3,11.2,5.9,'#B596FF',false);zeminYazi(g,0.8,7.05,'KURAL ROBOTLARI','#8E7BC9',13);
  bolge(g,12.2,1.5,2.9,5.8,'#5BD6FF',false);zeminYazi(g,12.35,7.15,'KIYAS','#5BD6FF',13);
- bolge(g,13.6,8.1,2.8,3.0,'#FFC94D',false);zeminYazi(g,13.75,10.95,'RİSK','#FFC94D',12);
- bolge(g,0.6,8.2,7.0,3.0,'#8E7BC9',true);zeminYazi(g,0.8,11.05,'YAPAY ZEKÂ EKİBİ · YAKINDA','#7A68B4',11);
- bolge(g,0.6,11.4,11.2,2.7,'#60A5FA',false);zeminYazi(g,0.8,13.95,'💰 BİRİKİM KÖŞESİ · KIYAS','#60A5FA',12);
+ bolge(g,0.6,8.0,13.3,3.0,'#F43F5E',false);zeminYazi(g,7.4,10.85,'💪 GÜÇ ROBOTLARI','#F48BA0',12);
+ bolge(g,14.1,8.1,2.6,3.0,'#FFC94D',false);zeminYazi(g,14.25,10.95,'RİSK','#FFC94D',12);
+ bolge(g,8.6,11.6,3.9,2.8,'#FDE047',false);zeminYazi(g,8.75,14.25,'ÇIKIŞ DENEMESİ','#E9D66B',11);
+ bolge(g,0.6,11.6,7.0,3.0,'#8E7BC9',true);zeminYazi(g,0.8,14.45,'YAPAY ZEKÂ EKİBİ · YAKINDA','#7A68B4',11);
+ bolge(g,0.6,14.8,11.2,2.7,'#60A5FA',false);zeminYazi(g,0.8,17.35,'💰 BİRİKİM KÖŞESİ · KIYAS','#60A5FA',12);
  FIG.hat={};
  RID.forEach(function(id){if(RB[id].grup==='birikim')return;var m=MASA[id],a=P(m[0]+0.95,m[1]+0.55),b=P(m[0]+0.95,TAHTA_ON[1]),c=P(TAHTA_ON[0],TAHTA_ON[1]);
   FIG.hat[id]=el('polyline',{points:pts([a,b,c]),fill:'none',stroke:RB[id].renk,'stroke-width':1.6,opacity:.34,'class':'akan'},g);});
@@ -1388,7 +1500,7 @@ function sahne(){
  var liste=RID.map(function(id){return [id,RB[id]];}).concat([['bekci',{renk:'#FFC94D',ad:'Risk Bekçisi',em:'🛡️'}],['ai1',{h:1}],['ai2',{h:1}]]);
  liste.sort(function(a,b){var p=MASA[a[0]],q=MASA[b[0]];return (p[0]+p[1])-(q[0]+q[1]);});
  var mg=el('g',{},g);liste.forEach(function(r){robotCiz(mg,r[0],r[1].renk||'#8E7BC9',r[1].kisa||r[1].ad||'',r[1].em||'',r[1].h,r[1].tahmini);});
- var ap=P(4.2,9.2,0),ag=el('g',{transform:'translate('+ap[0]+','+(ap[1]-92)+')'},g);
+ var ap=P(4.2,12.6,0),ag=el('g',{transform:'translate('+ap[0]+','+(ap[1]-92)+')'},g);
  el('rect',{x:-118,y:-14,width:236,height:26,rx:13,fill:'#140C2A',stroke:'#8E7BC9','stroke-dasharray':'5 4'},ag);
  var at=el('text',{x:0,y:4,'font-size':12.5,'font-weight':650,fill:'#B9A6FF','text-anchor':'middle'},ag);at.textContent='🧠 Yapay zekâ ekibi — yakında';
 }
@@ -1587,7 +1699,8 @@ function notMetin(x,id){var n=x[10],t=RB[id].tur;if(!n||!n.length)return '';
  if(x[2]==='A'){var o=n[0],s='';
   if(t==='kirilim'&&o!=null)s='20 günlük zirve '+sy(o,2)+' kırıldı';else if(t==='erken'&&o!=null)s='zirveye %'+sy(o,1)+' kalmıştı';
   else if(t==='dip'&&o!=null)s='destek '+sy(o,2)+' TL\'den tepki';else if(t==='rsi'&&o!=null)s='RSI '+sy(o,1);
-  else if(t==='momentum'&&o!=null)s='6 ay getirisi '+yz(o,0);else if(t==='uzun')s='🌱 uzun vade AL';else if(t==='rastgele')s='rastgele seçim';
+  else if(t==='momentum'&&o!=null)s='6 ay getirisi '+yz(o,0);
+  else if((t==='zirve'||t==='para')&&o!=null)s='para akışı (CMF) '+sy(o,2);else if((t==='guc'||t==='sablon'||t==='bulut')&&o!=null)s='güç puanı '+o+'/7';else if(t==='uzun')s='🌱 uzun vade AL';else if(t==='rastgele')s='rastgele seçim';
   var ad=t==='kirilim'?'roket':(t==='rastgele'?'rastgele aday':'aday');
   return s+(s?' · ':'')+'o gün '+n[1]+' '+ad+', '+n[2]+' boş yuva, sırası '+n[3];}
  var p=[];if(n[0]!=null)p.push('tepe '+sy(n[0],2));if(n[1]!=null)p.push('iz '+sy(n[1],2));if(n[2]!=null)p.push('karar kapanışı '+sy(n[2],2));if(n[3])p.push('🔒 kilitli tabanda '+n[3]+' gün bekledi');return p.join(' · ');}
