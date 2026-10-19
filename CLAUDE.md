@@ -188,6 +188,11 @@ sinyal, filtre, etiket ya da çıkış olarak eklenmeye değmez.** Kullanıcı f
   Süre: yerel ölçümde indirme 2y ~5,8 sn → 4y ~6,2 sn, analiz ~6,0 → ~6,5 sn; Telegram'sız tam
   tarama.py (seans içi, 2'şer tur) 42-44 sn → 46-47 sn (~+3 sn, ~%7) → önbellek gerekmedi.
   Workflow değişmedi (fork'lar *.py ile otomatik alır). backtest.py (5y) ve oda_replay (5y + ısınma) ayrı indirir, etkilenmedi.
+  **🔐 Kâr kilidiyle yeniden ölçüldü** (birleştirme 2026-10-19, scratchpad `birlesik/vp/`; canlı v3 artık kâr kilitli, aşağıdaki bölüm):
+  son 1 yılın işlemleri 2y'de 49 hayalet / 68 eksik, 3y'de 1/1, **4y ve 5y'de 0 fark (401/401)**; `tkg` (son 2 yıl süzgeci) 4y = 10y 0 fark;
+  açık pozisyonlar, iz stop (kilit seviyesi dahil) ve 🌱 aynı; kalan farklar yine 2+ yıl önce kapanmış işlemler (9 hissede `tk.durum`
+  CIKTI ↔ yok, OTKAR, HEKTS 🌱) ve `bolunme`. Kilit zinciri kısaltır (erken çıkış): 10y'de en uzun tutuş 891 işlem günü (ANSGR
+  2017-20, kilitsizle aynı), şu an açık en uzun 406 gün (GLYHO 03.03.2025) → 4 yıl yetiyor; ~3 yılı aşan tek pozisyon çıkarsa 4y'de fark doğabilir.
 
 ## 🔐 Kâr kilidi — v3 çıkışına ek (2026-10-19, dal `kar-kilidi`; scratchpad `cikis2/`, `finalcikis/`, `karkilidi/`)
 - **Kural:** v3 girişi aynen; çıkış %20 iz stop (girişten beri tepe kapanış × 0,80) AYNEN, ama kapanışta en az bir kez giriş fiyatının
@@ -226,8 +231,9 @@ sinyal, filtre, etiket ya da çıkış olarak eklenmeye değmez.** Kullanıcı f
   `iz_seviye` ile; sebep '🔐 kâr kilidi'. Bu alanı olmayan kayıtlar (o an açık olanlar dahil) eski %20 iz stop'la kapanır. gecmis.html
   notunda (`__KKKARNE__`) ve tabloda 🔐. (Karnenin giriş fiyatı kendi tanımı: sinyal günü kapanışı.)
 - **İşlem Odası ETKİLENMEZ:** robotlar kilitsiz v3 ile araştırıldı. `analiz_et` → `tk_oda` (= `trend_kirilimi(kar_kilit=False)`);
-  tarama oda'ya `tk` yerine `tk_oda`'yı geçirir (canlı kilitli `tk` → `tk_kk`); `oda_replay.ozellik` `kar_kilit=False`. oda.py'ye dokunulmadı.
-  Ayrı '🔐' robotunu başka dal ekliyor.
+  tarama oda'ya `tk` yerine `tk_oda`'yı geçirir (canlı kilitli `tk` → `tk_kk`); `oda_replay.ozellik` `kar_kilit=False`. Odadaki 🔐 robot
+  (`kilitli_kirilimci`, İşlem Odası bölümündeki '💪 güç robotları + 🔐' maddesi) aynı A4 kuralını (+%8 → alış +%5) `oda.robot_karar` içinde
+  kendi pozisyonuna uygular; girdisi yine kilitsiz `tk` (giriş sinyalleri Kırılımcı'yla aynı).
 - **Bilinen:** portföy iz stop'u son giriş v3 DEĞİLSE (gösterge AL'i daha yeni) eski gösterge iz'i (kilitsiz) — değişmedi.
 - **Doğrulama (scratchpad `karkilidi/`):** canlı `trend_kirilimi` + `gercekci_cikis` = `finalcikis/motor2.py` işlem işlem, 10y 286 hisse:
   A4 2.280 / A1 2.096 / kilitsiz 1.783 işlem, **0 fark** (A4'te 982 kâr kilidi çıkışı; `cikis2/motor.py` A1 ile de 0 fark) (`t1_motor2.py`).
@@ -235,6 +241,14 @@ sinyal, filtre, etiket ya da çıkış olarak eklenmeye değmez.** Kullanıcı f
   = eski `tk`, `oda_replay.ozellik` 27 alanın hepsi 286 hissede eski kodla aynı (`t3_esit.py`, `t4_oda.py`). Örnekler `t2_ornek.py`, karne
   `t6_karne.py`, Telegram `t7_telegram.py`, backtest `t5_backtest.py`. Gerçek tarama (Telegram'sız kopya) → index.html: `node --check`
   tamam; headless Chrome CDP 390/1280 px (RYSAS, GLYHO, ALARK + sahte portföy + Son roketler): JS hatası yok, yatay taşma yok (`cdp_test.mjs`).
+- **Birleştirme (2026-10-19, dal `birlesik-deneme` = `veri-pencere` + `kar-kilidi` + `guc-robot`; scratchpad `birlesik/`):** testler
+  birleşik kodda yeniden: motor2 10y A4 2.280 / A1 2.096 / kilitsiz 1.783 işlem 0 fark (`a1_motor2.py`); kilit kapalıyken `analiz_et`
+  = main 286 hissede 10y ve 4y veriyle birebir (beklenen farklar normalize: yeni `gh`/`tk_oda` anahtarları, `tkg` son 2 yıl süzgeci,
+  boş `spark.tk` yazılmaması; `a2_esit.py`), kilit açıkken `tk_oda` = main `tk`; veri penceresi yukarıda; oda: `oda_oynat` = `calistir`
+  20/20, yeniden üretilen oda_replay.json `guc-robot` dalındakiyle birebir (sadece `uretim` saati), eski 14 robot main'le aynı, canlı
+  `canli_calistir` (tarama'nın `tk_oda` eşlemesiyle) `guc-robot` dalının çıktısıyla birebir. Telegram'sız tarama (gün içi + kapanış
+  yolu), backtest.py, index/oda.html CDP 390/1280 (RYSAS, ALARK, GLYHO, TAVHL; oda canlı + tekrar oynatma) hatasız. Süre gün içi
+  ~25,8 → ~27,6 sn (yerel, 3'er ölçüm), index.html 3.477 → 3.520 KB (gzip 588 → 603 KB).
 
 ## 🚀 Sinyal geçmişi · son AL/SAT grafikte · Son roketler filtresi (2026-10, hepsi BİLGİ)
 - `sinyal.tk_gecmis` → `tkg`: son 6 v3 işlemi `[sinyal günü, giriş (ertesi açılış), çıkış günü|null, çıkış kapanışı|null(, bit alanı: 1 = çıkış günü kilitli taban, 2 = 🔐 kâr kilidiyle çıkış, 4 = açık + kilit devrede)]`
@@ -636,6 +650,8 @@ sinyal, filtre, etiket ya da çıkış olarak eklenmeye değmez.** Kullanıcı f
   çöktü (Güçlü 17-21 +%4, BIST 100'e göre −42 puan, düşüş −%67); ana listede ılımlı. Güçleri 2022-26 yüksek enflasyon yükselişinden.
   **Canlı yol:** `sinyal.guc_puani(d, ham=True)` → `analiz_et` `gh` (panoya gömülmez; tenkan/kijun/bulut üst-alt/c26/dip20/s50/cmf/cmf1)
   → `oda.ozet_hazirla` `g` (`guc_ozet`) + `kisa`. Replay: `oda_replay.guc_seri` (aynı formüller) + `guc_aday` (gun_verisi'ne aday).
+  Panodaki canlı v3 kâr kilitli (bkz. '🔐 Kâr kilidi'); oda robotlarına `tarama` kilitsiz `tk_oda`'yı `tk` olarak verir, replay
+  `ozellik` `kar_kilit=False` → güç robotları ve eski robotlar kilitten etkilenmez; 🔐 robot kilidi kendi içinde uygular.
   Test: canlı alanlar = replay alanları 556 hisse-günde puan/bileşenler 0 fark (fiyat düzeyleri 12'sinde sabit çarpanla farklı: sonradan
   gelen bölünme düzeltmesi, kararları etkilemez). **Bilinen eski fark:** Yahoo bazı hisselere tatil satırı (25 Aralık vb.) koyuyor,
   replay sadece BIST 100 günlerini alıyor → canlıda o hisselerin göstergeleri hafif farklı (tüm robotlar için, yeni değil).

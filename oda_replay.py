@@ -19,7 +19,8 @@ oda.py'de (robot_karar / emir_uygula / gun_isle — canlıyla aynı kod yolu).
      deneme → dönemdeki getirinin şans yüzdeliği). Özel dönemde şans bandı için oda_replay_sans.json (Rastgele'nin SANS_N
      zarının günlük getirileri, sayfa sadece özel dönem seçilince indirir).
 Bilinen sınırlar: evren bugünkü liste (hayatta kalan yanlılığı; geriye gittikçe artar); fiyatlar bölünme/temettü düzeltmeli;
-uzun veriyle v3'ün 'pozisyon açık mı' durumu canlı taramanın 2 yıllık verisinden eski işlemlerde birkaç hissede farklı olabilir."""
+uzun veriyle v3'ün 'pozisyon açık mı' durumu canlı taramanın verisinden (2026-10-19'dan beri 4 yıl, önce 2 yıl) eski işlemlerde birkaç hissede
+farklı olabilir. Robotlar kilitsiz v3 alır (ozellik: kar_kilit=False; canlıda tarama tk_oda'yı geçirir)."""
 import json
 import os
 import sys
@@ -38,8 +39,8 @@ CIKTI_SANS = "oda_replay_sans.json"   # özel dönem şans bandı için Rastgele
 UZUN_YIL = 5                  # tekrar oynatma en fazla bu kadar yıl geriye gider
 ISINMA = 260                  # en az bu kadar işlem günü sadece göstergeler için (oynatma başlamaz): SMA200 + 20 gün eğim
                               # (trend şablonu, 🌱), 250 günlük dip (aşırı uzama), 🎲 evreninde ≥250 gün geçmiş, 6 ay momentum
-INDIR_GUN = 2 * 365 + 40      # UZUN_YIL'ın önüne eklenen takvim günü: her oynatma gününde ~2 yıllık geçmiş olsun (canlı tarama da
-                              # 2 yıl indiriyor; 🌱 durum makinesi, v3 'pozisyon açık' durumu gibi geçmişe bağlı alanlar oturur)
+INDIR_GUN = 2 * 365 + 40      # UZUN_YIL'ın önüne eklenen takvim günü: her oynatma gününde ~2 yıllık geçmiş olsun (canlı tarama
+                              # 2026-10-19'a kadar 2 yıl, şimdi 4 yıl indiriyor; 🌱 durum makinesi, v3 'pozisyon açık' durumu gibi geçmişe bağlı alanlar oturur)
 DONEMLER = [("6a", "Son 6 ay", 125), ("1y", "Son 1 yıl", 250), ("2y", "Son 2 yıl", 500), ("4y", "Son 4 yıl", 1000),
             ("tum", "Tümü", None)]   # işlem günü; '1y' = eski 250 günlük görünüm (#rep=N bu dönemin N. günü)
 VARSAYILAN = "1y"
