@@ -6,8 +6,8 @@
       "giris_fiyat": 34.38,
       "stop": 27.5,
       "durum": "açık",
-      "guncel": 30.36,
-      "anlik": -11.7,
+      "guncel": 30.44,
+      "anlik": -11.5,
       "tepe": 34.38
     },
     {
@@ -30,8 +30,8 @@
       "giris_fiyat": 411.5,
       "stop": 329.2,
       "durum": "açık",
-      "guncel": 367.75,
-      "anlik": -10.6,
+      "guncel": 367.25,
+      "anlik": -10.8,
       "tepe": 411.5
     },
     {
@@ -40,8 +40,8 @@
       "giris_fiyat": 46.2,
       "stop": 38.06,
       "durum": "açık",
-      "guncel": 41.36,
-      "anlik": -10.5,
+      "guncel": 41.4,
+      "anlik": -10.4,
       "tepe": 47.58
     },
     {
@@ -78,8 +78,8 @@
       "giris_fiyat": 44.34,
       "stop": 39.2,
       "durum": "açık",
-      "guncel": 45.82,
-      "anlik": 3.3,
+      "guncel": 45.9,
+      "anlik": 3.5,
       "tepe": 49.0
     },
     {
@@ -98,8 +98,8 @@
       "giris_fiyat": 62.5,
       "stop": 52.88,
       "durum": "açık",
-      "guncel": 57.15,
-      "anlik": -8.6,
+      "guncel": 57.2,
+      "anlik": -8.5,
       "tepe": 66.1
     },
     {
@@ -108,8 +108,8 @@
       "giris_fiyat": 58.2,
       "stop": 47.92,
       "durum": "açık",
-      "guncel": 58.3,
-      "anlik": 0.2,
+      "guncel": 58.45,
+      "anlik": 0.4,
       "tepe": 59.9
     },
     {
@@ -117,10 +117,14 @@
       "giris_tarih": "2026-09-25",
       "giris_fiyat": 290.25,
       "stop": 232.2,
-      "durum": "açık",
-      "guncel": 232.4,
-      "anlik": -19.9,
-      "tepe": 290.25
+      "durum": "kapalı",
+      "guncel": 232.0,
+      "anlik": -20.1,
+      "tepe": 290.25,
+      "cikis_tarih": "2026-10-19",
+      "cikis_fiyat": 232.0,
+      "sonuc": -20.1,
+      "sebep": "iz stop"
     },
     {
       "kod": "BIMAS",
@@ -128,8 +132,8 @@
       "giris_fiyat": 429.0,
       "stop": 343.2,
       "durum": "açık",
-      "guncel": 374.25,
-      "anlik": -12.8,
+      "guncel": 374.5,
+      "anlik": -12.7,
       "tepe": 429.0
     }
   ]
