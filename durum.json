@@ -1,12 +1,9 @@
 {
   "al": [
-    "EFOR",
     "GLYHO",
     "GMTAS",
-    "INDES",
-    "RYSAS",
-    "SOKM",
-    "TAVHL"
+    "HRKET",
+    "INDES"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -636,7 +633,11 @@
   },
   "gunici": {
     "tarih": "2026-10-19",
-    "g": []
+    "g": [
+      "2561ffc378b849fa",
+      "e4d35a23683d147d",
+      "eb382d8aca17f87c"
+    ]
   },
   "sabah_tarih": "2026-10-19"
 }
