@@ -36,6 +36,66 @@ SIKI_KIJUN, SIKI_SON = 26, 5
 # Giriş filtresi: trend (fiyat>SMA200 ve SMA200 yükseliyor) + aşırı oynak değil (60 günlük günlük oynaklık ≤ %5).
 IZ_STOP_ORAN = 0.20
 OYNAK_ESIK = 0.05
+# 🔐 Kâr kilidi (2026-10-19 araştırmaları, scratchpad cikis2 + finalcikis): v3 çıkışına ek — kapanışta en az bir kez giriş
+# fiyatının ≥ +KAR_KILIT_ESIK üstü görüldüyse stop = max(tepe × (1 − IZ_STOP_ORAN), giriş × (1 + KAR_KILIT_SEVIYE)); kilit bir kez
+# açılınca kalıcı (tepe düşmez). Varsayılan 'A4' (8>5; kafa kafaya testte dengeli puanda 1., isabet %52 → %72 ana / %68 küçük,
+# 10 yuva kârı v3'ün %140 / %122'si, sınırsız sepet kârı %91 / %88'i). 'A1' = KAR_KILIT_ESIK 0.10 (sepet %95 / %91, isabet %69 / %66).
+# KAR_KILIT_ESIK = 0 (ya da False/None) → eski v3 (kilitsiz). Seviye 0 = kilit tam giriş fiyatında (araştırmada KÖTÜ).
+KAR_KILIT_ESIK = 0.08
+KAR_KILIT_SEVIYE = 0.05
+# Araştırma sayıları (pano sözlüğü / backtest notu metni; ayar değişirse eşleşen satır yoksa sayı yazılmaz):
+# isabet ana/küçük (v3 %52/%51), sınırsız sepet kârı v3'ün yüzdesi, kilitle kapananların v3'te +%30 üstü biteceği oran
+KAR_KILIT_ARASTIRMA = {(0.08, 0.05): {"isabet": "%72 / %68", "sepet": "%91 / %88", "buyuk": "%23", "yuva10": "%140 / %122"},
+                       (0.10, 0.05): {"isabet": "%69 / %66", "sepet": "%95 / %91", "buyuk": "%20", "yuva10": "%128 / %119"}}
+
+
+def kar_kilit_ayar(kar_kilit=None):
+    """(eşik, seviye) ya da None (kapalı). kar_kilit: None = modül ayarı, False = kapalı, (eşik, seviye) = özel."""
+    if kar_kilit is None:
+        kar_kilit = (KAR_KILIT_ESIK, KAR_KILIT_SEVIYE)
+    if not kar_kilit or not kar_kilit[0]:
+        return None
+    return float(kar_kilit[0]), float(kar_kilit[1] or 0)
+
+
+def kar_kilit_arastirma():
+    """Geçerli ayarın araştırma sayıları (KAR_KILIT_ARASTIRMA) ya da None."""
+    kk = kar_kilit_ayar()
+    return KAR_KILIT_ARASTIRMA.get((round(kk[0], 4), round(kk[1], 4))) if kk else None
+
+
+def iz_seviye(giris, tepe, kk=None):
+    """🚀 v3 pozisyonunun çıkış (stop) seviyesi — TEK YER: canlı işlemler, grafik çizgisi, portföy, karne, backtest hepsi bunu
+    kullanır. giris = alış fiyatı (ertesi açılış), tepe = girişten beri en yüksek kapanış (başlangıç = giris; bugünkü kapanışla
+    güncellenmiş), kk = kar_kilit_ayar() çıktısı. Kapanış < stop → o kapanışta sat (kilitli tabanda gercekci_cikis).
+    Döner (stop, kilit devrede mi). Yeni bir bileşen (ör. ATR merdiveni) eklenecekse buraya bir max() daha eklenir."""
+    stop = tepe * (1 - IZ_STOP_ORAN)
+    kilit = bool(kk and tepe / giris - 1 >= kk[0])
+    if kilit:
+        s2 = giris * (1 + kk[1])
+        if s2 > stop:
+            stop = s2
+    return stop, kilit
+
+
+def iz_yuru(cv, giris, bas, kk=None, son=None):
+    """Kapanış dizisi cv'de bas. günden (giriş günü) itibaren pozisyonu yürütür. Döner: {cik (çıkış günü | None), tepe, tepe_i,
+    izs (her günün stop'u, bas'tan çıkış/son güne), kk_i (kâr kilidinin devreye girdiği gün | None), kk_cik (çıkışta stop kâr
+    kilidi seviyesindeydi)}. NaN kapanış günleri karşılaştırmalarda yok sayılır (araştırma motoruyla aynı)."""
+    n = len(cv) if son is None else son + 1
+    tepe, tepe_i, cik, kk_i, izs, stop, kilit = giris, bas - 1, None, None, [], None, False
+    for j in range(bas, n):
+        if cv[j] > tepe:
+            tepe, tepe_i = cv[j], j
+        stop, kilit = iz_seviye(giris, tepe, kk)
+        if kilit and kk_i is None:
+            kk_i = j
+        izs.append(float(stop))
+        if cv[j] < stop:
+            cik = j
+            break
+    return {"cik": cik, "tepe": tepe, "tepe_i": tepe_i, "izs": izs, "kk_i": kk_i,
+            "kk_cik": bool(cik is not None and kilit and stop > tepe * (1 - IZ_STOP_ORAN))}
 
 
 def sma(s, n): return s.rolling(n).mean()
@@ -301,7 +361,8 @@ def destek_direnc(df):
 
 def _spark(d, n=130, tk_ham=None, sc=None):
     """Grafik verisi: son n gün (~6 ay) kapanış, ortalamalar, SuperTrend, gösterge sinyali (A/S/N, fare bilgisi) ve 🚀 v3
-    işlemleri: "tk" dizisi (G = kırılım/AL günü, C = iz stop çıkışı, . = yok) + "iz" (pozisyon açıkken iz stop seviyesi)."""
+    işlemleri: "tk" dizisi (G = kırılım/AL günü, C = iz stop çıkışı, K = 🔐 kâr kilidi çıkışı, . = yok) + "iz" (pozisyon açıkken
+    stop seviyesi = sinyal.iz_seviye; parça [başlangıç, değerler(, kâr kilidinin devreye girdiği parça içi sıra)])."""
     t = d.tail(n)
     def arr(col):
         return [None if (col not in t or pd.isna(x)) else round(float(x), 2) for x in (t[col] if col in t else [np.nan]*len(t))]
@@ -325,7 +386,7 @@ def _spark(d, n=130, tk_ham=None, sc=None):
         out["st"] = arr("ST_LINE")
     if tk_ham:
         bas, m, cv = len(d) - len(t), len(t), d["Close"].values
-        isr, iz = ["."] * m, [None] * m
+        isr, iz, kk = ["."] * m, [None] * m, [0] * m
         for x in tk_ham:
             son = x["cik"] if x["cik"] is not None else len(d) - 1
             if son < bas:
@@ -333,12 +394,13 @@ def _spark(d, n=130, tk_ham=None, sc=None):
             if x["i"] >= bas:
                 isr[x["i"] - bas] = "G"
             if x["cik"] is not None:
-                isr[x["cik"] - bas] = "C"
-            tepe = x["giris"]
-            for j in range(x["i"] + 1, son + 1):   # trend_kirilimi ile aynı: tepe girişten başlar, kapanışlarla güncellenir
-                tepe = max(tepe, float(cv[j]))
-                if j >= bas:
-                    iz[j - bas] = round(tepe * (1 - IZ_STOP_ORAN), 2)
+                isr[x["cik"] - bas] = "K" if x.get("kk_cik") else "C"
+            izs = x.get("izs") or []
+            for j in range(x["i"] + 1, son + 1):   # stop değerleri trend_kirilimi'den (iz_seviye: %20 iz + 🔐 kâr kilidi)
+                if j >= bas and j - x["i"] - 1 < len(izs):
+                    iz[j - bas] = round(izs[j - x["i"] - 1], 2)
+                    if x.get("kk_i") is not None and j >= x["kk_i"]:
+                        kk[j - bas] = 1
         if any(x != "." for x in isr):   # pencerede işaret yoksa boş dizi yazılmaz (4 yıllık veride eski işlemler, sayfa büyümesin)
             out["tk"] = "".join(isr)
         parca, i = [], 0   # iz stop parçaları [başlangıç sırası, [değerler]] (boş günler sayfayı şişirmesin)
@@ -348,7 +410,11 @@ def _spark(d, n=130, tk_ham=None, sc=None):
             j = i
             while j < m and iz[j] is not None:
                 j += 1
-            parca.append([i, iz[i:j]]); i = j
+            p = [i, iz[i:j]]
+            k0 = next((q for q in range(i, j) if kk[q]), None)
+            if k0 is not None:   # 3. eleman: parçada 🔐 kâr kilidinin devreye girdiği sıra (parça içi)
+                p.append(k0 - i)
+            parca.append(p); i = j
         if parca:
             out["iz"] = parca
     if sc and "_j0" in sc:   # 📏 sıkı çizgi (kijun) — uzamadan/girişten bugüne, grafik penceresi içindeki kısım: [başlangıç sırası, [değerler]]
@@ -424,10 +490,13 @@ def trend_sablonu(d):
             & (c > d["SMA50"]) & (c >= 0.75 * mx) & (c >= 1.30 * mn))
 
 
-def trend_kirilimi(d, xu_ust=None, islemler=False, ham=False):
+def trend_kirilimi(d, xu_ust=None, islemler=False, ham=False, kar_kilit=None):
     """🚀 v3 giriş/çıkış (5 yıllık backtest'te v2'den iyi, bkz. CLAUDE.md): trend şablonundayken 20 günlük zirvenin
     ilk kırılımı (piyasa XU100 > SMA50, 60 gün oynaklık ≤ %5) → AL; ertesi açılıştan girilir, AL'den beri tepe
-    kapanışın IZ_STOP_ORAN altına kapanışta çıkılır. Pozisyon açıkken yeni kırılımlar sayılmaz (backtest'le aynı)."""
+    kapanışın IZ_STOP_ORAN altına kapanışta çıkılır. Pozisyon açıkken yeni kırılımlar sayılmaz (backtest'le aynı).
+    🔐 kâr kilidi (iz_seviye): kapanışta giriş +KAR_KILIT_ESIK görüldüyse stop en az giriş × (1 + KAR_KILIT_SEVIYE).
+    kar_kilit: None = modül ayarı (canlı), False = eski v3 (kilitsiz; İşlem Odası robotları bunu kullanır), (eşik, seviye)."""
+    kk = kar_kilit_ayar(kar_kilit)
     c = d["Close"]
     sab = trend_sablonu(d)
     kir = c > c.rolling(KIRILIM_GUN).max().shift(1)
@@ -441,13 +510,10 @@ def trend_kirilimi(d, xu_ust=None, islemler=False, ham=False):
         if not g[i]:
             i += 1; continue
         giris = o[i + 1] if i + 1 < n else cv[i]   # bugün sinyal: giriş yarın açılışta (şimdilik kapanış)
-        tepe, tepe_i, cik = giris, i, None
-        for j in range(i + 1, n):
-            if cv[j] > tepe:
-                tepe, tepe_i = cv[j], j
-            if cv[j] < tepe * (1 - IZ_STOP_ORAN):
-                cik = j; break
-        tum.append({"i": i, "giris": float(giris), "tepe": float(tepe), "tepe_i": tepe_i, "cik": cik})
+        y = iz_yuru(cv, float(giris), i + 1, kk)
+        cik = y["cik"]
+        tum.append({"i": i, "giris": float(giris), "tepe": float(y["tepe"]), "tepe_i": max(y["tepe_i"], i), "cik": cik,
+                    "izs": y["izs"], "kk_i": y["kk_i"], "kk_cik": y["kk_cik"]})
         if cik is None:
             acik = tum[-1]; break
         i = cik + 1
@@ -480,7 +546,8 @@ def trend_kirilimi(d, xu_ust=None, islemler=False, ham=False):
         if eksik:
             out["eksik"] = eksik
     if acik:
-        stop = acik["tepe"] * (1 - IZ_STOP_ORAN)
+        stop, kilit = iz_seviye(acik["giris"], acik["tepe"], kk)
+        stop = float(stop)
         uz = asiri_uzama(c, acik["i"])   # sinyal günü ölçülür (bilgi notu; sadece varsa yazılır)
         if uz:
             out["uzama"] = uz
@@ -491,12 +558,30 @@ def trend_kirilimi(d, xu_ust=None, islemler=False, ham=False):
                     "gun": n - 1 - acik["i"], "degisim": round((fiyat / acik["giris"] - 1) * 100, 1),
                     "tepe": round(acik["tepe"], 2), "tepe_tarih": str(idx[acik["tepe_i"]].date()),
                     "stop": round(stop, 2), "uzaklik": round((stop / fiyat - 1) * 100, 1)})
+        out.update(_kk_alanlar(acik, kk, kilit, idx))
     elif son and son["cik"] is not None:
         out.update({"durum": "CIKTI", "giris_tarih": str(idx[son["i"]].date()), "cikis_tarih": str(idx[son["cik"]].date()),
                     "tepe": round(son["tepe"], 2), "tepe_tarih": str(idx[son["tepe_i"]].date()),
-                    "stop": round(son["tepe"] * (1 - IZ_STOP_ORAN), 2),
+                    "stop": round(son["izs"][-1], 2),
                     "sonuc": round((float(cv[son["cik"]]) / son["giris"] - 1) * 100, 1), "cikis_gun": n - 1 - son["cik"]})
+        out.update(_kk_alanlar(son, kk, son["kk_i"] is not None, idx))
     return out
+
+
+def _kk_alanlar(x, kk, kilit, idx):
+    """🔐 kâr kilidi alanları (pano/Telegram metni için; kural iz_seviye'de): iz20 = tepe × (1 − IZ_STOP_ORAN), kk = [eşik %,
+    seviye %] (kural açıksa), kilit = devrede mi, kilit_seviye = giriş × (1 + seviye), kilit_esik_fiyat = devreye gireceği kapanış,
+    kilit_tarih = devreye girdiği gün, kilit_cik = çıkış kâr kilidi seviyesinden oldu."""
+    if not kk:
+        return {}
+    o = {"iz20": round(x["tepe"] * (1 - IZ_STOP_ORAN), 2), "kk": [round(kk[0] * 100, 1), round(kk[1] * 100, 1)],
+         "kilit": bool(kilit), "kilit_seviye": round(x["giris"] * (1 + kk[1]), 2),
+         "kilit_esik_fiyat": round(x["giris"] * (1 + kk[0]), 2)}
+    if x.get("kk_i") is not None:
+        o["kilit_tarih"] = str(idx[x["kk_i"]].date())
+    if x.get("kk_cik"):
+        o["kilit_cik"] = True
+    return o
 
 
 TK_GECMIS_N = 6   # hisse penceresindeki 'Sinyal geçmişi' ve '🚀 Son roketler' için saklanan en son v3 işlemi sayısı
@@ -509,11 +594,20 @@ def tk_gecmis(d, tum, n=TK_GECMIS_N):
     Canlı kuralın geçmişe uygulanması — backtest.py v3 ile aynı işlemler (aynı fonksiyon). Komisyonsuz."""
     idx, cv = d.index, d["Close"].values
     kil = kilitli_gun(d).values
-    # 5. eleman (sadece varsa): 1 = çıkış günü kilitli taban (o kapanıştan satılamamış olabilir)
+    # 5. eleman (sadece varsa) bit alanı: 1 = çıkış günü kilitli taban (o kapanıştan satılamamış olabilir),
+    # 2 = çıkış 🔐 kâr kilidi seviyesinden (giriş +%5) oldu, 4 = pozisyon açık ve kâr kilidi devrede
+    def _bit(x):
+        b = 0
+        if x["cik"] is not None and kil[x["cik"]]:
+            b |= 1
+        if x.get("kk_cik"):
+            b |= 2
+        if x["cik"] is None and x.get("kk_i") is not None:
+            b |= 4
+        return [b] if b else []
     return [[str(idx[x["i"]].date()), round(x["giris"], 2),
              str(idx[x["cik"]].date()) if x["cik"] is not None else None,
-             round(float(cv[x["cik"]]), 2) if x["cik"] is not None else None]
-            + ([1] if (x["cik"] is not None and kil[x["cik"]]) else []) for x in tum[-n:]]
+             round(float(cv[x["cik"]]), 2) if x["cik"] is not None else None] + _bit(x) for x in tum[-n:]]
 
 
 def kilitli_gun(d, sadece_kilitli=True):
@@ -884,6 +978,11 @@ def analiz_et(df, xu_ust=None, xu=None, bar_kesin=True, bugun=None):
     # v3: son giriş 🚀 trend kırılımıysa (gösterge AL'inden daha yeni) iz stop o girişten izlenir
     tk = trend_kirilimi(d, xu_ust)
     tk_ham = trend_kirilimi(d, xu_ust, ham=True)
+    # 🏢 İşlem Odası robotları kendi çıkış kurallarıyla çalışır ve araştırmaları eski (kilitsiz) v3 girişleriyle yapıldı:
+    # kâr kilidi açıksa onlara kilitsiz v3 durumu ayrıca verilir (tarama oda'ya 'tk' yerine bunu geçirir).
+    tk_oda = trend_kirilimi(d, xu_ust, kar_kilit=False) if kar_kilit_ayar() else tk
+    if tk_oda is not tk and isinstance(tk_oda.get("sc"), dict):
+        tk_oda["sc"].pop("_j0", None)   # grafik iç alanı (_spark tk'ninkini siler; burada da aynısı)
     if tk.get("giris_tarih") and (al_tarih is None or tk["giris_tarih"] >= al_tarih):
         al_tarih = tk["giris_tarih"]
         if tk["durum"] == "AL":
@@ -892,6 +991,9 @@ def analiz_et(df, xu_ust=None, xu=None, bar_kesin=True, bugun=None):
         else:
             iz = {"tepe": tk["tepe"], "tepe_tarih": tk["tepe_tarih"], "stop": tk["stop"], "cikti": True,
                   "cikis_tarih": tk["cikis_tarih"], "uzaklik": round((tk["stop"] / fiyat - 1) * 100, 1)}
+        for a in ("iz20", "kk", "kilit", "kilit_seviye", "kilit_esik_fiyat", "kilit_tarih", "kilit_cik"):   # 🔐 kâr kilidi
+            if a in tk:
+                iz[a] = tk[a]
 
     return {
         "fiyat": round(fiyat, 2),
@@ -926,6 +1028,7 @@ def analiz_et(df, xu_ust=None, xu=None, bar_kesin=True, bugun=None):
         "hv": hacim_oranlari(d),
         "uv": uzun_vade(d),
         "tk": tk,
+        "tk_oda": tk_oda,
         "vd": vade_durum(d, bar_kesin, bugun),
         "guc": guc_puani(d),
         "mom6": round((float(d["Close"].iloc[-22]) / float(d["Close"].iloc[-127]) - 1) * 100, 1) if len(d) > 127 else None,

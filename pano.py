@@ -179,7 +179,9 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None, 
                    '<th class="num">Sinyale kalan</th></tr></thead><tbody>' + "".join(arzrows) + '</tbody></table></div>')
 
     html = _SABLON
-    for a, b in [("__TARIH__", tarih), ("__REPO__", REPO), ("__AL__", str(al)), ("__GUCLU__", str(guclu)),
+    kk = kk_metinleri()
+    for a, b in [("__KKSOZ__", kk["soz"]), ("__KKCUMLE__", kk["cumle"]), ("__KKGRAFIK__", kk["grafik"]), ("__KK__", kk["js"]),
+                 ("__TARIH__", tarih), ("__REPO__", REPO), ("__AL__", str(al)), ("__GUCLU__", str(guclu)),
                  ("__TOPLAM__", str(len(sonuclar))),
                  ("__TKBUGUN__", str(sum(1 for s in sonuclar if (s.get("tk") or {}).get("bugun")))),
                  ("__TK5__", str(sum(1 for s in sonuclar if (s.get("tk") or {}).get("durum") == "AL" and ((s.get("tk") or {}).get("gun") or 0) <= 5))), ("__BANNER__", banner),
@@ -191,10 +193,37 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None, 
     return html
 
 
+def kk_metinleri():
+    """🔐 kâr kilidi metinleri (sabitler sinyal.KAR_KILIT_ESIK / KAR_KILIT_SEVIYE'den; kural kapalıysa hepsi boş, JS KK = null)."""
+    from sinyal import kar_kilit_ayar, kar_kilit_arastirma
+    kk, ar = kar_kilit_ayar(), kar_kilit_arastirma()
+    if not kk:
+        return {"soz": "", "cumle": "", "grafik": "", "karne": "", "js": "null"}
+    e, sv = (f"{round(x * 100, 1):g}".replace(".", ",") for x in kk)
+    return {
+        "js": json.dumps([round(kk[0] * 100, 1), round(kk[1] * 100, 1)]),
+        "soz": (f'<div class="sz"><span class="tkb">🔐 kâr kilidi</span><span>🚀 pozisyonda kapanış bir kez alış fiyatının +%{e} üstüne '
+                f'çıktıysa, iz stop en az alış +%{sv} olur (normal %20 iz stop daha yüksekse o geçerli). Amaç: kâr gören işlemi zarara '
+                f'döndürmeden kapatmak. ' + (f'10 yıllık testte (286 hisse) kârla kapanan işlem oranı %52 → {ar["isabet"].split(" / ")[0]}; '
+                f"bedeli: bazı büyük yükselişlerin başında +%{sv}'te satılıyor (kilitle kapananların ~{ar['buyuk']}'ü eski kuralla "
+                f"+%30'un üstünde biterdi), her işleme eşit para koyan toplam kâr biraz düşük ({ar['sepet']} → eski kuralın yüzdesi). "
+                if ar else f"Bedeli: bazı büyük yükselişlerin başında +%{sv}'te satılabilir. ") + "Grafikte ▼ SAT "
+                f'işaretinin üstünde 🔐 yazar.</span></div>'),
+        "cumle": f" 🔐 Kâr kilidi: kapanışta alışın +%{e} üstü bir kez görüldüyse stop en az alış +%{sv} olur.",
+        "grafik": f" Kapanış alışın +%{e} üstünü görünce 🔐 kâr kilidi devreye girer: mor çizgi en az alış +%{sv}'te durur.",
+        "karne": (f" 🔐 <b>Kâr kilidi</b> (canlı kurala Ekim 2026'da eklendi, <b>ileriye dönük</b>): bu tarihten sonra açılan kayıtlarda "
+                  f'kesin kapanışta kayıt fiyatının +%{e} üstü görülürse stop en az kayıt fiyatı +%{sv} olur (tabloda 🔐). Daha önce '
+                  f'açılmış kayıtlar (açık olanlar dahil) eski %20 iz stop kuralıyla kapanır; geçmiş kayıtlar yeniden yazılmadı.'),
+    }
+
+
 def gecmis_uret(acik, kapali, ozet):
     """Sinyal geçmişi sayfası: açık pozisyonlar + kapanmış sinyaller + karne."""
     def eski(r):
-        return "" if r.get("kural") == "v3" else ' <span class="eskib" title="Eski (v3 öncesi) kurallarla açılmış kayıt">eski kural</span>'
+        e = "" if r.get("kural") == "v3" else ' <span class="eskib" title="Eski (v3 öncesi) kurallarla açılmış kayıt">eski kural</span>'
+        if r.get("kk"):
+            e += f' <span title="🔐 kâr kilidi {r["kk"]} tarihinde devreye girdi: stop en az kayıt fiyatı +%{round(r["kar_kilit"][1] * 100, 1):g}">🔐</span>'
+        return e
 
     def satirlar(kayitlar, acikmi):
         out = []
@@ -221,7 +250,7 @@ def gecmis_uret(acik, kapali, ozet):
         "__ISABET__": str(ozet.get("isabet", "—")), "__KAPANAN__": str(ozet.get("kapanan", 0)),
         "__ORT__": str(ozet.get("ort", "—")), "__ACIK__": str(ozet.get("acik", 0)),
         "__ACIKROWS__": satirlar(acik, True), "__KAPALIROWS__": satirlar(kapali, False),
-        "__TARIH__": _simdi(),
+        "__TARIH__": _simdi(), "__KKKARNE__": kk_metinleri()["karne"],
         "__ESKI__": (lambda e: (f'<div class="not">Eski (v3 öncesi) kurallarla açılmış kayıtlar yukarıdaki kartlara dahil değil: '
                                 f'{e["kapanan"]} kapanan (isabet %{e["isabet"]}, ortalama %{e["ort"]}), {e["acik"]} açık. '
                                 f'Tablolarda "eski kural" etiketiyle görünürler.</div>') if (e["kapanan"] or e["acik"]) else "")(ozet.get("eski") or {"kapanan": 0, "acik": 0}),
@@ -352,7 +381,7 @@ table.pf{min-width:900px}
 .leg .c1::before{background:#16181D}.leg .c2::before{background:#0E4D45}.leg .c3::before{background:#C7962B}.leg .c4::before{background:#B4362E}
 .leg .c5::before{background:#3A6EA5}.leg .c6::before{background:#B7791F}.leg .c7::before{background:repeating-linear-gradient(90deg,#7A3E9D 0 5px,transparent 5px 7px)}
 .leg{flex-wrap:wrap}.leg .lm::before{display:none}
-.tkson{font-size:12.8px;line-height:1.5;margin:2px 4px 6px}.kilc{display:block;font-size:11px;color:#8A2F26;white-space:normal;font-weight:600;text-align:left}.graralik{display:flex;gap:6px;margin:0 4px 6px}
+.tkson{font-size:12.8px;line-height:1.5;margin:2px 4px 6px}.kilc{display:block;font-size:11px;color:#8A2F26;white-space:normal;font-weight:600;text-align:left}.kkc{display:block;font-size:11px;color:#7A3E9D;white-space:normal;font-weight:600;text-align:left}.graralik{display:flex;gap:6px;margin:0 4px 6px}
 .grb{border:1px solid var(--line);background:#fff;border-radius:7px;padding:3px 10px;font-size:12px;cursor:pointer;color:var(--muted)}.grb.on{background:var(--accent);border-color:var(--accent);color:#fff}
 .tkgs{overflow-x:auto;margin:6px 0 2px}table.rk{min-width:0;font-size:12.5px}table.rk th,table.rk td{padding:6px 8px}.tkgs tbody tr{cursor:default}.tkgs tbody tr:hover,.tkgs tbody tr:hover td{background:none}
 .rkkutu .sar{margin-top:8px}.rkkutu table.rk{min-width:640px}#roket{border:1px solid var(--line);border-radius:7px;padding:4px 6px;font-size:13px;background:#fff}
@@ -402,7 +431,7 @@ __ARZ__
 <h2 class="bolum">İşaretler ne demek? <span class="bolumalt">— tablodaki ve hisse penceresindeki tüm rozetler</span></h2>
 <div class="sozluk">
 <div class="szgrup"><h3>Alım sinyali (v3)</h3>
-<div class="sz"><span class="tkb yeni">🚀 KIRILIM</span><span>Bugün AL: hisse güçlü trenddeyken (fiyat 50/150/200 günlük ortalamaların üstünde, 52 hafta zirvesine yakın) son 20 günün zirvesini ilk kez aştı. Telegram'a gelen AL budur. Çıkış: tepe kapanışın %20 altı (iz stop).</span></div>
+<div class="sz"><span class="tkb yeni">🚀 KIRILIM</span><span>Bugün AL: hisse güçlü trenddeyken (fiyat 50/150/200 günlük ortalamaların üstünde, 52 hafta zirvesine yakın) son 20 günün zirvesini ilk kez aştı. Telegram'a gelen AL budur. Çıkış: tepe kapanışın %20 altı (iz stop).__KKCUMLE__</span></div>__KKSOZ__
 <div class="sz"><span class="tkb">🚀 AL 3g önce</span><span>AL birkaç gün önce geldi. Testte ilk 5 gün içinde almak, sinyal günüyle neredeyse aynı sonucu verdi.</span></div>
 <div class="sz"><span class="tkb izle">trendde · 25g</span><span>Eski AL hâlâ sürüyor ama <b>yeni alım sinyali değil</b>: 20+ gün sonra girmek testte belirgin kötüydü. Elindeyse iz stop'a kadar tut.</span></div>
 <div class="sz"><span class="tkb izle">🚀 Son roketler</span><span>Tablonun üstündeki filtre: son 5 / 20 / 60 işlem gününde 🚀 AL almış hisseler; sinyal günü, girişten beri getiri, BIST 100'e göre fark. İz stop ile kapananlar da listede (sadece iyi gidenleri göstermek yanıltıcı olur). Eski sinyaller yeni alım sinyali değil.</span></div>
@@ -441,15 +470,15 @@ __ARZ__
 <div class="sz"><b>Uyum</b><span>5 oylama göstergesinden kaçı AL diyor.</span></div>
 <div class="sz"><b>Güç</b><span>7 iyi göstergeden kaçı olumlu (yukarıda).</span></div>
 <div class="sz"><b>Vade</b><span><i class="vu">G↑</i> <i class="vu">H↑</i> <i class="va">A↓</i> = günlük / haftalık / aylık trend oku. ↑ fiyat ortalamanın üstünde ve ortalama yükseliyor, ↓ altında ve yükselmiyor, → arada. Günlük: 50 günlük ort.; haftalık: son biten haftanın kapanışı ve 30 haftalık ort.; aylık: son biten ay ve 10 aylık ort. (11 aydan kısa geçmişte —). Bilgi, sinyal değil: geçmişte (2016-2026) üçü de ↓ olanlar sonraki 2-6 ayda çoğunlukla endeksin gerisinde kaldı ama fark küçük; üçü de ↑ olmak tek başına alım sinyali değil.</span></div>
-<div class="sz"><b>Stop</b><span>İz stop: AL'den beri tepe kapanışın %20 altı. Kapanış altına inerse çık.</span></div>
+<div class="sz"><b>Stop</b><span>İz stop: AL'den beri tepe kapanışın %20 altı. Kapanış altına inerse çık.__KKCUMLE__</span></div>
 <div class="sz"><b>Öneri lot</b><span>Stop yerse portföyünün belirlediğin yüzdesini kaybedeceğin lot.</span></div>
 </div>
 </div>
 <div class="aciklama">
-<div class="kart"><h3>📖 Sistemi nasıl kullanırım?</h3><p><b>1.</b> 🚀 AL Telegram'a 17:30'dan sonra gelir: hisse güçlü trendde son 20 günün zirvesini aştı. İstersen o gün kapanışa kadar, istersen sonraki 5 gün içinde alırsın (testte fark küçük). Kapanışta tutmazsa 18:30'dan sonra "↩️ iptal" gelir.<br><b>2.</b> Parayı ~10 eşit parçaya böl; tek hisseye yüklenme.<br><b>3.</b> Aldıktan sonra tek kural <b>📍 iz stop</b>: AL'den beri en yüksek kapanışın %20 altı. Kapanış bunun altına inerse çık. Gün içi sarkma yetmez, kapanış belirler.<br><b>4.</b> Sabah ☀️ mesajında portföyünün seviyeleri, gün içinde 📍 önemli olaylar, akşam 💼 özet gelir.<br><b>5.</b> 🎈 / ⚠️ / 🪤 uyarıları olan hisselerde dikkatli ol; SAT, NÖTR ve destek/direnç bilgi amaçlıdır.</p></div>
-<div class="kart"><h3>📈 Grafik nasıl okunur?</h3><p>Hisseye tıklayınca açılan grafikte: <b>siyah çizgi</b> fiyat (son 6 ay). <b>Yeşil / sarı çizgi</b> 20 / 50 günlük ortalama: fiyat ikisinin üstündeyse kısa vadede güçlü. <b>Kırmızı çizgi</b> SuperTrend (gösterge sinyali). <b>Mavi / turuncu kesikli</b> destek / direnç. <b style="color:#1B7F4B">▲ AL</b> Telegram'a gelen 🚀 AL günü, <b style="color:#B4362E">▼ SAT</b> iz stop'la çıkış günü, <b>mor kesikli çizgi</b> o pozisyonun iz stop'u: fiyat yükseldikçe yukarı çıkar, hiç aşağı inmez. <b style="color:#D6336C">Pembe ince kesikli</b> çizgi 📏 sıkı çizgi (sadece çok yükselmiş 🚀 pozisyonda; bilgi, kural değil). Grafiğin üstünde son AL/SAT özeti; <b>1 yıl</b> düğmesi daha eski kısmı haftalık gösterir. Altta o hissenin <b>sinyal geçmişi</b> tablosu var. Parmağını/fareni grafikte gezdirince o günün fiyatı ve iz stop'u görünür.</p></div>
+<div class="kart"><h3>📖 Sistemi nasıl kullanırım?</h3><p><b>1.</b> 🚀 AL Telegram'a 17:30'dan sonra gelir: hisse güçlü trendde son 20 günün zirvesini aştı. İstersen o gün kapanışa kadar, istersen sonraki 5 gün içinde alırsın (testte fark küçük). Kapanışta tutmazsa 18:30'dan sonra "↩️ iptal" gelir.<br><b>2.</b> Parayı ~10 eşit parçaya böl; tek hisseye yüklenme.<br><b>3.</b> Aldıktan sonra tek kural <b>📍 iz stop</b>: AL'den beri en yüksek kapanışın %20 altı. Kapanış bunun altına inerse çık. Gün içi sarkma yetmez, kapanış belirler.__KKCUMLE__<br><b>4.</b> Sabah ☀️ mesajında portföyünün seviyeleri, gün içinde 📍 önemli olaylar, akşam 💼 özet gelir.<br><b>5.</b> 🎈 / ⚠️ / 🪤 uyarıları olan hisselerde dikkatli ol; SAT, NÖTR ve destek/direnç bilgi amaçlıdır.</p></div>
+<div class="kart"><h3>📈 Grafik nasıl okunur?</h3><p>Hisseye tıklayınca açılan grafikte: <b>siyah çizgi</b> fiyat (son 6 ay). <b>Yeşil / sarı çizgi</b> 20 / 50 günlük ortalama: fiyat ikisinin üstündeyse kısa vadede güçlü. <b>Kırmızı çizgi</b> SuperTrend (gösterge sinyali). <b>Mavi / turuncu kesikli</b> destek / direnç. <b style="color:#1B7F4B">▲ AL</b> Telegram'a gelen 🚀 AL günü, <b style="color:#B4362E">▼ SAT</b> iz stop'la çıkış günü, <b>mor kesikli çizgi</b> o pozisyonun iz stop'u: fiyat yükseldikçe yukarı çıkar, hiç aşağı inmez.__KKGRAFIK__ <b style="color:#D6336C">Pembe ince kesikli</b> çizgi 📏 sıkı çizgi (sadece çok yükselmiş 🚀 pozisyonda; bilgi, kural değil). Grafiğin üstünde son AL/SAT özeti; <b>1 yıl</b> düğmesi daha eski kısmı haftalık gösterir. Altta o hissenin <b>sinyal geçmişi</b> tablosu var. Parmağını/fareni grafikte gezdirince o günün fiyatı ve iz stop'u görünür.</p></div>
 <div class="kart"><h3>Piyasa filtresi</h3><p>BIST 100, 50 günlük ortalamasının altındaysa üstte "Piyasa zayıf" uyarısı çıkar. 5 yıllık backtest'te bu dönemlerde gelen AL'ler belirgin şekilde daha kötü sonuç verdi.</p></div>
-<div class="kart"><h3>Çıkış ve hedef</h3><p><b>📍 İz stop</b>: AL'den beri görülen en yüksek kapanışın %20 altı; fiyat yükseldikçe yukarı taşınır, kapanış altına inerse "çık". SAT sinyali tek başına çıkış değildir (gece testleri: SAT'ta çıkmak yükseliş piyasasında kazancı eritiyordu; iz stop 2023'te −%6 yerine +%45). <b>🎯 İzleme</b>: en yakın direnç — geçmişte satış gelen tepe. Hedef satış emri değil, izleme noktasıdır: 5 yıllık backtest'te hedefte kısmi satış, SAT/stop'a kadar tutmaktan belirgin şekilde kötü sonuç verdi.</p></div>
+<div class="kart"><h3>Çıkış ve hedef</h3><p><b>📍 İz stop</b>: AL'den beri görülen en yüksek kapanışın %20 altı; fiyat yükseldikçe yukarı taşınır, kapanış altına inerse "çık".__KKCUMLE__ SAT sinyali tek başına çıkış değildir (gece testleri: SAT'ta çıkmak yükseliş piyasasında kazancı eritiyordu; iz stop 2023'te −%6 yerine +%45). <b>🎯 İzleme</b>: en yakın direnç — geçmişte satış gelen tepe. Hedef satış emri değil, izleme noktasıdır: 5 yıllık backtest'te hedefte kısmi satış, SAT/stop'a kadar tutmaktan belirgin şekilde kötü sonuç verdi.</p></div>
 <div class="kart"><h3>NÖTR: sarı mı turuncu mu?</h3><p><span class="pill notr notr-al">NÖTR</span> <b>Sarı = AL'den döndü.</b> Elindeyse tut; iz stop kırılırsa çık. Yeni alım yapma.<br><span class="pill notr notr-sat">NÖTR</span> <b>Turuncu = SAT'tan döndü.</b> Düşüş yavaşladı ama henüz alım sinyali değil; AL'i bekle. (5 yıllık backtest: NÖTR'de satmak ya da turuncuda almak, beklemekten kötü sonuç verdi.)</p></div>
 <div class="kart"><h3>Öneri lot (risk yönetimi)</h3><p>Stop yerse portföyünün sadece belirlediğin yüzdeyi (örn. %1) kaybedeceğin lot sayısı: (portföy×risk%)÷(fiyat−stop).</p></div>
 <div class="kart"><h3>RSI</h3><p>0–100 momentum. 30 altı aşırı satım, 70 üstü aşırı alım. Sağlıklı yükseliş 45–68 bandında.</p></div>
@@ -468,6 +497,7 @@ const DATA=__DATA__;
 const XU=__XU__;
 const PIYASA=__PIYASA__;  // BIST 100: son 2 yıl günlük, öncesi haftalık — portföy-endeks kıyası
 const GI=__GI__;
+const KK=__KK__;  // 🔐 kâr kilidi [eşik %, seviye %] (sinyal.KAR_KILIT_*), kural kapalıysa null — çizgi değerleri Python'dan hazır gelir
 const t=document.getElementById('t');
 [...t.tBodies[0].rows].forEach(function(r){var c=r.querySelector('td.vd');if(c)c.innerHTML=vdHucre((DATA[r.dataset.kod]||{}).vd);});
 t.querySelectorAll('th').forEach((th,i)=>{th.addEventListener('click',()=>{
@@ -585,34 +615,35 @@ function adimlar(mn,mx){  // okunur eksen değerleri
  var v=[],b=Math.ceil(mn/k)*k;for(var x=b;x<=mx+1e-9;x+=k)v.push(Math.round(x*100)/100);return v;
 }
 function grGun(s,k){return new Date(Date.parse(s+'T00:00:00Z')+k*864e5).toISOString().slice(0,10);}
-function grIsaret(tur,x,y,baslik){  // ▲ AL (yeşil, fiyatın altında) / ▼ SAT (kırmızı, üstünde); grafik kenarına taşarsa ters tarafa
+function grIsaret(tur,x,y,baslik,kk){  // ▲ AL (yeşil, fiyatın altında) / ▼ SAT (kırmızı, üstünde); grafik kenarına taşarsa ters tarafa
  var alt=GR.H-GR.B,ust=GR.T,g='<g><title>'+baslik+'</title>';
  if(tur==='G'){var a=y+29>alt;var d=a?-1:1,y0=y+6*d,y1=y+14*d;
   g+='<path d="M'+x.toFixed(1)+' '+y0.toFixed(1)+'L'+(x-5).toFixed(1)+' '+y1.toFixed(1)+'L'+(x+5).toFixed(1)+' '+y1.toFixed(1)+'Z" fill="#1B7F4B"/>'+
    '<text x="'+x.toFixed(1)+'" y="'+(a?y-17:y+24).toFixed(1)+'" font-size="9" font-weight="700" fill="#1B7F4B" text-anchor="middle" stroke="#fff" stroke-width="2.5" paint-order="stroke">AL</text>';}
  else{var b=y-26<ust;var e=b?-1:1,z0=y-6*e,z1=y-14*e;
   g+='<path d="M'+x.toFixed(1)+' '+z0.toFixed(1)+'L'+(x-5).toFixed(1)+' '+z1.toFixed(1)+'L'+(x+5).toFixed(1)+' '+z1.toFixed(1)+'Z" fill="#B4362E"/>'+
-   '<text x="'+x.toFixed(1)+'" y="'+(b?y+24:y-17).toFixed(1)+'" font-size="9" font-weight="700" fill="#B4362E" text-anchor="middle" stroke="#fff" stroke-width="2.5" paint-order="stroke">SAT</text>';}
+   '<text x="'+x.toFixed(1)+'" y="'+(b?y+24:y-17).toFixed(1)+'" font-size="9" font-weight="700" fill="#B4362E" text-anchor="middle" stroke="#fff" stroke-width="2.5" paint-order="stroke">SAT'+(kk?' 🔐':'')+'</text>';}
  return g+'</g>';
 }
 function grafik(sp,sd,ar,tkg){
  if(!sp||!sp.c) return '<div style="color:#6B7079;font-size:13px">Grafik verisi yok.</div>';
  var ds=sd&&sd.destek?sd.destek.fiyat:null,dr=sd&&sd.direnc?sd.direnc.fiyat:null;
  if(sp.sc&&!sp.scg){sp.scg=new Array(sp.c.length).fill(null);sp.sc[1].forEach(function(v,k){sp.scg[sp.sc[0]+k]=v;});}  // 📏 sıkı çizgi parçası → gün dizisi
- if(sp.iz&&!sp.izg){sp.izg=new Array(sp.c.length).fill(null);sp.iz.forEach(function(p){p[1].forEach(function(v,k){sp.izg[p[0]+k]=v;});});}  // iz stop parçaları → gün dizisi
+ if(sp.iz&&!sp.izg){sp.izg=new Array(sp.c.length).fill(null);sp.izk=new Array(sp.c.length).fill(0);sp.iz.forEach(function(p){p[1].forEach(function(v,k){sp.izg[p[0]+k]=v;});
+  if(p.length>2)for(var q=p[2];q<p[1].length;q++)sp.izk[p[0]+q]=1;});}  // 3. eleman: 🔐 kâr kilidinin devreye girdiği parça içi sıra  // iz stop parçaları → gün dizisi
  var uz=ar==='1y'&&sp.w&&sp.w.length&&sp.w0,m=uz?sp.w.length:0,bos=new Array(m).fill(null);
- var c=sp.c,s20=sp.s20,s50=sp.s50,st=sp.st,izg=sp.izg,scg=sp.scg,tt=sp.t,tk=sp.tk||'',eski=[];
+ var c=sp.c,s20=sp.s20,s50=sp.s50,st=sp.st,izg=sp.izg,izk=sp.izk,scg=sp.scg,tt=sp.t,tk=sp.tk||'',eski=[];
  if(uz){var wt=[];for(var q=0;q<m;q++)wt.push(grGun(sp.w0,7*q+4));   // haftalık nokta: o haftanın cuması
   c=sp.w.concat(sp.c);tt=wt.concat(sp.t);tk=new Array(m+1).join('.')+tk;
-  s20=s20?bos.concat(s20):null;s50=s50?bos.concat(s50):null;st=st?bos.concat(st):null;izg=izg?bos.concat(izg):null;scg=scg?bos.concat(scg):null;
+  s20=s20?bos.concat(s20):null;s50=s50?bos.concat(s50):null;st=st?bos.concat(st):null;izg=izg?bos.concat(izg):null;izk=izk?bos.concat(izk):null;scg=scg?bos.concat(scg):null;
   (tkg||[]).forEach(function(x){   // grafik penceresinden eski işlemler (haftalık kısım): işaret işlemin kendi fiyatında
    if(x[0]<sp.t[0]&&x[0]>=wt[0])eski.push(['G',x[0],x[1]]);
-   if(x[2]&&x[2]<sp.t[0]&&x[2]>=wt[0])eski.push(['C',x[2],x[3]]);});}
+   if(x[2]&&x[2]<sp.t[0]&&x[2]>=wt[0])eski.push([(x[4]&2)?'K':'C',x[2],x[3]]);});}
  var n=c.length;
  if(uz){var t0=Date.parse(tt[0]),t1=Date.parse(tt[n-1]);_PX=tt.map(function(s){return GR.L+(Date.parse(s)-t0)/((t1-t0)||1)*(GR.W-GR.L-GR.R);});}else _PX=null;
  var hepsi=c.concat(s20||[],s50||[],izg||[],scg||[],[ds,dr],eski.map(function(e){return e[2];})).filter(function(x){return x!=null;});
  var mn=Math.min.apply(null,hepsi),mx=Math.max.apply(null,hepsi),pay=(mx-mn)*0.04;mn-=pay;mx+=pay;
- _gr={c:c,t:tt,s20:s20,s50:s50,izg:izg,scg:scg,tk:tk,m:m,px:_PX,mn:mn,mx:mx,n:n};
+ _gr={c:c,t:tt,s20:s20,s50:s50,izg:izg,izk:izk,scg:scg,tk:tk,m:m,px:_PX,mn:mn,mx:mx,n:n};
  var g='<svg id="grsvg" viewBox="0 0 '+GR.W+' '+GR.H+'" width="100%" style="display:block;touch-action:pan-y" onmousemove="grHover(event)" ontouchstart="grHover(event)" ontouchmove="grHover(event)" onmouseleave="grCik()">';
  adimlar(mn,mx).forEach(function(v){var y=grY(v,mn,mx).toFixed(1);
   g+='<line x1="'+GR.L+'" x2="'+(GR.W-GR.R)+'" y1="'+y+'" y2="'+y+'" stroke="#ECEDEA" stroke-width="1"/>'+
@@ -627,13 +658,15 @@ function grafik(sp,sd,ar,tkg){
  if(s20)g+=cizgi(s20,'#0E4D45',mn,mx,1.2);
  if(st)g+=cizgi(st,'#B4362E',mn,mx,1.1);
  if(izg)g+=cizgiParca(izg,'#7A3E9D',mn,mx,1.4,'6 3');
+ if(izg&&izk)for(var q=0;q<n;q++)if(izk[q]&&!(q>0&&izk[q-1])&&izg[q]!=null)   // 🔐 kâr kilidinin devreye girdiği gün: çizginin üstünde küçük kilit
+  g+='<text x="'+grX(q,n).toFixed(1)+'" y="'+(grY(izg[q],mn,mx)-4).toFixed(1)+'" font-size="10" text-anchor="middle"><title>🔐 kâr kilidi devrede: stop en az alış +%'+(KK?kkSay(KK[1]):'')+'</title>🔐</text>';
  if(scg)g+=cizgiParca(scg,'#D6336C',mn,mx,1,'2 3');
  g+=cizgi(c,'#16181D',mn,mx,1.8);
- for(var j=0;j<n;j++){var a=tk.charAt(j);if((a!=='G'&&a!=='C')||c[j]==null)continue;   // Telegram'daki 🚀 AL ve iz stop çıkışı
-  g+=grIsaret(a,grX(j,n),grY(c[j],mn,mx),(a==='G'?'▲ AL (🚀 kırılım): ':'▼ SAT (iz stop): ')+trTarih(tt[j])+' · '+c[j]+' TL');}
+ for(var j=0;j<n;j++){var a=tk.charAt(j);if((a!=='G'&&a!=='C'&&a!=='K')||c[j]==null)continue;   // Telegram'daki 🚀 AL ve iz stop / 🔐 kâr kilidi çıkışı
+  g+=grIsaret(a==='K'?'C':a,grX(j,n),grY(c[j],mn,mx),(a==='G'?'▲ AL (🚀 kırılım): ':a==='K'?'▼ SAT (🔐 kâr kilidi): ':'▼ SAT (iz stop): ')+trTarih(tt[j])+' · '+c[j]+' TL',a==='K');}
  if(eski.length){var e0=Date.parse(tt[0]),e1=Date.parse(tt[n-1]);eski.forEach(function(e){
   var ex=GR.L+(Date.parse(e[1])-e0)/((e1-e0)||1)*(GR.W-GR.L-GR.R);
-  g+=grIsaret(e[0],ex,grY(e[2],mn,mx),(e[0]==='G'?'▲ AL (🚀 kırılım): '+trTarih(e[1])+' · giriş ':'▼ SAT (iz stop): '+trTarih(e[1])+' · ')+e[2]+' TL');});}
+  g+=grIsaret(e[0]==='K'?'C':e[0],ex,grY(e[2],mn,mx),(e[0]==='G'?'▲ AL (🚀 kırılım): '+trTarih(e[1])+' · giriş ':(e[0]==='K'?'▼ SAT (🔐 kâr kilidi): ':'▼ SAT (iz stop): ')+trTarih(e[1])+' · ')+e[2]+' TL',e[0]==='K');});}
  g+='<line id="grcizgi" x1="0" x2="0" y1="'+GR.T+'" y2="'+(GR.H-GR.B)+'" stroke="#16181D" stroke-width="0.8" stroke-dasharray="3 3" visibility="hidden"/>'+
     '<circle id="grnokta" r="3.5" fill="#16181D" visibility="hidden"/></svg><div id="grbilgi" class="grbilgi" hidden></div>';
  return g;
@@ -648,9 +681,9 @@ function grHover(e){
  var xx=G.px?G.px[i]:GR.L+(n>1?i/(n-1):0)*(GR.W-GR.L-GR.R),yy=grY(G.c[i],G.mn,G.mx),cz=document.getElementById('grcizgi'),nk=document.getElementById('grnokta'),b=document.getElementById('grbilgi');
  cz.setAttribute('x1',xx);cz.setAttribute('x2',xx);cz.setAttribute('visibility','visible');
  nk.setAttribute('cx',xx);nk.setAttribute('cy',yy);nk.setAttribute('visibility','visible');
- var ta={G:' · ▲ AL (🚀)',C:' · ▼ SAT (iz stop)'}[(G.tk||'').charAt(i)]||'';
+ var ta={G:' · ▲ AL (🚀)',C:' · ▼ SAT (iz stop)',K:' · ▼ SAT (🔐 kâr kilidi)'}[(G.tk||'').charAt(i)]||'';
  b.innerHTML='<b>'+(i<G.m?'hafta sonu ':'')+trTarih(G.t[i])+' '+G.t[i].slice(0,4)+'</b> · '+G.c[i]+' TL'+ta+
-  (G.izg&&G.izg[i]!=null?'<br><span style="color:#7A3E9D">İz stop '+G.izg[i]+'</span>':'')+(G.scg&&G.scg[i]!=null?(G.izg&&G.izg[i]!=null?' · ':'<br>')+'<span style="color:#D6336C">Sıkı çizgi '+G.scg[i]+'</span>':'')+
+  (G.izg&&G.izg[i]!=null?'<br><span style="color:#7A3E9D">İz stop '+G.izg[i]+(G.izk&&G.izk[i]?' 🔐':'')+'</span>':'')+(G.scg&&G.scg[i]!=null?(G.izg&&G.izg[i]!=null?' · ':'<br>')+'<span style="color:#D6336C">Sıkı çizgi '+G.scg[i]+'</span>':'')+
   (G.s20&&G.s20[i]!=null?'<br><span style="color:#0E4D45">SMA20 '+G.s20[i]+'</span>':'')+(G.s50&&G.s50[i]!=null?' · <span style="color:#C7962B">SMA50 '+G.s50[i]+'</span>':'');
  b.hidden=false;b.style.left=Math.min(Math.max(xx/GR.W*100,2),70)+'%';
 }
@@ -665,8 +698,17 @@ function xuSon(){return (XU&&XU.c&&XU.c.length)?XU.c[XU.c.length-1]:null;}
 function tkIslem(d,x){  // tek işlem: getiri (komisyonsuz) ve aynı günlerde BIST 100 (sinyal günü kapanışından çıkış günü / son kapanışa)
  var acik=x[2]==null,son=acik?d.fiyat:x[3],r=(x[1]&&son!=null)?(son/x[1]-1)*100:null;
  var x0=xuDeger(x[0]),x1=acik?xuSon():xuDeger(x[2]),xr=(x0&&x1)?(x1/x0-1)*100:null;
- return {t:x[0],g:x[1],ct:x[2],c:x[3],acik:acik,son:son,r:r,xu:xr,fark:(r!=null&&xr!=null)?r-xr:null,gun:tkGun(d,x[0]),kil:x[4]===1};
+ return {t:x[0],g:x[1],ct:x[2],c:x[3],acik:acik,son:son,r:r,xu:xr,fark:(r!=null&&xr!=null)?r-xr:null,gun:tkGun(d,x[0]),kil:!!(x[4]&1),kk:!!(x[4]&2),kka:!!(x[4]&4)};  // x[4] bit: 1 kilitli taban, 2 🔐 ile çıkış, 4 açık + 🔐 devrede
 }
+function kkSay(x){return String(x).replace('.',',');}
+function kkKisa(){return KK?'🔐 kâr kilidi: kapanışta +%'+kkSay(KK[0])+' görülünce stop en az alış +%'+kkSay(KK[1]):'';}
+function izNeden(o){  // stop nereden geliyor: %20 iz mi, 🔐 kâr kilidi mi (o: tk ya da d.iz; alanlar sinyal._kk_alanlar)
+ if(o&&o.kilit&&o.kilit_seviye!=null&&o.iz20!=null&&o.kilit_seviye>=o.iz20)return '🔐 kâr kilidi: +%'+kkSay(o.kk[0])+' görüldü, stop en az alış +%'+kkSay(o.kk[1]);
+ var t='AL\'den beri tepe '+o.tepe+' TL\'nin %20 altı';
+ if(o.kilit)t+='; 🔐 kâr kilidi devrede (en az '+o.kilit_seviye+' TL)';
+ else if(o.kilit_esik_fiyat!=null)t+='; kapanış '+o.kilit_esik_fiyat+' TL\'yi görürse 🔐 stop en az '+o.kilit_seviye+' TL';
+ return t;}
+var KK_CIKIS=' <span class="kkc" title="Bu işlemde kapanış alışın üstünde bir kâr eşiğini görmüştü; stop en az alış fiyatının biraz üstündeydi (kâr kilidi) ve o seviyenin altında kapanışla çıkıldı">🔐 kâr kilidiyle çıktı</span>';
 var KIL_CIKIS=' <span class="kilc" title="Çıkış günü kilitli tabandı (gün boyu işlem neredeyse yok): o gün satış emri çoğu zaman gerçekleşmez; gerçek çıkış sonraki ilk açılışta, genelde daha aşağıdan olurdu">🔒 tabanda alıcı yoktu, bu fiyattan satılamamış olabilir</span>';
 function tTam(s){if(!s)return '—';var y=(XU&&XU.t&&XU.t.length)?XU.t[XU.t.length-1].slice(0,4):'';return trTarih(s)+(s.slice(0,4)!==y?' '+s.slice(0,4):'');}
 function tlS(x){return x==null?'—':(+x).toLocaleString('tr-TR',{maximumFractionDigits:2})+' TL';}
@@ -677,10 +719,10 @@ function tkSonHtml(d){  // grafiğin üstünde tek satır: son 🚀 AL ya da son
  var a=d.tkg||[],t=d.tk||{};
  if(!a.length)return '<div class="tkson sgun">🚀 '+(t.kisa?'Henüz 🚀 sinyali olamaz: kural en az 1 yıllık (250 işlem günü) fiyat geçmişi ister.':'Son ~2 yılda 🚀 AL sinyali yok.')+'</div>';
  var x=tkIslem(d,a[a.length-1]),h;
- if(x.acik&&t.bugun)h='▲ <b>Bugün 🚀 AL</b> — kapanış '+tlS(x.g)+'; kurala göre giriş yarın açılışta. Çıkış: tepe kapanışın %20 altı (iz stop).';
- else if(x.acik)h='▲ <b>Son 🚀 AL: '+tTam(x.t)+'</b> · giriş '+tlS(x.g)+' → şu an <b class="'+tkC(x.r)+'">'+tkY(x.r)+'</b> (pozisyon açık'+(t.stop!=null?' · iz stop '+tlS(t.stop):'')+')'+
+ if(x.acik&&t.bugun)h='▲ <b>Bugün 🚀 AL</b> — kapanış '+tlS(x.g)+'; kurala göre giriş yarın açılışta. Çıkış: tepe kapanışın %20 altı (iz stop).'+(KK?' '+kkKisa()+'.':'');
+ else if(x.acik)h='▲ <b>Son 🚀 AL: '+tTam(x.t)+'</b> · giriş '+tlS(x.g)+' → şu an <b class="'+tkC(x.r)+'">'+tkY(x.r)+'</b> (pozisyon açık'+(t.stop!=null?' · iz stop '+tlS(t.stop)+(t.kilit?' 🔐':''):'')+')'+
    (x.gun!=null&&x.gun>5?' <span class="sgun">· '+x.gun+' işlem günü önceydi; yeni alım sinyali değil</span>':'');
- else h='▼ <b>Son SAT (iz stop): '+tTam(x.ct)+'</b> · '+tlS(x.c)+'; o işlemde <b class="'+tkC(x.r)+'">'+tkY(x.r)+'</b> <span class="sgun">(🚀 AL '+tTam(x.t)+', giriş '+tlS(x.g)+')</span>'+(x.kil?KIL_CIKIS:'');
+ else h='▼ <b>Son SAT ('+(x.kk?'🔐 kâr kilidi':'iz stop')+'): '+tTam(x.ct)+'</b> · '+tlS(x.c)+'; o işlemde <b class="'+tkC(x.r)+'">'+tkY(x.r)+'</b> <span class="sgun">(🚀 AL '+tTam(x.t)+', giriş '+tlS(x.g)+')</span>'+(x.kil?KIL_CIKIS:'');
  return '<div class="tkson">'+h+'</div>';
 }
 function tkGecmisHtml(d){  // hisse penceresi: bu hissenin son v3 işlemleri (bilgi)
@@ -690,9 +732,9 @@ function tkGecmisHtml(d){  // hisse penceresi: bu hissenin son v3 işlemleri (bi
   '<div class="tkgs"><table class="rk"><thead><tr><th>🚀 AL (sinyal)</th><th class="num">Giriş</th><th>Çıkış</th><th class="num">Getiri</th><th class="num" title="Aynı günlerde BIST 100 getirisine göre fark">BIST 100\'e göre</th></tr></thead><tbody>';
  a.forEach(function(x){var s=tkIslem(d,x),es=x[0]<bas;if(es)ev=true;
   h+='<tr><td>'+tTam(s.t)+(es?' <span class="sgun" title="6 aydan eski: aşağıdaki nota bak">≈</span>':'')+'</td><td class="num">'+tlS(s.g)+'</td>'+
-   '<td>'+(s.acik?'<span class="tkb izle">açık</span> şu an '+tlS(s.son):tTam(s.ct)+' · '+tlS(s.c)+(s.kil?KIL_CIKIS:''))+'</td>'+
+   '<td>'+(s.acik?'<span class="tkb izle">açık</span> şu an '+tlS(s.son)+(s.kka?' 🔐':''):tTam(s.ct)+' · '+tlS(s.c)+(s.kil?KIL_CIKIS:'')+(s.kk?KK_CIKIS:''))+'</td>'+
    '<td class="num '+tkC(s.r)+'">'+tkY(s.r)+'</td><td class="num '+tkC(s.fark)+'">'+tkP(s.fark)+'</td></tr>';});
- h+='</tbody></table></div><div class="pk sgun">Giriş: sinyalin ertesi günü açılış; çıkış: iz stop kırılan günün kapanışı; komisyonsuz. Liste çıkışı son 2 yıl içinde olan ya da hâlâ açık işlemleri gösterir (pano 4 yıllık veriyle çalışır: kuralın 1 yıllık ısınması ve önceden açık kalan pozisyonlar doğru hesaplanır)'+
+ h+='</tbody></table></div><div class="pk sgun">Giriş: sinyalin ertesi günü açılış; çıkış: iz stop'+(KK?' (ya da 🔐 kâr kilidi: kapanışta +%'+kkSay(KK[0])+' görüldükten sonra alış +%'+kkSay(KK[1])+')':'')+' kırılan günün kapanışı; komisyonsuz. Liste çıkışı son 2 yıl içinde olan ya da hâlâ açık işlemleri gösterir (pano 4 yıllık veriyle çalışır: kuralın 1 yıllık ısınması ve önceden açık kalan pozisyonlar doğru hesaplanır)'+
   (ev?'; ≈ işaretli işlemler 6 aydan eski (grafiğin günlük kısmında değil; 2 yıldan eski günlerde BIST 100 farkı haftalık veriyle yaklaşık)':'')+
   '. <b>Tek hissenin geçmiş işlemleri geleceğini göstermez</b>; kural tek hissede değil, yüzlerce hissede birlikte test edildi.</div></div>';
  return h;
@@ -715,7 +757,7 @@ function roketHtml(N,q,sf,fav){
  var o=roketListe(N).filter(function(s){return (!q||s.kod.indexOf(q)>=0)&&(!sf||fav.indexOf(s.kod)>=0);}),z=roketOzet(o);
  var h='<div class="bugun rkkutu"><h2>🚀 Son '+N+' işlem gününün sinyalleri</h2>';
  if(!o.length)return h+'<div class="bgs">Bu dönemde 🚀 AL yok'+(q||sf?' (arama/favori süzgecine uyan)':'')+'.</div></div>';
- h+='<div class="bgs"><b>'+z.n+' sinyal</b> ('+z.acik+' hâlâ açık, '+(z.n-z.acik)+' iz stop ile kapandı) · artıda <b>'+z.arti+'/'+z.n+'</b> · ortalama <b class="'+tkC(z.ort)+'">'+tkY(z.ort)+'</b> · medyan <b class="'+tkC(z.med)+'">'+tkY(z.med)+'</b>'+
+ h+='<div class="bgs"><b>'+z.n+' sinyal</b> ('+z.acik+' hâlâ açık, '+(z.n-z.acik)+' iz stop'+(KK?' / 🔐 kâr kilidi':'')+' ile kapandı) · artıda <b>'+z.arti+'/'+z.n+'</b> · ortalama <b class="'+tkC(z.ort)+'">'+tkY(z.ort)+'</b> · medyan <b class="'+tkC(z.med)+'">'+tkY(z.med)+'</b>'+
   (z.fn?' · BIST 100\'e göre ortalama <b class="'+tkC(z.fort)+'">'+tkP(z.fort)+'</b>, medyan '+tkP(z.fmed)+', endeksi geçen '+z.gecen+'/'+z.fn:'')+'</div>';
  h+='<div class="bgs sgun">Getiri: sinyalin ertesi açılışından bugüne (açıksa) ya da iz stop çıkışına; komisyonsuz. Kapananlar da listede — sadece iyi gidenleri göstermek yanıltıcı olur. Kısa dönemde birkaç hisse ortalamayı sürükler; bir dönemin iyi gitmesi sonrakini göstermez.'+
   (N>5?' <b>Eski satırlar yeni alım sinyali değil:</b> testte sinyalden 20+ gün sonra girmek geçmişte belirgin daha kötüydü (sinyal günü ort. +%20 / isabet %52; 20 gün sonra +%15 / %47; 40 gün sonra +%8 / %35).':'')+'</div>';
@@ -726,7 +768,7 @@ function roketHtml(N,q,sf,fav){
   else if(s.gun<=5)dur='<span class="tkb">🚀 AL '+s.gun+'g önce</span>';
   else dur='<span class="tkb izle">trendde · '+s.gun+'g</span>';
   h+='<tr onclick="ac(\''+s.kod+'\')"><td class="kod">'+s.kod+'</td><td>'+tTam(s.t)+' <span class="sgun">'+(s.gun===0?'bugün':s.gun+'g önce')+'</span></td><td class="num">'+tlS(s.g)+'</td>'+
-   '<td class="num">'+tlS(s.son)+(s.kil?KIL_CIKIS:'')+'</td><td class="num '+tkC(s.r)+'">'+tkY(s.r)+'</td><td class="num">'+tkY(s.xu)+'</td><td class="num '+tkC(s.fark)+'">'+tkP(s.fark)+'</td><td>'+dur+'</td></tr>';});
+   '<td class="num">'+tlS(s.son)+(s.kil?KIL_CIKIS:'')+(s.kk?KK_CIKIS:'')+'</td><td class="num '+tkC(s.r)+'">'+tkY(s.r)+'</td><td class="num">'+tkY(s.xu)+'</td><td class="num '+tkC(s.fark)+'">'+tkP(s.fark)+'</td><td>'+dur+'</td></tr>';});
  return h+'</tbody></table></div></div>';
 }
 function roketAc(n){var s=document.getElementById('roket');if(!s)return;s.value=String(n);tabloDuzen();var k=document.getElementById('roketkutu');if(k&&k.scrollIntoView)k.scrollIntoView({behavior:'smooth',block:'start'});}
@@ -762,8 +804,8 @@ function pozPlan(d,p){
  }
  // v2: çıkış iz stop (AL'den beri tepe kapanışın %20 altı); SAT bilgi amaçlı
  var iz=d.iz,stop;
- if(iz&&iz.cikti){pl.izCikti=iz.cikis_tarih;stop=null;}
- else if(iz){stop=iz.stop;pl.iz=true;pl.tepe=iz.tepe;}
+ if(iz&&iz.cikti){pl.izCikti=iz.cikis_tarih;pl.kilitCik=!!iz.kilit_cik;stop=null;}
+ else if(iz){stop=iz.stop;pl.iz=true;pl.tepe=iz.tepe;pl.izNeden=izNeden(iz);pl.kilit=!!iz.kilit;}
  else stop=d.al_stop||d.stop;
  pl.stop=stop;
  if(stop){pl.stopUzak=(stop/f-1)*100;pl.stopKz=(stop-m)*a;pl.asildi=f<=stop;}
@@ -785,8 +827,8 @@ function pozHtml(k,d){
   return h+'<div class="pk sgun">Uzun vade: kısa vadeli AL/SAT sinyalleri bilgi amaçlıdır. Backtest\'te güçlü yükseliş dönemlerinde büyük hisselerde al-tut, sinyale göre girip çıkmaktan belirgin şekilde iyi sonuç verdi. Karar çizgisinin altında kapanış, pozisyonu yeniden düşünme noktasıdır.</div></div>';
  }
  if(pl.sat)h+='<div class="pk">ℹ️ Kısa vadeli SAT sinyali — çıkış kuralı iz stop; SAT tek başına "çık" demek değil.</div>';
- if(pl.izCikti)h+='<div class="pk neg">📍 <b>İz stop '+pl.izCikti+' tarihinde kırıldı</b> — kurala göre çıkış zamanı geçti.</div>';
- else if(pl.stop&&pl.iz)h+='<div class="pk">📍 <b>İz stop: '+pl.stop+' TL</b> (AL\'den beri tepe '+pl.tepe+' TL\'nin %20 altı) — '+yzd(pl.stopUzak)+' aşağıda. Buraya inerse sonuç: <b class="'+(pl.stopKz>=0?'pos':'neg')+'">'+tlf(pl.stopKz)+'</b>'+(pl.stopKz>=0?' (yine kârda)':'')+'</div>';
+ if(pl.izCikti)h+='<div class="pk neg">📍 <b>'+(pl.kilitCik?'🔐 Kâr kilidi stop\'u ':'İz stop ')+pl.izCikti+' tarihinde kırıldı</b> — kurala göre çıkış zamanı geçti.</div>';
+ else if(pl.stop&&pl.iz)h+='<div class="pk">📍 <b>İz stop: '+pl.stop+' TL</b> ('+pl.izNeden+') — '+yzd(pl.stopUzak)+' aşağıda. Buraya inerse sonuç: <b class="'+(pl.stopKz>=0?'pos':'neg')+'">'+tlf(pl.stopKz)+'</b>'+(pl.stopKz>=0?' (yine kârda)':'')+'</div>';
  else if(pl.stop){
   h+=pl.asildi?'<div class="pk neg">📍 <b>Fiyat çıkış seviyesinin ('+pl.stop+' TL) altında</b> — sistemin kuralına göre çıkış zamanı.</div>'
    :'<div class="pk">📍 <b>Çıkış (stop): '+pl.stop+' TL</b> — '+yzd(pl.stopUzak)+' aşağıda. Buraya inerse sonuç: <b class="'+(pl.stopKz>=0?'pos':'neg')+'">'+tlf(pl.stopKz)+'</b>'+(pl.stopKz>=0?' (yine kârda)':'')+'</div>';
@@ -794,7 +836,7 @@ function pozHtml(k,d){
  pl.hedefler.forEach(function(x,i){h+='<div class="pk">🎯 <b>'+(i+1)+'. hedef: '+x[0]+' TL</b> — '+x[1]+', '+yzd((x[0]/pl.f-1)*100)+' yukarıda.'+
    (x[1].indexOf('direnç')>=0?' Burada satış baskısı gelebilir; aşarsa yükseliş hızlanabilir.':' (Tahmin değil, izleme noktası.)')+'</div>';});
  if(pl.hedefler.length)h+='<div class="pk sgun">ℹ️ Hedefler satış emri değil, izleme noktası. 5 yıllık backtest\'te hedefte kısmi satış yapmak, pozisyonu SAT/stop gelene kadar tutmaktan belirgin şekilde kötü sonuç verdi — büyük kazançlar erken kesildi.</div>';
- var kural='Kural: kapanış iz stop\'un altına inerse çık. İz stop, fiyat yükseldikçe yukarı taşınır; SAT sinyali tek başına çıkış değildir.';
+ var kural='Kural: kapanış iz stop\'un altına inerse çık. İz stop, fiyat yükseldikçe yukarı taşınır; '+(KK?kkKisa()+'; ':'')+'SAT sinyali tek başına çıkış değildir.';
  return h+'<div class="pk">'+kural+'</div></div>';
 }
 function gucHtml(d){
@@ -854,12 +896,12 @@ function vadeHtml(k,d){
 function tkHtml(d){
  var t=d.tk;if(!t)return '';
  var h='<div class="uvkutu">🚀 <b>Trend kırılımı (v3 AL kuralı): ';
- if(t.bugun)h+='BUGÜN KIRILIM</b> — trend şablonundayken 20 günlük zirve ('+t.kirilim_seviye+' TL) aşıldı. Giriş ertesi açılış; çıkış: tepe kapanışın %20 altı (iz stop).'+
+ if(t.bugun)h+='BUGÜN KIRILIM</b> — trend şablonundayken 20 günlük zirve ('+t.kirilim_seviye+' TL) aşıldı. Giriş ertesi açılış; çıkış: tepe kapanışın %20 altı (iz stop).'+(KK?' '+kkKisa()+'.':'')+
    (t.gk?'<div class="cikis">⏱️ <b>'+gkMetin(t.gk)+'</b> Kapanış henüz kesin değil (18:30); kapanışta seviyenin altına dönerse AL geçersiz.</div>':'')+
    '<div class="cikis">💡 '+GK_NOT+'</div>';
- else if(t.durum==='AL')h+=(t.gun<=5?'AL '+t.gun+' gün önce geldi</b>':'AL sürüyor, ama yeni alım sinyali değil</b>')+' — '+t.giris_tarih+' kırılımından beri '+t.gun+' işlem günü, '+(t.degisim>=0?'+':'')+t.degisim+'%. İz stop <b>'+t.stop+' TL</b> (tepe '+t.tepe+' TL, '+t.tepe_tarih+').'+
+ else if(t.durum==='AL')h+=(t.gun<=5?'AL '+t.gun+' gün önce geldi</b>':'AL sürüyor, ama yeni alım sinyali değil</b>')+' — '+t.giris_tarih+' kırılımından beri '+t.gun+' işlem günü, '+(t.degisim>=0?'+':'')+t.degisim+'%. İz stop <b>'+t.stop+' TL</b> ('+(t.kk?izNeden(t):'tepe '+t.tepe+' TL, '+t.tepe_tarih)+').'+
    (t.gun<=5?' İlk 5 gün içinde girmek backtest\'te sinyal günüyle neredeyse aynı sonuç verdi.':' Backtest: sinyalden 20+ gün sonra girmek belirgin kötü (40 gün sonra girenlerin sadece %35\'i kârda) — elindeyse iz stop\'a kadar tut, yeni alım için bir sonraki kırılımı bekle.');
- else if(t.durum==='CIKTI'&&t.cikis_gun!=null&&t.cikis_gun<=20)h+='son işlem kapandı</b> — '+t.giris_tarih+' girişi, '+t.cikis_tarih+' iz stop ile çıktı ('+(t.sonuc>=0?'+':'')+t.sonuc+'%).';
+ else if(t.durum==='CIKTI'&&t.cikis_gun!=null&&t.cikis_gun<=20)h+='son işlem kapandı</b> — '+t.giris_tarih+' girişi, '+t.cikis_tarih+' '+(t.kilit_cik?'🔐 kâr kilidiyle':'iz stop ile')+' çıktı ('+(t.sonuc>=0?'+':'')+t.sonuc+'%).';
  else h+=(t.sablon?(t.kirilima_uzak!=null&&t.kirilima_uzak<0?'şablonda, fiyat kırılım seviyesinin üstünde ama AL yok</b> —':'şablonda, kırılım bekleniyor</b>'):'yok</b> — trend şablonu sağlanmıyor.');
  if(!t.bugun&&t.durum!=='AL'&&t.sablon&&t.kirilim_seviye){var eks=tkEksik(t);
   if(t.kirilima_uzak!=null&&t.kirilima_uzak<0)h+=' Fiyat 20 günlük zirvenin (<b>'+t.kirilim_seviye+' TL</b>) %'+Math.abs(t.kirilima_uzak).toFixed(1).replace('.',',')+' üstünde'+(eks?'. AL için eksik koşul: '+eks+'.':'; kapanışta üstünde kalırsa AL olur.');
@@ -1072,9 +1114,9 @@ function sadeHtml(k,d){
  if(p){var pl=pozPlan(d,p);
   if(pl.uzun){if(pl.karar)sv=pl.kararAsildi?'🧭 <b>Fiyat karar çizgisinin ('+pl.karar+' TL) altında.</b> Karar çizgisi, uzun vadeli pozisyonun için ana desteğin biraz altıdır; altında kapanış pozisyonu yeniden düşünme noktası.'
     :'🧭 <b>Senin için takip edilecek seviye: karar çizgisi '+pl.karar+' TL</b> ('+pyz(pl.kararUzak)+'). Bu, ana desteğin (geçmişte düşüşün durduğu fiyat) biraz altıdır; altında kapanış, desteğin kırıldığını gösterir.';}
-  else if(pl.izCikti)sv='📍 <b>İz stop '+pl.izCikti+' tarihinde kırıldı.</b> İz stop, aldıktan sonraki en yüksek kapanışın %20 altıdır; sistemin kuralına göre çıkış zamanı geçti.';
+  else if(pl.izCikti)sv='📍 <b>'+(pl.kilitCik?'🔐 Kâr kilidi stop\'u ':'İz stop ')+pl.izCikti+' tarihinde kırıldı.</b> İz stop, aldıktan sonraki en yüksek kapanışın %20 altıdır'+(KK?' (kapanışta +%'+kkSay(KK[0])+' görüldüyse en az alış +%'+kkSay(KK[1])+')':'')+'; sistemin kuralına göre çıkış zamanı geçti.';
   else if(pl.stop)sv=pl.asildi?'📍 <b>Fiyat çıkış seviyesinin ('+pl.stop+' TL) altında</b> — sistemin kuralına göre çıkış zamanı.'
-    :'📍 <b>Senin için takip edilecek seviye: '+(pl.iz?'iz stop':'stop')+' '+pl.stop+' TL</b> ('+pyz(pl.stopUzak)+'). '+(pl.iz?'İz stop, aldıktan sonraki en yüksek kapanışın %20 altıdır ve fiyat yükseldikçe yukarı taşınır; ':'')+'kapanış bunun altına inerse sistemin kuralı "çık" der.';
+    :'📍 <b>Senin için takip edilecek seviye: '+(pl.iz?'iz stop':'stop')+' '+pl.stop+' TL</b> ('+pyz(pl.stopUzak)+'). '+(pl.iz?'İz stop, aldıktan sonraki en yüksek kapanışın %20 altıdır ve fiyat yükseldikçe yukarı taşınır'+(pl.kilit?' (şu an 🔐 kâr kilidi devrede: en az alış +%'+kkSay(KK?KK[1]:5)+')':'')+'; ':'')+'kapanış bunun altına inerse sistemin kuralı "çık" der.';
  }
  if(!sv){
   var ds=d.sd&&d.sd.destek,dr=d.sd&&d.sd.direnc;
@@ -1180,7 +1222,7 @@ function ac(k){
  '<div class="grafik">'+tkSonHtml(d)+((d.spark&&d.spark.w&&d.spark.w.length)?'<div class="graralik"><button id="gra6a" class="grb'+(_grAralik==='6a'?' on':'')+'" onclick="grAralikSec(\''+k+'\',\'6a\')">6 ay</button><button id="gra1y" class="grb'+(_grAralik==='1y'?' on':'')+'" onclick="grAralikSec(\''+k+'\',\'1y\')">1 yıl</button></div>':'')+
    '<div id="grkutu">'+grafik(d.spark,d.sd,_grAralik,d.tkg)+'</div><div class="leg"><span class="c1">Fiyat</span><span class="c2">SMA20</span><span class="c3">SMA50</span><span class="c4">SuperTrend</span>'+
    (d.sd&&d.sd.destek?'<span class="c5">Destek</span>':'')+(d.sd&&d.sd.direnc?'<span class="c6">Direnç</span>':'')+
-   '<span class="c7">İz stop</span><span class="lm" style="color:#1B7F4B">▲ AL (🚀)</span><span class="lm" style="color:#B4362E">▼ SAT (iz stop)</span></div></div>'+
+   '<span class="c7">İz stop</span><span class="lm" style="color:#1B7F4B">▲ AL (🚀)</span><span class="lm" style="color:#B4362E">▼ SAT (iz stop'+(KK?' / 🔐':'')+')</span></div></div>'+
  nedenHtml(k,d)+
  zaman+vadeHtml(k,d)+
  pozHtml(k,d)+tkHtml(d)+tkGecmisHtml(d)+gucHtml(d)+uvHtml(d)+
@@ -1435,5 +1477,5 @@ __ESKI__
 <div class="sar"><table><thead><tr><th>Hisse</th><th>Sinyal tarihi</th><th class="num">Giriş</th><th class="num">Güncel</th><th class="num">Anlık %</th><th class="num">Stop</th></tr></thead><tbody>__ACIKROWS__</tbody></table></div>
 <h2>Kapanmış sinyaller</h2>
 <div class="sar"><table><thead><tr><th>Hisse</th><th>Giriş tarihi</th><th class="num">Giriş</th><th>Çıkış tarihi</th><th class="num">Çıkış</th><th class="num">Sonuç %</th><th>Sebep</th></tr></thead><tbody>__KAPALIROWS__</tbody></table></div>
-<div class="not">Bu sayfa <b>ileriye dönük gerçek</b> karnedir ve canlıdaki (v3) kuralların aynısını uygular: 🚀 trend kırılımı günü kapanış fiyatını kaydeder (trend şablonunda 20 günlük zirve kırılımı; aşırı oynak ya da taban serisinde olmayan hisseler; piyasa zayıfken kayıt açılmaz); fiyat, kayıttan beri görülen en yüksek kapanışın %20 altına inerse (iz stop) kapatıp sonucu yazar. SAT sinyali tek başına kapatmaz. Aynı AL dalgası bir kez sayılır. (Eylül 2026 öncesi kayıtlar eski, daha gevşek kurallarla açılmıştı.) Backtest geçmişi simüle eder; bu sayfa ise sistemin <b>bugünden itibaren</b> gerçek performansını biriktirir. Yatırım tavsiyesi değildir.</div>
+<div class="not">Bu sayfa <b>ileriye dönük gerçek</b> karnedir ve canlıdaki (v3) kuralların aynısını uygular: 🚀 trend kırılımı günü kapanış fiyatını kaydeder (trend şablonunda 20 günlük zirve kırılımı; aşırı oynak ya da taban serisinde olmayan hisseler; piyasa zayıfken kayıt açılmaz); fiyat, kayıttan beri görülen en yüksek kapanışın %20 altına inerse (iz stop) kapatıp sonucu yazar. SAT sinyali tek başına kapatmaz. Aynı AL dalgası bir kez sayılır.__KKKARNE__ (Eylül 2026 öncesi kayıtlar eski, daha gevşek kurallarla açılmıştı.) Backtest geçmişi simüle eder; bu sayfa ise sistemin <b>bugünden itibaren</b> gerçek performansını biriktirir. Yatırım tavsiyesi değildir.</div>
 </div></body></html>"""
