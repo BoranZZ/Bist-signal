@@ -48,12 +48,15 @@ NEDEN = {"iz": "iz stop (tepeden %20 düşüş)", "sk": "sıkı çizgi altında 
          "dr": "dirence ulaştı", "sr": "süre doldu", "uv": "🌱 SAT: 2 gün 200 günlük ortalama altı",
          "ls": "ayın güçlüleri listesinden düştü", "pz": "piyasa zayıf: nakite geçti", "sb": "trend şablonu bozuldu",
          "bk": "🛡️ Bekçi: toplam düşüş limiti", "kr": "🛡️ Bekçi: tek hisse sınırı aşıldı (fazlası satıldı)",
-         "dg": "dengeleme (1/3'e; kısmi satış)"}
+         "dg": "dengeleme (1/3'e; kısmi satış)", "gp": "güç puanı 3 ya da altına düştü", "bu": "bulut altında kapanış",
+         "kj": "kijun altında kapanış", "d20": "20 günlük dibin altında kapanış", "cm": "para çıkışı (CMF −0,10 altı)",
+         "kk": "kâr kilidi (+%8 görüldükten sonra alışın %5 üstü kırıldı)"}
 
 
 def neden_kod(t):
     t = t or ""
-    for a, k in (("iz stop", "iz"), ("sıkı", "sk"), ("destek", "dk"), ("dirence", "dr"), ("gün doldu", "sr"), ("🌱", "uv"),
+    for a, k in (("güç puanı", "gp"), ("bulut altında", "bu"), ("kijun altında", "kj"), ("günlük dibin", "d20"),
+                 ("para çıkışı", "cm"), ("kâr kilidi", "kk"), ("iz stop", "iz"), ("sıkı", "sk"), ("destek", "dk"), ("dirence", "dr"), ("gün doldu", "sr"), ("🌱", "uv"),
                  ("listeden", "ls"), ("piyasa", "pz"), ("şablon", "sb"), ("düşüş limiti", "bk"), ("aştı", "kr"), ("dengeleme", "dg")):
         if a in t:
             return k
@@ -152,6 +155,52 @@ def uv_seri(d):
     return durum, yeni
 
 
+def guc_seri(d, sab):
+    """sinyal.guc_puani(d, ham=True)'nın her gün için karşılığı (aynı formüller; d: SMA50/SMA200'lü günlük veri, sab: trend
+    şablonu). Döner: {g_p: puan, g_b0..g_b6: bileşenler, g_cmf, g_cmf1, g_tenkan, g_kijun, g_bu, g_ba, g_c26, g_dip20, g_s50}."""
+    c = d["Close"]
+    hl = "High" in d and "Low" in d and d["High"].notna().any()
+    h = d["High"] if hl else c
+    l = d["Low"] if hl else c
+    v = d["Volume"].replace(0, np.nan) if "Volume" in d else None
+    tenkan = (h.rolling(9).max() + l.rolling(9).min()) / 2
+    kijun = (h.rolling(26).max() + l.rolling(26).min()) / 2
+    a1, a2 = ((tenkan + kijun) / 2).shift(26), ((h.rolling(52).max() + l.rolling(52).min()) / 2).shift(26)
+    bulut = pd.concat([a1, a2], axis=1).max(axis=1)
+    ba = pd.concat([a1, a2], axis=1).min(axis=1)
+    tr = pd.concat([h - l, (h - c.shift()).abs(), (l - c.shift()).abs()], axis=1).max(axis=1)
+    yuk, dus = h.diff(), -l.diff()
+    atr = tr.ewm(alpha=1 / 14, adjust=False).mean()
+    pdi = 100 * pd.Series(np.where((yuk > dus) & (yuk > 0), yuk, 0.0), index=c.index).ewm(alpha=1 / 14, adjust=False).mean() / atr
+    ndi = 100 * pd.Series(np.where((dus > yuk) & (dus > 0), dus, 0.0), index=c.index).ewm(alpha=1 / 14, adjust=False).mean() / atr
+    if v is not None and hl:
+        mfm = ((c - l) - (h - c)) / (h - l).replace(0, np.nan)
+        cmf = (mfm * v).rolling(20).sum() / v.rolling(20).sum()
+    else:
+        cmf = pd.Series(np.nan, index=c.index)
+    adx_s = S.adx(d) if hl else pd.Series(np.nan, index=c.index)
+    rsi_s = S.rsi(c, 14)
+    zir55 = c.rolling(55, min_periods=1).max()
+    with np.errstate(invalid="ignore"):
+        b = [sab.astype(bool),
+             ((c > bulut) & (tenkan > kijun)).values & bulut.notna().values,
+             (c >= 0.97 * zir55).values,
+             (cmf > 0.05).values,
+             ((adx_s > 25) & (pdi > ndi)).values,
+             (S.ema(c, 10) > S.ema(c, 30)).values,
+             (rsi_s > 50).values]
+    F = {f"g_b{i}": np.asarray(x, bool) for i, x in enumerate(b)}
+    p = sum(x.astype(np.int8) for x in F.values()).astype(float)
+    p[np.arange(len(c)) < 59] = np.nan                      # guc_puani 60 günden kısa veride None
+    F["g_p"] = p
+    F["g_cmf"], F["g_cmf1"] = cmf.values.astype(float), cmf.shift(1).values.astype(float)
+    F["g_tenkan"], F["g_kijun"], F["g_bu"], F["g_ba"] = (x.values.astype(float) for x in (tenkan, kijun, bulut, ba))
+    F["g_c26"] = c.shift(26).values.astype(float)
+    F["g_dip20"] = c.rolling(20).min().shift(1).values.astype(float)
+    F["g_s50"] = d["SMA50"].values.astype(float)
+    return F
+
+
 def ozellik(d, xu_ust, xu):
     n = len(d)
     c = d["Close"]; cv = c.values.astype(float)
@@ -207,6 +256,7 @@ def ozellik(d, xu_ust, xu):
     F["uzama"] = (((c / mn250) >= S.UZAMA_DIPKAT) | ((c / c.shift(126) - 1) >= S.UZAMA_R6)).values & (np.arange(n) >= 249)
     F["kijun"] = S.kijun(d).values
     F["gecmis"] = np.arange(1, n + 1)
+    F.update(guc_seri(d, sab))
     return F
 
 
@@ -253,12 +303,23 @@ def hazirla(g):
     with np.errstate(invalid="ignore"):
         erken = (u > 0) & (u <= 3.0)
         M["rsi_al"] = (M["rsi"] >= 25) & (M["rsi"] <= 33) & (M["drsi"] >= 2.4)
-    M["aday"] = M["tk_bugun"] | erken | M["sd_tepki"] | M["uv_yeni"] | M["rsi_al"]
+    M["aday"] = M["tk_bugun"] | erken | M["sd_tepki"] | M["uv_yeni"] | M["rsi_al"] | guc_aday(M)
     M["Cf"] = pd.DataFrame(M["C"].T).ffill().values.T
     buyuk = set(tarama.BIST100) | set(tarama.EK_HISSELER)
     return {"kod": tamam, "gun": gun, "A": M, "xu": xu, "xu_open": xd["Open"].astype(float).reindex(gun), "xu_ust": xu_ust,
             "buyuk": buyuk, "buyuk_m": np.array([k in buyuk for k in tamam]), "ki": {k: i for i, k in enumerate(tamam)},
             "ay": np.array([t.month for t in gun]), "tarih": [str(t.date()) for t in gun]}
+
+
+def guc_aday(M):
+    """💪 güç robotlarının olası AL günleri (gun_verisi'ne girsinler diye; asıl koşul oda.guc_giris). Geniş tutulur:
+    puan ≥ en düşük al_puan, şablon, bulut üstü, 55g zirve bölgesi + CMF, CMF sıfırı yukarı kesti."""
+    al = [r["al_puan"] for r in oda.ROBOTLAR.values() if r["tur"] == "guc"]
+    with np.errstate(invalid="ignore"):
+        m = M["g_p"] >= (min(al) if al else 99)
+        if any(r["tur"] in oda.GUC_TUR for r in oda.ROBOTLAR.values()):
+            m = m | M["g_b0"] | (M["C"] > M["g_bu"]) | (M["g_b2"] & (M["g_cmf"] > 0)) | ((M["g_cmf1"] <= 0) & (M["g_cmf"] > 0))
+    return m & (M["gecmis"] >= 250)
 
 
 # ================== 3) simülasyon (araştırma sim.py; motor oda.py) ==================
@@ -284,7 +345,20 @@ def ozet(D, k, t):
             "mom20": float(A["mom20"][k, t]) if A["mom20"][k, t] == A["mom20"][k, t] else 0.0,
             "mom6": None if m6 != m6 else float(m6), "s200_ust": bool(A["s200_ust"][k, t]),
             "buyuk": bool(D["buyuk_m"][k]), "riskli": bool(A["riskli"][k, t]),
-            "uzama": bool(A["uzama"][k, t]), "kijun": None if kj != kj else float(kj)}
+            "uzama": bool(A["uzama"][k, t]), "kijun": None if kj != kj else float(kj),
+            "kisa": bool(A["gecmis"][k, t] < 250), "g": guc_ozet(A, k, t)}
+
+
+def guc_ozet(A, k, t):
+    """oda.guc_ozet'in tekrar oynatma karşılığı (aynı anahtarlar)."""
+    p = A["g_p"][k, t]
+    if p != p:
+        return None
+    o = {"p": int(p), "b": [bool(A[f"g_b{i}"][k, t]) for i in range(7)]}
+    for a in ("cmf", "cmf1", "tenkan", "kijun", "bu", "ba", "c26", "dip20", "s50"):
+        x = A["g_" + a][k, t]
+        o[a] = None if x != x else float(x)
+    return o
 
 
 def gun_verisi(D, t, tut, ay_ilk, momentum=True, rastgele=True, filtre=True):

@@ -620,6 +620,30 @@ sinyal, filtre, etiket ya da çıkış olarak eklenmeye değmez.** Kullanıcı f
     ~464 KB (gzip ~181 KB). Doğrulama: canlı yol (`oda_oynat`/`gun_isle`) = tek robot `calistir` 5 yılda 14/14 robot birebir
     (scratchpad `w/testler.py esit`); yuva senaryosu testi `testler.py yuva` (eski 12 pozisyon, yeni 10). `oda_replay.py --makro x.pkl`
     indirilmiş altın/dolar/faiz/TÜFE ile çalışır (yoksa Yahoo + TCMB'den indirir).
+- **2026-10-19: 💪 güç robotları + 🔐 kâr kilidi (dal `guc-robot`; scratchpad `gucrobot/RAPOR.md`, betikler orada):** 6 yeni
+  yarışmacı (hepsi 10 yuva, Bekçi, riskli filtre, aynı emir/maliyet). 💪 Güçlü (`guclu`, tur `guc`): güç puanı ≥6 al, ≤3 ya da %20 iz sat.
+  📐 Şabloncu (`sablon`): trend şablonunda al (kırılım beklemeden), şablon bozulunca sat. ☁️ Bulutçu (`bulut`): fiyat > bulut ve kijun,
+  tenkan > kijun, fiyat > 26 gün önceki kapanış (chikou) al; bulut altında kapanışta sat (`cik: 'kijun'` seçeneği var, kullanılmıyor).
+  🏔️ Zirveci (`zirve`): 55g zirveye ≤%3 + CMF > 0,05 al; önceki 20 günün en düşük kapanışı altı ya da %20 iz sat. 💧 Para akışı (`para`):
+  CMF (20g) dün ≤0 bugün >0 ve fiyat > SMA50 al; CMF < −0,10 sat. Güç robotlarında sıra: güç puanı yüksek önce, eşitse son 20 günde az
+  yükselen (`guc_giris`); veri <250 gün (yeni arz) alınmaz; 'kaçan aday' sayacı (`atla_n`) tutulmaz (her gün çok aday var).
+  🔐 Kırılımcı + kâr kilidi (`kilitli_kirilimci`, tur `kirilim`, `kar_kilit: (0.08, 0.05)`): v3 girişi + %20 iz; tepe kapanış alışın
+  ≥%8 üstüne çıktıysa stop = max(tepe×0,80, alış×1,05), kalıcı (alış = maliyet/(1+komisyon); scratchpad finalcikis kafa kafaya testi 'A4';
+  ilk sürüm +%10 'A1' idi). Parametreler 2017-21'de
+  seçildi (Bulutçu kijun→bulut çıkışı, Zirveci iz %15→%20, Para akışı −0,05→−0,10; Güçlü kullanıcının 6/3'ü — komşular 17-21'de hep zayıf).
+  **Sonuç (5 yıl replay, tümü):** Güçlü +%2.740, Şabloncu +%1.651, Bulutçu +%4.238, Zirveci +%2.065, Para akışı +%2.151, Kâr kilidi +%1.635 (isabet %66, Kırılımcı %56)
+  (Kırılımcı +%931, BIST 100 +%727); şans yüzdeliği tümünde 92-100. AMA 10 yıllık testte (2017-21) güç robotlarının çoğu küçük hisselerde
+  çöktü (Güçlü 17-21 +%4, BIST 100'e göre −42 puan, düşüş −%67); ana listede ılımlı. Güçleri 2022-26 yüksek enflasyon yükselişinden.
+  **Canlı yol:** `sinyal.guc_puani(d, ham=True)` → `analiz_et` `gh` (panoya gömülmez; tenkan/kijun/bulut üst-alt/c26/dip20/s50/cmf/cmf1)
+  → `oda.ozet_hazirla` `g` (`guc_ozet`) + `kisa`. Replay: `oda_replay.guc_seri` (aynı formüller) + `guc_aday` (gun_verisi'ne aday).
+  Test: canlı alanlar = replay alanları 556 hisse-günde puan/bileşenler 0 fark (fiyat düzeyleri 12'sinde sabit çarpanla farklı: sonradan
+  gelen bölünme düzeltmesi, kararları etkilemez). **Bilinen eski fark:** Yahoo bazı hisselere tatil satırı (25 Aralık vb.) koyuyor,
+  replay sadece BIST 100 günlerini alıyor → canlıda o hisselerin göstergeleri hafif farklı (tüm robotlar için, yeni değil).
+  `oda_oynat` = tek robot `calistir` 20/20; eski 14 robot önce/sonra birebir (işlemler, kasa, şans, kaçanlar, olaylar, şans dosyası);
+  eski oda.json'a 6 robot o gün 100.000 TL ile eklendi; canli_calistir 0,45 → 0,9 sn. Sayfa: salon derinliği 17,8 (viewBox −860 −185
+  1660 1030), '💪 GÜÇ ROBOTLARI' sırası y=8,8, Yapay zekâ köşesi y=12,4, 🔐 'ÇIKIŞ DENEMESİ' [9,6, 12,4], Birikim y=15,5, Bekçi [14,6, 9,5];
+  390/1280 px 7 senaryoda taşma/JS hatası yok. Yeni neden kodları gp/bu/kj/d20/cm/kk. oda_replay.json 693 → 1.009 KB (gzip 235 → ~335 KB;
+  6 robot), replay ~4-7 dk (ikiz testleri), sans dosyası aynı.
 - **Workflow değişti** (`tarama.yml`: `git add ... oda.json oda.html`). GITHUB_TOKEN workflow dosyasını güncelleyemediği için
   **fork'taki arkadaşlar bu satırı elle güncellemeli**; güncellemezlerse oda her taramada sıfırdan başlar ve kaydedilmez (ilk gün
   sessiz kuralı sayesinde Telegram'a mesaj gitmez), panodaki düğme `oda.html` bulunamaz.

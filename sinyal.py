@@ -787,7 +787,7 @@ def trend_tuzagi(d, son_gun=5):
     return None
 
 
-def guc_puani(d):
+def guc_puani(d, ham=False):
     """💪 Güç puanı (0-7): gece testlerinde tek başına iyi çıkan 7 göstergeden kaçı şu an olumlu. Olay çalışması (2022-26,
     125 ve 586 hisse): puan arttıkça SONRAKİ ~20 GÜNDE endekse göre getiri artıyor (iki faiz döneminde de; 7/7 ≈ +%2-6,
     0/7 ≈ −%1…+%1); 60 günde tutarsız (düşük faizde tersine dönüyor) ve v3 AL'lerini seçmeye yaramıyor → kısa vadeli
@@ -828,7 +828,19 @@ def guc_puani(d):
         ("RSI 50", None if rsi_s is None else bool(rsi_s > 50), "RSI 50'nin üstünde: alıcılar baskın" + ("" if rsi_s is None else f" (RSI {rsi_s:.0f})")),
     ]
     detay = [{"ad": a, "durum": x, "aciklama": t} for a, x, t in ogeler]
-    return {"puan": sum(1 for x in detay if x["durum"]), "toplam": len(detay), "detay": detay}
+    out = {"puan": sum(1 for x in detay if x["durum"]), "toplam": len(detay), "detay": detay}
+    if ham:
+        # 🏢 İşlem Odası güç robotları için ham değerler (analiz_et ayrı anahtara taşır; panoya gömülmez).
+        # Tekrar oynatmadaki karşılığı oda_replay.guc_seri (aynı formüller, her gün için).
+        f = lambda x: None if x is None or pd.isna(x) else round(float(x), 6)
+        cmf_s = (mfm * v).rolling(20).sum() / v.rolling(20).sum() if (v is not None and hl) else None
+        ba = pd.concat([((tenkan + kijun) / 2).shift(26), ((h.rolling(52).max() + l.rolling(52).min()) / 2).shift(26)], axis=1).min(axis=1)
+        out["ham"] = {"cmf": f(cmf), "cmf1": f(cmf_s.iloc[-2]) if cmf_s is not None and len(c) > 1 else None,
+                      "tenkan": f(tenkan.iloc[-1]), "kijun": f(kijun.iloc[-1]), "bu": f(bulut.iloc[-1]), "ba": f(ba.iloc[-1]),
+                      "c26": f(c.iloc[-27]) if len(c) > 26 else None, "dip20": f(c.iloc[-21:-1].min()) if len(c) > 20 else None,
+                      "s50": f(c.tail(50).mean()) if len(c) >= 50 else None,
+                      "b": [x["durum"] for x in detay]}
+    return out
 
 
 def _vade_ok(c, s, yukseliyor):
@@ -905,6 +917,8 @@ def analiz_et(df, xu_ust=None, xu=None, bar_kesin=True, bugun=None):
     if len(c) < 60:
         return None
     d = gostergeler(df)
+    _guc = guc_puani(d, ham=True)
+    _gh = _guc.pop("ham") if _guc else None
     son, onceki = d.iloc[-1], d.iloc[-2]
     hl = _hl_var(df)
     detay, ek = _detay(son, hl)
@@ -1030,7 +1044,8 @@ def analiz_et(df, xu_ust=None, xu=None, bar_kesin=True, bugun=None):
         "tk": tk,
         "tk_oda": tk_oda,
         "vd": vade_durum(d, bar_kesin, bugun),
-        "guc": guc_puani(d),
+        "guc": _guc,
+        "gh": _gh,          # 🏢 İşlem Odası güç robotları (ham değerler; panoya gömülmez)
         "mom6": round((float(d["Close"].iloc[-22]) / float(d["Close"].iloc[-127]) - 1) * 100, 1) if len(d) > 127 else None,
         "s200_ust": bool(len(d) > 200 and not pd.isna(d["SMA200"].iloc[-1]) and fiyat > d["SMA200"].iloc[-1]),
         "bolunme": (df.attrs.get("bolunme") or [None])[-1],   # son (kaydedilmemiş) bedelsiz/bölünme tarihi
