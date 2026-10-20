@@ -85,6 +85,11 @@ güncellenmeli (güncelleyince `BIST100_GECERLI` / `HALKA_ARZ_GUNCEL` tarihlerin
 🔧 bakım hatırlatması yapar); yfinance BIST bedelsiz/bölünme kaydı tutmuyor, arzdan beri getiri bölünmede yanılır.
 Fon krizinde çöken şişirilmiş hisseler (TERA, SMRTG, GENIL, MIATK) listeden çıkarıldı; kullanıcı
 isteğiyle faiz yüzünden düşen eski büyükler (KONTR vb.) KALDI — tüm çökenleri çıkarma.
+**2026-10-20 `tarama.MANIPULE` (32 hisse):** kullanıcı isteğiyle fon krizi (Tera/Pusula/Hedef… fonlarının topladığı) hisseleri
+TÜM analizlerden çıktı: `KODLAR`'dan düşülür → pano, İşlem Odası (canlı + oda_replay), backtest.py görmez. Ölçüt: 01.09.2026'dan
+beri ≥10 kilitli taban (yfinance, scratchpad `manipule/tara.py` + `tablo.csv`) + haberlerde fon yoğunlaşması/soruşturmada geçen ISKPL, MIATK, GENIL, GESAN, A1CAP.
+SMRTG kullanıcı isteğiyle listede KALDI. Çıkarıldığında
+karnede/oda.json'da açık pozisyonları yoktu. Yeni araştırmalarda da bu hisseleri dışla.
 
 ## Tahtacı (şişir-çak) uyarısı — `sinyal.tahta_riski`
 Olay çalışması (2022-26, tüm hisseler, bölünme düzeltmeli): 20 günde ≥%25 çakılma taban oranı %2,3. 🎈 şişme

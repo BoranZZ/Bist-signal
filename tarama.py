@@ -90,7 +90,16 @@ KUCUK_HISSELER = [
     "TSPOR", "TUREX", "ULUSE", "USAK", "VBTYZ", "VSNMD", "YIGIT",
 ]
 
-KODLAR = sorted(set(BIST100 + EK_HISSELER + KUCUK_HISSELER + list(HALKA_ARZ)))
+# Fon krizi (Eylül 2026: Tera/Pusula/Hedef... fonları tasfiye) hisseleri — kullanıcı isteğiyle TÜM analizlerden çıkarıldı
+# (pano, İşlem Odası, tekrar oynatma, backtest): fonların topladığı şişirilmiş hisseler robot geçmişinde anormal kazanç
+# gösteriyordu. Ölçüt (2026-10-20, scratchpad manipule/): 01.09.2026'dan beri ≥10 kilitli taban (gün boyu alıcı yok)
+# + haberlerde fon yoğunlaşması/soruşturmada adı geçen ISKPL, MIATK, GENIL, GESAN, A1CAP (SMRTG kullanıcı isteğiyle KALDI).
+MANIPULE = {
+    "ALKLC", "ANELE", "BIGEN", "CRDFA", "DSTKF", "GUNDG", "HEDEF", "IEYHO", "INFO", "ISKPL", "ISVEA", "IZFAS", "KARCL",
+    "KTLEV", "MAGEN", "MANAS", "MIATK", "ODINE", "OZATD", "PASEU", "PEKGY", "PRZMA", "RALYH", "SELEC", "SVGYO", "TEHOL",
+    "TERA", "TMPOL", "TRHOL", "GENIL", "GESAN", "A1CAP",
+}
+KODLAR = sorted(set(BIST100 + EK_HISSELER + KUCUK_HISSELER + list(HALKA_ARZ)) - MANIPULE)
 DURUM = "durum.json"
 ORAN_CACHE = "oranlar.json"
 ENDEKS = "XU100"
