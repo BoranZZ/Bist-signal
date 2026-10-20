@@ -789,6 +789,26 @@ sinyal, filtre, etiket ya da çıkış olarak eklenmeye değmez.** Kullanıcı f
   4. **K2 zararsız ama anlamlı değil:** toplam kârı koruyan tek aday (sepet %100/%99, 10 yuva %119/%129), ama fark neredeyse tamamen
      2022 sonrası (2017-21 ~0), son 12 ayda canlıdan biraz kötü, KTLEV +%1.543 → +%590. **Hüküm: canlı (v3 + %20 iz + 🔐) değişmez;
      K2 odada yan robot olarak karne tutar** (Nisan 2027'de 🔐 Kırılımcı ile canlı karneye bakılacak).
+- **2026-10-20: ⏩ Erken kırılımcı → 28 robot (dal `erken-giris`; araştırma scratchpad `erkengiris/RAPOR.md` 'Q', testler
+  `erkenrobot/`).** `erken_kirilim`, tur `erkenkir`, 10 yuva, Bekçi, filtre, `iz: 0.20` + `kar_kilit: (0.08, 0.05)` (çıkış 🔐 Kırılımcı
+  ile aynı). Giriş: v3 kırılımının aynısı ama şablonda 150 günlük şartlar (fiyat > SMA150, SMA150 > SMA200, SMA50 > SMA150) yerine
+  SMA50 > SMA200 (`sinyal.trend_sablonu(d, erken=True)`, `trend_kirilimi(..., erken=True)`); giriş zinciri kilitsiz (oda robotları
+  gibi) → `sinyal.erken_kirilim(d, xu_ust)` = {bugun, seviye} → `analiz_et` `tq` (panoya gömülmez) → `oda.ozet_hazirla` `tq`; replay
+  `ozellik` `tq_bugun` (+ `aday`'a eklenir, `ozet` `tq`). Canlı pano v3 DEĞİŞMEDİ. Alım notu = kırılan 20g zirvesi; 'kaçan aday' `atla_n`.
+  Salon: 🔐 köşesi [14,5, 15,6] (kısa ad 'Erken kırılım', renk #67E8F9). BRSAN'da AL 24.08 yerine 14.08.
+  **Testler (hepsi geçti):** canlı `trend_kirilimi(erken=True)` + `gercekci_cikis` = erkengiris motoru işlem işlem, 10y 286 hisse: Q+A4
+  2.711, kilitsiz Q 2.082, kontrol v3+A4 2.280 işlem — 0 fark (`t_q.py`); canlı `tq` (analiz_et 4 yıl → ozet_hazirla) = replay
+  1.051 hisse-günde (584 ⏩ sinyal günü dahil) `bugun` 0 fark, `tq` = `trend_kirilimi(erken=True)['bugun']`; `seviye` 28'inde sabit
+  çarpanla farklı (bilinen sonradan bölünme düzeltmesi, sadece alım notu) (`t_ozellik.py`); `oda_oynat` = tek robot `calistir` 28/28;
+  eski 27 robot önce/sonra AYNI veriyle (gucrobot/veri_oda.pkl) birebir (işlemler, kasa, şans, kaçanlar, olaylar, şans dosyası);
+  git'teki canlı oda.json (19.10) + yapay 20.10 → eski 27 robot durumu birebir, ⏩ o gün 100.000 TL ile eklendi, Telegram yalnız sıra
+  numaraları; analiz_et 257 hisse 7,9 → 8,3 sn; `node --check`; CDP 390/1280 (canlı, #rep, tümü, #kart=erken_kirilim): sayfa taşması ve
+  JS hatası yok (390'da kart içindeki aylık tablo kendi kaydırmalı kutusunda — eskiden de öyle), etiket çakışması yok.
+  **oda_replay.json yeniden üretildi (gerçek veri, MANIPULE'siz yeni evren, 2021-10 → 2026-10):** ⏩ +%738 (son 1 yıl +%4, düşüş −%30,
+  isabet %63, 187 alım, şans 94) · 🔐 Kırılımcı +%1.694 · 🚀 Kırılımcı +%1.103 · BIST 100 +%696. Fon krizi hisseleri çıkınca güç robotları
+  belirgin düştü (☁️🔐 +%7.750 → +%1.920, 〽️ +%4.153 → +%1.934, ☁️ +%4.238 → +%1.918, 💪 +%2.740 → +%1.384); 📐 Şabloncu +%1.651 →
+  +%2.883, 🔐 Kırılımcı ve 🔐📉 neredeyse aynı. Uzun oyun kaotik (evren değişince her robotun yolu değişir) → farkın tamamı fon krizi
+  hisselerine yazılamaz; tablo scratchpad `manipule/tablo_robot.txt`.
 - **Workflow değişti** (`tarama.yml`: `git add ... oda.json oda.html`). GITHUB_TOKEN workflow dosyasını güncelleyemediği için
   **fork'taki arkadaşlar bu satırı elle güncellemeli**; güncellemezlerse oda her taramada sıfırdan başlar ve kaydedilmez (ilk gün
   sessiz kuralı sayesinde Telegram'a mesaj gitmez), panodaki düğme `oda.html` bulunamaz.

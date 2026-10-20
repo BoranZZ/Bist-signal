@@ -108,6 +108,13 @@ ROBOTLAR = {
                 "aciklama": "🚀 Kırılımcı ile aynı giriş (v3 kırılımı, ertesi açılış). Kâr büyüdükçe satış çizgisi tepeye yaklaşır: "
                             "+%50'ye kadar %20, +%100'de %17, +%200'de %12, +%400'de %8; +%8 görünce en az alış +%5. "
                             "Kapanış çizginin altındaysa satar."},
+    # 2026-10-20: erken giriş (scratchpad erkengiris/RAPOR.md 'Q'): sert düşüş sonrası toparlanmayı daha erken yakalar mı
+    "erken_kirilim": {"ad": "⏩ Erken kırılımcı", "tur": "erkenkir", "yuva": 10, "iz": 0.20, "kar_kilit": (0.08, 0.05),
+                      "filtre": True,
+                      "aciklama": "🚀 Kırılımcı gibi 20 günlük zirvenin ilk kırılımında ertesi açılışta alır, ama trend şartı daha "
+                                  "gevşek: 150 günlük ortalama şartları yerine fiyat > 50 günlük > 200 günlük ortalama yeter (sert "
+                                  "düşüşten sonra toparlanan hisseye daha erken girer). Çıkış 🔐 Kırılımcı gibi: %20 iz stop + kâr "
+                                  "kilidi (+%8 görülünce stop ≥ alış +%5)."},
     "rastgele": {"ad": "🎲 Rastgele", "tur": "rastgele", "yuva": 10, "iz": 0.20, "filtre": True,
                  "aciklama": "Şans kıyası: 🚀 kırılım gelen gün, o gün kaç kırılım varsa o kadar RASTGELE hisse alır; "
                              "Kırılımcı ile aynı %20 iz stop. Kırılımcı bunu yenemiyorsa seçim becerisi yok demektir."},
@@ -215,7 +222,8 @@ def ozet_hazirla(s, d=None, buyuk=False):
          # tarama._riskli ile aynı: taban serisi / 🔒 kilitli taban / 🎈 şişme
          "riskli": bool(s.get("patlak") or s.get("kt") or th.get("seviye") == "sisme"),
          "uzama": False, "kijun": None,
-         "kisa": bool(tk.get("kisa")), "g": guc_ozet(s.get("guc"), s.get("gh"))}
+         "kisa": bool(tk.get("kisa")), "g": guc_ozet(s.get("guc"), s.get("gh")),
+         "tq": {"bugun": bool((s.get("tq") or {}).get("bugun")), "seviye": (s.get("tq") or {}).get("seviye")}}
     if d is not None and len(d) > 2:
         import sinyal as S
         r = d["RSI"] if "RSI" in d else S.rsi(d["Close"])
@@ -353,6 +361,8 @@ def _al_adaylari(robot, gv, kasa):
             continue
         if tur == "kirilim" and h["tk"]["bugun"]:
             aday.append((h["mom20"], kod))                       # az yükselmiş olan önce (proje 'AL önceliği')
+        elif tur == "erkenkir" and (h.get("tq") or {}).get("bugun"):
+            aday.append((h["mom20"], kod))                       # ⏩ erken şablonlu kırılım (sinyal.erken_kirilim)
         elif tur == "erken":
             u = h["tk"]["kirilima_uzak"]
             if (h["tk"]["sablon"] and u is not None and 0 < u <= robot.get("uzak", 3.0)          # = panodaki 👀 rozeti
@@ -395,6 +405,8 @@ def _al_notu(tur, h, n, bos, sira):
     o = None
     if tur == "kirilim":
         o = _r(h["tk"].get("seviye"))
+    elif tur == "erkenkir":
+        o = _r((h.get("tq") or {}).get("seviye"))
     elif tur == "erken":
         o = _r(h["tk"].get("kirilima_uzak"), 1)
     elif tur == "dip":
@@ -808,6 +820,11 @@ ROBOT_EK = {
                        "sadece iz kâr büyüdükçe daralıyor. Araştırmada toplam kârı korudu (sepet %99-100, 10 yuva biraz iyi) ama canlıdan "
                        "anlamlı iyi değil: farkın neredeyse tamamı 2022 sonrası, son 12 ayda biraz geride; KTLEV gibi dev trendleri "
                        "erken kesiyor. Kâr kilidi asıl işi zaten yapıyor; bu robot birkaç ay karne tutmak için odada."},
+    "erken_kirilim": {"renk": "#67E8F9", "kisa": "Erken kırılım",
+                      "not": "Erken giriş araştırmasından (2017-26, 286 hisse) yan robot: 10 yuvada ana listede 10 yılın 9'unda canlı "
+                             "🚀 + kâr kilidinden iyi (10 yılda %3.372 → %4.245), küçüklerde 6'sında; en büyük düşüş aynı (~%28). "
+                             "Fark kâr kilidinin katkısının ~1/8'i kadar — küçük. BRSAN'da 24.08 yerine 14.08'de alırdı. Panoya "
+                             "almadan önce canlı karne için odada."},
     "endeksci": {"renk": "#B9A6FF", "not": "Kıyas çizgisi: BIST 100 al-tut (fiyat endeksi; temettü yok)."},
     "faizci": {"renk": "#60A5FA", "not": "Birikim kıyası (yarışmacı değil). Politika faizi gerçek mevduat faizinden farklı olabilir; "
                                          "kasa değeri vadenin bugüne kadar işlemiş net faizini de içerir (vade bozulursa alınmaz)."},
@@ -1511,7 +1528,7 @@ function bolge(g,x,y,w,d,renk,kesik){el('polygon',{points:pts([P(x,y),P(x+w,y),P
 var MASA={kirilimci:[1.0,2.0],siki:[3.7,2.0],erkenci:[6.4,2.0],momentumcu:[9.1,2.0],dipavcisi:[1.0,5.4],uzunvadeci:[3.7,5.4],rsi:[6.4,5.4],
  kirilimci20:[9.1,5.4],rastgele:[12.6,2.2],endeksci:[12.6,5.4],bekci:[14.6,9.5],ai1:[1.6,15.6],ai2:[4.6,15.6],
  guclu:[1.0,8.8],sablonci:[3.7,8.8],bulutcu:[6.4,8.8],zirveci:[9.1,8.8],paraci:[11.8,8.8],adxci:[1.0,12.2],emaci:[3.7,12.2],rsi50:[6.4,12.2],
- kilitli_kirilimci:[9.1,12.2],bulutcu_kilit:[11.8,12.2],sablon_kilit:[14.5,12.2],daralan:[9.1,15.6],weinstein:[11.8,15.6],
+ kilitli_kirilimci:[9.1,12.2],bulutcu_kilit:[11.8,12.2],sablon_kilit:[14.5,12.2],daralan:[9.1,15.6],weinstein:[11.8,15.6],erken_kirilim:[14.5,15.6],
  faizci:[1.0,19.0],altinci:[3.7,19.0],dolarci:[6.4,19.0],dengeci:[9.1,19.0]};
 var KESIR={XU100:1,ALTIN:1,USD:1},MAKAS={ALTIN:.01,USD:.005},TF=null;
 var W=16.8,D=21.2,H=3.8,TAHTA=[5.0,12.6],TAHTA_ON=[8.8,0.8];
@@ -1784,7 +1801,7 @@ function akisCiz(v){var h='',bek=[];
  document.getElementById('akis').innerHTML=h||'<div class="ol"><span>Henüz olay yok.</span></div>';}
 function notMetin(x,id){var n=x[10],t=RB[id].tur;if(!n||!n.length)return '';
  if(x[2]==='A'){var o=n[0],s='';
-  if(t==='kirilim'&&o!=null)s='20 günlük zirve '+sy(o,2)+' kırıldı';else if(t==='erken'&&o!=null)s='zirveye %'+sy(o,1)+' kalmıştı';
+  if((t==='kirilim'||t==='erkenkir')&&o!=null)s='20 günlük zirve '+sy(o,2)+' kırıldı';else if(t==='erken'&&o!=null)s='zirveye %'+sy(o,1)+' kalmıştı';
   else if(t==='dip'&&o!=null)s='destek '+sy(o,2)+' TL\'den tepki';else if(t==='rsi'&&o!=null)s='RSI '+sy(o,1);
   else if(t==='momentum'&&o!=null)s='6 ay getirisi '+yz(o,0);
   else if((t==='zirve'||t==='para')&&o!=null)s='para akışı (CMF) '+sy(o,2);else if((t==='guc'||t==='sablon'||t==='bulut'||t==='adx'||t==='ema'||t==='rsi50'||t==='weinstein')&&o!=null)s='güç puanı '+o+'/7';else if(t==='uzun')s='🌱 uzun vade AL';else if(t==='rastgele')s='rastgele seçim';

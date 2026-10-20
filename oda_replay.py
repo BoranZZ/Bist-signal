@@ -228,6 +228,10 @@ def ozellik(d, xu_ust, xu):
         tc[x["i"]] = x["cik"] if x["cik"] is not None else -1
     F["tk_giris"], F["tk_cik"] = tg, tc
     F["tk_bugun"], F["tk_acik"], F["sablon"], F["kir_uzak"] = bugun, acik, sab, uzak
+    tq = np.zeros(n, bool)   # ⏩ Erken kırılımcı: erken şablonlu kilitsiz v3 zincirinin giriş günleri (sinyal.erken_kirilim)
+    for x in S.trend_kirilimi(d, xu_ust, ham=True, kar_kilit=False, erken=True):
+        tq[x["i"]] = True
+    F["tq_bugun"] = tq
     F["oynak"] = (r.rolling(60).std() > S.OYNAK_ESIK).values
     F["mom20"] = (c / c.shift(20) - 1).values
     F["mom6"] = (c.shift(21) / c.shift(126) - 1).values
@@ -311,6 +315,8 @@ def hazirla(g):
         erken = (u > 0) & (u <= 3.0)
         M["rsi_al"] = (M["rsi"] >= 25) & (M["rsi"] <= 33) & (M["drsi"] >= 2.4)
     M["aday"] = M["tk_bugun"] | erken | M["sd_tepki"] | M["uv_yeni"] | M["rsi_al"] | guc_aday(M)
+    if any(r["tur"] == "erkenkir" for r in oda.ROBOTLAR.values()):
+        M["aday"] |= M["tq_bugun"]      # ⏩ (eski robotların kararları aday kümesinin genişliğinden bağımsız — test edildi)
     M["Cf"] = pd.DataFrame(M["C"].T).ffill().values.T
     buyuk = set(tarama.BIST100) | set(tarama.EK_HISSELER)
     return {"kod": tamam, "gun": gun, "A": M, "xu": xu, "xu_open": xd["Open"].astype(float).reindex(gun), "xu_ust": xu_ust,
@@ -361,7 +367,9 @@ def ozet(D, k, t):
             "mom6": None if m6 != m6 else float(m6), "s200_ust": bool(A["s200_ust"][k, t]),
             "buyuk": bool(D["buyuk_m"][k]), "riskli": bool(A["riskli"][k, t]),
             "uzama": bool(A["uzama"][k, t]), "kijun": None if kj != kj else float(kj),
-            "kisa": bool(A["gecmis"][k, t] < 250), "g": guc_ozet(A, k, t)}
+            "kisa": bool(A["gecmis"][k, t] < 250), "g": guc_ozet(A, k, t),
+            "tq": {"bugun": bool(A["tq_bugun"][k, t]),
+                   "seviye": None if A["hh20"][k, t] != A["hh20"][k, t] else float(A["hh20"][k, t])}}
 
 
 def guc_ozet(A, k, t):

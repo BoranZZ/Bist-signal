@@ -480,25 +480,30 @@ def bayrak_kirilimi(df):
 KIRILIM_GUN = 20   # v3: trend şablonundayken önceki 20 günün en yüksek kapanışının üstüne ilk kapanış
 
 
-def trend_sablonu(d):
+def trend_sablonu(d, erken=False):
     """Minervini trend şablonu (günlük seri): fiyat > SMA50 > SMA150 > SMA200, SMA200 20 günde yükselmiş,
-    fiyat 52 hafta zirvesinin en az %75'inde ve 52 hafta dibinin en az %30 üstünde."""
+    fiyat 52 hafta zirvesinin en az %75'inde ve 52 hafta dibinin en az %30 üstünde.
+    erken=True: ⏩ Erken kırılımcı robotunun şablonu (scratchpad erkengiris 'Q'): 150 günlük şartlar (fiyat > SMA150,
+    SMA150 > SMA200, SMA50 > SMA150) yerine SMA50 > SMA200 — sert düşüş sonrası toparlanmada şablon daha erken tutar."""
     c = d["Close"]
-    s150 = c.rolling(150).mean()
     mx, mn = c.rolling(250).max(), c.rolling(250).min()
-    return ((c > s150) & (s150 > d["SMA200"]) & (d["SMA200"] > d["SMA200"].shift(20)) & (d["SMA50"] > s150)
-            & (c > d["SMA50"]) & (c >= 0.75 * mx) & (c >= 1.30 * mn))
+    ortak = (d["SMA200"] > d["SMA200"].shift(20)) & (c > d["SMA50"]) & (c >= 0.75 * mx) & (c >= 1.30 * mn)
+    if erken:
+        return ortak & (d["SMA50"] > d["SMA200"])
+    s150 = c.rolling(150).mean()
+    return (c > s150) & (s150 > d["SMA200"]) & (d["SMA50"] > s150) & ortak
 
 
-def trend_kirilimi(d, xu_ust=None, islemler=False, ham=False, kar_kilit=None):
+def trend_kirilimi(d, xu_ust=None, islemler=False, ham=False, kar_kilit=None, erken=False):
     """🚀 v3 giriş/çıkış (5 yıllık backtest'te v2'den iyi, bkz. CLAUDE.md): trend şablonundayken 20 günlük zirvenin
     ilk kırılımı (piyasa XU100 > SMA50, 60 gün oynaklık ≤ %5) → AL; ertesi açılıştan girilir, AL'den beri tepe
     kapanışın IZ_STOP_ORAN altına kapanışta çıkılır. Pozisyon açıkken yeni kırılımlar sayılmaz (backtest'le aynı).
     🔐 kâr kilidi (iz_seviye): kapanışta giriş +KAR_KILIT_ESIK görüldüyse stop en az giriş × (1 + KAR_KILIT_SEVIYE).
-    kar_kilit: None = modül ayarı (canlı), False = eski v3 (kilitsiz; İşlem Odası robotları bunu kullanır), (eşik, seviye)."""
+    kar_kilit: None = modül ayarı (canlı), False = eski v3 (kilitsiz; İşlem Odası robotları bunu kullanır), (eşik, seviye).
+    erken=True: ⏩ Erken kırılımcı şablonu (trend_sablonu(erken=True)); canlı pano kullanmaz."""
     kk = kar_kilit_ayar(kar_kilit)
     c = d["Close"]
-    sab = trend_sablonu(d)
+    sab = trend_sablonu(d, erken)
     kir = c > c.rolling(KIRILIM_GUN).max().shift(1)
     gir = sab & kir & ~kir.shift(1, fill_value=False)
     gir &= ~(c.pct_change().rolling(60).std() > OYNAK_ESIK)
@@ -586,6 +591,17 @@ def _kk_alanlar(x, kk, kilit, idx):
 
 TK_GECMIS_N = 6   # hisse penceresindeki 'Sinyal geçmişi' ve '🚀 Son roketler' için saklanan en son v3 işlemi sayısı
 TKG_YIL = 2       # tkg'ye sadece çıkışı son 2 yılda olan (ya da açık) işlemler girer: tarama 4 yıl indirir, sayfa büyümesin
+
+
+def erken_kirilim(d, xu_ust=None):
+    """🏢 ⏩ Erken kırılımcı robotunun girişi: kilitsiz zincirde (oda robotları gibi, `kar_kilit=False`) erken şablonlu
+    (trend_sablonu(erken=True)) v3 kırılımı bugün mü. trend_kirilimi(..., erken=True)['bugun'] ile aynı; seviye = önceki
+    20 günün en yüksek kapanışı (alım notu). Canlı: analiz_et → s['tq']; tekrar oynatma: oda_replay.ozellik tq_bugun."""
+    tum = trend_kirilimi(d, xu_ust, ham=True, kar_kilit=False, erken=True)
+    n = len(d)
+    bugun = bool(tum and tum[-1]["cik"] is None and tum[-1]["i"] == n - 1)
+    hh = float(d["Close"].iloc[-KIRILIM_GUN - 1:-1].max()) if n > KIRILIM_GUN else None
+    return {"bugun": bugun, "seviye": round(hh, 2) if hh else None}
 
 
 def tk_gecmis(d, tum, n=TK_GECMIS_N):
@@ -1019,6 +1035,7 @@ def analiz_et(df, xu_ust=None, xu=None, bar_kesin=True, bugun=None):
     tk_oda = trend_kirilimi(d, xu_ust, kar_kilit=False) if kar_kilit_ayar() else tk
     if tk_oda is not tk and isinstance(tk_oda.get("sc"), dict):
         tk_oda["sc"].pop("_j0", None)   # grafik iç alanı (_spark tk'ninkini siler; burada da aynısı)
+    tq = erken_kirilim(d, xu_ust)   # 🏢 ⏩ Erken kırılımcı robotu (panoya gömülmez)
     if tk.get("giris_tarih") and (al_tarih is None or tk["giris_tarih"] >= al_tarih):
         al_tarih = tk["giris_tarih"]
         if tk["durum"] == "AL":
@@ -1065,6 +1082,7 @@ def analiz_et(df, xu_ust=None, xu=None, bar_kesin=True, bugun=None):
         "uv": uzun_vade(d),
         "tk": tk,
         "tk_oda": tk_oda,
+        "tq": tq,
         "vd": vade_durum(d, bar_kesin, bugun),
         "guc": _guc,
         "gh": _gh,          # 🏢 İşlem Odası güç robotları (ham değerler; panoya gömülmez)
