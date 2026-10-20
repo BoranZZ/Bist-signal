@@ -102,6 +102,12 @@ ROBOTLAR = {
                   "aciklama": "Weinstein 'evre 2'ye ilk girdiği gün alır: kapanış 200 günlük ortalamanın üstünde, ortalama 20 günde "
                               "yükselmiş ve hisse BIST 100'ü kendi 250 günlük ortalamasına göre yeniyor (Mansfield RS > 0) — üçü dün "
                               "birlikte sağlanmıyordu. Çıkış panodaki 🚀 gibi: %20 iz stop + kâr kilidi (+%8 görülünce stop ≥ alış +%5)."},
+    # 2026-10-20: kâr büyüdükçe daralan iz (scratchpad kademeli/RAPOR.md 'K2'): canlıyı değiştirmek yerine karne için yan robot
+    "daralan": {"ad": "🔐📉 Daralan iz", "tur": "kirilim", "yuva": 10, "iz": 0.20, "daralan": (0.30, 0.75, 0.08),
+                "kar_kilit": (0.08, 0.05), "filtre": True,
+                "aciklama": "🚀 Kırılımcı ile aynı giriş (v3 kırılımı, ertesi açılış). Kâr büyüdükçe satış çizgisi tepeye yaklaşır: "
+                            "+%50'ye kadar %20, +%100'de %17, +%200'de %12, +%400'de %8; +%8 görünce en az alış +%5. "
+                            "Kapanış çizginin altındaysa satar."},
     "rastgele": {"ad": "🎲 Rastgele", "tur": "rastgele", "yuva": 10, "iz": 0.20, "filtre": True,
                  "aciklama": "Şans kıyası: 🚀 kırılım gelen gün, o gün kaç kırılım varsa o kadar RASTGELE hisse alır; "
                              "Kırılımcı ile aynı %20 iz stop. Kırılımcı bunu yenemiyorsa seçim becerisi yok demektir."},
@@ -472,6 +478,28 @@ def _kiyas_karar(robot, gv, kasa, deger):
     return emir
 
 
+# ------------------------------------------------------------------ çıkış çizgisi (iz stop + 🔐 kâr kilidi + 📉 daralan iz)
+def iz_orani(robot, giris, tepe):
+    """Tepeden uzaklık oranı. Sabit: robot['iz']. 🔐📉 daralan iz (robot['daralan'] = (a, b, alt)): g = tepe / alış − 1,
+    iz = min(robot['iz'], max(alt, a / (1 + b·g))) — K2: +%50'ye kadar %20, +%100 %17, +%200 %12, +%400 ve üstü %8.
+    tepe ve g yalnız artar → çizgi hiç inmez (ayrı cırcır gerekmez)."""
+    dz = robot.get("daralan")
+    if not dz:
+        return robot["iz"]
+    a, b, alt = dz
+    return min(robot["iz"], max(alt, a / (1.0 + b * (tepe / giris - 1.0))))
+
+
+def stop_seviyesi(robot, giris, tepe):
+    """(çizgi, tür): tür 'kk' = 🔐 kâr kilidi seviyesi (tepe ≥ alış × (1 + eşik) ve iz çizgisinden yüksekse alış × (1 + kilit)),
+    'iz' = iz çizgisi tepe × (1 − iz_orani), None = çizgi yok (iz stopsuz, kilit devrede değil). Kapanış < çizgi → SAT."""
+    iz_sev = tepe * (1 - iz_orani(robot, giris, tepe)) if robot.get("iz") else None
+    kk = robot.get("kar_kilit")      # iz stop'u olmayan robotta (☁️🔐) çizgi = kilit seviyesi
+    if kk and tepe >= giris * (1 + kk[0]) and (iz_sev is None or giris * (1 + kk[1]) > iz_sev):
+        return giris * (1 + kk[1]), "kk"
+    return iz_sev, ("iz" if iz_sev is not None else None)
+
+
 # ------------------------------------------------------------------ ANA FONKSİYON
 def robot_karar(rid, gun_verisi, kasa, robot=None, bekci=None):
     """Kesin kapanış taramasında çağrılır. Pozisyon izleyicilerini (tepe, gün, uzama) ve risk durumunu günceller,
@@ -527,18 +555,14 @@ def robot_karar(rid, gun_verisi, kasa, robot=None, bekci=None):
         h = hs.get(kod) or {}
         f = p.get("fiyat")
         neden = None
-        iz_sev = p["tepe"] * (1 - robot["iz"]) if robot.get("iz") else None
-        kk = robot.get("kar_kilit")      # 🔐 (eşik, kilit): tepe kapanış alışın ≥ eşik üstündeyse stop ≥ alış × (1 + kilit)
-        if kk:                           # iz stop'u olmayan robotta (☁️🔐) stop = kilit seviyesi
-            giris = p["maliyet"] / (1 + KOMISYON)                 # alış fiyatı (maliyet = fiyat × (1 + komisyon))
-            if p["tepe"] >= giris * (1 + kk[0]) and (iz_sev is None or giris * (1 + kk[1]) > iz_sev):
-                iz_sev = giris * (1 + kk[1])
-                if f < iz_sev:
-                    neden = f"kâr kilidi (alış +%{kk[1] * 100:.0f} altı)"
-        if neden:
-            pass
+        iz_sev, tip = stop_seviyesi(robot, p["maliyet"] / (1 + KOMISYON), p["tepe"])   # alış = maliyet / (1 + komisyon)
+        if tip == "kk" and f < iz_sev:
+            neden = f"kâr kilidi (alış +%{robot['kar_kilit'][1] * 100:.0f} altı)"
         elif robot.get("iz") and f < iz_sev:
-            neden = f"iz stop (tepe {p['tepe']:.2f})"
+            if robot.get("daralan"):
+                neden = f"daralan iz (tepe {p['tepe']:.2f}, iz %{iz_orani(robot, p['maliyet'] / (1 + KOMISYON), p['tepe']) * 100:.1f})"
+            else:
+                neden = f"iz stop (tepe {p['tepe']:.2f})"
         elif robot.get("siki") and p.get("uzadi") and h.get("kijun") and f < h["kijun"]:
             neden = "sıkı çizgi altında kapanış"
         elif tur == "dip":
@@ -779,6 +803,11 @@ ROBOT_EK = {
                   "not": "Paralı/popüler indikatör araştırmasından DENEME robotu (kanıt zayıf): 10 yıllık sınavda ana listede yılda "
                          "~+%49, küçüklerde ~+%75, isabet %66-71; dengeli ölçütte canlı 🚀 + kâr kilidinin gerisinde. Panoyla farkı "
                          "gerçek zamanda görmek için odada."},
+    "daralan": {"renk": "#FCA5A5", "kisa": "Daralan iz",
+                "not": "Kademeli iz araştırmasından (2017-26, 286 hisse) yan robot: 🔐 Kırılımcı + kâr kilidi ile aynı giriş ve kilit, "
+                       "sadece iz kâr büyüdükçe daralıyor. Araştırmada toplam kârı korudu (sepet %99-100, 10 yuva biraz iyi) ama canlıdan "
+                       "anlamlı iyi değil: farkın neredeyse tamamı 2022 sonrası, son 12 ayda biraz geride; KTLEV gibi dev trendleri "
+                       "erken kesiyor. Kâr kilidi asıl işi zaten yapıyor; bu robot birkaç ay karne tutmak için odada."},
     "endeksci": {"renk": "#B9A6FF", "not": "Kıyas çizgisi: BIST 100 al-tut (fiyat endeksi; temettü yok)."},
     "faizci": {"renk": "#60A5FA", "not": "Birikim kıyası (yarışmacı değil). Politika faizi gerçek mevduat faizinden farklı olabilir; "
                                          "kasa değeri vadenin bugüne kadar işlemiş net faizini de içerir (vade bozulursa alınmaz)."},
@@ -1482,7 +1511,7 @@ function bolge(g,x,y,w,d,renk,kesik){el('polygon',{points:pts([P(x,y),P(x+w,y),P
 var MASA={kirilimci:[1.0,2.0],siki:[3.7,2.0],erkenci:[6.4,2.0],momentumcu:[9.1,2.0],dipavcisi:[1.0,5.4],uzunvadeci:[3.7,5.4],rsi:[6.4,5.4],
  kirilimci20:[9.1,5.4],rastgele:[12.6,2.2],endeksci:[12.6,5.4],bekci:[14.6,9.5],ai1:[1.6,15.6],ai2:[4.6,15.6],
  guclu:[1.0,8.8],sablonci:[3.7,8.8],bulutcu:[6.4,8.8],zirveci:[9.1,8.8],paraci:[11.8,8.8],adxci:[1.0,12.2],emaci:[3.7,12.2],rsi50:[6.4,12.2],
- kilitli_kirilimci:[9.1,12.2],bulutcu_kilit:[11.8,12.2],sablon_kilit:[14.5,12.2],weinstein:[11.8,15.6],
+ kilitli_kirilimci:[9.1,12.2],bulutcu_kilit:[11.8,12.2],sablon_kilit:[14.5,12.2],daralan:[9.1,15.6],weinstein:[11.8,15.6],
  faizci:[1.0,19.0],altinci:[3.7,19.0],dolarci:[6.4,19.0],dengeci:[9.1,19.0]};
 var KESIR={XU100:1,ALTIN:1,USD:1},MAKAS={ALTIN:.01,USD:.005},TF=null;
 var W=16.8,D=21.2,H=3.8,TAHTA=[5.0,12.6],TAHTA_ON=[8.8,0.8];

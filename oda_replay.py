@@ -52,13 +52,14 @@ NEDEN = {"iz": "iz stop (tepeden %20 düşüş)", "sk": "sıkı çizgi altında 
          "dg": "dengeleme (1/3'e; kısmi satış)", "gp": "güç puanı 3 ya da altına düştü", "bu": "bulut altında kapanış",
          "kj": "kijun altında kapanış", "d20": "20 günlük dibin altında kapanış", "cm": "para çıkışı (CMF −0,10 altı)",
          "kk": "kâr kilidi (+%8 görüldükten sonra alışın %5 üstü kırıldı)", "di": "yön aşağı döndü (−DI > +DI)",
-         "em": "EMA10 EMA30'un altına indi", "r50": "RSI 50'nin altına indi"}
+         "em": "EMA10 EMA30'un altına indi", "r50": "RSI 50'nin altına indi",
+         "dz": "daralan iz (kâr büyüdükçe tepeye yaklaşan çizgi: +%50'ye kadar %20 … +%400'de %8)"}
 
 
 def neden_kod(t):
     t = t or ""
     for a, k in (("−DI > +DI", "di"), ("EMA10 EMA30", "em"), ("RSI 50'nin altına", "r50"), ("güç puanı", "gp"), ("bulut altında", "bu"), ("kijun altında", "kj"), ("günlük dibin", "d20"),
-                 ("para çıkışı", "cm"), ("kâr kilidi", "kk"), ("iz stop", "iz"), ("sıkı", "sk"), ("destek", "dk"), ("dirence", "dr"), ("gün doldu", "sr"), ("🌱", "uv"),
+                 ("para çıkışı", "cm"), ("kâr kilidi", "kk"), ("daralan iz", "dz"), ("iz stop", "iz"), ("sıkı", "sk"), ("destek", "dk"), ("dirence", "dr"), ("gün doldu", "sr"), ("günü doldu", "sr"), ("🌱", "uv"),
                  ("listeden", "ls"), ("piyasa", "pz"), ("şablon", "sb"), ("düşüş limiti", "bk"), ("aştı", "kr"), ("dengeleme", "dg")):
         if a in t:
             return k

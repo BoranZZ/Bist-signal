@@ -276,7 +276,8 @@ sinyal, filtre, etiket ya da çıkış olarak eklenmeye değmez.** Kullanıcı f
   tarama oda'ya `tk` yerine `tk_oda`'yı geçirir (canlı kilitli `tk` → `tk_kk`); `oda_replay.ozellik` `kar_kilit=False`. Odadaki 🔐 robot
   (`kilitli_kirilimci`, İşlem Odası bölümündeki '💪 güç robotları + 🔐' maddesi) aynı A4 kuralını (+%8 → alış +%5) `oda.robot_karar` içinde
   kendi pozisyonuna uygular; girdisi yine kilitsiz `tk` (giriş sinyalleri Kırılımcı'yla aynı). 2026-10-20'den beri aynı kilit
-  ☁️🔐 Bulutçu (iz stop'suz), 📐🔐 Şabloncu ve 🪜 Weinstein robotlarında da ('ÇIKIŞ DENEMESİ' köşesi).
+  ☁️🔐 Bulutçu (iz stop'suz), 📐🔐 Şabloncu ve 🪜 Weinstein robotlarında da ('ÇIKIŞ DENEMESİ' köşesi); 2026-10-20'den beri 🔐📉 Daralan iz
+  robotunda kilit + kâr büyüdükçe daralan iz ('K2', İşlem Odası bölümü).
 - **Bilinen:** portföy iz stop'u son giriş v3 DEĞİLSE (gösterge AL'i daha yeni) eski gösterge iz'i (kilitsiz) — değişmedi.
 - **Doğrulama (scratchpad `karkilidi/`):** canlı `trend_kirilimi` + `gercekci_cikis` = `finalcikis/motor2.py` işlem işlem, 10y 286 hisse:
   A4 2.280 / A1 2.096 / kilitsiz 1.783 işlem, **0 fark** (A4'te 982 kâr kilidi çıkışı; `cikis2/motor.py` A1 ile de 0 fark) (`t1_motor2.py`).
@@ -753,6 +754,36 @@ sinyal, filtre, etiket ya da çıkış olarak eklenmeye değmez.** Kullanıcı f
      Nisan 2027'de canlı karneyle yeniden bakılacak (📐🔐 ana listede canlıda da v3+🔐'ü geçerse panoya aday olur, bugün değil).
   🪜 Weinstein (scratchpad `ucretli/RAPOR.md` 'Aday 2'): kanıt zayıf DENEME robotu — 10 yılda ana +%49 / küçük +%75 yılda, isabet %71/%66,
   dengeli puanda canlının gerisinde; panoyla farkını gerçek zamanda görmek için.
+- **2026-10-20: 🔐📉 Daralan iz → 27 robot (dal `daralan-iz`; araştırma scratchpad `kademeli/RAPOR.md`, testler `daralan/`).**
+  `daralan`, tur `kirilim` (giriş 🚀 Kırılımcı / 🔐 Kırılımcı ile aynı: kilitsiz v3 `tk`, 10 yuva, Bekçi, filtre), `iz: 0.20`,
+  `kar_kilit: (0.08, 0.05)`, `daralan: (0.30, 0.75, 0.08)`. Çıkış 'K2': g = tepe kapanış / alış − 1; iz = min(%20, max(%8,
+  0,30 / (1 + 0,75·g))); çizgi = max(tepe × (1 − iz), kilit) — kilit = tepe ≥ alış×1,08 olunca alış×1,05 (A4); kapanış < çizgi → SAT
+  (kilitli tabanda bekler). Tepe ve g yalnız artar → çizgi hiç inmez. Tablo: +%50'ye kadar %20, +%75 %19, +%100 %17, +%150 %14,
+  +%200 %12, +%300 %9, +%400 ve üstü %8 (+%30'a kadar çizgiyi kilit belirler). **Kod:** çizgi TEK yerde `oda.stop_seviyesi(robot,
+  alış, tepe)` → (çizgi, 'kk'|'iz'|None) + `oda.iz_orani` (daralan yoksa `robot['iz']`); `robot_karar` bunu kullanır (eski robotlar
+  birebir). Satış nedeni 'daralan iz (tepe X, iz %Y)' → replay neden kodu `dz` (kilit kırılırsa yine `kk`). Salon: '🔐 ÇIKIŞ
+  DENEMESİ · KÂR KİLİDİ' köşesinde 🔐 Kırılımcı'nın önünde [9,1, 15,6] (kısa ad 'Daralan iz', renk #FCA5A5).
+  **Aynı commit'te düzeltme:** 🧲 Dip avcısının '20 işlem günü doldu' satışları replay'de neden kodu '?' yazılıyordu (eşleşme 'gün doldu'
+  arıyordu) → artık `sr`; işlemler/kasa değişmedi (test edildi).
+  **Testler (hepsi geçti):** oda dışı, işlem işlem: `oda.stop_seviyesi` = `kademeli/motor3.py` K2 (10y 286 hisse, 2.361 işlem, 0 fark;
+  aynı düzenekle 🔐 Kırılımcı = motor3 A4 2.280 / 🚀 = kilitsiz 1.783, 0 fark; iz tablosu aynı; `t_motor3.py`). `oda_oynat` = tek robot `calistir` 27/27; eski 26 robot önce/sonra birebir (işlemler, kasa, şans, kaçanlar,
+  olaylar; `oda_replay_sans.json` aynı; 🧲'de tek fark 43 satışın kodu '?' → 'sr'; önce çıktısı git'tekiyle `uretim` hariç aynı); git'teki
+  canlı oda.json (20 robot, 19.10) + yapay 20.10 mumu → 7 yeni robot (🔐📉 dahil) o gün 100.000 TL ile eklendi, eski 26 robotun durumu
+  kodun eski hâliyle birebir, Telegram yalnız sıra numaraları kaydı; `node --check`; CDP 390/1280 px (canlı, #rep, tümü, #kart=daralan):
+  yatay taşma ve JS hatası yok, etiket–etiket / etiket–figür çakışması yok. **Boyut:** oda_replay.json 1.329 → 1.388 KB (gzip 431 →
+  451 KB), replay ~6-8 dk. **5 yıl replay (2021-10 → 2026-10, tümü):** 🔐📉 Daralan iz +%1.406 (yılda +%72, düşüş −%30, isabet %61,
+  189 alım, son 1 yıl +%18, şans 88 / 1y 55) · 🔐 Kırılımcı +%1.635 (+%77, −%26, %66, son 1 yıl +%33, şans 97 / 86) · 🚀 Kırılımcı
+  +%931 (+%59, −%32, %50, +%9, şans 79 / 45) · BIST 100 +%727. Odada da 🔐'ün gerisinde (araştırmadaki 'canlıdan anlamlı iyi değil' ile uyumlu).
+  **Kademeli iz araştırmasının özeti (scratchpad `kademeli/RAPOR.md`; 1.383 ayar, 5 aile, kilitli/kilitsiz, 200 yarım liste):**
+  1. **Kâr kilidi asıl işi yapıyor.** Kilit açıkken iz daraltmanın katkısı küçük (dengeli puanda +20…+85; kilidin v3'e katkısı +522).
+     Kilit kapatılıp yerine daraltma konunca hepsi canlının çok gerisinde (−380…−455). ATR ailesi hiçbir ayarda canlıyı geçmedi.
+  2. **Tek bir 'en iyi oran' yok.** 2017-21'de en iyi çıkan ayar her ailede 2022-26'da sıranın ortasına düşüyor (ve tersi); geniş
+     düzlük var, belirgin zirve yok. 2017-21 'erken ve hafif sıkılaştır', 2022-26 'ilk kata kadar dokunma' diyor.
+  3. **Kullanıcının '+%90 kârda %8-9 iz' fikri (K4) büyük trendleri kesiyor:** en büyük 20 kazanandan alınan kâr canlının %65'i,
+     sepet %83/%91, ana 10 yuva %83; GLYHO zinciri +%219 → +%37, ASELS +%419 → +%211 (erken satıp daha yukarıdan yeniden alım).
+  4. **K2 zararsız ama anlamlı değil:** toplam kârı koruyan tek aday (sepet %100/%99, 10 yuva %119/%129), ama fark neredeyse tamamen
+     2022 sonrası (2017-21 ~0), son 12 ayda canlıdan biraz kötü, KTLEV +%1.543 → +%590. **Hüküm: canlı (v3 + %20 iz + 🔐) değişmez;
+     K2 odada yan robot olarak karne tutar** (Nisan 2027'de 🔐 Kırılımcı ile canlı karneye bakılacak).
 - **Workflow değişti** (`tarama.yml`: `git add ... oda.json oda.html`). GITHUB_TOKEN workflow dosyasını güncelleyemediği için
   **fork'taki arkadaşlar bu satırı elle güncellemeli**; güncellemezlerse oda her taramada sıfırdan başlar ve kaydedilmez (ilk gün
   sessiz kuralı sayesinde Telegram'a mesaj gitmez), panodaki düğme `oda.html` bulunamaz.
