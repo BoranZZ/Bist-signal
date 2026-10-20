@@ -20,6 +20,13 @@ def _med(xs):
     return xs[len(xs) // 2] if xs else None
 
 
+# 📊 bilanço tepkisi araştırma notu (scratchpad strateji2 + panobilgi/t2_bt.py: ana liste 2017-26, KAP tarihli 3.483 olay; alış tepkinin
+# ertesi açılışı, 60 işlem günü sonra kapanış, BIST 100'e göre). JS BT_NOT ile aynı metin.
+BT_NOT = {"g": "Geçmişte (ana liste, 2017-26) güçlü tepki verenler sonraki 60 günde endeksi %56 oranında geçti (normal tepkide %49) — zayıf bir eğilim.",
+          "z": "Geçmişte (ana liste, 2017-26) zayıf tepki verenler sonraki 60 günde endeksi %46 oranında geçti (normal tepkide %49) — fark küçük.",
+          "n": "Geçmişte (ana liste, 2017-26) normal tepkide (−5…+5 puan) sonraki 60 günde endeksi geçme oranı %49."}
+
+
 def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None, endeks=None, gunici=None):
     tarih = _simdi()
     al = sum(1 for s in sonuclar if s["sinyal"] == "AL")
@@ -102,8 +109,14 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None, 
             sdrz += f' <span class="bilb" title="Temettü hak kullanım: {tm["ex_tarih"]} — o sabah fiyat temettü kadar düşük açılır">💰 temettü</span>'
         if s.get("bayrak"):
             sdrz += f' <span class="bayrakb" title="Boğa bayrağı kırılımı (direk %{s["bayrak"]["direk"]}, {s["bayrak"]["bayrak_gun"]} günlük bayrak)">🚩</span>'
+        bt = s.get("bt") or {}
+        if bt.get("s") in ("g", "z"):   # 📊 bilanço tepkisi (ana liste; tepki gününden sonra 60 işlem günü)
+            sdrz += (f' <span class="bilb" title="{bt["d"]} bilançosu sonrası 2 günde BIST 100&#39;e göre {bt["r"]:+.1f} puan '
+                     f'({bt["j"]} / {bt["j1"]}). {BT_NOT[bt["s"]]} Bilgi, sinyal değil">📊 {"güçlü" if bt["s"] == "g" else "zayıf"} tepki</span>')
         g = s.get("guc") or {}
         gucs = f'<span class="gucb g{g["puan"]}">{g["puan"]}/{g["toplam"]}</span>' if g else "—"
+        rs = s.get("rs")
+        rss = f'<span class="rsb{" rsy" if rs >= 80 else ""}">{rs}</span>' if rs is not None else "—"
         if s.get("momentum"):
             sdrz += ' <span class="momb" title="Ayın güçlüleri: son 6 ayın en güçlü %20&#39;si (bilgi, AL sinyali değil)">📈 ayın güçlüsü</span>'
         lot = s.get("lot")
@@ -124,7 +137,7 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None, 
             f'<td><span class="pill {RENK[s["sinyal"]]}{ncls}"{ntit}>{s["sinyal"]}</span>{yildiz}{yenirz}{sdrz}</td>'
             f'<td class="num sgun">{sgunt}</td>'
             f'<td class="num uyum">{s.get("uyum","—")}</td>'
-            f'<td class="num">{gucs}</td><td class="vd"></td>'
+            f'<td class="num">{gucs}</td><td class="num">{rss}</td><td class="vd"></td>'
             f'<td class="num">{s.get("rsi") if s.get("rsi") is not None else "—"}</td>'
             f'<td class="num">{s.get("fk") if s.get("fk") is not None else "—"}<span class="tag {fkm}">{ok[fkm]}</span></td>'
             f'<td class="num">{s.get("pddd") if s.get("pddd") is not None else "—"}<span class="tag {pdm}">{ok[pdm]}</span></td>'
@@ -146,10 +159,15 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None, 
             "al_stop": s.get("al_stop"), "al_tarih": s.get("al_tarih"), "hacim_kat": s.get("hacim_kat"),
             "hacim_teyit": bool(s.get("hacim_teyit")), "taban15": s.get("taban15"), "patlak": bool(s.get("patlak")), "tahta": s.get("tahta"), "tuzak": s.get("tuzak"),
             "arz": s.get("arz"), "sektor": s.get("sektor"), "endustri": s.get("endustri"), "mom20": s.get("mom20"), "uv": s.get("uv"), "bayrak": s.get("bayrak"), "bilanco": s.get("bilanco"), "temettu": s.get("temettu"), "kap": s.get("kap"), "tk": s.get("tk"), "tkg": s.get("tkg"), "guc": s.get("guc"), "momentum": bool(s.get("momentum")), "mom6": s.get("mom6"), "bolunme": s.get("bolunme"),
+            "rs": s.get("rs"),
             "hv": s.get("hv"), "kg": s.get("kg"), "od": s.get("od"), "vd": s.get("vd"),
         }
         if s.get("kt"):   # 🔒 sadece olan hissede (index.html şişmesin)
             veri[k]["kt"] = s["kt"]
+        if s.get("bt"):   # 📊 bilanço tepkisi (ana liste, son 60 işlem günü) — sadece olan hissede
+            veri[k]["bt"] = s["bt"]
+        if s.get("zr"):   # son 4 çeyrekte zarar (dönem adı) — sadece olan hissede
+            veri[k]["zr"] = s["zr"]
 
     banner = ""
     if ornek:
@@ -328,6 +346,7 @@ tbody tr:hover,tbody tr:hover td{background:#F2F5F3}
 .sozluk{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin:12px 0 18px}.szgrup{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 15px}.szgrup h3{margin:0 0 8px;font-size:13.5px}.sz{display:flex;gap:9px;align-items:baseline;font-size:12.6px;line-height:1.5;margin:0 0 7px;color:var(--muted)}.sz>span:first-child,.sz>b{flex:0 0 auto;min-width:112px;color:var(--ink)}.sz>span:first-child{margin-left:0}
 .guckutu .gs{display:flex;gap:8px;font-size:12.8px;line-height:1.5;margin:2px 0}.guckutu .gs b{min-width:150px}
 .tkb{background:#FFF1E0;color:#8A4B00;font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:5px;margin-left:5px;white-space:nowrap}.tkb.yeni{background:#8A4B00;color:#fff}.tkb.izle{background:#F3F3F1;color:#555}
+.rsb{display:inline-block;min-width:24px;text-align:center;font-size:11px;font-weight:700;padding:2px 4px;border-radius:5px;background:#F1F1EE;color:#555}.rsb.rsy{background:#E4F2E9;color:#14633A}
 .bilb{background:#EEF1F8;color:#2F4A7A;font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:5px;margin-left:5px;white-space:nowrap}
 .bilkutu{margin:0 0 14px;border:1px solid var(--line);border-radius:10px;padding:10px 14px;font-size:13px;line-height:1.55}
 .bilkutu svg{display:block;width:100%;max-width:420px;height:auto;margin-top:6px}
@@ -425,7 +444,7 @@ __BANNER__
 <div id="roketkutu" hidden></div>
 <div class="sar" id="tsar"><table id="t"><thead><tr>
 <th data-t="f" title="Favori">⭐</th><th data-t="s">Hisse</th><th class="num" data-t="n">Fiyat</th><th class="num" data-t="n">Değişim</th><th data-t="s">Sinyal</th>
-<th class="num" data-t="n">Sinyalde</th><th class="num" data-t="n">Uyum</th><th class="num" data-t="n" title="7 iyi göstergeden kaçı olumlu (kısa vadeli güç)">Güç</th><th data-t="v" title="Günlük / Haftalık / Aylık trend oku (bilgi, sinyal değil)">Vade</th><th class="num" data-t="n">RSI</th><th class="num" data-t="n">F/K</th><th class="num" data-t="n">PD/DD</th><th class="num" data-t="n">Stop</th><th class="num" data-t="n">Öneri lot</th>
+<th class="num" data-t="n">Sinyalde</th><th class="num" data-t="n">Uyum</th><th class="num" data-t="n" title="7 iyi göstergeden kaçı olumlu (kısa vadeli güç)">Güç</th><th class="num" data-t="n" title="RS puanı 0-99: son 1 yılın getirisi (son 3 aya ağırlıklı) taranan hisseler içinde kaçıncı yüzdelikte — bilgi, filtre değil">RS</th><th data-t="v" title="Günlük / Haftalık / Aylık trend oku (bilgi, sinyal değil)">Vade</th><th class="num" data-t="n">RSI</th><th class="num" data-t="n">F/K</th><th class="num" data-t="n">PD/DD</th><th class="num" data-t="n">Stop</th><th class="num" data-t="n">Öneri lot</th>
 </tr></thead><tbody>__ROWS__</tbody></table></div>
 __ARZ__
 <h2 class="bolum">İşaretler ne demek? <span class="bolumalt">— tablodaki ve hisse penceresindeki tüm rozetler</span></h2>
@@ -452,6 +471,9 @@ __ARZ__
 </div>
 <div class="szgrup"><h3>Bilgi</h3>
 <div class="sz"><span class="momb">📈 ayın güçlüsü</span><span>Son 6 ayın en güçlü %20'si (fiyat 200 günlük ortalamanın üstünde). Her ay yenilenir, Telegram'a liste gelir. AL sinyali değil; v3 ile yarı yarıya kullanım testte iyiydi.</span></div>
+<div class="sz"><span class="rsb rsy">85</span><span><b>RS</b> sütunu (göreli güç, 0-99): son 1 yılın getirisi, son 3 aya ağırlık vererek (0,4 × 3 ay + 0,2 × 6, 9 ve 12 ay), taranan tüm hisseler içinde kaçıncı yüzdelikte. 85 = hisselerin ~%85'inden güçlü; 1 yıldan kısa geçmişte boş. Geçmişte 🚀 alımlarında RS 80 ve üstü olanlar ortalama +%30, diğerleri +%19 kazandırdı (isabetleri biraz düşük). Filtre olarak kullanmak işe yaramadı: bilgi, filtre değil.</span></div>
+<div class="sz"><span class="bilb">📊 güçlü tepki</span><span><b>Bilanço tepkisi</b> (sadece BIST 100 + ek liste): şirketin finansal raporu KAP'ta ilk yayınlandıktan sonraki 2 günde hisse BIST 100'den 5 puan ya da daha fazla iyi gitti (📊 zayıf tepki: 5+ puan kötü). Tepki gününden sonra 60 işlem günü görünür; hisse penceresinde tarih ve tepki yazar. Geçmişte güçlü tepki verenler sonraki 60 günde endeksi %56 oranında geçti (normal tepkide %49, zayıfta %46) — zayıf bir eğilim; küçük hisselerde görülmedi. Alım/satım sinyali değil.</span></div>
+<div class="sz"><span>🧾</span><span><b>Son 4 çeyrekte zarar</b>: hisse penceresinin 🚀 kutusunda not (son 4 çeyreğin net kârı toplamı sıfır ya da eksi; kaynak İş Yatırım mali tabloları, veri yoksa not çıkmaz). Geçmişte zarardaki şirketlerdeki 🚀 alımları ortalama +%17, kârlı şirketlerde +%23 getirdi; bunları atmak portföyü iyileştirmedi. Filtre değil, Telegram'a girmez.</span></div>
 <div class="sz"><span class="gucb g5">5/7</span><span><b>Güç</b> sütunu: 7 iyi göstergeden kaçı olumlu (şablon, Ichimoku, 55 gün zirve, para akışı, ADX, EMA 10/30, RSI). Yüksek puan sonraki ~1 ayda endeksten iyi gitmeye işaret etti; alım sinyali değil.</span></div>
 <div class="sz"><span>⏱️ Gün içi</span><span>Hisse penceresinde: 15 dk / 1 saat / 4 saat mumlarında trend (20 ve 50 mumluk üssel ortalama), RSI ve son 3 mumda zirve/dip kırılımı. Sadece durum, AL/SAT değil: testte büyük hisselerde sonraki 1-5 gün için anlamlı ipucu vermedi; RSI 30 altı 'ucuz' demek değil.</span></div>
 <div class="sz"><span class="uvsb">🌱 UV</span><span>Uzun vade AL: yükselen trendde 50 günlük ortalamaya geri çekilip döndü. Çıkış: 2 gün 200 günlük ortalamanın altı.</span></div>
@@ -469,6 +491,7 @@ __ARZ__
 <div class="sz"><b>Sinyalde</b><span>Bu sinyal kaç gündür sürüyor.</span></div>
 <div class="sz"><b>Uyum</b><span>5 oylama göstergesinden kaçı AL diyor.</span></div>
 <div class="sz"><b>Güç</b><span>7 iyi göstergeden kaçı olumlu (yukarıda).</span></div>
+<div class="sz"><b>RS</b><span>Göreli güç puanı 0-99 (yukarıda); 80 ve üstü yeşil.</span></div>
 <div class="sz"><b>Vade</b><span><i class="vu">G↑</i> <i class="vu">H↑</i> <i class="va">A↓</i> = günlük / haftalık / aylık trend oku. ↑ fiyat ortalamanın üstünde ve ortalama yükseliyor, ↓ altında ve yükselmiyor, → arada. Günlük: 50 günlük ort.; haftalık: son biten haftanın kapanışı ve 30 haftalık ort.; aylık: son biten ay ve 10 aylık ort. (11 aydan kısa geçmişte —). Bilgi, sinyal değil: geçmişte (2016-2026) üçü de ↓ olanlar sonraki 2-6 ayda çoğunlukla endeksin gerisinde kaldı ama fark küçük; üçü de ↑ olmak tek başına alım sinyali değil.</span></div>
 <div class="sz"><b>Stop</b><span>İz stop: AL'den beri tepe kapanışın %20 altı. Kapanış altına inerse çık.__KKCUMLE__</span></div>
 <div class="sz"><b>Öneri lot</b><span>Stop yerse portföyünün belirlediğin yüzdesini kaybedeceğin lot.</span></div>
@@ -854,6 +877,7 @@ function modalOzet(k,d){  // tek satır: v3 durumu · güç · uyarılar · port
  else p.push('<span class="sgun">🚀 AL yok</span>');
  if(d.guc)p.push('<span class="gucb g'+d.guc.puan+'">💪 '+d.guc.puan+'/'+d.guc.toplam+'</span>');
  if(d.momentum)p.push('<span class="momb">📈 ayın güçlüsü</span>');
+ if(d.bt&&(d.bt.s==='g'||d.bt.s==='z'))p.push('<span class="bilb">📊 '+(d.bt.s==='g'?'güçlü':'zayıf')+' bilanço tepkisi</span>');
  var pf=pfOku().filter(function(x){return x.kod===k;})[0];
  bugunUyari(k,d,pf||null).forEach(function(u){p.push('<span class="gun1b">'+u+'</span>');});
  if(pf){var kz=(d.fiyat/pf.maliyet-1)*100;p.push('<span class="sgun">💼 portföyde '+(kz>=0?'+':'')+kz.toFixed(1)+'%</span>');}
@@ -893,6 +917,32 @@ function vadeHtml(k,d){
  }
  return h+'</div>';
 }
+// --- RS puanı · 📊 bilanço tepkisi · zarardaki şirket (BİLGİ; AL/SAT'ı ve Telegram'ı değiştirmez) — metinler pano.BT_NOT ile aynı
+var BT_NOT={g:'Geçmişte (ana liste, 2017-26) güçlü tepki verenler sonraki 60 günde endeksi %56 oranında geçti (normal tepkide %49) — zayıf bir eğilim.',
+  z:'Geçmişte (ana liste, 2017-26) zayıf tepki verenler sonraki 60 günde endeksi %46 oranında geçti (normal tepkide %49) — fark küçük.',
+  n:'Geçmişte (ana liste, 2017-26) normal tepkide (−5…+5 puan) sonraki 60 günde endeksi geçme oranı %49.'};
+function rsEk(n){  // '%85'inden' — Türkçe iyelik + ayrılma eki (sayının okunuşuna göre)
+ var b=n%10,o=Math.floor(n/10)%10;
+ if(b)return ['','inden','sinden','ünden','ünden','inden','sından','sinden','inden','undan'][b];
+ return ['ından','undan','sinden','undan','ından','sinden','ından','inden','inden','ından'][o];}
+function rsSatir(d){
+ if(d.rs==null)return '';
+ return '<div class="cikis">📈 <b>RS '+d.rs+'</b> — son 1 yılda (son 3 aya ağırlıklı) panodaki hisselerin %'+d.rs+'\''+rsEk(d.rs)+' güçlü. <span class="sgun">Araştırma: 🚀 alımlarında RS ≥ 80 olanlar ort. +%30, diğerleri +%19 kazandırdı; filtre değil, bilgi.</span></div>';}
+function zararSatir(d){
+ if(!d.zr)return '';
+ return '<div class="cikis">🧾 <b>Son 4 çeyrekte zarar</b> (son dönem '+d.zr+'; 4 çeyreğin net kâr toplamı ≤ 0; kaynak İş Yatırım) — geçmişte zarardaki şirketlerde 🚀 alımları ort. +%17, kârlı şirketlerde +%23 getirdi. Filtre değil, sinyal yine geçerli.</div>';}
+function btTarih(s){return s.slice(8,10)+'.'+s.slice(5,7);}
+function btHtml(d){
+ var b=d.bt;if(!b)return '';
+ var h='<div class="bilkutu">📊 <b>Bilanço tepkisi';
+ if(b.r!=null){
+  var v=(b.r>=0?'+':'−')+Math.abs(b.r).toFixed(1).replace('.',',');
+  h+=': '+(b.s==='g'?'güçlü':(b.s==='z'?'zayıf':'normal'))+'</b> — '+b.d+' bilançosu KAP\'ta yayınlandı ('+btTarih(b.y)+' '+b.y.slice(11)+'). Sonraki 2 işlem gününde ('+btTarih(b.j)+' ve '+btTarih(b.j1)+' kapanışı, bir önceki kapanışa göre) hisse BIST 100\'e göre <b class="'+(b.r>=0?'pos':'neg')+'">'+v+' puan</b>.'+
+   '<div class="cikis sgun">'+BT_NOT[b.s]+' Güçlü: +5 puan ve üstü, zayıf: −5 puan ve altı. Tepki gününden sonra 60 işlem günü görünür (kalan '+Math.max(0,60-b.g)+' gün). Bilgi, sinyal değil.</div>';
+ }else h+='</b>';
+ if(b.b)h+='<div class="cikis">⏳ '+b.b.d+' bilançosu KAP\'ta yayınlandı ('+btTarih(b.b.y)+' '+b.b.y.slice(11)+'); tepki ölçümü (açıklamayı izleyen 2 işlem gününün kesin kapanışı, BIST 100\'e göre) henüz tamamlanmadı — bekleniyor.</div>';
+ return h+'</div>';
+}
 function tkHtml(d){
  var t=d.tk;if(!t)return '';
  var h='<div class="uvkutu">🚀 <b>Trend kırılımı (v3 AL kuralı): ';
@@ -908,6 +958,7 @@ function tkHtml(d){
   else h+=' Kapanış <b>'+t.kirilim_seviye+' TL</b> üstüne çıkarsa AL'+(t.kirilima_uzak!=null?' (%'+String(t.kirilima_uzak).replace('.',',')+' yukarıda)':'')+'.'+(eks?' Ancak şu an kırılım AL sayılmaz: '+eks+'.':'');}
  if(t.durum==='AL'&&t.uzama)h+='<div class="cikis">'+uzamaMetin(t.uzama).replace('⚠️ Çok yükselmiş hisse','⚠️ <b>Çok yükselmiş hisse</b>')+' <span class="sgun">(sinyal günü ölçüldü; bilgi — AL engellenmez)</span></div>';
  if(t.durum==='AL'&&t.sc)h+='<div class="cikis">'+scMetin(t.sc).replace(/^📏 (Sıkı çizgi[^(]*)/,'📏 <b>$1</b>')+' <span class="sgun">(kijun: son 26 günün en yüksek ve en düşük fiyatının ortası; grafikte pembe kesikli çizgi)</span></div>';
+ h+=rsSatir(d)+zararSatir(d);
  h+='<div class="pk sgun">Şablon: fiyat > 50 > 150 > 200 günlük ortalama, 200 günlük yükseliyor, 52 hafta zirvesine en az %75 yakın, dibinden en az %30 yukarıda. 5 yıllık backtest\'te v2\'den iyi (200 rastgele denemenin %77-97\'sinde); yine de tavsiye değildir.</div>';
  return h+'</div>';
 }
@@ -1228,7 +1279,7 @@ function ac(k){
  pozHtml(k,d)+tkHtml(d)+tkGecmisHtml(d)+gucHtml(d)+uvHtml(d)+
  sdHtml(d)+
  '<div class="metr">'+m('RSI',d.rsi)+m('F/K',d.fk)+m('PD/DD',d.pddd)+m('FD/FAVÖK',d.favok)+m('İz stop',d.iz&&!d.iz.cikti?d.iz.stop:'—')+m('Öneri lot',lot)+'</div>'+
- bilHtml(d)+kapHtml(d)+arzHtml(d)+
+ btHtml(d)+bilHtml(d)+kapHtml(d)+arzHtml(d)+
  '<div class="gbas">Göstergeler</div><div class="gliste">'+gost+'</div>'+
  (ekh?'<div class="ekler">'+ekh+'</div>':'')+
  '<div class="yorum">'+(d.yorum||d.gerekce.join(' · '))+'</div>'+

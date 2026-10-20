@@ -112,6 +112,48 @@ uyarı rozeti (son 5 gün), sinyal değil. Canlı fonksiyon olayları birebir bu
 - `KUCUK_HISSELER`: BIST100/EK dışı, 60g medyan işlem ≥ 50 mn TL (163 hisse, KAP kod listesi) — tahtacı uyarıları görünsün diye.
 - Pano altında 'İşaretler ne demek?' sözlüğü (tüm rozetler tek yerde); eski tekrar eden 3 açıklama kartı kaldırıldı.
 
+## 📈 RS puanı · 📊 bilanço tepkisi · 🧾 zarardaki şirket (2026-10-20, dal `pano-bilgi`; hepsi BİLGİ — AL/SAT, Telegram, İşlem Odası DEĞİŞMEZ)
+Kaynak araştırmalar scratchpad `ucretli/RAPOR.md` (RS) ve `strateji2/RAPOR.md` (bilanço tepkisi, zarar); testler `panobilgi/`.
+- **RS (0-99), `sinyal.rs_puanlari` → `s["rs"]` (tam sayı, `rs_tam`):** ham = 0,4·r63 + 0,2·r126 + 0,2·r189 + 0,2·r252; takvim = tüm taranan
+  hisselerin + XU100'ün günleri, seriler takvimde ileri doldurulur, n gün = n TAKVİM günü geriye; son gün kapanışı olmayan / <252 gün geçmişli
+  hisse puanlanmaz ve sıraya girmez; RS = evren (taranan tüm hisseler, `KODLAR`) içinde `rank(pct=True)·99`. `ucretli/hazirla.ibd_rs()` ile
+  birebir: 10y 286 hisse, 2.282 günün HER günü (439.879 hisse-gün) 0 fark; canlıdaki gibi kesilmiş veri + o veriyle bölünme düzeltmesi 17.488
+  hisse-gün 0 fark (`t1_rs.py`). Pano: tablo 'RS' sütunu (Güç'ten sonra, sıralanabilir, ≥80 yeşil), 🚀 kutusunda 'RS 85 — son 1 yılda …
+  hisselerin %85'inden güçlü' (JS `rsEk`: Türkçe ek) + araştırma notu (RS ≥80 🚀 alımları ort. +%30, diğerleri +%19; filtre değil).
+- **📊 Bilanço tepkisi, `sinyal.bilanco_tepkisi` / `bt_olaylar` → `s["bt"]` (SADECE ana liste BIST100 + EK):** j = KAP'taki ilk 'Finansal
+  Rapor' yayınının tepki günü (`bt_gun`: 18:00 öncesi ve işlem günüyse o gün, değilse sonraki işlem günü; takvim = XU100 ∪ hisse);
+  tepki = K[j+1]/K[j−1] − XU[j+1]/XU[j−1] (j−1, j, j+1 kapanışı olmalı; hisse j'de ≥200 günlük geçmişli); ≥ +%5 güçlü ('g'), ≤ −%5 zayıf
+  ('z'), arası 'n'. j+1'den sonra 60 işlem günü görünür (araştırmadaki `ffill(limit=60)`); birden çoksa en son olay. j+1 kesin kapanışı yoksa
+  (seans içinde j+1 = bugün dahil) tepki yok, `b` = bekleyen yayın (≤7 takvim günü). Alanlar: y (yayın), d ('2Ç26'), j, j1, r (%), s, g
+  (j+1'den beri gün), b. Tablo rozeti sadece g/z ('📊 güçlü/zayıf tepki', `pano.BT_NOT` başlıkta), pencerede `btHtml` kutusu (bilanço kutusunun
+  üstünde; normal tepki ve 'bekleniyor' da yazar), `modalOzet`'te rozet. **Metindeki oranlar canlı tanımla yeniden ölçüldü** (`t2_bt.py`, ana
+  liste 2017-26, KAP tarihli 3.483 olay, alış j+2 açılış → j+61 kapanış, BIST 100'e göre): güçlü %56 endeksi geçti (ort. +7,8 puan), normal
+  %49, zayıf %46; küçüklerde sıra yok (%49/%50/%46). Kullanıcıya önerilen metindeki '%53 / %47' strateji2 RAPOR'unun eski (≥200 gün
+  düzeltmesinden önceki, ±3/±8 dilimli) tablosundandı — sayılar `BT_NOT`'ta (Python) ve JS `BT_NOT`'ta aynı (test). Doğrulama: strateji2 olay
+  çalışması ile 7.130 olayda tepki 0 fark; 3 olayda (ISGSY 2018-19, 1 Mayıs / 29 Ekim tatilleri) strateji2 tepki gününü başka hissenin tatil
+  satırına koymuştu (birleşik takvim) → canlı doğru işlem gününü alıyor. 60 gün görünürlüğü kesilmiş veriyle 32.465 hisse-günde son_ear ile 0 fark.
+- **KAP 'Finansal Rapor' takibi (`kap.py`):** mevcut 7 günlük FR sorgusundan konu tam 'Finansal Rapor' olanlar (kod, yıl, dönem 1-4, yayın)
+  `kap.json` → `fr` = {kod: [[yıl, dönem, ilk yayın]]}; her (kod, yıl, dönem) için EN ERKEN yayın (`fr_birlestir`), 400 gün (`FR_SAKLA_GUN`;
+  düzeltilmiş raporun yeniden yayını 'ilk' sayılmasın). İlk kurulumda geçmiş her taramada 4 × 15 günlük ek sorguyla (1 sn arayla, 2000
+  sınırında ikiye bölünür) ~7 taramada dolar (`fr_bas`/`fr_son`); taramalar 7 günden uzun kesilirse geçmiş yeniden doldurulur. Dolmadan
+  (`tam` false) 📊 gösterilmez. `kap_guncelle` artık 3'lü döner (hisse, yeni, fr). kap.json ~258 → ~294 KB. Yeni veri dosyası/workflow yok.
+- **🧾 Zarardaki şirket, `bilanco.zarar_guncelle` → `s["zr"]` = dönem adı (son 4 çeyrek ana ortaklık net kârı ≤ 0):** kaynak İş Yatırım
+  MaliTablo (strateji2 ile aynı kalem '3Z'; banka/finans UFRS). Yahoo (bilanco.json `veri`) YETERSİZ çıktı: 2Ç26'da 274 hissenin 96'sında son
+  4 çeyrek ardışık değil, PGSUS ve ADESE'de zarar işareti ters. Dönem KAP'tan (`kap.fr_son_donem`); hisse başına TEK istek (bu dönem kümülatif,
+  geçen yıl 12 ay, geçen yıl aynı dönem → `isy_ttm`; strateji2'nin 8.698 çeyreğinin 8.562'sinde değer aynı, zarar işareti 9'unda farklı: strateji2
+  eksik çeyrekte ardışık olmayan 4 satırı topluyordu; canlı 30 hissede strateji2 ile 30/30 aynı). Önbellek `bilanco.json` → `isy` = {kod: {g,
+  p: [yıl, dönem], n, t, a}}; sadece YENİ dönem yayınlanınca ya da 45 günde bir çekilir, hata/boş sonuçta o gün tekrar denenmez (`a`). Süre
+  sınırı seans içi 8 sn, seans dışı 30 sn (İş Yatırım 0,1-8 sn/istek, ort. ~1,7; zaman aşımı (4, 10) sn; hata → o taramada dur). İlk kurulum
+  (~320 hisse, önce ana liste) ~1-2 günde dolar; veri yoksa not çıkmaz. `bilancolari_al` artık dosyadaki diğer anahtarları (isy) korur.
+  Not SADECE panoda: 🚀 kutusunda 'Son 4 çeyrekte zarar … ort. +%17, kârlılarda +%23; filtre değil' (Telegram AL satırına girmez).
+- **Gizlilik:** durum.json/oda.json'a yeni anahtar yok; kap.json/bilanco.json'daki veriler herkese açık KAP/İş Yatırım verisi.
+- **Ölçümler (Telegram'sız kopya, seans içi):** kararlı durumda tarama ~42 sn önce/sonra aynı (42,7/41,5 → 42,4/42,3); ilk kurulum taramaları
+  +~10 sn (KAP geçmişi + İş Yatırım 8 sn). index.html 3.535 → 3.586 KB (+51 KB, %1,4; RS hücreleri, 121 ana hissenin `bt`'si, 114 `zr`).
+  backtest.py aynı veriyle backtest.html byte byte aynı; kapanış yolu (oda + Telegram) çalıştı, durum.json aynı, oda kararları aynı (Telegram
+  farkı sadece iki çalıştırma arası fiyat oynaması). `node --check` tamam; CDP 390/1280 px (tablo, BIMAS güçlü, ENJSA zayıf, GMTAS zarar+🚀,
+  GLYHO normal + yapay 'bekleniyor', EKDMR RS yok, sözlük): JS hatası yok, sayfa taşması yok, 📊 rozet sayısı = DATA (43/43), RS hücresi =
+  DATA (316/316). Birim testleri `t4_birim.py` 29/29 (bekleme, 60/61. gün, 18:00, hafta sonu, KAP doldurma/kesinti/erişilemez, İş Yatırım bütçe/hata).
+
 ## Veri kalitesi: Yahoo günlük kapanışı yanlış / boş
 Yahoo'nun BIST günlük barlarında kapanış çoğu zaman resmi kapanıştan farklı (Eylül 2026: günlerin ~%30'unda >%0,3; THYAO
 24.09 günlük 288,5, resmi 289,5) ve son günün kapanışı NaN geliyor (dropna ile önceki gün gösteriliyordu: THYAO 288,5 vs
@@ -421,7 +463,8 @@ sinyal, filtre, etiket ya da çıkış olarak eklenmeye değmez.** Kullanıcı f
   bedelsizi bilmez), Yahoo'da varsa ileri hak kullanım günü (az hissede var, tahmini olabilir). 7 gün içindeyse 💰 rozet +
   portföy özeti notu (o sabah fiyat temettü kadar düşük açılır). Bilgi amaçlı.
 - KAP (`kap.py`): kap.org.tr'nin kendi sitesinin kullandığı POST `api/disclosure/members/byCriteria` (ODA + FR,
-  son 7 gün, tek istekte tüm şirketler; en çok 2000 kayıt). Gürültü konular ayıklanır; `kap.json` 45 gün hisse başı.
+  son 7 gün, tek istekte tüm şirketler; en çok 2000 kayıt). Gürültü konular ayıklanır; `kap.json` 45 gün hisse başı (+ `fr`: ilk
+  'Finansal Rapor' yayınları 400 gün, bkz. '📈 RS puanı · 📊 bilanço tepkisi' bölümü).
   Modalda son 5 bildirim. Telegram: portföy hisselerinin yeni bildirimleri (geri alım hariç), `durum.json` → `kap_son`
   (genel bildirim sayacı, portföy bilgisi içermez); ilk çalışmada sessiz başlangıç. KAP'a ulaşılamazsa önbellekle devam.
 - 📋 'Bugün ne var?' kartı (`bugunRender`, istemci): PIYASA (piyasa_durumu JSON), 🚀 AL son 5 gün, portföy uyarıları

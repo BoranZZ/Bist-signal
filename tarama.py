@@ -8,9 +8,10 @@ import bisect, json, math, os, time
 from html import escape
 import pandas as pd
 import yfinance as yf
-from kap import kap_guncelle, kap_mesaji
-from bilanco import bilancolari_al, bilanco_ozet, bilanco_metni, bilanco_yakin, tarih_tr, temettu_ozet
+from kap import kap_guncelle, kap_mesaji, fr_yayinlar, fr_son_donem
+from bilanco import bilancolari_al, bilanco_ozet, bilanco_metni, bilanco_yakin, tarih_tr, temettu_ozet, zarar_guncelle
 from sinyal import analiz_et, destek_direnc, bolunme_duzelt, tahta_riski, TABAN_GETIRI, TABAN_GUN, IZ_STOP_ORAN, KILIT_ARALIK
+from sinyal import rs_puanlari, rs_tam, bilanco_tepkisi
 from sinyal import kar_kilit_ayar, iz_seviye
 from pano import pano_uret, gecmis_uret
 import gunici
@@ -1546,7 +1547,14 @@ def main():
     endeks = endeks_serisi(data)
     oranlar = oranlari_al(KODLAR)
     bilancolar = bilancolari_al(KODLAR)
-    kap_hisse, kap_yeni = kap_guncelle(KODLAR)
+    kap_hisse, kap_yeni, kap_fr = kap_guncelle(KODLAR)
+    _ana = set(BIST100) | set(EK_HISSELER)
+    try:   # 'zarardaki şirket' notu: son 4 çeyrek net kâr (İş Yatırım, önbellekli; sadece yeni dönem yayınlanınca çekilir)
+        _sira = [k for k in KODLAR if k in _ana] + [k for k in KODLAR if k not in _ana]
+        zarar = zarar_guncelle(_sira, {k: fr_son_donem(kap_fr["kod"], k) for k in KODLAR})
+    except Exception as e:
+        print(f"Zarar notu verisi alınamadı ({type(e).__name__}); not gösterilmez.")
+        zarar = {}
     try:   # v3 piyasa filtresi (günlük seri): BIST 100 > 50 günlük ortalama
         _xu = data[ENDEKS + ".IS"]["Close"].dropna()
         xu_ust = _xu > _xu.rolling(50).mean()
@@ -1556,11 +1564,13 @@ def main():
     # kesin kapanıştan sonra (18:30+) ya da son bar bugünün değilse kesin
     _kesin = _sim.hour * 60 + _sim.minute >= KAPANIS_DAKIKA or _sim.weekday() >= 5
     sonuclar, yeni_arzlar = [], []
+    _kapanis = {}   # RS puanı için tüm taranan hisselerin (bölünme düzeltilmiş) kapanışı
     for kod in KODLAR:
         try:
             df = data[kod + ".IS"].dropna(subset=["Close"])
             if df.empty:
                 continue
+            _c = _kapanis[kod] = bolunme_duzelt(df)["Close"]
             arz = arz_bilgisi(kod, df)
             _bk = bool(_kesin or df.index[-1].date() != _sim.date())   # son günlük mum kesin mi (vadeler: hafta/ay tamam mı)
             a = analiz_et(df, xu_ust, _xu, bar_kesin=_bk, bugun=_sim.date())
@@ -1586,6 +1596,14 @@ def main():
             a["temettu"] = temettu_ozet(bilancolar.get(kod), a["fiyat"])
             a["kap"] = kap_hisse.get(kod)
             a["lot"] = lot_oner(a["fiyat"], a["fiyat"] * (1 - IZ_STOP_ORAN))   # risk: iz stop başlangıcı
+            # 📊 bilanço tepkisi (sadece ana liste; KAP finansal rapor geçmişi dolmadan gösterilmez: ilk yayın ayrımı)
+            if kod in _ana and kap_fr.get("tam") and _xu is not None:
+                try:
+                    a["bt"] = bilanco_tepkisi(_c, _xu, fr_yayinlar(kap_fr["kod"], kod), bar_kesin=_bk, bugun=_sim.date())
+                except Exception:
+                    a["bt"] = None
+            _z = zarar.get(kod)
+            a["zr"] = _z["d"] if _z and _z["n"] <= 0 else None   # son 4 çeyrekte zarar (dönem adı); sadece panoda not
             sonuclar.append(a)
         except Exception as e:
             print(f"Atlandı {kod}: {e}")
@@ -1593,6 +1611,14 @@ def main():
     if not sonuclar:
         print("Sonuç yok.")
         return
+    try:   # RS puanı (0-99): taranan tüm hisseler içinde son 1 yılın (son 3 aya ağırlıklı) getiri sırası — bilgi
+        _rs = rs_puanlari(_kapanis, takvim=_xu.index if _xu is not None else None)
+    except Exception as e:
+        print(f"RS puanı hesaplanamadı ({type(e).__name__}).")
+        _rs = {}
+    _kapanis.clear()
+    for s in sonuclar:
+        s["rs"] = rs_tam(_rs.get(s["kod"]))
 
     fk_l = sorted(s["fk"] for s in sonuclar if s.get("fk"))
     pd_l = sorted(s["pddd"] for s in sonuclar if s.get("pddd"))

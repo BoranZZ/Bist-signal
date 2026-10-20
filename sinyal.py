@@ -1084,3 +1084,123 @@ def analiz_et(df, xu_ust=None, xu=None, bar_kesin=True, bugun=None):
                              or d.index[x["cik"]] >= d.index[-1] - pd.DateOffset(years=TKG_YIL)]),
         "spark": _spark(d, tk_ham=tk_ham, sc=tk.get("sc")),
     }
+
+
+# --- Panoya 3 BİLGİ (2026-10-20; AL/SAT kuralına, Telegram'a ve İşlem Odası'na girmez) ---------------------------------
+# 1) RS puanı (IBD tarzı göreli güç, 0-99) — scratchpad ucretli/ (hazirla.ibd_rs ile birebir). Canlı sistemin 🚀 alımlarında
+#    RS ≥ 80 olanlar ort. +%30, diğerleri +%19 (ana liste, 2017-26); filtre olarak işe yaramadı (işlemlerin yarısını atıyor).
+RS_AGIRLIK = ((63, 0.4), (126, 0.2), (189, 0.2), (252, 0.2))
+
+
+def rs_puanlari(kapanislar, takvim=None):
+    """{kod: kapanış serisi (bölünme düzeltilmiş)} → {kod: RS (0-99, float)} SON takvim günü için.
+    Takvim = serilerin (+ `takvim`, ör. XU100) günlerinin birleşimi; her seri takvimde ileri doldurulur, n günlük getiri n TAKVİM
+    günü geriye. ham = 0,4·r63 + 0,2·r126 + 0,2·r189 + 0,2·r252; son günde kapanışı olmayan ya da 252 günden kısa geçmişli hisse
+    puanlanmaz ve sıraya girmez; RS = ham'ın evren içindeki yüzdelik sırası (pandas rank pct, eşitlikte ortalama) × 99."""
+    seri = {}
+    for k, s in (kapanislar or {}).items():
+        if s is None:
+            continue
+        s = s.dropna()
+        if len(s):
+            seri[k] = s[~s.index.duplicated(keep="last")]
+    if not seri:
+        return {}
+    M = pd.concat(seri, axis=1)
+    if takvim is not None:
+        M = M.reindex(M.index.union(pd.DatetimeIndex(takvim)))
+    M = M.sort_index()
+    n = RS_AGIRLIK[-1][0]
+    if len(M) <= n:
+        return {}
+    son = M.iloc[-1]
+    Cf = M.ffill()
+    c0 = Cf.iloc[-1]
+    ham = None
+    for k, w in RS_AGIRLIK:
+        r = c0 / Cf.iloc[-1 - k] - 1
+        ham = 0.0 + w * r if ham is None else ham + w * r     # ibd_rs ile aynı toplama sırası (kayan nokta birebir)
+    ham[son.isna()] = np.nan
+    rk = ham.rank(pct=True) * 99
+    return {k: float(v) for k, v in rk.items() if v == v}
+
+
+def rs_tam(x):
+    """RS gösterim değeri (tam sayı, yarım yukarı)."""
+    return None if x is None or x != x else int(np.floor(x + 0.5))
+
+
+# 2) 📊 Bilanço tepkisi — scratchpad strateji2/ (temel_hazirla.gun_bul + temel_aileleri ear2 ile birebir). Sadece ana liste.
+#    j = KAP'taki ilk 'Finansal Rapor' yayınının tepki günü (18:00'den önce ve işlem günüyse o gün, değilse sonraki işlem günü);
+#    tepki = K[j+1]/K[j−1] − XU[j+1]/XU[j−1] (j+1 kapanışında bilinir); hisse j günü en az 200 günlük geçmişli olmalı.
+#    Ana listede 2017-26: tepki ≥ +%5 olanlar sonraki 60 günde endeksi %53 oranında geçti (normal ~%47) — zayıf bir eğilim.
+BT_ESIK = 0.05      # ≥ +%5 'güçlü', ≤ −%5 'zayıf'
+BT_GUN = 60         # rozet tepki gününden (j+1) sonra bu kadar işlem günü görünür (araştırmada ffill(limit=60))
+BT_MIN_GECMIS = 200
+BT_BEKLE_GUN = 7    # tepkisi henüz ölçülemeyen yayın bu kadar takvim gününden eskiyse 'bekleniyor' gösterilmez
+
+
+def bt_gun(yayin, takvim):
+    """Yayın zamanı ('YYYY-MM-DD HH:MM') → takvimdeki ilk tepki günü sırası (len(takvim) olabilir: henüz gelmedi)."""
+    t = pd.Timestamp(yayin)
+    d = t.normalize()
+    if t.hour >= 18:
+        d = d + pd.Timedelta(days=1)
+    return int(takvim.searchsorted(d))
+
+
+def bt_olaylar(c, xu, yayinlar):
+    """Tüm olaylar: [(yayın, dönem, j, tepki|None)] — tepki None: j−1/j/j+1 kapanışı yok, geçmiş < 200 gün ya da j+1 henüz yok.
+    c: hisse kapanışı (bölünme düzeltilmiş), xu: XU100 kapanışı; takvim = ikisinin günleri; XU ileri doldurulur."""
+    c = c.dropna()
+    c = c[~c.index.duplicated(keep="last")]
+    xu = xu.dropna()
+    xu = xu[~xu.index.duplicated(keep="last")]
+    cal = xu.index.union(c.index)
+    caln = pd.DatetimeIndex(cal).normalize()
+    C = c.reindex(cal).values.astype(float)
+    X = xu.reindex(cal).ffill().values.astype(float)
+    nbar = np.cumsum(~np.isnan(C))
+    T = len(cal)
+    out = []
+    for y, donem in yayinlar:
+        j = bt_gun(y, caln)
+        r = None
+        if 1 <= j and j + 1 < T and not (np.isnan(C[j]) or np.isnan(C[j - 1]) or np.isnan(C[j + 1])) and nbar[j] >= BT_MIN_GECMIS:
+            r = float(C[j + 1] / C[j - 1] - X[j + 1] / X[j - 1])
+        out.append((y, donem, j, r))
+    return out, cal
+
+
+def bilanco_tepkisi(c, xu, yayinlar, bar_kesin=True, bugun=None):
+    """Panodaki 📊 bilgisi. yayinlar: [(ilk yayın zamanı, dönem adı '2Ç26'), ...]. bar_kesin: son günlük mum kesin mi (değilse
+    tepki günü j+1 = bugün olan olay 'bekleniyor'). Döner None ya da {"y": yayın, "d": dönem, "j": tepki günü (j), "j1": ölçüm günü
+    (j+1), "r": tepki % (1 hane), "s": 'g' güçlü / 'z' zayıf / 'n' normal, "g": j+1'den beri işlem günü} (+ "b": bekleyen yayın
+    {"y", "d"} — j+1 kapanışı gelmedi)."""
+    if c is None or xu is None or not yayinlar:
+        return None
+    olay, cal = bt_olaylar(c, xu, yayinlar)
+    T = len(cal)
+    son = None
+    bekle = None
+    bugun = pd.Timestamp(bugun) if bugun is not None else pd.Timestamp(cal[-1]).normalize()
+    for y, donem, j, r in olay:
+        gec = j + 1 >= T or (j + 1 == T - 1 and not bar_kesin)
+        if gec:
+            if j >= 1 and (bugun - pd.Timestamp(y).normalize()).days <= BT_BEKLE_GUN and (bekle is None or y > bekle["y"]):
+                bekle = {"y": y, "d": donem}
+            continue
+        if r is None:
+            continue
+        g = (T - 1) - (j + 1)
+        if g > BT_GUN:
+            continue
+        if son is None or j > son["_j"]:
+            son = {"_j": j, "y": y, "d": donem, "j": str(pd.Timestamp(cal[j]).date()), "j1": str(pd.Timestamp(cal[j + 1]).date()),
+                   "r": round(r * 100, 1), "s": "g" if r >= BT_ESIK else ("z" if r <= -BT_ESIK else "n"), "g": int(g)}
+    if son is None and bekle is None:
+        return None
+    o = {k: v for k, v in (son or {}).items() if k != "_j"}
+    if bekle and (son is None or bekle["y"] > son["y"]):
+        o["b"] = bekle
+    return o

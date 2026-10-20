@@ -1,10 +1,13 @@
 """Bilanço takibi (bilgi amaçlı): çeyreklik net kâr / satış, geçen yılın aynı çeyreğine göre değişim, sonraki
 bilançonun tahmini tarihi. Kaynak yfinance (son ~6 çeyrek). Geçmişi kısa olduğu için backtest'le sinyale
-katkısı ölçülemiyor — sinyal kurallarına girmez, sadece panoda/portföy özetinde bilgi."""
+katkısı ölçülemiyor — sinyal kurallarına girmez, sadece panoda/portföy özetinde bilgi.
+'Zarardaki şirket' notu (son 4 çeyrek net kâr toplamı ≤ 0) için kaynak İş Yatırım mali tabloları (Yahoo'nun çeyrekleri eksik:
+ana listede 123 hissenin 36'sında son 4 çeyrek ardışık değil, PGSUS gibi işareti ters çıkanlar var). Bkz. `zarar_guncelle`."""
 import json
 import time
 
 import pandas as pd
+import requests
 import yfinance as yf
 
 BILANCO_CACHE = "bilanco.json"
@@ -70,7 +73,7 @@ def bilanco_cek_tek(kod):
 def bilancolari_al(kodlar, bugun=None):
     """Önbellek (bilanco.json) YENILEME_GUN günden eskiyse ya da hisse yoksa yeniden çeker."""
     bugun = bugun or pd.Timestamp.now(tz="Europe/Istanbul").strftime("%Y-%m-%d")
-    veri, tarih = {}, None
+    veri, tarih, c = {}, None, {}
     try:
         with open(BILANCO_CACHE, encoding="utf-8") as f:
             c = json.load(f)
@@ -92,7 +95,7 @@ def bilancolari_al(kodlar, bugun=None):
             veri[k] = h
         time.sleep(0.2)
     with open(BILANCO_CACHE, "w", encoding="utf-8") as f:
-        json.dump({"tarih": bugun if eski else tarih, "veri": veri}, f, ensure_ascii=False)
+        json.dump(dict(c, tarih=bugun if eski else tarih, veri=veri), f, ensure_ascii=False)   # 'isy' vb. diğer anahtarlar korunur
     return veri
 
 
@@ -198,3 +201,119 @@ def bilanco_yakin(b, gun=14):
 
 def tarih_tr(iso):
     return pd.Timestamp(iso).strftime("%d.%m")
+
+
+# --- 'Zarardaki şirket' notu (2026-10-20, scratchpad strateji2/: BİLGİ, filtre değil) ------------------------------------------
+# Son 4 çeyrek ana ortaklık net kârı toplamı ≤ 0. Geçmişte (2017-26, 286 hisse) bu şirketlerdeki 🚀 alımları ort. +%17, kârlılarda
+# +%23 getirdi; atmak portföyü iyileştirmedi. Kaynak İş Yatırım MaliTablo (strateji2 ile aynı kalem: '3Z' = ana ortaklık payları;
+# bankalarda UFRS 'net dönem kârı'). Dönem KAP'tan bilinir (kap.fr_son_donem: yayınlanan en son finansal rapor); hisse başına TEK
+# istek (yıl/dönem 4 hücre: bu dönem kümülatif, geçen yıl yıllık, geçen yıl aynı dönem). Sadece YENİ dönem yayınlanınca (ya da
+# ZARAR_YENILE_GUN'de bir) yeniden çekilir; her taramada en çok ZARAR_BUTCE hisse / ZARAR_SURE sn → tarama belirgin uzamaz.
+ISY_URL = "https://www.isyatirim.com.tr/_layouts/15/IsYatirim.Website/Common/Data.aspx/MaliTablo"
+ISY_KALEM = "3Z"
+ZARAR_BUTCE = 40          # her taramada en çok bu kadar hisse; asıl sınır süre (İş Yatırım ~0,1-8 sn/istek, ort. ~1,7)
+ZARAR_SURE = 8.0          # seans içi (09:30-18:30, hafta içi) toplam süre sınırı (sn)
+ZARAR_SURE_DIS = 30.0     # seans dışı (kesin kapanış sonrası / hafta sonu): ilk kurulum birkaç akşamda tamamlanır
+ISY_ZAMAN_ASIMI = (4, 10)
+ZARAR_YENILE_GUN = 45
+
+
+def _isy_sayi(x):
+    try:
+        return None if x in (None, "") else float(x)
+    except Exception:
+        return None
+
+
+def isy_ttm(degerler, q):
+    """[bu dönem kümülatif, geçen yıl 12 ay, geçen yıl aynı dönem] → son 4 çeyrek toplamı (yıllıkta dönemin kendisi).
+    strateji2'deki çeyreklik farkların 4'lü toplamıyla cebirsel olarak aynı."""
+    v1, v2, v3 = (list(degerler) + [None, None, None])[:3]
+    if q == 4:
+        return v1
+    if v1 is None or v2 is None or v3 is None:
+        return None
+    return v1 + v2 - v3
+
+
+def isy_ttm_cek(kod, y, q, grp=None, oturum=None):
+    """İş Yatırım'dan (y, q) için son 4 çeyrek net kâr. Döner (ttm|None, finansal grup|None). Ağ hatası dışarı fırlar."""
+    yil_ay = [(y, 3 * q), (y - 1, 12), (y - 1, 3 * q), (y - 1, 3 * q)]
+    sorgu = "&".join(f"year{i + 1}={a}&period{i + 1}={b}" for i, (a, b) in enumerate(yil_ay))
+    get = (oturum or requests).get
+    for g in ([grp] if grp else ["XI_29", "UFRS"]):     # sanayi/hizmet XI_29, banka/finans UFRS
+        r = get(f"{ISY_URL}?companyCode={kod}&exchange=TRY&financialGroup={g}&{sorgu}", timeout=ISY_ZAMAN_ASIMI,
+                headers={"User-Agent": "Mozilla/5.0"})
+        r.raise_for_status()
+        v = r.json().get("value") or []
+        if not v:
+            continue
+        sat = next((x for x in v if x.get("itemCode") == ISY_KALEM), None)
+        if sat is None:
+            return None, g
+        return isy_ttm([_isy_sayi(sat.get(f"value{i}")) for i in (1, 2, 3)], q), g
+    return None, grp
+
+
+def zarar_guncelle(kodlar, son_donem, bugun=None, butce=ZARAR_BUTCE, sure=None):
+    """son_donem: {kod: (yıl, dönem 1-4)} KAP'ta yayınlanmış son finansal rapor. bilanco.json 'isy' önbelleğini (hisse:
+    {"g": grup, "p": [yıl, dönem], "n": son 4 çeyrek net kâr, "t": çekildiği gün, "a": son deneme günü}) gerekirse günceller.
+    Döner {kod: {"d": '2Ç26', "n": toplam}} (sadece verisi olanlar). Kaynağa ulaşılamazsa önbellekle devam."""
+    simdi = pd.Timestamp.now(tz="Europe/Istanbul")
+    bugun = bugun or simdi.strftime("%Y-%m-%d")
+    if sure is None:
+        seans = simdi.weekday() < 5 and 9 * 60 + 30 <= simdi.hour * 60 + simdi.minute < 18 * 60 + 30
+        sure = ZARAR_SURE if seans else ZARAR_SURE_DIS
+    try:
+        with open(BILANCO_CACHE, encoding="utf-8") as f:
+            c = json.load(f)
+    except Exception:
+        c = {}
+    isy = dict(c.get("isy") or {})
+    yeni_donem, yenile = [], []
+    for k in kodlar:
+        hedef = son_donem.get(k)
+        if not hedef:
+            continue
+        e = isy.get(k) or {}
+        if e.get("a") == bugun:
+            continue                                       # bugün denendi (İş Yatırım KAP'tan geç güncelleyebilir: yarın yine)
+        if e.get("p") != list(hedef):
+            yeni_donem.append(k)
+        elif not e.get("t") or (pd.Timestamp(bugun) - pd.Timestamp(e["t"])).days >= ZARAR_YENILE_GUN:
+            yenile.append(k)
+    sira = (yeni_donem + yenile)[:butce]
+    if sira:
+        t0, n_ok, n_den = time.time(), 0, 0
+        oturum = requests.Session()
+        for k in sira:
+            if time.time() - t0 > sure:
+                break
+            y, q = son_donem[k]
+            e = dict(isy.get(k) or {})
+            e["a"] = bugun          # hata olsa da bugün bir daha denenmez (takılan tek hisse sırayı kilitlemesin)
+            isy[k] = e
+            n_den += 1
+            try:
+                ttm, g = isy_ttm_cek(k, int(y), int(q), e.get("g"), oturum)
+            except Exception as ex:   # yavaş/ulaşılamıyor: bu taramada bırak, kalanlar sonraki taramalarda
+                print(f"İş Yatırım mali tablo alınamadı ({type(ex).__name__}); önbellekle devam.")
+                break
+            if g:
+                e["g"] = g
+            if ttm is not None:
+                e.update(p=[int(y), int(q)], n=ttm, t=bugun)
+                n_ok += 1
+            time.sleep(0.3)
+        print(f"Zarar notu: İş Yatırım'dan {n_den} hisse istendi, {n_ok} güncellendi (bekleyen: {len(yeni_donem)} yeni dönem, "
+              f"{len(yenile)} yenileme; {time.time() - t0:.1f} sn).")
+        try:
+            with open(BILANCO_CACHE, encoding="utf-8") as f:
+                c = json.load(f)
+        except Exception:
+            pass
+        c["isy"] = dict(sorted(isy.items()))
+        with open(BILANCO_CACHE, "w", encoding="utf-8") as f:
+            json.dump(c, f, ensure_ascii=False)
+    return {k: {"d": f"{e['p'][1]}Ç{e['p'][0] % 100:02d}", "n": e["n"]}
+            for k, e in isy.items() if e.get("p") and e.get("n") is not None}
