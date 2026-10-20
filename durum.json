@@ -101,7 +101,7 @@
     "ECOGR": "SAT",
     "ECZYT": "SAT",
     "EDATA": "SAT",
-    "EFOR": "AL",
+    "EFOR": "SAT",
     "EGEEN": "SAT",
     "EGEGY": "SAT",
     "EGEPO": "SAT",
@@ -332,30 +332,15 @@
     "0be769a36b9521e4",
     "1f9eadea25b59b84",
     "7f376159709e58a8",
+    "96415f7908a061a3",
     "ed52d36b8529c244",
     "fc9a269fa7f1b36a"
   ],
-  "ozet_tarih": "2026-10-19",
+  "ozet_tarih": "2026-10-20",
   "hafta_tarih": "2026-10-16",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {
-    "BRSAN": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-10-20"
-    },
-    "EFOR": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-10-20"
-    },
-    "ORGE": {
-      "sinyal": "SAT",
-      "onceki": "AL",
-      "tarih": "2026-10-20"
-    }
-  },
+  "on_sinyal": {},
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
@@ -542,7 +527,7 @@
     "MAVI": "SAT",
     "MEGMT": "SAT",
     "MERCN": "SAT",
-    "METRO": "SAT",
+    "METRO": "AL",
     "MGROS": "SAT",
     "MIATK": "SAT",
     "MOBTL": "SAT",
@@ -635,7 +620,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1684593,
+  "kap_son": 1684607,
   "tk_gonderilen": {
     "tarih": "2026-10-20",
     "kodlar": []
