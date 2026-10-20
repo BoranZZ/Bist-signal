@@ -812,3 +812,10 @@ sinyal, filtre, etiket ya da çıkış olarak eklenmeye değmez.** Kullanıcı f
 - **Workflow değişti** (`tarama.yml`: `git add ... oda.json oda.html`). GITHUB_TOKEN workflow dosyasını güncelleyemediği için
   **fork'taki arkadaşlar bu satırı elle güncellemeli**; güncellemezlerse oda her taramada sıfırdan başlar ve kaydedilmez (ilk gün
   sessiz kuralı sayesinde Telegram'a mesaj gitmez), panodaki düğme `oda.html` bulunamaz.
+
+## ⏱️ Kısa vade (1-2 hafta) robotları — TEST EDİLDİ, EKLENMEDİ (2026-10-20, arşiv Documents/Bist-arastirma/2026-10/kisavade/RAPOR.md)
+52 kural / 6 aile (RSI2<5-10 + SMA200, şablonda 3-4 gün düşüş / %5-8 geri çekilme, 20g kırılım + 5/10 gün ya da %5 stop/%10 hedef,
+Bollinger alt bant dönüşü, IBS, haftalık momentum/tersine dönüş), MANIPULE hariç, %0,2/yön + kayma. Hiçbiri canlı v3+🔐'e (10 yuva ana
++%3.899) ya da BIST 100 al-tut'a (+%1.400) yaklaşmadı; çoğu eksi (RSI2 −%88, Bollinger −%47). Maliyet öncesi işlem başı +%0…+%0,8,
+gidiş-dönüş maliyeti ~%0,6. v3 AL'ini 10 gün tutmak işlem başı +%21 → +%2. 2017-21'de seçilen ayarlar 2022-26'da canlının çok gerisinde.
+Gün içi al-sat da önceki testlerde (📅 Vadeler bölümü) maliyet sonrası eksi. Kullanıcı 'kısa vade sistemi' sorarsa bu sonucu anlat.
