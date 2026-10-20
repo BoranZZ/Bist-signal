@@ -1,12 +1,13 @@
 {
   "al": [
     "AHGAZ",
+    "BRSAN",
+    "EFOR",
     "ENERY",
     "GLYHO",
     "GMTAS",
     "HRKET",
     "INDES",
-    "RYGYO",
     "TAVHL"
   ],
   "son": {
@@ -31,6 +32,7 @@
     "AKSUE": "SAT",
     "ALARK": "SAT",
     "ALBRK": "SAT",
+    "ALBTN": "SAT",
     "ALCTL": "SAT",
     "ALFAS": "SAT",
     "ALGYO": "SAT",
@@ -68,7 +70,7 @@
     "BOBET": "SAT",
     "BORLS": "SAT",
     "BRLSM": "SAT",
-    "BRSAN": "SAT",
+    "BRSAN": "AL",
     "BRYAT": "SAT",
     "BSOKE": "SAT",
     "BTCIM": "SAT",
@@ -99,7 +101,7 @@
     "ECOGR": "SAT",
     "ECZYT": "SAT",
     "EDATA": "SAT",
-    "EFOR": "SAT",
+    "EFOR": "AL",
     "EGEEN": "SAT",
     "EGEGY": "SAT",
     "EGEPO": "SAT",
@@ -215,6 +217,7 @@
     "MCARD": "SAT",
     "MEGMT": "SAT",
     "MERCN": "SAT",
+    "METEN": "NÖTR",
     "METRO": "AL",
     "MEYSU": "SAT",
     "MGROS": "SAT",
@@ -233,7 +236,7 @@
     "OFSYM": "SAT",
     "ONCSM": "SAT",
     "ONRYT": "SAT",
-    "ORGE": "AL",
+    "ORGE": "SAT",
     "ORZAX": "SAT",
     "OTKAR": "SAT",
     "OYAKC": "SAT",
@@ -336,7 +339,23 @@
   "hafta_tarih": "2026-10-16",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {},
+  "on_sinyal": {
+    "BRSAN": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-10-20"
+    },
+    "EFOR": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-10-20"
+    },
+    "ORGE": {
+      "sinyal": "SAT",
+      "onceki": "AL",
+      "tarih": "2026-10-20"
+    }
+  },
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
@@ -654,6 +673,7 @@
     "tarih": "2026-10-20",
     "g": [
       "2e189c057c5f0abe",
+      "2e7fc2f195421a8a",
       "3a9d81ec8d538016",
       "41ce039d26f5106e",
       "97f33f9f0362fa13",
