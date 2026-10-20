@@ -42,7 +42,7 @@ BIST100 = [
 EK_HISSELER = [
  "AGROT","ALFAS","BUCIM","EUPWR","GESAN","ISGYO","IZENR","KAYSE","KLKIM",
  "KLSER","KMPUR","KONTR","KONYA","PAPIL","PENTA","QUAGR","REEDR","SDTTR",
- "SKBNK","ULUUN","VESBE","YEOTK","AFYON",
+ "SKBNK","ULUUN","VESBE","YEOTK","AFYON","NTHOL",
 ]
 
 # Son 12 ayın halka arzları: kod -> (borsada işlem başlangıcı, halka arz fiyatı TL). Kaynak: halkarz.com
@@ -84,7 +84,7 @@ KUCUK_HISSELER = [
     "HURGZ", "ICUGS", "IEYHO", "IHAAS", "IHLAS", "INDES", "INFO", "ISGSY", "ISKPL", "IZFAS", "IZMDC", "KAREL", "KARTN",
     "KBORU", "KGYO", "KLRHO", "KLYPV", "KOCMT", "KOPOL", "KRDMA", "KRDMB", "KTLEV", "KUYAS", "KZBGY", "LIDER", "LILAK",
     "LINK", "LOGO", "LYDHO", "MAGEN", "MANAS", "MARTI", "MEGMT", "MERCN", "METRO", "MIATK", "MOBTL", "MOGAN", "MOPAS",
-    "MRGYO", "MRSHL", "NTHOL", "ODINE", "OFSYM", "ONCSM", "ONRYT", "ORGE", "OZATD", "OZSUB", "PASEU", "PATEK", "PCILT",
+    "MRGYO", "MRSHL", "ODINE", "OFSYM", "ONCSM", "ONRYT", "ORGE", "OZATD", "OZSUB", "PASEU", "PATEK", "PCILT",
     "PEKGY", "PKART", "PRZMA", "PSGYO", "RALYH", "RTALB", "RUBNS", "RYGYO", "SAFKR", "SANFM", "SARKY", "SAYAS", "SEGMN",
     "SELEC", "SMRTG", "SMRVA", "SUNTK", "SURGY", "TARKM", "TATEN", "TEHOL", "TERA", "TGSAS", "TMPOL", "TNZTP", "TRHOL",
     "TSPOR", "TUREX", "ULUSE", "USAK", "VBTYZ", "VSNMD", "YIGIT",
