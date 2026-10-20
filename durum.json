@@ -1,9 +1,8 @@
 {
   "al": [
+    "EFOR",
     "GLYHO",
     "GMTAS",
-    "HRKET",
-    "SOKM",
     "TAVHL"
   ],
   "son": {
@@ -613,9 +612,9 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1684148,
+  "kap_son": 1684277,
   "tk_gonderilen": {
-    "tarih": "2026-10-19",
+    "tarih": "2026-10-20",
     "kodlar": []
   },
   "mom_ay": {
@@ -648,30 +647,14 @@
     ]
   },
   "gunici": {
-    "tarih": "2026-10-19",
+    "tarih": "2026-10-20",
     "g": [
-      "081458e40994a4f8",
-      "2561ffc378b849fa",
       "2e189c057c5f0abe",
-      "343bb42cde06e4ff",
-      "39929c04b47f505e",
+      "3a9d81ec8d538016",
       "41ce039d26f5106e",
-      "521cbbc8465eb32f",
-      "6189469f7560cd41",
-      "6208d9d28d82784e",
-      "6aec999fb9809b73",
-      "7175ddc66d12038c",
-      "72feb494f897ca98",
-      "87d9680ae95e7822",
-      "9a37921a324ac06b",
-      "b5310038d21353a9",
-      "c1fa012703af089d",
-      "c839adb1a350cfb1",
-      "e4d35a23683d147d",
-      "eb382d8aca17f87c",
-      "eed93c50d4609ef1",
-      "f948a1b9c75c280b"
+      "97f33f9f0362fa13",
+      "d7e1e9bfbb09ed3f"
     ]
   },
-  "sabah_tarih": "2026-10-19"
+  "sabah_tarih": "2026-10-20"
 }
