@@ -1,12 +1,13 @@
 {
   "al": [
     "AHGAZ",
+    "BRSAN",
     "ENERY",
     "GLYHO",
     "GMTAS",
-    "HRKET",
     "INDES",
     "RYGYO",
+    "SOKM",
     "TAVHL"
   ],
   "son": {
@@ -31,6 +32,7 @@
     "AKSUE": "SAT",
     "ALARK": "SAT",
     "ALBRK": "SAT",
+    "ALBTN": "SAT",
     "ALCTL": "SAT",
     "ALFAS": "SAT",
     "ALGYO": "SAT",
@@ -68,7 +70,7 @@
     "BOBET": "SAT",
     "BORLS": "SAT",
     "BRLSM": "SAT",
-    "BRSAN": "SAT",
+    "BRSAN": "AL",
     "BRYAT": "SAT",
     "BSOKE": "SAT",
     "BTCIM": "SAT",
@@ -215,6 +217,7 @@
     "MCARD": "SAT",
     "MEGMT": "SAT",
     "MERCN": "SAT",
+    "METEN": "NÖTR",
     "METRO": "AL",
     "MEYSU": "SAT",
     "MGROS": "SAT",
@@ -233,7 +236,7 @@
     "OFSYM": "SAT",
     "ONCSM": "SAT",
     "ONRYT": "SAT",
-    "ORGE": "AL",
+    "ORGE": "SAT",
     "ORZAX": "SAT",
     "OTKAR": "SAT",
     "OYAKC": "SAT",
@@ -329,10 +332,11 @@
     "0be769a36b9521e4",
     "1f9eadea25b59b84",
     "7f376159709e58a8",
+    "96415f7908a061a3",
     "ed52d36b8529c244",
     "fc9a269fa7f1b36a"
   ],
-  "ozet_tarih": "2026-10-19",
+  "ozet_tarih": "2026-10-20",
   "hafta_tarih": "2026-10-16",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
@@ -523,7 +527,7 @@
     "MAVI": "SAT",
     "MEGMT": "SAT",
     "MERCN": "SAT",
-    "METRO": "SAT",
+    "METRO": "AL",
     "MGROS": "SAT",
     "MIATK": "SAT",
     "MOBTL": "SAT",
@@ -616,7 +620,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1684462,
+  "kap_son": 1684637,
   "tk_gonderilen": {
     "tarih": "2026-10-20",
     "kodlar": []
@@ -654,10 +658,13 @@
     "tarih": "2026-10-20",
     "g": [
       "2e189c057c5f0abe",
+      "2e7fc2f195421a8a",
       "3a9d81ec8d538016",
       "41ce039d26f5106e",
       "97f33f9f0362fa13",
-      "d7e1e9bfbb09ed3f"
+      "c1904a9c5e29c69a",
+      "d7e1e9bfbb09ed3f",
+      "e9926e9fde5dcb23"
     ]
   },
   "sabah_tarih": "2026-10-20"
