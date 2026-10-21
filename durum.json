@@ -2,11 +2,14 @@
   "al": [
     "AHGAZ",
     "BRSAN",
+    "EFOR",
     "ENERY",
     "GLYHO",
     "GMTAS",
+    "HRKET",
     "INDES",
     "RYGYO",
+    "SOKM",
     "TAVHL"
   ],
   "son": {
@@ -656,7 +659,8 @@
   "gunici": {
     "tarih": "2026-10-21",
     "g": [
-      "2e189c057c5f0abe"
+      "2e189c057c5f0abe",
+      "41ce039d26f5106e"
     ]
   },
   "sabah_tarih": "2026-10-21"
