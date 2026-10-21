@@ -1,6 +1,5 @@
 {
   "al": [
-    "AHGAZ",
     "BRSAN",
     "ENERY",
     "GLYHO",
@@ -658,7 +657,8 @@
     "tarih": "2026-10-21",
     "g": [
       "2e189c057c5f0abe",
-      "41ce039d26f5106e"
+      "41ce039d26f5106e",
+      "c84f577eff19113d"
     ]
   },
   "sabah_tarih": "2026-10-21"
