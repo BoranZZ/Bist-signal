@@ -1,6 +1,5 @@
 {
   "al": [
-    "EFOR",
     "GMTAS",
     "HRKET",
     "RYGYO",
@@ -97,7 +96,7 @@
     "ECOGR": "SAT",
     "ECZYT": "SAT",
     "EDATA": "SAT",
-    "EFOR": "AL",
+    "EFOR": "SAT",
     "EGEEN": "SAT",
     "EGEGY": "SAT",
     "EGEPO": "SAT",
@@ -156,7 +155,7 @@
     "HLGYO": "SAT",
     "HOROZ": "SAT",
     "HRKET": "AL",
-    "HUNER": "SAT",
+    "HUNER": "AL",
     "HURGZ": "SAT",
     "ICUGS": "SAT",
     "IEYHO": "SAT",
@@ -326,6 +325,7 @@
     "ZOREN": "SAT"
   },
   "iz_kirilim_g": [
+    "086f8a7d69703205",
     "0be769a36b9521e4",
     "1f9eadea25b59b84",
     "7f376159709e58a8",
@@ -333,47 +333,11 @@
     "ed52d36b8529c244",
     "fc9a269fa7f1b36a"
   ],
-  "ozet_tarih": "2026-10-20",
+  "ozet_tarih": "2026-10-21",
   "hafta_tarih": "2026-10-16",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {
-    "BRSAN": {
-      "sinyal": "SAT",
-      "onceki": "AL",
-      "tarih": "2026-10-21"
-    },
-    "EFOR": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-10-21"
-    },
-    "ENERY": {
-      "sinyal": "SAT",
-      "onceki": "AL",
-      "tarih": "2026-10-21"
-    },
-    "HRKET": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-10-21"
-    },
-    "HUNER": {
-      "sinyal": "SAT",
-      "onceki": "AL",
-      "tarih": "2026-10-21"
-    },
-    "METEN": {
-      "sinyal": "SAT",
-      "onceki": "NÖTR",
-      "tarih": "2026-10-21"
-    },
-    "RYSAS": {
-      "sinyal": "SAT",
-      "onceki": "AL",
-      "tarih": "2026-10-21"
-    }
-  },
+  "on_sinyal": {},
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
@@ -653,7 +617,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1685337,
+  "kap_son": 1685348,
   "tk_gonderilen": {
     "tarih": "2026-10-21",
     "kodlar": []
