@@ -106,7 +106,7 @@
     "EMKEL": "SAT",
     "EMPAE": "SAT",
     "ENDAE": "SAT",
-    "ENERY": "AL",
+    "ENERY": "SAT",
     "ENJSA": "SAT",
     "ENKAI": "SAT",
     "ENPRA": "SAT",
@@ -154,7 +154,7 @@
     "HLGYO": "SAT",
     "HOROZ": "SAT",
     "HRKET": "SAT",
-    "HUNER": "AL",
+    "HUNER": "SAT",
     "HURGZ": "SAT",
     "ICUGS": "SAT",
     "IEYHO": "SAT",
@@ -346,7 +346,17 @@
       "onceki": "SAT",
       "tarih": "2026-10-21"
     },
+    "ENERY": {
+      "sinyal": "SAT",
+      "onceki": "AL",
+      "tarih": "2026-10-21"
+    },
     "HRKET": {
+      "sinyal": "SAT",
+      "onceki": "AL",
+      "tarih": "2026-10-21"
+    },
+    "HUNER": {
       "sinyal": "SAT",
       "onceki": "AL",
       "tarih": "2026-10-21"
@@ -641,7 +651,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1685290,
+  "kap_son": 1685299,
   "tk_gonderilen": {
     "tarih": "2026-10-21",
     "kodlar": []
