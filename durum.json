@@ -1,6 +1,8 @@
 {
   "al": [
     "EFOR",
+    "GMTAS",
+    "HRKET",
     "RYGYO",
     "TAVHL"
   ],
@@ -153,7 +155,7 @@
     "HKTM": "AL",
     "HLGYO": "SAT",
     "HOROZ": "SAT",
-    "HRKET": "SAT",
+    "HRKET": "AL",
     "HUNER": "SAT",
     "HURGZ": "SAT",
     "ICUGS": "SAT",
@@ -352,8 +354,8 @@
       "tarih": "2026-10-21"
     },
     "HRKET": {
-      "sinyal": "SAT",
-      "onceki": "AL",
+      "sinyal": "AL",
+      "onceki": "SAT",
       "tarih": "2026-10-21"
     },
     "HUNER": {
@@ -651,7 +653,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1685299,
+  "kap_son": 1685318,
   "tk_gonderilen": {
     "tarih": "2026-10-21",
     "kodlar": []
