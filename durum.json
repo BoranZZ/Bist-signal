@@ -1,7 +1,5 @@
 {
-  "al": [
-    "EFOR"
-  ],
+  "al": [],
   "son": {
     "A1CAP": "SAT",
     "AAGYO": "SAT",
@@ -614,7 +612,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1685645,
+  "kap_son": 1685669,
   "tk_gonderilen": {
     "tarih": "2026-10-22",
     "kodlar": []
