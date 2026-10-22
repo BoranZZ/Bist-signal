@@ -1,5 +1,6 @@
 {
   "al": [
+    "EFOR",
     "GMTAS",
     "HRKET",
     "RYGYO",
@@ -617,9 +618,9 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1685472,
+  "kap_son": 1685541,
   "tk_gonderilen": {
-    "tarih": "2026-10-21",
+    "tarih": "2026-10-22",
     "kodlar": []
   },
   "mom_ay": {
@@ -652,16 +653,8 @@
     ]
   },
   "gunici": {
-    "tarih": "2026-10-21",
-    "g": [
-      "081458e40994a4f8",
-      "2e189c057c5f0abe",
-      "41ce039d26f5106e",
-      "521cbbc8465eb32f",
-      "6189469f7560cd41",
-      "6ee6c1828250f2c4",
-      "c84f577eff19113d"
-    ]
+    "tarih": "2026-10-22",
+    "g": []
   },
-  "sabah_tarih": "2026-10-21"
+  "sabah_tarih": "2026-10-22"
 }
