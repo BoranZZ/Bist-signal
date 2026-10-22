@@ -1,5 +1,8 @@
 {
-  "al": [],
+  "al": [
+    "EFOR",
+    "INDES"
+  ],
   "son": {
     "A1CAP": "SAT",
     "AAGYO": "SAT",
