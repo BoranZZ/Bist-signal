@@ -269,7 +269,7 @@
     "SMRVA": "SAT",
     "SNGYO": "SAT",
     "SOHOE": "SAT",
-    "SOKM": "AL",
+    "SOKM": "SAT",
     "SSAAT": "SAT",
     "SUNTK": "SAT",
     "SURGY": "SAT",
@@ -354,6 +354,11 @@
       "tarih": "2026-10-22"
     },
     "HUNER": {
+      "sinyal": "SAT",
+      "onceki": "AL",
+      "tarih": "2026-10-22"
+    },
+    "SOKM": {
       "sinyal": "SAT",
       "onceki": "AL",
       "tarih": "2026-10-22"
