@@ -2,7 +2,6 @@
   "al": [
     "EFOR",
     "HRKET",
-    "RYGYO",
     "TAVHL"
   ],
   "son": {
@@ -617,7 +616,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1685669,
+  "kap_son": 1685686,
   "tk_gonderilen": {
     "tarih": "2026-10-22",
     "kodlar": []
