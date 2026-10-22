@@ -1,5 +1,7 @@
 {
-  "al": [],
+  "al": [
+    "RYGYO"
+  ],
   "son": {
     "A1CAP": "SAT",
     "AAGYO": "SAT",
@@ -269,7 +271,7 @@
     "SMRVA": "SAT",
     "SNGYO": "SAT",
     "SOHOE": "SAT",
-    "SOKM": "SAT",
+    "SOKM": "AL",
     "SSAAT": "SAT",
     "SUNTK": "SAT",
     "SURGY": "SAT",
@@ -324,51 +326,16 @@
     "0be769a36b9521e4",
     "1f9eadea25b59b84",
     "7f376159709e58a8",
+    "8b657f1af04933e5",
     "96415f7908a061a3",
     "ed52d36b8529c244",
     "fc9a269fa7f1b36a"
   ],
-  "ozet_tarih": "2026-10-21",
+  "ozet_tarih": "2026-10-22",
   "hafta_tarih": "2026-10-16",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {
-    "AHGAZ": {
-      "sinyal": "SAT",
-      "onceki": "AL",
-      "tarih": "2026-10-22"
-    },
-    "FRIGO": {
-      "sinyal": "SAT",
-      "onceki": "AL",
-      "tarih": "2026-10-22"
-    },
-    "GLYHO": {
-      "sinyal": "SAT",
-      "onceki": "AL",
-      "tarih": "2026-10-22"
-    },
-    "HRKET": {
-      "sinyal": "SAT",
-      "onceki": "AL",
-      "tarih": "2026-10-22"
-    },
-    "HUNER": {
-      "sinyal": "SAT",
-      "onceki": "AL",
-      "tarih": "2026-10-22"
-    },
-    "ISDMR": {
-      "sinyal": "SAT",
-      "onceki": "AL",
-      "tarih": "2026-10-22"
-    },
-    "SOKM": {
-      "sinyal": "SAT",
-      "onceki": "AL",
-      "tarih": "2026-10-22"
-    }
-  },
+  "on_sinyal": {},
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
@@ -387,7 +354,7 @@
     "AKSEN": "SAT",
     "AKSUE": "SAT",
     "ALARK": "AL",
-    "ALBRK": "AL",
+    "ALBRK": "SAT",
     "ALCTL": "SAT",
     "ALFAS": "SAT",
     "ALGYO": "SAT",
@@ -574,7 +541,7 @@
     "OTKAR": "SAT",
     "OYAKC": "SAT",
     "OZATD": "SAT",
-    "OZSUB": "AL",
+    "OZSUB": "SAT",
     "PAPIL": "SAT",
     "PASEU": "SAT",
     "PATEK": "SAT",
@@ -648,7 +615,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1685995,
+  "kap_son": 1686017,
   "tk_gonderilen": {
     "tarih": "2026-10-22",
     "kodlar": []
