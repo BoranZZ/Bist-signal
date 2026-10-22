@@ -159,7 +159,7 @@
     "INDES": "AL",
     "INFO": "SAT",
     "ISCTR": "SAT",
-    "ISDMR": "AL",
+    "ISDMR": "SAT",
     "ISGSY": "SAT",
     "ISGYO": "SAT",
     "ISKPL": "SAT",
@@ -354,6 +354,11 @@
       "tarih": "2026-10-22"
     },
     "HUNER": {
+      "sinyal": "SAT",
+      "onceki": "AL",
+      "tarih": "2026-10-22"
+    },
+    "ISDMR": {
       "sinyal": "SAT",
       "onceki": "AL",
       "tarih": "2026-10-22"
