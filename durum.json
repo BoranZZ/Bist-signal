@@ -9,7 +9,7 @@
     "AFYON": "SAT",
     "AGHOL": "SAT",
     "AGROT": "SAT",
-    "AHGAZ": "AL",
+    "AHGAZ": "SAT",
     "AKBNK": "SAT",
     "AKCNS": "SAT",
     "AKENR": "SAT",
@@ -117,7 +117,7 @@
     "FENER": "SAT",
     "FONET": "SAT",
     "FORTE": "SAT",
-    "FRIGO": "AL",
+    "FRIGO": "SAT",
     "FRMPL": "SAT",
     "FROTO": "SAT",
     "FZLGY": "SAT",
@@ -128,7 +128,7 @@
     "GESAN": "SAT",
     "GIPTA": "SAT",
     "GLRMK": "SAT",
-    "GLYHO": "AL",
+    "GLYHO": "SAT",
     "GMTAS": "AL",
     "GOKNR": "SAT",
     "GOLDA": "SAT",
@@ -149,8 +149,8 @@
     "HKTM": "AL",
     "HLGYO": "SAT",
     "HOROZ": "SAT",
-    "HRKET": "AL",
-    "HUNER": "AL",
+    "HRKET": "SAT",
+    "HUNER": "SAT",
     "HURGZ": "SAT",
     "ICUGS": "SAT",
     "IEYHO": "SAT",
@@ -332,7 +332,33 @@
   "hafta_tarih": "2026-10-16",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {},
+  "on_sinyal": {
+    "AHGAZ": {
+      "sinyal": "SAT",
+      "onceki": "AL",
+      "tarih": "2026-10-22"
+    },
+    "FRIGO": {
+      "sinyal": "SAT",
+      "onceki": "AL",
+      "tarih": "2026-10-22"
+    },
+    "GLYHO": {
+      "sinyal": "SAT",
+      "onceki": "AL",
+      "tarih": "2026-10-22"
+    },
+    "HRKET": {
+      "sinyal": "SAT",
+      "onceki": "AL",
+      "tarih": "2026-10-22"
+    },
+    "HUNER": {
+      "sinyal": "SAT",
+      "onceki": "AL",
+      "tarih": "2026-10-22"
+    }
+  },
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
