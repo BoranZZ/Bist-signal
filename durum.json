@@ -1,7 +1,8 @@
 {
   "al": [
     "EFOR",
-    "INDES"
+    "HRKET",
+    "TAVHL"
   ],
   "son": {
     "A1CAP": "SAT",
