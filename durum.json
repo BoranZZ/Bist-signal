@@ -1,7 +1,6 @@
 {
   "al": [
-    "METRO",
-    "RYGYO"
+    "METRO"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -652,7 +651,16 @@
   },
   "gunici": {
     "tarih": "2026-10-23",
-    "g": []
+    "g": [
+      "08130871e6a7b3ee",
+      "2b3ef37bb3dce615",
+      "32ce8b9b89870c3c",
+      "44d2fdcdf9119334",
+      "55ecfad81f46ac49",
+      "687f8517e2ec66c3",
+      "c915c7cc20dea539",
+      "ddc3af6cf60b93dd"
+    ]
   },
   "sabah_tarih": "2026-10-23"
 }
