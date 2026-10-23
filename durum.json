@@ -1,5 +1,9 @@
 {
-  "al": [],
+  "al": [
+    "EFOR",
+    "METRO",
+    "RYGYO"
+  ],
   "son": {
     "A1CAP": "SAT",
     "AAGYO": "SAT",
