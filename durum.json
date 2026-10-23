@@ -1,7 +1,5 @@
 {
-  "al": [
-    "RYGYO"
-  ],
+  "al": [],
   "son": {
     "A1CAP": "SAT",
     "AAGYO": "SAT",
@@ -615,7 +613,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1686754,
+  "kap_son": 1686761,
   "tk_gonderilen": {
     "tarih": "2026-10-23",
     "kodlar": []
@@ -666,6 +664,7 @@
       "6208d9d28d82784e",
       "687f8517e2ec66c3",
       "93aee6ee474d912d",
+      "9c11d0588090da27",
       "c3bcc5504089313f",
       "c915c7cc20dea539",
       "cf9c345332ef0c00",
