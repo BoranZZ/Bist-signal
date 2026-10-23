@@ -148,7 +148,7 @@
     "HDFGS": "SAT",
     "HEDEF": "SAT",
     "HEKTS": "SAT",
-    "HKTM": "AL",
+    "HKTM": "SAT",
     "HLGYO": "SAT",
     "HOROZ": "SAT",
     "HRKET": "SAT",
@@ -271,7 +271,7 @@
     "SMRVA": "SAT",
     "SNGYO": "SAT",
     "SOHOE": "SAT",
-    "SOKM": "AL",
+    "SOKM": "SAT",
     "SSAAT": "SAT",
     "SUNTK": "SAT",
     "SURGY": "SAT",
@@ -335,7 +335,18 @@
   "hafta_tarih": "2026-10-16",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {},
+  "on_sinyal": {
+    "HKTM": {
+      "sinyal": "SAT",
+      "onceki": "AL",
+      "tarih": "2026-10-23"
+    },
+    "SOKM": {
+      "sinyal": "SAT",
+      "onceki": "AL",
+      "tarih": "2026-10-23"
+    }
+  },
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
@@ -615,7 +626,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1686856,
+  "kap_son": 1686873,
   "tk_gonderilen": {
     "tarih": "2026-10-23",
     "kodlar": []
