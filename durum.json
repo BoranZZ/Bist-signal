@@ -271,7 +271,7 @@
     "SMRVA": "SAT",
     "SNGYO": "SAT",
     "SOHOE": "SAT",
-    "SOKM": "SAT",
+    "SOKM": "AL",
     "SSAAT": "SAT",
     "SUNTK": "SAT",
     "SURGY": "SAT",
@@ -331,22 +331,11 @@
     "ed52d36b8529c244",
     "fc9a269fa7f1b36a"
   ],
-  "ozet_tarih": "2026-10-22",
-  "hafta_tarih": "2026-10-16",
+  "ozet_tarih": "2026-10-23",
+  "hafta_tarih": "2026-10-23",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {
-    "HKTM": {
-      "sinyal": "SAT",
-      "onceki": "AL",
-      "tarih": "2026-10-23"
-    },
-    "SOKM": {
-      "sinyal": "SAT",
-      "onceki": "AL",
-      "tarih": "2026-10-23"
-    }
-  },
+  "on_sinyal": {},
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
@@ -376,7 +365,7 @@
     "ANHYT": "SAT",
     "ANSGR": "SAT",
     "ARCLK": "SAT",
-    "ARDYZ": "AL",
+    "ARDYZ": "SAT",
     "ARMGD": "SAT",
     "ARSAN": "SAT",
     "ASELS": "SAT",
@@ -437,7 +426,7 @@
     "EKGYO": "SAT",
     "EMKEL": "SAT",
     "ENDAE": "SAT",
-    "ENERY": "SAT",
+    "ENERY": "AL",
     "ENJSA": "AL",
     "ENKAI": "SAT",
     "ENSRI": "SAT",
@@ -504,7 +493,7 @@
     "KAYSE": "SAT",
     "KBORU": "SAT",
     "KCAER": "SAT",
-    "KCHOL": "AL",
+    "KCHOL": "SAT",
     "KGYO": "SAT",
     "KLKIM": "SAT",
     "KLRHO": "SAT",
@@ -566,7 +555,7 @@
     "PSGYO": "SAT",
     "QUAGR": "SAT",
     "RALYH": "SAT",
-    "RGYAS": "AL",
+    "RGYAS": "SAT",
     "RTALB": "SAT",
     "RUBNS": "SAT",
     "RYGYO": "AL",
@@ -626,7 +615,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1686957,
+  "kap_son": 1686973,
   "tk_gonderilen": {
     "tarih": "2026-10-23",
     "kodlar": []
