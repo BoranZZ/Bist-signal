@@ -6,8 +6,8 @@
       "giris_fiyat": 34.38,
       "stop": 27.5,
       "durum": "açık",
-      "guncel": 28.06,
-      "anlik": -18.4,
+      "guncel": 27.78,
+      "anlik": -19.2,
       "tepe": 34.38
     },
     {
@@ -30,8 +30,8 @@
       "giris_fiyat": 411.5,
       "stop": 329.2,
       "durum": "açık",
-      "guncel": 356.5,
-      "anlik": -13.4,
+      "guncel": 353.25,
+      "anlik": -14.2,
       "tepe": 411.5
     },
     {
@@ -40,8 +40,8 @@
       "giris_fiyat": 46.2,
       "stop": 38.06,
       "durum": "açık",
-      "guncel": 38.38,
-      "anlik": -16.9,
+      "guncel": 38.16,
+      "anlik": -17.4,
       "tepe": 47.58
     },
     {
@@ -78,8 +78,8 @@
       "giris_fiyat": 44.34,
       "stop": 39.2,
       "durum": "açık",
-      "guncel": 42.48,
-      "anlik": -4.2,
+      "guncel": 42.22,
+      "anlik": -4.8,
       "tepe": 49.0
     },
     {
@@ -88,8 +88,8 @@
       "giris_fiyat": 13.36,
       "stop": 11.78,
       "durum": "açık",
-      "guncel": 12.06,
-      "anlik": -9.7,
+      "guncel": 11.92,
+      "anlik": -10.8,
       "tepe": 14.73
     },
     {
@@ -97,10 +97,14 @@
       "giris_tarih": "2026-09-25",
       "giris_fiyat": 62.5,
       "stop": 52.88,
-      "durum": "açık",
-      "guncel": 53.0,
-      "anlik": -15.2,
-      "tepe": 66.1
+      "durum": "kapalı",
+      "guncel": 51.65,
+      "anlik": -17.4,
+      "tepe": 66.1,
+      "cikis_tarih": "2026-10-23",
+      "cikis_fiyat": 51.65,
+      "sonuc": -17.4,
+      "sebep": "iz stop"
     },
     {
       "kod": "SOKM",
@@ -108,8 +112,8 @@
       "giris_fiyat": 58.2,
       "stop": 47.92,
       "durum": "açık",
-      "guncel": 56.05,
-      "anlik": -3.7,
+      "guncel": 55.9,
+      "anlik": -4.0,
       "tepe": 59.9
     },
     {
@@ -132,8 +136,8 @@
       "giris_fiyat": 429.0,
       "stop": 343.2,
       "durum": "açık",
-      "guncel": 370.5,
-      "anlik": -13.6,
+      "guncel": 367.5,
+      "anlik": -14.3,
       "tepe": 429.0
     }
   ]
