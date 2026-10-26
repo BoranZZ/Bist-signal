@@ -1,8 +1,7 @@
 {
   "al": [
-    "DCTTR",
-    "GMTAS",
-    "RYGYO"
+    "RYGYO",
+    "SAFKR"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -257,7 +256,7 @@
     "RUBNS": "SAT",
     "RYGYO": "AL",
     "RYSAS": "SAT",
-    "SAFKR": "SAT",
+    "SAFKR": "AL",
     "SAHOL": "SAT",
     "SANFM": "SAT",
     "SARAE": "SAT",
@@ -339,6 +338,11 @@
   "alarm_tetik": [],
   "on_sinyal": {
     "DCTTR": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-10-26"
+    },
+    "SAFKR": {
       "sinyal": "AL",
       "onceki": "SAT",
       "tarih": "2026-10-26"
@@ -623,7 +627,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1687488,
+  "kap_son": 1687494,
   "tk_gonderilen": {
     "tarih": "2026-10-26",
     "kodlar": []
