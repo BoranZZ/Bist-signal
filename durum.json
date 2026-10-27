@@ -1,5 +1,6 @@
 {
   "al": [
+    "DCTTR",
     "GMTAS",
     "RYGYO",
     "SOKM"
@@ -618,7 +619,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1687983,
+  "kap_son": 1688019,
   "tk_gonderilen": {
     "tarih": "2026-10-27",
     "kodlar": []
