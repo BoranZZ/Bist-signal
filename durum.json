@@ -1,8 +1,7 @@
 {
   "al": [
     "GMTAS",
-    "RYGYO",
-    "SOKM"
+    "RYGYO"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -618,7 +617,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1687757,
+  "kap_son": 1687819,
   "tk_gonderilen": {
     "tarih": "2026-10-27",
     "kodlar": []
