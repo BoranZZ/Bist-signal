@@ -1,7 +1,9 @@
 {
   "al": [
+    "DCTTR",
     "GMTAS",
-    "RYGYO"
+    "RYGYO",
+    "SOKM"
   ],
   "son": {
     "A1CAP": "SAT",
