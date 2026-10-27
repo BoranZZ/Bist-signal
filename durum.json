@@ -212,7 +212,7 @@
     "MEGMT": "SAT",
     "MERCN": "SAT",
     "METEN": "SAT",
-    "METRO": "SAT",
+    "METRO": "AL",
     "MEYSU": "SAT",
     "MGROS": "SAT",
     "MIATK": "SAT",
@@ -333,27 +333,11 @@
     "ed52d36b8529c244",
     "fc9a269fa7f1b36a"
   ],
-  "ozet_tarih": "2026-10-26",
+  "ozet_tarih": "2026-10-27",
   "hafta_tarih": "2026-10-23",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {
-    "METRO": {
-      "sinyal": "SAT",
-      "onceki": "AL",
-      "tarih": "2026-10-27"
-    },
-    "SOKM": {
-      "sinyal": "SAT",
-      "onceki": "AL",
-      "tarih": "2026-10-27"
-    },
-    "TAVHL": {
-      "sinyal": "SAT",
-      "onceki": "AL",
-      "tarih": "2026-10-27"
-    }
-  },
+  "on_sinyal": {},
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
@@ -524,7 +508,7 @@
     "KORDS": "SAT",
     "KRDMA": "SAT",
     "KRDMB": "SAT",
-    "KRDMD": "AL",
+    "KRDMD": "SAT",
     "KTLEV": "SAT",
     "KUYAS": "SAT",
     "KZBGY": "SAT",
@@ -633,7 +617,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1688388,
+  "kap_son": 1688420,
   "tk_gonderilen": {
     "tarih": "2026-10-27",
     "kodlar": []
