@@ -212,7 +212,7 @@
     "MEGMT": "SAT",
     "MERCN": "SAT",
     "METEN": "SAT",
-    "METRO": "AL",
+    "METRO": "SAT",
     "MEYSU": "SAT",
     "MGROS": "SAT",
     "MIATK": "SAT",
@@ -338,6 +338,11 @@
   "karar_kirilim_g": [],
   "alarm_tetik": [],
   "on_sinyal": {
+    "METRO": {
+      "sinyal": "SAT",
+      "onceki": "AL",
+      "tarih": "2026-10-27"
+    },
     "SOKM": {
       "sinyal": "SAT",
       "onceki": "AL",
@@ -628,7 +633,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1688282,
+  "kap_son": 1688332,
   "tk_gonderilen": {
     "tarih": "2026-10-27",
     "kodlar": []
