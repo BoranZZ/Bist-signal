@@ -272,7 +272,7 @@
     "SMRVA": "SAT",
     "SNGYO": "SAT",
     "SOHOE": "SAT",
-    "SOKM": "AL",
+    "SOKM": "SAT",
     "SSAAT": "SAT",
     "SUNTK": "SAT",
     "SURGY": "SAT",
@@ -280,7 +280,7 @@
     "TABGD": "SAT",
     "TARKM": "SAT",
     "TATEN": "SAT",
-    "TAVHL": "AL",
+    "TAVHL": "SAT",
     "TCELL": "SAT",
     "TCKRC": "SAT",
     "TEHOL": "SAT",
@@ -337,7 +337,18 @@
   "hafta_tarih": "2026-10-23",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {},
+  "on_sinyal": {
+    "SOKM": {
+      "sinyal": "SAT",
+      "onceki": "AL",
+      "tarih": "2026-10-27"
+    },
+    "TAVHL": {
+      "sinyal": "SAT",
+      "onceki": "AL",
+      "tarih": "2026-10-27"
+    }
+  },
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
@@ -654,8 +665,11 @@
   "gunici": {
     "tarih": "2026-10-27",
     "g": [
+      "2c744ac86e715d06",
+      "4ef22bf6d7c30ec9",
       "5100e0c57c41a00c",
       "85148b484e1838d9",
+      "93aee6ee474d912d",
       "da61cd3d97af374b"
     ]
   },
