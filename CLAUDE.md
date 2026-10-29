@@ -907,3 +907,7 @@ Gerekçe/kaynaklar scratchpad `digerleri/RAPOR.md` (özellik listesi), testler `
   modal başlığı `.mh` 3-28 px iç taşma main'de de aynı), sahte portföyle korelasyon (AKBNK–GARAN 0,92, THYAO–PGSUS 0,83, ~1,6 bağımsız hisse), enflasyon
   kıyası, lot hesabı ve ayarın hatırlanması görünüyor.
 
+
+## 👔 Patron (içeriden) alımı — TEST EDİLDİ, EKLENMEDİ (2026-10-30, arşiv Documents/Bist-arastirma/2026-10-23/patron/RAPOR.md; tekrar araştırma)
+- KAP Pay Alım Satım Bildirimleri 2020-01…2026-10 (4.182 bildirim, ayrıştırma hatası ~%7,5, yön hatası 0). Alım sinyalleri A1–A7 (yönetici, büyük ortak, holding, küme, düşüş sonrası, trend içi): 1 hafta/1-3-6 ayda aynı hissenin rastgele günlerinden farksız; 56 testte BH düzeltmesi sonrası hiçbiri anlamlı değil, yıldan yıla işaret değiştiriyor.
+- 👔 robot (net alım): +%2.072 vs 🔐 Kırılımcı +%3.019, rastgele ikizlerin %69'unu geçiyor (ana %16, küçük %9) → robot yok. Tek zayıf aday "son 60 günde patron satışı" (v3 isabeti %61 vs %70; düzeltme sonrası p≈0,08) → eklenmedi. Şirket geri alımı (G2) anlamlı değil.
