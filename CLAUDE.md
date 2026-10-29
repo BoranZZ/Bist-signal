@@ -849,3 +849,9 @@ Bollinger alt bant dönüşü, IBS, haftalık momentum/tersine dönüş), MANIPU
 +%3.899) ya da BIST 100 al-tut'a (+%1.400) yaklaşmadı; çoğu eksi (RSI2 −%88, Bollinger −%47). Maliyet öncesi işlem başı +%0…+%0,8,
 gidiş-dönüş maliyeti ~%0,6. v3 AL'ini 10 gün tutmak işlem başı +%21 → +%2. 2017-21'de seçilen ayarlar 2022-26'da canlının çok gerisinde.
 Gün içi al-sat da önceki testlerde (📅 Vadeler bölümü) maliyet sonrası eksi. Kullanıcı 'kısa vade sistemi' sorarsa bu sonucu anlat.
+
+## 🔬 29.10.2026 araştırmaları — HİÇBİRİ v3+🔐'Ü GEÇMEDİ (arşiv Documents/Bist-arastirma/2026-10-23/{borsaci,digerleri,brutkar}/RAPOR.md; tekrar araştırma)
+- **Borsacının göstergeleri (159 kural):** Fibonacci EMA dizilimi 8…233, doğrusal regresyon kanalı 144/233/377, Coral Trend, Impulse Tracker (aylık MACD + Trend Meter), Lorentzian; tek başına / v3 filtresi / A4'lü erken çıkış. Dizilim ve kanal v3 şablonunda zaten var (girişlerin %93-99'unda). Zararda maliyet düşürme: stoplu ekleme kâr getirmiyor, düşüşü 2-4 puan büyütüyor; stopsuz "düşünce eklerim" canlının %20-50'si kadar kazandırıyor → v3 ekleme yapmıyor, değişiklik yok.
+- **Akademik/diğer projeler (6 aile, 43 ayar):** frog-in-the-pan, MAX/piyango, artık momentum, gece/gün içi getiri, oynaklığa göre pozisyon, piyasa rejimi (XU100 12/6 ay, oynaklık). 2017-21'de seçilen ayarlar 2022-26'da tutmadı. Yan bulgu: aynı gün "son 20 günde az yükselen önce" sıralaması şans düzeyinde (değiştirilmedi, "kanıtlı en iyi" diye anlatma).
+- **Brüt kârlılık (GP/A, Novy-Marx / Özkan 2021):** filtre, sıralama ve "kalite + momentum" sepeti; hiçbiri geçmedi. Sepetlerin XU100'ü geçmesi hayatta kalan yanlılığı + küçük hisse etkisi (eşit ağırlık da geçiyor).
+- **Özellik önerileri (onay bekliyor, AL/SAT değiştirmez):** 🧮 kaç lot hesaplayıcı, 🌡️ piyasa genişliği kartı, 📉 "sistemin normal kötü günleri" (Monte Carlo), 🔗 portföy korelasyon uyarısı, 💵 portföy vs enflasyon/altın/dolar/mevduat, 🤖 Telegram komutları.
