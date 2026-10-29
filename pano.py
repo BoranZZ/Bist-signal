@@ -42,6 +42,135 @@ DURUST_NOT = ("Sinyallerin yaklaşık üçte biri zararla kapanır (bazıları %
               "işlemler toplam kârın ~%85'ini getirdi. Geçmiş sonuçlar geleceği garanti etmez, yatırım tavsiyesi değildir.")
 
 
+# 📉 'Sistemin normal kötü günleri' (bilgi kartı). Sayılar backtest.kotu_gunler ile: canlı v3 + 🔐 kâr kilidi, backtest.py motoru, 10y pkl
+# 286 hisse MANIPULE hariç (2017-10 → 2026-10-16, 2.050 işlem; 10 eşit yuvaya giren 289 işlem), scratchpad panoarac/t1_kotugun.py.
+# ufuk: 10 yuvalı portföyün günlük getirileri durağan blok bootstrap (ort. 20 gün, 3.000 yol): dd50/dd90 = en büyük düşüşün %50 / kötü %10
+# dilimi, tdd90 = aynı ölçü geçmişin gerçek kayan pencerelerinden (kontrol), g50/g10 getiri, n = o sürede ort. kapanan işlem, s50/s90 =
+# en uzun art arda zarar serisi (gerçek kayan pencereler). karne: TÜM v3 işlemleri çıkış sırasıyla, ardışık n işlemlik dilimlerin ortalama
+# net sonucu (%5/%50/%95) ve en uzun zarar serisi (%50/%90). Kural değişirse (sinyal.KAR_KILIT_*, v3) t1_kotugun.py ile yeniden ölç.
+KOTU_GUN = {"bas": "2017-10-18", "son": "2026-10-19", "islem": 2050, "yuva_islem": 289, "tarihi_dd": -33.3, "ufuk": [
+    {"ay": 1, "dd50": -4.7, "dd90": -10.4, "tdd90": -10.3, "g50": 2.6, "g10": -6.4, "n": 3, "s50": 0, "s90": 2},
+    {"ay": 3, "dd50": -9.4, "dd90": -18.1, "tdd90": -18.7, "g50": 8.9, "g10": -7.5, "n": 8, "s50": 1, "s90": 3},
+    {"ay": 6, "dd50": -13.2, "dd90": -22.7, "tdd90": -23.4, "g50": 20.1, "g10": -6.5, "n": 16, "s50": 2, "s90": 3},
+    {"ay": 12, "dd50": -18.1, "dd90": -29.1, "tdd90": -31.5, "g50": 48.8, "g10": -0.9, "n": 32, "s50": 3, "s90": 3}],
+    "karne": {"n": [5, 10, 15, 20, 30, 40, 60, 80, 100, 150, 200],
+              "o5": [-11.1, -8.5, -5.4, -4.7, -2.4, -1.4, -0.0, 0.6, 1.5, 5.2, 7.5],
+              "o50": [6.8, 9.4, 9.5, 9.9, 10.8, 11.7, 13.1, 14.3, 14.3, 14.7, 15.8],
+              "o95": [87.5, 76.9, 79.0, 77.2, 79.6, 79.7, 82.4, 82.4, 79.1, 68.7, 66.5],
+              "s50": [1, 1, 2, 2, 3, 3, 4, 4, 4, 5, 5], "s90": [3, 4, 4, 4, 5, 5, 6, 6, 6, 7, 7]}}
+KG_MIN = 5   # canlı karnede bundan az kapanan v3 işlemi varsa kıyas yapılmaz
+
+
+def _tr1(x, isaret=True):
+    """−4.7 → '−%4,7' (Türkçe yüzde)."""
+    if x is None:
+        return "—"
+    s = f"{abs(x):.1f}".replace(".", ",")
+    return ("−" if x < 0 else ("+" if isaret and x > 0 else "")) + "%" + s
+
+
+def _ara(n, xs, ys):
+    """KG_N tablosunda doğrusal ara değer (uçlarda sabit)."""
+    if n <= xs[0]:
+        return ys[0]
+    for i in range(1, len(xs)):
+        if n <= xs[i]:
+            return ys[i - 1] + (ys[i] - ys[i - 1]) * (n - xs[i - 1]) / (xs[i] - xs[i - 1])
+    return ys[-1]
+
+
+def kotu_gun_kiyas(kapali, kg=KOTU_GUN):
+    """Canlı karne (gecmis.json, sadece 'kural: v3' kapananlar) geçmişin aynı uzunluktaki dilimleriyle: ortalama sonuç %5-%95
+    aralığında mı, en uzun art arda zarar serisi %90 sınırını aşıyor mu. Karne sonucu komisyonsuz (sinyal günü kapanışından),
+    backtest net (ertesi açılış + %0,2/yön) — fark ~0,4 puan, kıyası değiştirmez. Döner: durum 'az' | 'icinde' | 'alt' | 'ust'."""
+    ka = sorted((r for r in (kapali or []) if r.get("kural") == "v3" and r.get("sonuc") is not None),
+                key=lambda r: (r.get("cikis_tarih") or "", r.get("kod") or ""))
+    n = len(ka)
+    x = [float(r["sonuc"]) for r in ka]
+    m = c = son = 0
+    for v in x:
+        c = c + 1 if v <= 0 else 0
+        m = max(m, c)
+    son = c
+    out = {"n": n, "ort": round(sum(x) / n, 1) if n else None, "seri": m, "son_seri": son, "bas": ka[0]["giris_tarih"] if ka else None}
+    if n < KG_MIN:
+        out["durum"] = "az"
+        return out
+    k = kg["karne"]
+    o5, o50, o95 = (round(_ara(n, k["n"], k[a]), 1) for a in ("o5", "o50", "o95"))
+    s90 = int(-(-_ara(n, k["n"], k["s90"]) // 1))   # yukarı yuvarla (cömert sınır)
+    out.update({"o5": o5, "o50": o50, "o95": o95, "s90": s90})
+    out["durum"] = "alt" if (out["ort"] < o5 or m > s90) else ("ust" if out["ort"] > o95 else "icinde")
+    return out
+
+
+def kotu_gun_html(kiyas, kg=KOTU_GUN):
+    """📉 kartı (statik; sayılar KOTU_GUN). Canlı karne satırı kotu_gun_kiyas'tan."""
+    sat = "".join(
+        f"<tr><td>{u['ay']} ay</td><td class='num neg'>{_tr1(u['dd50'])}</td><td class='num neg'>{_tr1(u['dd90'])}</td>"
+        f"<td class='num'>{_tr1(u['g10'])}</td><td class='num'>{u['s50'] if u['s50'] == u['s90'] else str(u['s50']) + '–' + str(u['s90'])}</td></tr>" for u in kg["ufuk"])
+    k = kiyas or {"durum": "az", "n": 0}
+    if k["durum"] == "az":
+        kn = (f"Canlı karnede henüz {k['n']} kapanan 🚀 v3 işlemi var; kıyas için en az {KG_MIN} gerekiyor."
+              if k["n"] else "Canlı karnede henüz kapanan 🚀 v3 işlemi yok; ilk işlemler kapanınca burada kıyas görünecek.")
+        cls = ""
+    else:
+        ne = {"icinde": "✅ <b>şu an normal aralıkta</b>", "alt": "⚠️ <b>şu an normal aralığın dışında (kötü tarafta)</b>",
+              "ust": "📈 <b>normal aralığın iyi tarafında</b>"}[k["durum"]]
+        kn = (f"Canlı karne ({k['n']} kapanan 🚀 işlem): ortalama sonuç <b>{_tr1(k['ort'])}</b>, en uzun art arda zarar <b>{k['seri']}</b> işlem. "
+              f"Geçmişte aynı uzunluktaki dilimlerin %90'ında ortalama {_tr1(k['o5'])} ile {_tr1(k['o95'])} arasıydı, art arda zarar en çok "
+              f"{k['s90']} işlem → {ne}."
+              + (" Bu 'sistem bozuldu' demek değil (geçmişte de böyle dilimler %5-10 sıklıkla vardı) ama dikkat işareti: pozisyonları küçük tut, "
+                 "iz stop'lara uy." if k["durum"] == "alt" else ""))
+        cls = " uyar" if k["durum"] == "alt" else ""
+    return (f'<div class="kart kotugun{cls}" id="kotugun"><h3>📉 Sistemin normal kötü günleri</h3>'
+            f"<p>Bu sistemle para kaybedilen haftalar ve aylar <b>normaldir</b>. Aşağıdaki aralıklar 10 eşit parçalı portföyün (🚀 v3 + 🔐) "
+            f"{kg['bas'][:4]}-{kg['son'][:4]} geçmiş işlemlerinin günlük sonuçları binlerce kez yeniden karıştırılarak bulundu.</p>"
+            f'<div class="sar"><table class="kgt"><thead><tr><th>Süre</th><th class="num" title="Yarı yarıya: bu süre içinde zirveden en büyük düşüş">Tipik en büyük düşüş</th>'
+            f'<th class="num" title="10 dönemden birinde bundan daha kötü">Kötü ama normal (10\'da 1)</th>'
+            f'<th class="num" title="10 dönemden birinde getiri bundan kötü">Getiri (10\'da 1 kötü)</th>'
+            f'<th class="num" title="Bu sürede kapanan işlemlerde en uzun art arda zarar: tipik – 10\'da 1">Art arda zararlı işlem</th></tr></thead><tbody>{sat}</tbody></table></div>'
+            f'<p class="kgkarne">{kn}</p>'
+            f'<p class="sgun">Geçmişin en büyük düşüşü {_tr1(kg["tarihi_dd"])} (2020). Nakit faizi yok; bugünkü hisse listesiyle test edildi (gerçek kötü günler '
+            f"biraz daha kötü olabilir); geçmiş geleceği garanti etmez. Art arda zarar sayısı karıştırmadan değil, geçmişin gerçek dönemlerinden (portföyün kapattığı işlemler, ayda ~3). Bilgi, "
+            f"kural değil — AL/SAT değişmez.</p></div>")
+
+
+def birikim_serisi(replay="oda_replay.json", canli="oda.json"):
+    """💵 Portföy vs altın / dolar / mevduat / TÜFE: İşlem Odası'nın 💰 birikim robotlarının günlük kasa değeri (🥇 Altıncı = gram altın,
+    💵 Dolarcı = USD/TRY, 🏦 Faizci = TCMB politika faiziyle 32 günlük mevduat, stopaj sonrası) — iki tarih arasındaki oranları o varlığın
+    getirisi (alıştaki makas sabit, oranda sadeleşir). Kaynak oda_replay.json (elle, ~5 yıl) + oda.json (canlı, replay'in son gününden
+    sonrası aynı günün oranıyla eklenir). TÜFE aylık (oda.json makro, yoksa replay). Dosya yoksa / bozuksa None (pano not yazar)."""
+    try:
+        with open(replay, encoding="utf-8") as f:
+            r = json.load(f)
+        gun = r["gun"]
+        rob = {x["id"]: x["d"] for x in r["robot"]}
+        idler = ("altinci", "dolarci", "faizci")
+        if not all(i in rob and len(rob[i]) == len(gun) for i in idler):
+            return None
+        t = list(gun[1:])   # ilk gün alım günü (makas/BSMV düşer) — oranlar ertesi günden
+        seri = {i: [round(float(v)) for v in rob[i][1:]] for i in idler}
+        tf = (r.get("makro") or {}).get("tufe") or {}
+        try:
+            with open(canli, encoding="utf-8") as f:
+                o = json.load(f)
+            tf = ((o.get("makro") or {}).get("tufe")) or tf
+            cs = {i: {x[0]: x[1] for x in ((o.get("robot") or {}).get(i) or {}).get("seri") or []} for i in idler}
+            son = t[-1]
+            if all(son in cs[i] and cs[i][son] for i in idler):
+                yeni = sorted(d for d in cs["altinci"] if d > son and all(d in cs[i] for i in idler))
+                for i in idler:
+                    k = seri[i][-1] / cs[i][son]
+                    seri[i] += [round(cs[i][d] * k) for d in yeni]
+                t += yeni
+        except Exception:
+            pass
+        return {"t": t, "a": seri["altinci"], "u": seri["dolarci"], "m": seri["faizci"], "tf": tf}
+    except Exception:
+        return None
+
+
 def _tarih_tam(t):
     """'2026-09-25' → '25.09.2026'"""
     return f"{t[8:10]}.{t[5:7]}.{t[:4]}"
@@ -61,7 +190,7 @@ def manip_isaret(x):
     return f"SPK tedbir kararı ({_tarih_tam(t)})"
 
 
-def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None, endeks=None, gunici=None):
+def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None, endeks=None, gunici=None, genislik=None, kapali=None):
     tarih = _simdi()
     al = sum(1 for s in sonuclar if s["sinyal"] == "AL")
     guclu = sum(1 for s in sonuclar if s.get("guclu"))
@@ -239,6 +368,7 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None, 
 
     html = _SABLON
     kk = kk_metinleri()
+    kgk = kotu_gun_kiyas(kapali)
     for a, b in [("__KKSOZ__", kk["soz"]), ("__KKCUMLE__", kk["cumle"]), ("__KKGRAFIK__", kk["grafik"]), ("__KK__", kk["js"]),
                  ("__TARIH__", tarih), ("__REPO__", REPO), ("__AL__", str(al)), ("__GUCLU__", str(guclu)),
                  ("__TOPLAM__", str(len(sonuclar))),
@@ -248,6 +378,8 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None, 
                  ("__ROWS__", "".join(rows)), ("__ARZ__", arzblok),
                  ("__XU__", json.dumps(endeks)), ("__PIYASA__", json.dumps(piyasa)),
                  ("__GI__", json.dumps(gunici, ensure_ascii=False, separators=(",", ":"))),
+                 ("__GEN__", json.dumps(genislik, separators=(",", ":"))), ("__KGK__", json.dumps(kgk, ensure_ascii=False)),
+                 ("__KOTUGUN__", kotu_gun_html(kgk)), ("__KS__", json.dumps(birikim_serisi(), separators=(",", ":"))),
                  ("__DATA__", json.dumps(veri, ensure_ascii=False))]:
         html = html.replace(a, b)
     return html
@@ -412,6 +544,13 @@ td.vd{white-space:nowrap;font-size:12px}.vu,.va,.vy{font-style:normal;font-weigh
 .aciklama{margin-top:32px;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
 .kart{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px 17px}
 .kart h3{margin:0 0 6px;font-size:13.5px}.kart p{margin:0;color:var(--muted);font-size:12.8px;line-height:1.55}
+.kotugun{margin-top:12px}.kotugun.uyar{border-color:#E6C3BD;background:#FFF8F6}.kotugun .sar{margin:10px 0 8px}.kotugun p.sgun{font-size:11.5px;margin-top:6px}.kgkarne{color:var(--ink)!important}
+table.kgt{min-width:0;font-size:12.5px}.kgt th,.kgt td{padding:7px 10px}.kgt th{white-space:normal}
+@media(max-width:560px){.kgt th,.kgt td{padding:6px 5px;font-size:11.5px}}
+.genb{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px}.genb>span{flex:1 1 260px;min-width:0}.gencz{flex:none;max-width:100%}
+.lotkutu{margin:12px 0;padding:11px 13px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}.lotform{flex-wrap:wrap;gap:8px;margin:6px 0 4px}
+.lotform label{display:flex;flex-direction:column;font-size:11.5px;color:var(--muted);gap:3px}.lotform input,.lotform select{width:140px;max-width:100%}
+.lotform select{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13px;font-family:inherit;background:#fff}.lotsonuc .pk{margin:4px 0;font-size:12.8px;line-height:1.5}.pfkiyas.uyar{border-color:#E6C3BD;background:#FBECEA}
 .durust{margin-top:12px;padding:13px 16px;border:1px solid var(--line);border-left:4px solid #B7791F;border-radius:10px;background:#FFFBF2;color:#5B4A2A;font-size:12.6px;line-height:1.6;overflow-wrap:anywhere}
 .uyari{margin-top:28px;padding:13px 16px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--muted);font-size:12.2px;line-height:1.6}
 .odabtn{display:inline-block;margin-left:10px;vertical-align:2px;font-size:12.5px;font-weight:650;color:#fff;background:#6D3FD8;border-radius:999px;padding:4px 11px;text-decoration:none}.odabtn:hover{background:#5A2FC0}.glink{color:var(--accent);font-weight:600;text-decoration:none}.glink:hover{text-decoration:underline}
@@ -556,6 +695,7 @@ __ARZ__
 <div class="kart"><h3>Destek / Direnç</h3><p>Son 120 günün dip ve tepe noktaları. <b>Destekten tepki</b>: fiyat eski bir dibe indi ve yukarı dönüyor. <b>Dirence yaklaşıyor</b>: fiyat geçmişte satış gelen bir tepeye yakın, temkinli ol. Hisseye tıklayınca seviyeleri görürsün.</p></div>
 </div>
 <div class="uyari">Yatırım tavsiyesi değildir. Göstergeler geçmişe bakar, geleceği garanti etmez; bu araç yalnızca sistemli karar vermeye yardımcı olur. Veriler ~15 dk gecikmeli olabilir. Kararların sorumluluğu sana aittir.</div>
+__KOTUGUN__
 <div class="durust"><b>Dürüst olalım:</b> __DURUST__</div>
 </div>
 
@@ -565,6 +705,9 @@ const DATA=__DATA__;
 const XU=__XU__;
 const PIYASA=__PIYASA__;  // BIST 100: son 2 yıl günlük, öncesi haftalık — portföy-endeks kıyası
 const GI=__GI__;
+const GEN=__GEN__;  // 🌡️ piyasa genişliği, son 60 işlem günü (tarama.piyasa_genisligi): t, s50/s200 (% üstünde), z/d (52h zirve/dip sayısı), n
+const KGK=__KGK__;  // 📉 canlı karne ↔ 'normal kötü günler' kıyası (pano.kotu_gun_kiyas)
+const KS=__KS__;  // 💵 altın / dolar / mevduat günlük endeksi + aylık TÜFE (pano.birikim_serisi; İşlem Odası birikim robotları), yoksa null
 const MN_NOT=__MNNOT__;  // ⚠️ manipülasyon rozeti açıklaması (pano.MN_NOT)
 const KK=__KK__;  // 🔐 kâr kilidi [eşik %, seviye %] (sinyal.KAR_KILIT_*), kural kapalıysa null — çizgi değerleri Python'dan hazır gelir
 const t=document.getElementById('t');
@@ -645,12 +788,131 @@ function bugunUyari(k,d,p){  // bir hisse için dikkat notları
  if(d.bolunme&&(Date.now()-new Date(d.bolunme).getTime())<30*864e5)u.push('✂️ bölünme ('+d.bolunme+'): maliyetini güncelle');
  return u;
 }
+// 🌡️ Piyasa genişliği (GEN, tarama.piyasa_genisligi) — 'Bugün ne var?' kartında PIYASA satırının altında. Bilgi.
+function genCizgi(){
+ var W=150,H=34,n=GEN.t.length;if(n<2)return '';
+ function yol(a,renk){var p=[];a.forEach(function(v,i){if(v==null)return;p.push((i/(n-1)*W).toFixed(1)+','+(H-2-v/100*(H-4)).toFixed(1));});
+  return p.length>1?'<polyline fill="none" stroke="'+renk+'" stroke-width="1.6" points="'+p.join(' ')+'"/>':'';}
+ return '<svg class="gencz" viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" role="img" aria-label="Son '+n+' işlem günü"><title>Son '+n+' işlem günü ('+trTarih(GEN.t[0])+' – '+trTarih(GEN.t[n-1])+'): koyu çizgi 50 günlük, açık çizgi 200 günlük ortalamanın üstündeki hisse oranı (alt kenar %0, üst %100)</title>'+
+  '<line x1="0" x2="'+W+'" y1="'+(H/2)+'" y2="'+(H/2)+'" stroke="#E6E7E4" stroke-dasharray="3 3"/>'+yol(GEN.s200,'#9AA0A8')+yol(GEN.s50,'#0E4D45')+'</svg>';
+}
+function genHtml(){
+ if(!GEN||!GEN.t||!GEN.t.length)return '';
+ var i=GEN.t.length-1,f=function(x){return x==null?'—':'%'+Math.round(x);};
+ var a=GEN.s50[i],b=GEN.s200[i],a0=GEN.s50[Math.max(0,i-20)];
+ var yon=(a!=null&&a0!=null)?(a-a0>=10?' (20 günde arttı)':(a-a0<=-10?' (20 günde azaldı)':'')):'';
+ return '<div class="bgs genb"><span>🌡️ <b>Piyasa genişliği</b> ('+GEN.n[i]+' hisse): 50 günlük ortalamasının üstünde <b>'+f(a)+'</b>'+yon+', 200 günlüğün üstünde <b>'+f(b)+'</b> · 52 haftanın zirvesinde <b>'+GEN.z[i]+'</b>, dibinde <b>'+GEN.d[i]+'</b> hisse'+
+  '<span class="sgun"> — bilgi: geçmiş testte AL\'e filtre olarak katkı vermedi.</span></span>'+genCizgi()+'</div>';
+}
+// 🧮 Kaç lot? (hisse penceresi) — sermaye + risk yüzdesi bu cihazda (localStorage) hatırlanır; hiçbir yere gönderilmez.
+var LOT_KEY='lot_ayar_v1';
+function lotAyar(){try{return JSON.parse(localStorage.getItem(LOT_KEY))||{}}catch(e){return {}}}
+function lotStop(k,d,giris){  // stop kaynağı: portföydeyse portföyün iz stop'u, açık 🚀 pozisyonda onun iz stop'u (🔐 dahil), değilse girişin %20 altı
+ var p=pfOku().filter(function(x){return x.kod===k;})[0];
+ if(p&&!p.uzun&&d.fiyat!=null){var pl=pozPlan(d,p);if(pl.stop&&!pl.izCikti)return {s:pl.stop,ne:'portföyündeki iz stop'+(pl.kilit?' 🔐':'')};}
+ var t=d.tk;if(t&&t.durum==='AL'&&t.stop)return {s:t.stop,ne:'açık 🚀 pozisyonun iz stop\'u'+(t.kilit?' (🔐 kâr kilidi dahil)':'')};
+ return {s:Math.round(giris*0.8*100)/100,ne:'yeni 🚀 girişinde başlangıç iz stop\'u: girişin %20 altı'};
+}
+function lotHtml(k,d){
+ if(d.fiyat==null)return '';
+ var a=lotAyar(),r=a.r||1;
+ var sec=[0.5,1,1.5,2].map(function(x){return '<option value="'+x+'"'+(x==r?' selected':'')+'>%'+String(x).replace('.',',')+'</option>';}).join('');
+ return '<div class="lotkutu"><div class="gbas">🧮 Kaç lot?</div>'+
+  '<div class="pfform lotform" style="display:flex"><label>Sermayen (TL)<input id="lotsermaye" type="number" min="0" step="any" placeholder="örn. 100000" value="'+(a.s||'')+'" oninput="lotHesap(\''+k+'\')"></label>'+
+  '<label title="Stop olursa sermayenin en çok yüzde kaçını kaybetmeye razısın? Genelde %1-2 önerilir">İşlem başına risk<select id="lotrisk" onchange="lotHesap(\''+k+'\')">'+sec+'</select></label>'+
+  '<label>Giriş fiyatı<input id="lotgiris" type="number" min="0" step="any" value="'+d.fiyat+'" oninput="lotHesap(\''+k+'\')"></label></div>'+
+  '<div id="lotsonuc" class="lotsonuc"></div></div>';
+}
+function lotHesap(k){
+ var d=DATA[k],el=document.getElementById('lotsonuc');if(!d||!el)return;
+ var S=parseFloat(document.getElementById('lotsermaye').value),r=parseFloat(document.getElementById('lotrisk').value)||1,g=parseFloat(document.getElementById('lotgiris').value);
+ try{localStorage.setItem(LOT_KEY,JSON.stringify({s:S>0?S:null,r:r}));}catch(e){}
+ if(!(S>0)||!(g>0)){el.innerHTML='<span class="sgun">Sermayeni yaz: kaç lot alacağını ve stop olursa ne kadar kaybedeceğini hesaplayayım (sadece bu cihazda saklanır).</span>';return;}
+ var st=lotStop(k,d,g),per=g-st.s,kom=0.004,tl=function(x){return Math.round(x).toLocaleString('tr-TR')+' TL';},yz=function(x){return '%'+x.toFixed(1).replace('.',',');};
+ var h='<div class="pk">📍 Stop: <b>'+st.s+' TL</b> ('+st.ne+')'+(per>0?', girişin '+yz(per/g*100)+' altında.':'.')+'</div>';
+ if(per<=0){el.innerHTML=h+'<div class="pk neg">Stop giriş fiyatının üstünde ya da eşit (fiyat stop\'un altına inmiş olabilir): risk hesabı yapılamaz. Kurala göre bu fiyattan yeni alım yapılmaz.</div>';return;}
+ var riskTl=S*r/100,birim=per+g*kom,lr=Math.floor(riskTl/birim),cap=Math.floor(S/(g*1.002)),lot=Math.min(lr,cap);
+ if(lot>0){var tut=lot*g,ky=lot*birim;
+  h+='<div class="pk">🎯 <b>Risk yöntemi (%'+String(r).replace('.',',')+')</b>: <b>'+lot+' lot</b> ≈ '+tl(tut)+' (sermayenin '+yz(tut/S*100)+'). Stop olursa kayıp ≈ <b class="neg">'+tl(ky)+'</b> (sermayenin '+yz(ky/S*100)+', komisyon dahil).'+
+   (lr>cap?' <span class="sgun">Risk sınırı daha fazlasına izin veriyor ama sermaye bu kadarına yetiyor.</span>':'')+
+   (tut>S*0.25?' <span class="pfuy">Tek hisseye sermayenin %25\'inden fazlası gidiyor: stop yakın olduğu için lot büyüdü; çeşitlilik azalır.</span>':'')+'</div>';}
+ else h+='<div class="pk">🎯 Risk yöntemi: bu sermaye ve riskle 1 lot bile alınamıyor (1 lotun stop riski '+tl(birim)+').</div>';
+ var l10=Math.floor(S/10/(g*1.002));
+ h+=l10>0?'<div class="pk">🧩 <b>10 eşit yuva</b> (sistemin kuralı: parayı 10 eşit parçaya böl): <b>'+l10+' lot</b> ≈ '+tl(l10*g)+'. Stop olursa kayıp ≈ <b class="neg">'+tl(l10*birim)+'</b> (sermayenin '+yz(l10*birim/S*100)+').</div>'
+  :'<div class="pk">🧩 10 eşit yuva: sermayenin 1/10\'u bu hisseden 1 lota yetmiyor.</div>';
+ h+='<div class="pk sgun">Fiyat ~15 dk gecikmeli; gerçek giriş fiyatı farklı olur. Komisyon/kayma her yönde ~%0,2 varsayıldı. Tabanda kilitlenme ya da boşluklu açılışta kayıp stop\'tan büyük olabilir. Bilgi, yatırım tavsiyesi değil.</div>';
+ el.innerHTML=h;
+}
+// 🔗 Portföy korelasyonu (istemci): son 120 işlem gününün günlük getirileri (grafik verisi DATA[k].spark, iki hissenin ortak günleri)
+function _getiri(k){var sp=(DATA[k]||{}).spark;if(!sp||!sp.c||!sp.t)return null;var m={};for(var i=1;i<sp.c.length;i++)if(sp.c[i]!=null&&sp.c[i-1])m[sp.t[i]]=sp.c[i]/sp.c[i-1]-1;return m;}
+function korelasyon(x,y,gun){
+ var t=Object.keys(x).filter(function(k){return k in y;}).sort().slice(-(gun||120));if(t.length<40)return null;
+ var n=t.length,ma=0,mb=0;t.forEach(function(k){ma+=x[k];mb+=y[k];});ma/=n;mb/=n;
+ var sab=0,sa=0,sb=0;t.forEach(function(k){var a=x[k]-ma,b=y[k]-mb;sab+=a*b;sa+=a*a;sb+=b*b;});
+ return (sa>0&&sb>0)?{r:sab/Math.sqrt(sa*sb),n:n}:null;
+}
+function pfKorelasyon(a){
+ var kod=[],w={},top=0;a.forEach(function(p){var d=DATA[p.kod];if(!d||d.fiyat==null)return;if(!(p.kod in w)){kod.push(p.kod);w[p.kod]=0;}w[p.kod]+=p.adet*d.fiyat;top+=p.adet*d.fiyat;});
+ if(kod.length<2||!top)return null;
+ var g={};kod.forEach(function(k){g[k]=_getiri(k);});
+ var cift=[],tam=true,s=0;
+ for(var i=0;i<kod.length;i++){s+=Math.pow(w[kod[i]]/top,2);for(var j=i+1;j<kod.length;j++){
+  var c=(g[kod[i]]&&g[kod[j]])?korelasyon(g[kod[i]],g[kod[j]],120):null;
+  if(!c){tam=false;continue;}
+  cift.push({a:kod[i],b:kod[j],r:c.r,n:c.n,sek:!!(DATA[kod[i]].endustri&&DATA[kod[i]].endustri===DATA[kod[j]].endustri)});
+  s+=2*w[kod[i]]/top*w[kod[j]]/top*c.r;}}
+ cift.sort(function(x,y){return y.r-x.r;});
+ return {n:kod.length,cift:cift,yuksek:cift.filter(function(c){return c.r>=0.7;}),etkin:(tam&&s>0)?1/s:null};
+}
+function korHtml(a,dag){
+ var k=pfKorelasyon(a);if(!k)return '';
+ if(!k.cift.length)return '<div class="pfkiyas sgun">🔗 Hisselerin birbirine benzerliği için yeterli ortak fiyat geçmişi yok.</div>';
+ var r2=function(x){return x.toFixed(2).replace('.',',');};
+ var et=k.etkin!=null?' Değer ağırlıklarıyla portföy fiyat hareketinde <b>~'+k.etkin.toFixed(1).replace('.',',')+' bağımsız hisse</b> gibi ('+k.n+' hisse var).':'';
+ if(!k.yuksek.length)return '<div class="pfkiyas">🔗 <b>Birlikte hareket</b>: son ~6 ayda hiçbir hisse çifti güçlü benzer değil (en yüksek '+k.cift[0].a+'–'+k.cift[0].b+' '+r2(k.cift[0].r)+'; güçlü = 0,70+) ✅.'+et+'<span class="pfxu">Korelasyon: son 120 işlem gününün günlük getirileri (−1 ters, 0 ilgisiz, +1 aynı). Bilgi, kural değil.</span></div>';
+ var ayni=k.yuksek.filter(function(c){return c.sek;}).length,ustSek=a.length>=2&&dag&&dag.length&&dag[0][1]>40;
+ return '<div class="pfkiyas uyar">🔗 <b>Birlikte hareket uyarısı</b>: '+k.yuksek.slice(0,4).map(function(c){return '<b>'+c.a+'–'+c.b+'</b> '+r2(c.r)+(c.sek?' (aynı sektör)':'');}).join(' · ')+(k.yuksek.length>4?' · +'+(k.yuksek.length-4)+' çift':'')+
+  '. Bu hisseler son ~6 ayda çoğu gün aynı yöne gitti: kötü günde birlikte düşerler.'+et+
+  (ustSek?' Sektör yoğunlaşmasıyla birlikte riskin büyük kısmı tek kaynağa toplanmış.':(ayni<k.yuksek.length?' Farklı sektörde olsalar da aynı etkene (faiz, kur, endeks) bağlı olabilirler.':''))+
+  '<span class="pfxu">Korelasyon: son 120 işlem gününün günlük getirileri (0,70+ güçlü benzerlik). Geçmiş benzerlik değişebilir; bilgi, kural değil.</span></div>';
+}
+// 💵 Portföy vs altın / dolar / mevduat / TÜFE (KS = İşlem Odası birikim robotlarının günlük değeri; alış tarihi `tarih` olan pozisyonlar)
+function ksIdx(t){if(!KS||!t||t<KS.t[0])return -1;var lo=0,hi=KS.t.length-1,i=-1;while(lo<=hi){var m=(lo+hi)>>1;if(KS.t[m]<=t){i=m;lo=m+1;}else hi=m-1;}return i;}
+function tufeKumPf(tf,bas,son){if(!tf||!bas||!son)return null;var a=bas.slice(0,7),b=son.slice(0,7),c=1,ay=[];
+ Object.keys(tf).sort().forEach(function(k){if(k>=a&&k<=b){c*=1+tf[k]/100;ay.push(k);}});
+ return ay.length?{o:(c-1)*100,a:ay[0],b:ay[ay.length-1]}:null;}
+function pfBirikim(a){
+ if(!KS)return {yok:true};
+ var son=KS.t.length-1,bugun=new Date().toISOString().slice(0,10),mal=0,deg=0,al=0,us=0,mv=0,tu=0,n=0,eski=0,tarihsiz=0,tum=true,tuAy=null;
+ a.forEach(function(p){var d=DATA[p.kod];if(!d||d.fiyat==null)return;
+  if(!p.tarih){tarihsiz++;return;}var i=ksIdx(p.tarih);if(i<0){eski++;return;}
+  var m=p.adet*p.maliyet,t=tufeKumPf(KS.tf,p.tarih,bugun);n++;mal+=m;deg+=p.adet*d.fiyat;
+  al+=m*KS.a[son]/KS.a[i];us+=m*KS.u[son]/KS.u[i];mv+=m*KS.m[son]/KS.m[i];
+  if(t){tu+=m*(1+t.o/100);if(!tuAy||t.b<tuAy)tuAy=t.b;}else{tu+=m;tum=false;}});
+ if(!n)return {yok:false,n:0,tarihsiz:tarihsiz,eski:eski};
+ var y=function(v){return (v/mal-1)*100;};
+ return {n:n,tarihsiz:tarihsiz,eski:eski,pf:y(deg),al:y(al),us:y(us),mv:y(mv),tu:y(tu),reel:(deg/tu-1)*100,veri:KS.t[son],tuAy:tuAy,tufeTam:tum};
+}
+function ayYil(k){return AYLAR[+k.slice(5,7)-1]+' '+k.slice(0,4);}
+function trTarihY(s){var p=s.split('-');return (+p[2])+' '+AYLAR[+p[1]-1]+' '+p[0];}
+function birikimHtml(a){
+ var b=pfBirikim(a);if(b.yok)return '';
+ var x=[];if(b.tarihsiz)x.push(b.tarihsiz+' hissede alış tarihi yok');if(b.eski)x.push(b.eski+' hissenin alış tarihi '+trTarihY(KS.t[0])+' öncesi (veri yok)');var notu=x.join(', ');
+ if(!b.n)return '<div class="pfkiyas sgun">💵 <b>Enflasyon / altın / dolar / mevduat kıyası</b> için hisseyi düzenle (✎) ve <b>alış tarihini</b> gir'+(b.eski?' ('+notu+')':'')+' — aynı paranın o günden beri altında, dolarda ve mevduatta ne olacağını gösteririm.</div>';
+ var c=function(v){return '<b class="'+(v>=0?'pos':'neg')+'">'+pyz(v)+'</b>';};
+ var en=[['altın',b.al],['dolar',b.us],['mevduat',b.mv]].sort(function(p,q){return q[1]-p[1];})[0];
+ return '<div class="pfkiyas">💵 <b>Paran ne kazandı?</b>'+(b.n<a.length?' (alış tarihi girilen '+b.n+'/'+a.length+' hisse)':'')+': portföy '+c(b.pf)+' · aynı parayla aynı günlerde 🥇 gram altın '+c(b.al)+' · 💵 dolar '+c(b.us)+' · 🏦 mevduat '+c(b.mv)+' · 🧾 TÜFE '+c(b.tu)+'.'+
+  ' Enflasyondan arındırılmış (reel) portföy getirisi '+c(b.reel)+' → alım gücün <b>'+(b.reel>=0?'korundu':'azaldı')+'</b>'+(b.pf>=en[1]?'; üç birikim seçeneğinden de iyi.':'; en iyisi '+en[0]+' olurdu.')+
+  '<span class="pfxu">Altın, dolar ve mevduat İşlem Odası\'nın 💰 birikim robotlarından (gram altın, USD/TRY, TCMB politika faiziyle 32 günlük mevduat, stopaj sonrası; gerçek banka faizi farklı olabilir; alım-satım makası yok sayıldı; veri '+trTarihY(b.veri)+'). TÜFE alış ayından '+(b.tuAy?'son açıklanan aya ('+ayYil(b.tuAy)+')':'bugüne')+' kadar (alış ayı tam sayılır)'+(b.tufeTam?'':'; bazı alışlar için henüz açıklanan ay yok')+'. Temettü dahil değil.'+(notu?' Kıyas dışı: '+notu+'.':'')+'</span></div>';
+}
 function bugunRender(){
  var el=document.getElementById('bugun');if(!el)return;
  var h='<h2>📋 Bugün ne var?</h2>';
  if(PIYASA)h+='<div class="bgs">'+(PIYASA.zayif?'⚠️ <b>Piyasa zayıf</b>: BIST 100 50 günlük ortalamasının %'+Math.abs(PIYASA.fark)+' altında. Bu dönemde 🚀 AL gelmez (kural gereği); acele alım yapma.':'✅ <b>Piyasa normal</b>: BIST 100 50 günlük ortalamasının üstünde; 🚀 AL sinyalleri gelebilir.')+'</div>';
  var al=Object.keys(DATA).filter(function(k){var t=DATA[k].tk;return t&&(t.bugun||(t.durum==='AL'&&t.gun<=5));})
   .sort(function(a,b){return DATA[a].tk.gun-DATA[b].tk.gun;});
+ h+=genHtml();
+ if(KGK&&KGK.durum==='alt')h+='<div class="bgs">📉 <b>Canlı karne normal aralığın dışında</b> (kötü tarafta): son '+KGK.n+' kapanan 🚀 işlemin ortalaması '+pyz(KGK.ort)+', en uzun art arda zarar '+KGK.seri+'. <a href="#kotugun" class="glink">→ sistemin normal kötü günleri</a></div>';
  h+='<div class="bgs">🚀 <b>Yeni AL</b> (son 5 gün): '+(al.length?al.map(function(k){var t=DATA[k].tk;return _kl(k)+(t.bugun?' <span class="tkb yeni">bugün</span>':' <span class="sgun">'+t.gun+'g önce</span>');}).join(' · '):'yok')+' <a href="#" class="glink" onclick="roketAc(20);return false">→ son 20 günün tüm 🚀 sinyalleri</a></div>';
  var pf=pfOku(),ps=[];
  pf.forEach(function(p){var u=bugunUyari(p.kod,DATA[p.kod],p);if(u.length)ps.push(_kl(p.kod)+': '+u.join(', '));});
@@ -1334,7 +1596,7 @@ function ac(k){
    '<span class="c7">İz stop</span><span class="lm" style="color:#1B7F4B">▲ AL (🚀)</span><span class="lm" style="color:#B4362E">▼ SAT (iz stop'+(KK?' / 🔐':'')+')</span></div></div>'+
  nedenHtml(k,d)+
  zaman+vadeHtml(k,d)+
- pozHtml(k,d)+tkHtml(d)+tkGecmisHtml(d)+gucHtml(d)+uvHtml(d)+
+ pozHtml(k,d)+tkHtml(d)+lotHtml(k,d)+tkGecmisHtml(d)+gucHtml(d)+uvHtml(d)+
  sdHtml(d)+
  '<div class="metr">'+m('RSI',d.rsi)+m('F/K',d.fk)+m('PD/DD',d.pddd)+m('FD/FAVÖK',d.favok)+m('İz stop',d.iz&&!d.iz.cikti?d.iz.stop:'—')+m('Öneri lot',lot)+'</div>'+
  btHtml(d)+bilHtml(d)+kapHtml(d)+arzHtml(d)+
@@ -1344,6 +1606,7 @@ function ac(k){
  alarmHtml(k,d)+
  '<div class="btnler"><a class="btn p" href="'+tv+'" target="_blank" rel="noopener">TradingView\'de tam ekran ↗</a></div>';
  document.getElementById('ust').classList.add('acik');
+ if(document.getElementById('lotsonuc'))lotHesap(k);
 }
 function kapat(){document.getElementById('ust').classList.remove('acik');_gr=null;}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')kapat();});
@@ -1540,11 +1803,13 @@ function pfRender(){
   r+='<div class="pfdag'+(ust?' uyar':'')+'">'+(ust?'⚠️ Portföyünün <b>%'+dag[0][1].toFixed(0)+'</b>\'i tek sektörde (<b>'+dag[0][0]+'</b>) — o sektördeki bir haber hepsini birlikte etkiler. ':'')+
      'Dağılım: '+dag.slice(0,5).map(function(x){return x[0]+' %'+x[1].toFixed(0);}).join(' · ')+'</div>';
  }
+ r+=korHtml(a,dag);
  var ky=pfKiyas(a);
  if(ky){
   r+='<div class="pfkiyas">📈 <b>Endeksle kıyas</b>'+(ky.n<a.length?' (alış tarihi girilen '+ky.n+'/'+a.length+' hisse)':'')+': portföy <b class="'+(ky.pf>=0?'pos':'neg')+'">'+(ky.pf>=0?'+':'')+ky.pf.toFixed(1)+'%</b> · aynı parayla aynı günlerde BIST 100 alsaydın <b>'+(ky.xu>=0?'+':'')+ky.xu.toFixed(1)+'%</b> → endeksin <b class="'+(ky.fark>=0?'pos':'neg')+'">'+Math.abs(ky.fark).toFixed(1)+' puan '+(ky.fark>=0?'önünde':'gerisinde')+'</b>.'+
      '<span class="pfxu">Temettüler iki tarafta da dahil değil. Kıyas için hisse eklerken/düzenlerken alış tarihini gir.</span></div>';
  }else if(XU)r+='<div class="pfkiyas sgun">📈 Portföyünü BIST 100 ile kıyaslamak için hisseyi düzenle (✎) ve <b>alış tarihini</b> gir.</div>';
+ r+=birikimHtml(a);
  liste.innerHTML=r;
  if(typeof bugunRender==='function')bugunRender();
  top.innerHTML='Toplam K/Z: <b class="'+(toplam>=0?'pos':'neg')+'">'+(toplam>=0?'+':'')+Math.round(toplam).toLocaleString('tr-TR')+' TL</b>';

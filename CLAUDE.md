@@ -854,4 +854,56 @@ Gün içi al-sat da önceki testlerde (📅 Vadeler bölümü) maliyet sonrası 
 - **Borsacının göstergeleri (159 kural):** Fibonacci EMA dizilimi 8…233, doğrusal regresyon kanalı 144/233/377, Coral Trend, Impulse Tracker (aylık MACD + Trend Meter), Lorentzian; tek başına / v3 filtresi / A4'lü erken çıkış. Dizilim ve kanal v3 şablonunda zaten var (girişlerin %93-99'unda). Zararda maliyet düşürme: stoplu ekleme kâr getirmiyor, düşüşü 2-4 puan büyütüyor; stopsuz "düşünce eklerim" canlının %20-50'si kadar kazandırıyor → v3 ekleme yapmıyor, değişiklik yok.
 - **Akademik/diğer projeler (6 aile, 43 ayar):** frog-in-the-pan, MAX/piyango, artık momentum, gece/gün içi getiri, oynaklığa göre pozisyon, piyasa rejimi (XU100 12/6 ay, oynaklık). 2017-21'de seçilen ayarlar 2022-26'da tutmadı. Yan bulgu: aynı gün "son 20 günde az yükselen önce" sıralaması şans düzeyinde (değiştirilmedi, "kanıtlı en iyi" diye anlatma).
 - **Brüt kârlılık (GP/A, Novy-Marx / Özkan 2021):** filtre, sıralama ve "kalite + momentum" sepeti; hiçbiri geçmedi. Sepetlerin XU100'ü geçmesi hayatta kalan yanlılığı + küçük hisse etkisi (eşit ağırlık da geçiyor).
-- **Özellik önerileri (onay bekliyor, AL/SAT değiştirmez):** 🧮 kaç lot hesaplayıcı, 🌡️ piyasa genişliği kartı, 📉 "sistemin normal kötü günleri" (Monte Carlo), 🔗 portföy korelasyon uyarısı, 💵 portföy vs enflasyon/altın/dolar/mevduat, 🤖 Telegram komutları.
+- **Özellik önerileri:** 🧮 kaç lot hesaplayıcı, 🌡️ piyasa genişliği kartı, 📉 "sistemin normal kötü günleri" (Monte Carlo), 🔗 portföy korelasyon uyarısı, 💵 portföy vs enflasyon/altın/dolar/mevduat, 🤖 Telegram komutları → **YAPILDI** (aşağıdaki bölüm).
+
+## 🧮 🌡️ 📉 🔗 💵 🤖 Pano araçları (2026-10-29, dal `pano-arac`; hepsi BİLGİ — AL/SAT, backtest kuralları, Telegram AL, İşlem Odası DEĞİŞMEZ)
+Gerekçe/kaynaklar scratchpad `digerleri/RAPOR.md` (özellik listesi), testler `panoarac/` (RAPOR.md). **Workflow değişmedi** (yeni dosya yok; fork'lar *.py ile alır).
+- **🧮 Kaç lot? (`lotHtml`/`lotHesap`/`lotStop`, JS, hisse penceresinde 🚀 kutusunun altı):** sermaye + işlem başına risk (%0,5/1/1,5/2, varsayılan
+  %1) + giriş fiyatı (varsayılan son fiyat). Sermaye/risk `lot_ayar_v1` localStorage'da (eşitlenmez, hiçbir yere gitmez). Stop kaynağı sırası: portföydeyse
+  `pozPlan` stop'u (uzun vadede değil), açık 🚀 pozisyonda `tk.stop` (🔐 dahil), yoksa giriş × 0,80 (v3 başlangıç iz stop'u). Risk yöntemi: lot =
+  ⌊sermaye·risk / (giriş − stop + giriş·%0,4)⌋, sermayeyle sınırlı; tutar >%25 ise 'çeşitlilik azalır' notu (yakın stop → büyük lot, ör. GMTAS %3 stop
+  %59). 10 eşit yuva: ⌊sermaye/10 / (giriş·1,002)⌋ + stop olursa kayıp. Stop ≥ giriş → hesap yok. Eski 'Öneri lot' metriği (100.000 TL / %1) aynen.
+- **🌡️ Piyasa genişliği (`tarama.piyasa_genisligi` → `pano_uret(genislik=)` → JS `GEN`/`genHtml`, 'Bugün ne var?' PIYASA satırının altında):** taranan
+  evren (KODLAR = MANIPULE hariç) için her gün SMA50 / SMA200 üstündeki hisse oranı (%), 52 haftanın (250 işlem günü, bugün dahil) en yüksek / en düşük
+  kapanışındaki hisse sayısı, son 60 işlem günü (`GENISLIK_GUN`) + küçük SVG çizgi (koyu SMA50, açık SMA200). **Geçmiş dosyada SAKLANMIYOR:** her taramada
+  RS ile aynı `_kapanis` (4 yıllık, bölünme düzeltmeli) verisinden yeniden hesaplanır (~0,3 sn; ilk gün dolu, fork'ta ek dosya/workflow gerekmez).
+  Her hisse kendi işlem günleriyle hesaplanır, sonra XU100 takvimine yerleşir; barı/yeterli geçmişi olmayan hisse o günün paydasına girmez; son gün seans içi
+  fiyat. Doğrulama: son günün SMA50 oranı = DATA.spark (c > s50) sayımı (7/287 = %2,4). Metinde 'geçmiş testte AL'e filtre olarak katkı vermedi' (strateji2).
+  Telegram /piyasa'da `genislik_metni`. ~2 KB.
+- **📉 Sistemin normal kötü günleri (`pano.KOTU_GUN` sabit + `kotu_gun_kiyas` + `kotu_gun_html` → `__KOTUGUN__`, dürüstlük notunun üstünde; `KGK` JS):**
+  sayılar `backtest.kotu_gunler` ile (10y pkl, 286 hisse MANIPULE hariç, 2.050 v3+🔐 işlem; scratchpad `panoarac/t1_kotugun.py`). (1) `yuva_portfoy`:
+  10 eşit yuva (yuva payı = dünkü değer/10, en çok nakit, yarısından azsa alım yok, aynı gün az yükselen önce, günlük kapanışla değerleme, nakit faizsiz) →
+  289 işlem, 2017-10 → 2026-10 ×45,6, en büyük düşüş −%33,3. (2) Günlük getiriler durağan blok bootstrap (ort. 20 gün, 3.000 yol, tohum 20261029): 1/3/6/12
+  ayda tipik en büyük düşüş −4,7/−9,4/−13,2/−18,1, 10'da 1 kötü −10,4/−18,1/−22,7/−29,1 (gerçek kayan pencereler −10,3/−18,7/−23,4/−31,5 — tutarlı);
+  10'da 1 kötü getiri −6,4/−7,5/−6,5/−0,9. (3) Art arda zarar ve karne kıyası KARIŞTIRMA DEĞİL gerçek kayan pencerelerle (kayıplar kümeleniyor; kısa blok
+  bootstrap seriyi küçük gösteriyordu). Karne kıyası: `gecmis.json` 'kural: v3' kapananlar (çıkış sırası), n ≥ 5 (`KG_MIN`): ortalama sonuç ardışık n işlemlik
+  geçmiş dilimlerin %5-%95 aralığında mı, en uzun zarar serisi %90 sınırını (yukarı yuvarlanmış ara değer) aşıyor mu → 'icinde' / 'alt' / 'ust'; 'alt' ise
+  'Bugün ne var?'da da satır. Karne sonucu komisyonsuz (sinyal günü kapanışı), backtest net (~0,4 puan fark). 29.10.2026'da karnede kapanan v3 kaydı yok
+  (12 kaydın hepsi eski kural) → 'henüz yok'. backtest.py çalışınca backtest.html'e aynı tablo o verinin sayılarıyla eklenir (panodaki sabitler değişmez:
+  kural değişirse t1_kotugun.py ile yeniden ölç ve `KOTU_GUN`'u güncelle). Birim testleri `t4_kotugun_birim.py` 17/17.
+- **🔗 Portföy korelasyonu (`pfKorelasyon`/`korHtml`, JS, portföy tablosunun altında sektör dağılımından sonra):** her çift için iki hissenin
+  `spark` (130 gün) ortak günlerinden son 120 günlük getiri korelasyonu (≥40 ortak gün); ≥0,70 çiftler uyarı (aynı endüstriyse 'aynı sektör'), sektör
+  yoğunlaşması (>%40) varsa birlikte not; değer ağırlıklı 'etkin bağımsız hisse sayısı' = 1 / Σ wᵢwⱼρᵢⱼ (tüm çiftler varsa). Ek veri GEREKMEDİ (grafik verisi).
+  Python numpy ile 10 çift 2e-16 fark (`t2_dogrula.py`). Sunucuya hiçbir şey gitmez.
+- **💵 Paran ne kazandı? (`pano.birikim_serisi` → `KS`; JS `pfBirikim`/`birikimHtml`, endeks kıyasının altında):** alış tarihi (`tarih`) olan pozisyonlar
+  için aynı paranın 🥇 gram altın / 💵 USD / 🏦 mevduat / 🧾 TÜFE ile bugünkü değeri + reel getiri ('alım gücün korundu/azaldı'). Seriler İşlem Odası'nın
+  💰 birikim robotlarının günlük kasa değerinden (altinci/dolarci/faizci: oran = varlık getirisi; alım günü atlanır, makas sadeleşir): `oda_replay.json`
+  (~5 yıl, 2021-10-20'den) + `oda.json` canlı `seri` (replay'in son gününün oranıyla dikiş). TÜFE `oda.json` makro (yoksa replay), alış ayı tam sayılır
+  (oda `tufeKum` ile aynı), son açıklanan aya kadar. Alış tarihi yoksa / 2021-10 öncesiyse nazik not; dosya yoksa satır yok. ~43 KB (index.html'nin %1,3'ü).
+  Doğrulama: dikişte KS altın oranı ↔ makro gram oranı 0,9802/0,9815, dolar 1,0057/1,0063; JS sonuçları elle hesapla 1e-6 içinde. Mevduat = politika faizi
+  (gerçek banka faizi farklı olabilir), temettü yok. Fork'ta oda_replay.json fork anındaki hâliyle kalır → seri fork'un oda.json'uyla uzar (yoksa eski tarihte biter; satırda 'veri <tarih>').
+- **🤖 Telegram komutları (`tarama.tg_komutlar`, main'in sonunda, durum.json yazılmadan önce):** her taramada `getUpdates` (offset = durum.json
+  `tg_ofset`, düz sayı — Telegram güncelleme sayacı, portföy bilgisi içermez). SADECE `TELEGRAM_CHAT_ID` sohbetinden gelen mesajlar cevaplanır; başka
+  sohbetler, 6 saatten eski mesajlar (`TG_KOMUT_ESKI_SN`) ve komut olmayan metin yok sayılır ama ofset ilerler. Komutlar: /yardim (/start, /help),
+  /hisse KOD (`hisse_metni`: fiyat, 🚀 durumu + iz stop/🔐, güç/RS/RSI, uyarı rozetleri, portföydeyse `plan_metni`; kod harf/rakama süzülür, escape'li),
+  /piyasa (`piyasa_metni`: piyasa durumu + genişlik + 🚀 sayıları), /portfoy (`portfoy_ozeti`). Taramada en çok 5 cevap (`TG_KOMUT_SINIR`; kalanlar
+  sonraki taramada, tek not); gönderilemeyen cevap atlanır (bozuk cevap her taramada takılmasın). /yardim 'cevap sonraki taramada gelir' der.
+  TELEGRAM_TOKEN/CHAT yoksa sessizce atlanır (ağ çağrısı yok). **Log'a sadece SAYI** ('Telegram komutları: 4 cevaplandı, 1 başka sohbetten yok sayıldı');
+  komut metni, kod, cevap ASLA yazılmaz; HTTP hatasında gövde yazılmaz (409 = bota webhook bağlı). Bilinen: aynı bot başka bir getUpdates okuyucusunda da
+  kullanılırsa mesajları ikisi paylaşır. Birim testleri `t3_telegram.py` 20/20 (sahte getUpdates; başka chat id yok sayıldı); gerçek tarama kopyası sahte
+  portföy + sahte komutlarla (`kos_tg.py`, `t5_gizlilik.py`): durum.json'da tek yeni anahtar `tg_ofset` (int), log'da portföy kodu/maliyet/komut/token yok.
+- **Ölçümler (29.10.2026 akşam, Telegram'sız kopya):** tarama main 125,5 / 138,7 sn ↔ yeni 122,0 / 124,5 / 121,5 sn (fark yok, ağ gürültüsü; genişlik ~0,3 sn);
+  index.html 3.282 → 3.344 KB (+62 KB, %1,9: KS 43, GEN 2, kart + JS); `node --check` tamam; CDP 390/1280 px: JS hatası yok, sayfa taşması yok (390'da
+  modal başlığı `.mh` 3-28 px iç taşma main'de de aynı), sahte portföyle korelasyon (AKBNK–GARAN 0,92, THYAO–PGSUS 0,83, ~1,6 bağımsız hisse), enflasyon
+  kıyası, lot hesabı ve ayarın hatırlanması görünüyor.
+

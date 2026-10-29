@@ -75,6 +75,8 @@ Mesaj şu durumlarda gelir:
 - **İşaret sözlüğü:** Panonun en altında bütün rozetlerin açıklaması.
 - **📋 Bugün ne var?:** Sayfanın en üstünde tek bakışta: piyasa durumu, son 5 günün 🚀 AL'leri, portföyündeki uyarılar (iz stop, 🎈/⚠️/🪤, bilanço, temettü) ve favorilerindeki önemli değişiklikler. Hisse adına tıklayınca penceresi açılır.
 - **⭐ Favoriler:** Tablodaki ☆'ya bas: hisse favorilere eklenir ve en üstte (AL → NÖTR → SAT sırasıyla) durur; diğerleri altta. Üstteki kutudan hisse arayabilir, "Sadece favoriler" ile listeyi kısaltabilirsin. Telegram'a bağlıysan favoriler telefonla da eşitlenir.
+- **🤖 Telegram komutları:** Bota `/hisse THYAO`, `/piyasa`, `/portfoy` ya da `/yardim` yaz; cevap bir sonraki taramada (~15 dk) gelir. Sadece senin Chat ID'ne cevap verir.
+- **🧮 Kaç lot? · 🔗 birlikte hareket · 💵 paran ne kazandı?:** Hisse penceresinde sermaye ve risk yüzdesine göre lot hesabı; Portföyüm altında hisselerin birbirine benzerliği ve aynı paranın altın/dolar/mevduat/enflasyon karşısında ne yaptığı (alış tarihi girersen). 'Bugün ne var?' kartında 🌡️ piyasa genişliği, sayfa altında 📉 sistemin normal kötü günleri. Hepsi bilgi.
 - **Fiyat alarmı:** Hisseye tıkla → 🔔 Fiyat alarmı → fiyatı yaz → "Üstüne çıkınca" ya da "Altına inince". Fiyat oraya gelince Telegram'a bir kez mesaj gelir (Telegram'a bağlı cihazda kurulmalı).
 - **Haftalık özet:** Cuma kapanıştan sonra: haftanın AL'leri, canlı karne, portföyün haftalık değişimi.
 - **Günlük portföy özeti:** Hafta içi kapanıştan sonra (18:30+) bir kez. Sektör dağılımı ve tek sektöre yoğunlaşma uyarısı dahil. Her hisse için sinyal, K/Z, çıkış ve hedefler, dikkat notları (stop'a yakın, dirence yaklaşıyor, taban serisi).

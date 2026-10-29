@@ -215,6 +215,137 @@ def donem_tablosu(islem_setleri, xu=None):
     return satir
 
 
+KG_YUVA = 10              # 📉 'normal kötü günler': 10 eşit yuvalı portföy (pano 'Sistemi nasıl kullanırım?' ile aynı)
+KG_UFUK = (1, 3, 6, 12)   # ay (1 ay = 21 işlem günü)
+KG_N = (5, 10, 15, 20, 30, 40, 60, 80, 100, 150, 200)   # canlı karne kıyası: n kapanan işlemlik dilimler
+KG_TOHUM = 20261029
+
+
+def yuva_portfoy(islemler, veri, xu, yuva=KG_YUVA, kucuk=0.5):
+    """İşlem listesinden 10 eşit yuvalı portföyün günlük değeri (ilk girişten itibaren, nakit faizsiz).
+    Her giriş günü önce çıkışlar yazılır; boş yuva varsa yuva payı = dünkü toplam değer / yuva (en çok eldeki nakit;
+    payın yarısından azsa alım yok). Aynı gün birden çok aday: son 20 günde az yükselen önce (canlı AL sırası).
+    Pozisyon günlük kapanışla değerlenir (alışta komisyon düşülmüş); çıkış günü değeri işlemin net sonucu.
+    Döner: (günlük değer Series, portföye giren işlemler)."""
+    kap = {k: bolunme_duzelt(df)["Close"] for k, df in veri.items()}
+    def mom(t):
+        c = kap.get(t["kod"])
+        try:
+            i = c.index.get_loc(t["giris_t"])
+            return float(c.iloc[i - 1] / c.iloc[i - 21] - 1) if i >= 21 else 0.0
+        except Exception:
+            return 0.0
+    isl = sorted(islemler, key=lambda t: (t["giris_t"], mom(t), t["kod"]))
+    if not isl:
+        return pd.Series(dtype=float), []
+    takvim = xu.index[xu.index >= isl[0]["giris_t"]] if xu is not None else \
+        pd.DatetimeIndex(sorted({d for c in kap.values() for d in c.index if d >= isl[0]["giris_t"]}))
+    gir = {}
+    for t in isl:
+        gir.setdefault(t["giris_t"], []).append(t)
+    nakit, acik, giren, deger, onceki = 1.0, [], [], [], 1.0
+    for g in takvim:
+        kalan = []
+        for p in acik:   # çıkışlar
+            if p["t"]["cikis_t"] <= g:
+                nakit += p["pay"] * (1 + p["t"]["net"])
+            else:
+                kalan.append(p)
+        acik = kalan
+        for t in gir.get(g, []):
+            if len(acik) >= yuva:
+                break
+            pay = min(nakit, onceki / yuva)
+            if pay < kucuk * onceki / yuva or t["cikis_t"] < g:
+                continue
+            nakit -= pay
+            acik.append({"t": t, "pay": pay})
+            giren.append(t)
+        v = nakit
+        for p in acik:
+            c = kap[p["t"]["kod"]].asof(g)
+            v += p["pay"] * (1 - KOMISYON) * float(c) / p["t"]["giris"]
+        deger.append(v)
+        onceki = v
+    return pd.Series(deger, index=takvim), giren
+
+
+def _blok_ornek(n_kaynak, uzunluk, rng, blok):
+    """Durağan blok bootstrap (Politis-Romano): ortalama 'blok' uzunluklu ardışık dilimler; sıra = kaynak indeksleri."""
+    ix = np.empty(uzunluk, dtype=int)
+    i = rng.integers(n_kaynak)
+    for j in range(uzunluk):
+        if j and rng.random() < 1 / blok:
+            i = rng.integers(n_kaynak)
+        ix[j] = i
+        i = (i + 1) % n_kaynak
+    return ix
+
+
+def _en_uzun_seri(z):
+    m = c = 0
+    for x in z:
+        c = c + 1 if x else 0
+        m = max(m, c)
+    return m
+
+
+def kotu_gunler(islemler, veri, xu, n_yol=3000, tohum=KG_TOHUM):
+    """📉 'Sistemin normal kötü günleri' (bilgi kartı). (1) v3 + 🔐 işlemlerinden 10 yuvalı portföy kurulur; günlük getirileri
+    durağan blok bootstrap ile (ortalama 20 işlem günü: kötü haftalar bir arada kalsın) yeniden karıştırılır → 1/3/6/12 ayda
+    en büyük düşüş ve getiri dağılımı (%50 = tipik, %90 = 'on dönemden birinde bundan kötü'); kontrol için aynı ölçü geçmişin
+    GERÇEK kayan pencerelerinden de (`tdd90`). (2) Art arda zararlı işlem: kayıplar kümelendiği için (piyasa düşüşünde stoplar
+    aynı haftalarda) karıştırma değil, geçmişin gerçek kayan pencereleri: o uzunluktaki her takvim penceresinde portföyün
+    kapattığı işlemlerin (çıkış sırasıyla) en uzun zarar serisi. (3) Canlı karne kıyası: karne her sinyali saydığı için TÜM
+    v3 işlemleri çıkış sırasıyla; ardışık n işlemlik her dilimin ortalama sonucu (%5/%50/%95) ve en uzun zarar serisi (%50/%90)."""
+    rng = np.random.default_rng(tohum)
+    seri, giren = yuva_portfoy(islemler, veri, xu)
+    if len(seri) < 42:
+        return None
+    r = seri.pct_change().dropna().values
+    yol = np.array([r[_blok_ornek(len(r), 21 * max(KG_UFUK), rng, 20)] for _ in range(n_yol)])
+    deg = np.cumprod(1 + yol, axis=1)
+    sira = sorted(giren, key=lambda t: (t["cikis_t"], t["kod"]))
+    ct = np.array([t["cikis_t"] for t in sira], dtype="datetime64[ns]")
+    zarar = np.array([t["net"] <= 0 for t in sira])
+    gunler = seri.index.values
+    ufuk = []
+    for ay in KG_UFUK:
+        h = 21 * ay
+        if len(seri) < h + 21:   # bu ufuk için yeterli geçmiş yok
+            continue
+        d = deg[:, :h]
+        tepe = np.maximum.accumulate(np.concatenate([np.ones((n_yol, 1)), d], axis=1), axis=1)[:, 1:]
+        dd = ((d - tepe) / tepe).min(axis=1) * 100
+        g = (d[:, -1] - 1) * 100
+        tdd, sr, ns = [], [], []
+        for i in range(0, len(seri) - h, 5):   # gerçek kayan pencereler (5 günde bir başlangıç)
+            w = seri.values[i:i + h + 1]
+            tdd.append((w / np.maximum.accumulate(w) - 1).min() * 100)
+            m = (ct > gunler[i]) & (ct <= gunler[i + h])
+            sr.append(_en_uzun_seri(zarar[m]))
+            ns.append(int(m.sum()))
+        ufuk.append({"ay": ay, "dd50": round(float(np.percentile(dd, 50)), 1), "dd90": round(float(np.percentile(dd, 10)), 1),
+                     "tdd90": round(float(np.percentile(tdd, 10)), 1),
+                     "g50": round(float(np.percentile(g, 50)), 1), "g10": round(float(np.percentile(g, 10)), 1),
+                     "n": int(round(float(np.mean(ns)))), "s50": int(np.percentile(sr, 50)), "s90": int(np.percentile(sr, 90))})
+    tum = sorted(islemler, key=lambda t: (t["cikis_t"], t["kod"]))
+    net = np.array([t["net"] for t in tum]) * 100
+    kn = {"n": [n for n in KG_N if n <= len(net)], "o5": [], "o50": [], "o95": [], "s50": [], "s90": []}
+    for n in KG_N:
+        if len(net) < n:
+            break
+        o = np.convolve(net, np.ones(n) / n, mode="valid")
+        s = [_en_uzun_seri(net[i:i + n] <= 0) for i in range(len(net) - n + 1)]
+        for a_, q in (("o5", 5), ("o50", 50), ("o95", 95)):
+            kn[a_].append(round(float(np.percentile(o, q)), 1))
+        kn["s50"].append(int(np.percentile(s, 50)))
+        kn["s90"].append(int(np.percentile(s, 90)))
+    tepe = seri.cummax()
+    return {"bas": str(seri.index[0].date()), "son": str(seri.index[-1].date()), "islem": len(tum), "yuva_islem": len(sira),
+            "tarihi_dd": round(float(((seri - tepe) / tepe).min() * 100), 1), "ufuk": ufuk, "karne": kn}
+
+
 def _yuzde(x, isaret=True):
     if x is None:
         return "—"
@@ -222,7 +353,7 @@ def _yuzde(x, isaret=True):
 
 
 def rapor_html(ozetler, genel, donem="", genel_aday=None, donem_satirlari=None, genel_v2=None, genel_v3=None, v3_duyarlilik=None,
-               genel_v3_eski=None):
+               genel_v3_eski=None, kotu=None):
     ozetler = sorted(ozetler, key=lambda x: -(x.get("toplam") or -999))
     satir = []
     for o in ozetler:
@@ -291,6 +422,18 @@ alış +%{sv}'e çekilir (yoksa normal %20 iz stop). Bu dönemde {genel_v3.get('
 parçalı portföy kârı eski v3'ün {ar['yuva10']}'i; ama her işleme eşit para koyan toplamda kâr eski v3'ün {ar['sepet']}'i (bazı büyük
 kazananlar +%{sv}'te satılıyor: kilitle kapananların ~{ar['buyuk']}'ü eski kuralla +%30'un üstünde biterdi) ve satıştan sonra daha
 yukarıdan yeniden alım sıklaşıyor (%39 → %45-48).""" if ar else "") + "</div>")
+    kg_html = ""
+    if kotu:   # 📉 'normal kötü günler' (bu çalıştırmanın verisiyle; panodaki kart pano.KOTU_GUN = 10 yıllık araştırma verisi)
+        r = "".join(f"<tr><td>{u['ay']} ay</td><td class='num neg'>%{u['dd50']}</td><td class='num neg'>%{u['dd90']}</td><td class='num neg'>%{u['tdd90']}</td>"
+                    f"<td class='num'>%{u['g50']}</td><td class='num'>%{u['g10']}</td><td class='num'>{u['n']}</td><td class='num'>{u['s50']}–{u['s90']}</td></tr>"
+                    for u in kotu["ufuk"])
+        kg_html = f"""<h2>📉 Sistemin normal kötü günleri — v3 + 🔐, 10 eşit yuva ({kotu['bas']} → {kotu['son']}, {kotu['yuva_islem']} işlem portföye girdi)</h2>
+<div class="sar"><table><thead><tr><th>Süre</th><th>Tipik en büyük düşüş</th><th>10'da 1 kötü düşüş</th><th>Gerçek pencerelerde 10'da 1</th>
+<th>Tipik getiri</th><th>10'da 1 kötü getiri</th><th>Kapanan işlem</th><th>Art arda zarar (tipik–10'da 1)</th></tr></thead><tbody>{r}</tbody></table></div>
+<div class="not">Günlük portföy getirileri durağan blok bootstrap ile (ortalama 20 işlem günü) 3.000 kez yeniden karıştırıldı; "gerçek pencereler"
+aynı ölçünün geçmişteki kayan pencerelerden hesabı (kontrol). Art arda zarar: geçmişin gerçek pencerelerinde portföyün kapattığı işlemler.
+Geçmişin en büyük düşüşü %{kotu['tarihi_dd']}. Panodaki kart 10 yıllık araştırma verisinden sabit sayılar kullanır (pano.KOTU_GUN); bu tablo
+bu çalıştırmanın verisiyle — kural değişince karşılaştır.</div>"""
     g = genel or {}
     return f"""<!doctype html><html lang="tr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>Backtest Raporu</title>
@@ -315,6 +458,7 @@ tbody tr{{border-bottom:1px solid var(--line)}}tbody tr:last-child{{border-botto
 {kartlar(genel_v3, "v3 — canlı kural (🚀 trend şablonu + 20 günlük zirve kırılımı, piyasa filtresi; %20 iz stop'ta çık + 🔐 kâr kilidi; kilitli tabanda satılamaz)") if genel_v3 else ""}
 {kartlar(genel_v3_eski, "v3 (eski, kilitsiz) — aynı kural 🔐 kâr kilidi OLMADAN (kıyas)") if genel_v3_eski else ""}
 {kk_not}
+{kg_html}
 {duy}
 {kartlar(genel_v2, "v2 (AL'e dönüş + piyasa + trend, aşırı oynak hariç; %20 iz stop'ta çık)") if genel_v2 else ""}
 {kartlar(genel_aday, "Önceki canlı kurallar (AL'e dönüş + piyasa filtresi; stop ya da 2 gün SAT'ta çık)") if genel_aday else ""}
@@ -376,6 +520,11 @@ if __name__ == "__main__":
     _, genel_a, isl_a = toplu_backtest(veri, "aday", xu)
     _, genel_v2, isl_v2 = toplu_backtest(veri, "v2", xu)
     _, genel_v3, isl_v3 = toplu_backtest(veri, "v3", xu)
+    try:
+        kotu = kotu_gunler(isl_v3, veri, xu)
+    except Exception as e:
+        print(f"Normal kötü günler hesaplanamadı ({type(e).__name__}: {e}).")
+        kotu = None
     _, genel_v3e, isl_v3e = toplu_backtest(veri, "v3_eski", xu)
     _, genel_v3k, _ = toplu_backtest(veri, "v3_kapanis", xu)
     _, genel_v3t, _ = toplu_backtest(veri, "v3_taban", xu)
@@ -383,5 +532,5 @@ if __name__ == "__main__":
              ("her taban günü satılamaz (katı)", genel_v3t), ("kapanışta satılır (eski, iyimser)", genel_v3k)]
     setler = {"v3 (🚀 kırılım + iz stop %20 + 🔐 kâr kilidi)": isl_v3, "v3 (eski, kilitsiz)": isl_v3e, "v2 (trend + iz stop %20)": isl_v2, "eski canlı (stop / 2 gün SAT)": isl_a, "eski": isl_m}
     with open("backtest.html", "w", encoding="utf-8") as f:
-        f.write(rapor_html(ozetler, genel, donem, genel_a, donem_tablosu(setler, xu), genel_v2, genel_v3, duyar, genel_v3e))
+        f.write(rapor_html(ozetler, genel, donem, genel_a, donem_tablosu(setler, xu), genel_v2, genel_v3, duyar, genel_v3e, kotu))
     print("backtest.html yazıldı.\n  eski: ", genel, "\n  canlı:", genel_a)

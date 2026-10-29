@@ -38,6 +38,11 @@ Kendi kopyanda **Settings** → **Secrets and variables** → **Actions** → **
 **Actions** → **BIST Sinyal Taraması** → **Run workflow** → **"Telegram'a test mesajı gönder"** kutusunu işaretle → **Run workflow**.
 3-5 dakika sonra botundan test mesajı gelir ve siten güncellenir. Kırmızı biterse README'deki Telegram hata listesine bak.
 
+## 6b. Telegram'dan soru sor (isteğe bağlı)
+Botuna şu komutları yazabilirsin: `/yardim`, `/hisse THYAO`, `/piyasa`, `/portfoy`. Cevap **anlık gelmez**: bir sonraki taramada (hafta içi piyasa
+saatinde ~15 dakikada bir) gelir. Bot sadece **senin** Chat ID'ne cevap verir; başkası yazarsa yok sayar. Ek ayar gerekmez (workflow dosyası değişmedi).
+Not: botun token'ını başka bir programa/webhook'a bağladıysan komutlar okunamaz (Actions logunda "HTTP 409" görürsün) — bu bot sadece bu sistem için olsun.
+
 ## 7. Portföyünü gir ve Telegram'a bağla
 1. **Kendi siteni** aç (`<kullanıcı-adın>.github.io/...`). Boran'ın sitesine girdiğin portföy buraya gelmez (tarayıcı her siteyi ayrı saklar), bir kez yeniden gir.
 2. **Portföyüm** altında **Telegram'a bağla** → ekrandaki adımlarla GitHub'da anahtar oluştur (Repository: kendi `Bist-signal`'in, izin: **Variables: Read and write**) → yapıştır → **Bağla**.

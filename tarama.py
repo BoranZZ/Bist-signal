@@ -253,6 +253,50 @@ def piyasa_durumu(data):
         return None
 
 
+GENISLIK_GUN = 60   # 🌡️ piyasa genişliği: panodaki küçük çizginin uzunluğu (işlem günü)
+
+
+def piyasa_genisligi(kapanis, takvim, gun=GENISLIK_GUN):
+    """🌡️ Piyasa genişliği (BİLGİ): taranan evrende (KODLAR = MANIPULE hariç) kapanışı 50 / 200 günlük ortalamasının
+    üstünde olan hisse oranı ve 52 haftanın (250 işlem günü, bugün dahil) en yüksek / en düşük kapanışını yapan hisse sayısı.
+    Seri her taramada indirilen 4 yıllık veriden yeniden hesaplanır (geçmişi dosyada saklamaya gerek yok, ilk gün dolu gelir);
+    her hisse kendi işlem günleriyle (bölünme düzeltilmiş), sonra BIST 100 takviminin son `gun` gününe yerleştirilir; o gün
+    barı olmayan ya da yeterli geçmişi olmayan hisse o günün paydasına girmez. Son gün seans içinde o anki fiyattır."""
+    if takvim is None or not len(kapanis):
+        return None
+    gunler = takvim[-gun:]
+    s50, s200, zr, dp, n50, n200, n52 = ({} for _ in range(7))
+    for kod, c in kapanis.items():
+        c = c.dropna()
+        if len(c) < 51:
+            continue
+        son = c.iloc[-(gun + 260):]
+        m50 = son.rolling(50).mean()
+        m200 = son.rolling(200).mean()
+        mx, mn = son.rolling(250).max(), son.rolling(250).min()
+        s50[kod] = (son > m50).where(m50.notna())
+        s200[kod] = (son > m200).where(m200.notna())
+        zr[kod] = (son >= mx).where(mx.notna())
+        dp[kod] = (son <= mn).where(mn.notna())
+    def tablo(d):
+        return pd.DataFrame({k: v.reindex(gunler) for k, v in d.items()}) if d else pd.DataFrame(index=gunler)
+    a, b, z, y = tablo(s50), tablo(s200), tablo(zr), tablo(dp)
+    yuzde = lambda t: [round(float(x) * 100, 1) if pd.notna(x) else None for x in t.astype(float).mean(axis=1)]
+    say = lambda t: [int(x) for x in (t.astype(float) == 1).sum(axis=1)]
+    return {"t": [str(x.date()) for x in gunler], "s50": yuzde(a), "s200": yuzde(b), "z": say(z), "d": say(y),
+            "n": [int(x) for x in a.notna().sum(axis=1)], "n52": [int(x) for x in z.notna().sum(axis=1)]}
+
+
+def genislik_metni(g):
+    """Telegram /piyasa ve Python tarafı için tek satır (pano JS genHtml ile aynı sayılar)."""
+    if not g or not g.get("t"):
+        return None
+    i = len(g["t"]) - 1
+    f = lambda x: "—" if x is None else f"%{x:.0f}"
+    return (f"🌡️ Piyasa genişliği ({tarih_tr(g['t'][i])}, {g['n'][i]} hisse): 50 günlük ortalamanın üstünde {f(g['s50'][i])}, "
+            f"200 günlüğün üstünde {f(g['s200'][i])} · 52 haftanın zirvesinde {g['z'][i]}, dibinde {g['d'][i]} hisse")
+
+
 def endeks_serisi(data=None):
     """Portföy-endeks kıyası için BIST 100 kapanışları: son 2 yıl günlük (taramanın indirdiği güncel veri), öncesi
     (10 yıla kadar) haftalık. {"t": ["YYYY-MM-DD", ...], "c": [kapanış, ...]} ya da None."""
@@ -1556,6 +1600,197 @@ def gecmis_guncelle(by_kod, bugun, piyasa=None, yeni_kayit=True):
     return acik, kapali, ozet
 
 
+# 🤖 Telegram komutları: sunucu yok — her taramada getUpdates ile bekleyen mesajlar okunur, SADECE TELEGRAM_CHAT_ID'den gelen
+# komutlar cevaplanır (sonraki taramada; gerçek zamanlı değil). durum.json'a yalnız 'tg_ofset' (Telegram'ın güncelleme sayacı,
+# portföy bilgisi içermez) yazılır. GİZLİLİK: komut metni, hisse kodu ve cevap ASLA print edilmez (Actions logları herkese açık).
+TG_KOMUT_SINIR = 5            # bir taramada en çok bu kadar komut cevaplanır (kalanlar sonraki taramada; tek not)
+TG_KOMUT_ESKI_SN = 6 * 3600   # bundan eski mesajlar cevaplanmaz (taramalar uzun süre durduysa bayat sorulara cevap gitmesin)
+TG_YARDIM = ("🤖 <b>Komutlar</b>\n"
+             "/hisse KOD — sinyal durumu, iz stop, uyarılar (örn. /hisse THYAO)\n"
+             "/piyasa — piyasa durumu ve 🌡️ genişlik\n"
+             "/portfoy — portföy özeti\n"
+             "/yardim — bu liste\n\n"
+             "<i>Cevap anlık gelmez: komutlar bir sonraki taramada okunur (hafta içi piyasa saatinde ~15 dakikada bir; "
+             "akşam ve hafta sonu tarama çalışmıyorsa sonraki ilk taramada). Fiyatlar ~15 dk gecikmeli. Yatırım tavsiyesi değildir.</i>")
+
+
+def tg_guncellemeler(ofset):
+    """Bekleyen Telegram mesajları (getUpdates). Token/chat yoksa None (sessizce atlanır). Hata metni gövdesiyle
+    yazılmaz (mesaj içeriği içermez ama yine de sadece tür/kod)."""
+    tok, chat = os.environ.get("TELEGRAM_TOKEN"), os.environ.get("TELEGRAM_CHAT_ID")
+    if not tok or not chat:
+        return None
+    import urllib.request, urllib.parse, urllib.error
+    q = {"timeout": 0, "allowed_updates": json.dumps(["message"])}
+    if ofset:
+        q["offset"] = int(ofset)
+    u = f"https://api.telegram.org/bot{tok.strip()}/getUpdates?" + urllib.parse.urlencode(q)
+    try:
+        with urllib.request.urlopen(u, timeout=15) as r:
+            j = json.loads(r.read().decode("utf-8"))
+        return j.get("result") or [] if j.get("ok") else None
+    except urllib.error.HTTPError as e:
+        print(f"Telegram komutları okunamadı (HTTP {e.code}{' — bota webhook bağlı olabilir' if e.code == 409 else ''}).")
+    except Exception as e:
+        print(f"Telegram komutları okunamadı ({type(e).__name__}).")
+    return None
+
+
+def _tg_rozetler(s):
+    u = []
+    if s.get("kt"):
+        u.append(kilit_metni(s["kt"]))
+    if s.get("patlak"):
+        u.append(f"⚠️ taban serisi ({s.get('taban15')} kez/15 gün) — AL mesajı gönderilmez")
+    th = s.get("tahta") or {}
+    if th.get("seviye") == "sisme":
+        u.append(_sisme_ad(th, "şişme riski") + ", ".join(th.get("neden") or []))
+    elif th.get("seviye") == "dagitim":
+        u.append("⚠️ dağıtım işareti: " + (th.get("neden") or [""])[0])
+    if s.get("mn"):
+        u.append(manip_metni(s["mn"]))
+    if s.get("tuzak"):
+        u.append(f"🪤 düşen trend kırılımı tuzağı riski ({s['tuzak'].get('tarih')})")
+    if s.get("od"):
+        u.append(f"🔻 son {s['od']['u']} günde hisseye özel hacimli düşüş ({_yzd(s['od']['r'])})")
+    if s.get("trend_asagi"):
+        u.append("📉 trend aşağı (fiyat düşen 200 günlük ortalamanın altında)")
+    b = s.get("bilanco")
+    if bilanco_yakin(b, 7):
+        u.append(f"📅 bilanço {tarih_tr(b['sonraki']['tarih'])} ({b['kalan_gun']} gün)")
+    tm = s.get("temettu")
+    if tm and tm.get("ex_kalan") is not None and tm["ex_kalan"] <= 7:
+        u.append(f"💰 temettü hak kullanım {tarih_tr(tm['ex_tarih'])}")
+    return u
+
+
+def _tt(t):
+    """'2025-06-13' → '13.06.2025'"""
+    return f"{t[8:10]}.{t[5:7]}.{t[:4]}" if t and len(t) >= 10 else "?"
+
+
+def hisse_metni(s, p=None):
+    """/hisse KOD cevabı: fiyat, 🚀 v3 durumu + iz stop, güç/RS, uyarı rozetleri; portföydeyse plan satırı."""
+    deg = s.get("degisim")
+    sat = [f"🔎 <b>{s['kod']}</b> {s.get('fiyat')} TL" + (f" ({_yzd(deg)})" if deg is not None else "")
+           + f" · göstergeler {s.get('sinyal')}"]
+    tk = s.get("tk") or {}
+    if tk.get("bugun"):
+        sat.append("🚀 <b>Bugün trend kırılımı (v3 AL)</b>" + (" — kapanışta kesinleşir" if tk.get("gk") else "")
+                   + (f" · iz stop {tk.get('stop')} TL" if tk.get("stop") else ""))
+    elif tk.get("durum") == "AL":
+        yeni = (tk.get("gun") or 0) <= 5
+        sat.append(f"🚀 AL {tk.get('gun')} gün önce ({_tt(tk.get('giris_tarih'))}), o günden beri "
+                   f"{_yzd(tk.get('degisim'))} · 📍 iz stop <b>{tk.get('stop')} TL</b>" + (" 🔐 kâr kilidi devrede" if tk.get("kilit") else "")
+                   + ("" if yeni else " · <i>yeni alım sinyali değil (20+ gün sonra girmek testte belirgin kötüydü)</i>"))
+    elif tk.get("sablon") and tk.get("kirilima_uzak") is not None and tk["kirilima_uzak"] > 0:
+        sat.append(f"👀 Trend şablonunda; kapanış {tk.get('kirilim_seviye')} TL üstüne çıkarsa 🚀 AL (%{tk['kirilima_uzak']} yukarıda)")
+    elif tk.get("durum") == "CIKTI" and tk.get("cikis_tarih"):
+        sat.append(f"🚀 Açık pozisyon yok · son işlem {_tt(tk['cikis_tarih'])} çıktı ({_yzd(tk.get('sonuc'))})")
+    else:
+        sat.append("🚀 Açık v3 pozisyonu yok")
+    g, rs = s.get("guc") or {}, s.get("rs")
+    ek = ([f"💪 güç {g['puan']}/{g['toplam']}"] if g else []) + ([f"RS {rs}"] if rs is not None else []) \
+        + ([f"RSI {s['rsi']}"] if s.get("rsi") is not None else [])
+    if ek:
+        sat.append(" · ".join(ek))
+    u = _tg_rozetler(s)
+    sat.append(("⚠️ " if u else "✅ ") + ("; ".join(u) if u else "Önemli uyarı yok"))
+    if p:
+        sat.append("💼 " + plan_metni(s, p, ""))
+    sat.append(f"<a href=\"{PANO_URL}\">Panoyu aç</a> · <i>bilgi, yatırım tavsiyesi değil</i>")
+    return "\n".join(sat)
+
+
+def piyasa_metni(piyasa, genislik, sonuclar):
+    sat = ["📊 <b>Piyasa</b>"]
+    if piyasa:
+        sat.append(("⚠️ Piyasa zayıf: BIST 100 50 günlük ortalamasının %{} altında — bu dönemde 🚀 AL gelmez (kural)."
+                    if piyasa.get("zayif") else "✅ Piyasa normal: BIST 100 50 günlük ortalamasının %{} üstünde.").format(abs(piyasa.get("fark") or 0)))
+    gm = genislik_metni(genislik)
+    if gm:
+        sat.append(gm + "\n<i>Bilgi: geçmiş testte genişlik AL'e filtre olarak katkı vermedi.</i>")
+    tb = sum(1 for s in sonuclar if (s.get("tk") or {}).get("bugun"))
+    t5 = sum(1 for s in sonuclar if (s.get("tk") or {}).get("durum") == "AL" and ((s.get("tk") or {}).get("gun") or 0) <= 5)
+    sat.append(f"🚀 Bugün {tb} kırılım · son 5 günde {t5} AL ({len(sonuclar)} hisse taranıyor)")
+    sat.append(f"<a href=\"{PANO_URL}\">Panoyu aç</a>")
+    return "\n".join(sat)
+
+
+def komut_cevap(metin, by_kod, pf, piyasa, genislik, sonuclar, endeks):
+    """Tek komutun cevabı (None = komut değil). Kod kullanıcıdan gelir: harf/rakam dışı atılır, metne escape'li girer."""
+    import re
+    parca = (metin or "").strip().split()
+    if not parca or not parca[0].startswith("/"):
+        return None
+    k = parca[0].split("@")[0].lower()
+    k = {"/start": "/yardim", "/help": "/yardim", "/yardım": "/yardim", "/portföy": "/portfoy"}.get(k, k)
+    if k == "/yardim":
+        return TG_YARDIM
+    if k == "/hisse":
+        kod = re.sub(r"[^A-Z0-9]", "", (parca[1] if len(parca) > 1 else "").upper().replace("İ", "I"))[:12]
+        if not kod:
+            return "Hisse kodu yaz: örn. <code>/hisse THYAO</code>"
+        s = by_kod.get(kod)
+        if not s:
+            return f"❔ <b>{escape(kod)}</b> taranan listede yok (kodu doğru yazdın mı?). Fon krizi hisseleri taranmıyor."
+        return hisse_metni(s, pf.get(kod))
+    if k == "/piyasa":
+        return piyasa_metni(piyasa, genislik, sonuclar)
+    if k == "/portfoy":
+        if not pf:
+            return "Portföy tanımlı değil: panoda Portföyüm → <b>Telegram'a bağla</b>."
+        return portfoy_ozeti(sonuclar, pf, piyasa, endeks)
+    return "Bu komutu tanımıyorum.\n\n" + TG_YARDIM
+
+
+def tg_komutlar(ofset, by_kod, pf, piyasa, genislik, sonuclar, endeks, simdi_ts=None):
+    """Bekleyen komutları cevaplar; yeni ofseti (son update_id + 1) döner. Başka sohbetlerden gelenler yok sayılır (ofset yine
+    ilerler: bir daha okunmaz). Cevap gönderilemezse o komut atlanır (takılıp kalmasın) ve kalanlar sonraki taramaya bırakılır.
+    Log'a sadece SAYI yazılır."""
+    gun = tg_guncellemeler(ofset)
+    if gun is None:
+        return ofset
+    chat = str(os.environ.get("TELEGRAM_CHAT_ID") or "").strip()
+    simdi_ts = simdi_ts or time.time()
+    yeni, cevap, yok, eski, fazla, hata = ofset, 0, 0, 0, 0, 0
+    for u in sorted(gun, key=lambda x: x.get("update_id", 0)):
+        uid = u.get("update_id")
+        if not isinstance(uid, int):
+            continue
+        m = u.get("message") or {}
+        if str((m.get("chat") or {}).get("id")) != chat:
+            yok += 1
+            yeni = uid + 1
+            continue
+        if simdi_ts - (m.get("date") or 0) > TG_KOMUT_ESKI_SN:
+            eski += 1
+            yeni = uid + 1
+            continue
+        try:
+            c = komut_cevap(m.get("text"), by_kod, pf, piyasa, genislik, sonuclar, endeks)
+        except Exception as e:
+            print(f"Telegram komutu cevaplanamadı ({type(e).__name__}).")
+            c = "Bu komut şu an cevaplanamadı; sonra tekrar dene."
+        if c is None:
+            yeni = uid + 1
+            continue
+        if cevap >= TG_KOMUT_SINIR:
+            fazla = 1   # kalanlar sonraki taramada (ofset burada kalır)
+            break
+        yeni = uid + 1
+        if not tg_gonder(c):
+            hata = 1   # gönderilemeyen cevap atlanır (bozuk bir cevap her taramada takılıp kalmasın); kalanlar sonraki taramada
+            break
+        cevap += 1
+    if fazla:
+        tg_gonder(f"Bir taramada en çok {TG_KOMUT_SINIR} komut cevaplanıyor; kalanlar bir sonraki taramada cevaplanacak.")
+    if cevap or yok or eski or fazla or hata:
+        print(f"Telegram komutları: {cevap} cevaplandı" + (f", {yok} başka sohbetten yok sayıldı" if yok else "")
+              + (f", {eski} eski mesaj atlandı" if eski else "") + (", kalanlar sonraki taramaya" if fazla else "") + (", 1 cevap gönderilemedi" if hata else "") + ".")
+    return yeni
+
+
 def main():
     if os.environ.get("TELEGRAM_TEST") == "true":   # Actions > Run workflow > "Telegram test" kutusu
         zaman = pd.Timestamp.now(tz="Europe/Istanbul").strftime("%d.%m.%Y %H:%M")
@@ -1666,6 +1901,11 @@ def main():
     except Exception as e:
         print(f"RS puanı hesaplanamadı ({type(e).__name__}).")
         _rs = {}
+    try:   # 🌡️ piyasa genişliği (bilgi): aynı kapanışlardan, son 60 işlem günü
+        genislik = piyasa_genisligi(_kapanis, _xu.index if _xu is not None else None)
+    except Exception as e:
+        print(f"Piyasa genişliği hesaplanamadı ({type(e).__name__}).")
+        genislik = None
     _kapanis.clear()
     for s in sonuclar:
         s["rs"] = rs_tam(_rs.get(s["kod"]))
@@ -1796,7 +2036,7 @@ def main():
 
     with open("index.html", "w", encoding="utf-8") as f:
         f.write(pano_uret(sonuclar, ornek=False, uyari=uyari, piyasa=piyasa, yeni_arzlar=yeni_arzlar, endeks=endeks,
-                          gunici=gi))
+                          gunici=gi, genislik=genislik, kapali=kapali))
     print(f"index.html: {len(sonuclar)} hisse (+{len(yeni_arzlar)} yeni arz), {len(bugun_al)} AL, {len(yeni)} yeni | "
           f"taban serisi: {sum(1 for s in sonuclar if s.get('patlak'))} | ⚠️ manipülasyon işareti: {sum(1 for s in sonuclar if s.get('mn'))} | "
           f"piyasa: {'zayıf' if piyasa and piyasa['zayif'] else 'normal'} | "
@@ -1970,6 +2210,13 @@ def main():
         except Exception as e:
             print(f"İşlem odası çalışmadı ({type(e).__name__}: {e}); tarama etkilenmedi.")
 
+    # 🤖 Telegram komutları (/yardim, /hisse KOD, /piyasa, /portfoy): sadece TELEGRAM_CHAT_ID'den; token yoksa sessizce atlanır
+    tg_ofset = durum.get("tg_ofset")
+    try:
+        tg_ofset = tg_komutlar(tg_ofset, by_kod, pf, piyasa, genislik, sonuclar, endeks)
+    except Exception as e:
+        print(f"Telegram komutları işlenemedi ({type(e).__name__}).")
+
     with open(DURUM, "w", encoding="utf-8") as f:
         json.dump({"al": sorted(s["kod"] for s in bugun_al), "son": dict(sorted(son.items())),
                    "iz_kirilim_g": sorted(iz_kayit), "ozet_tarih": ozet_tarih, "hafta_tarih": hafta_tarih,
@@ -1978,7 +2225,7 @@ def main():
                    "uv_son": dict(sorted(uv_son.items())), "kap_son": kap_son,
                    "tk_gonderilen": {"tarih": bugun_iso, "kodlar": sorted(tk_gonderilen)}, "mom_ay": mom,
                    "gunici": {"tarih": bugun_iso, "g": sorted(gi_gonderilen)},
-                   "sabah_tarih": sabah_tarih},
+                   "sabah_tarih": sabah_tarih, **({"tg_ofset": int(tg_ofset)} if tg_ofset else {})},
                   f, ensure_ascii=False, indent=2)
 
 
