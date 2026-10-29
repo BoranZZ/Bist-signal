@@ -159,6 +159,36 @@ Kaynak araştırmalar scratchpad `ucretli/RAPOR.md` (RS) ve `strateji2/RAPOR.md`
   GLYHO normal + yapay 'bekleniyor', EKDMR RS yok, sözlük): JS hatası yok, sayfa taşması yok, 📊 rozet sayısı = DATA (43/43), RS hücresi =
   DATA (316/316). Birim testleri `t4_birim.py` 29/29 (bekleme, 60/61. gün, 18:00, hafta sonu, KAP doldurma/kesinti/erişilemez, İş Yatırım bütçe/hata).
 
+## ⚠️ Manipülasyon rozeti (MANIP2) · dürüstlük notu (2026-10-29, dal `rozet-not`; BİLGİ — AL/SAT, Telegram AL, backtest, İşlem Odası DEĞİŞMEZ)
+Testler scratchpad `rozet/` (RAPOR.md). 10.10.2026 araştırmasının dosyaları Temp'ten silinmişti → tanımlar karardaki 5 işaretten yeniden kuruldu.
+- **Kural:** 5 işaretten ≥2'si (`sinyal.MANIP_ESIK`) → `s["mn"]` = {i: [[tür, tarih, değer], ...], n}. Fiyat işaretleri `sinyal.manip_fiyat` (analiz_et
+  → `mf`, bölünme düzeltilmiş, işlem günü): **tv** son 120 günde biten 3+ art arda tavan (≥ +%9,5, tahta_riski ile aynı); **x3** son 120 günün bir
+  günü kapanış 60 gün öncesinin ≥3 katı; **ts** son 250 günde hisseye özel taban serisi (15 günde ≥4 taban ≤ −%9; BIST 100'ün ≤ −%4 günleri
+  sayılmaz, kilitli_taban_seri gibi). KAP işaretleri `kap.tedbir_son` (takvim günü): **vb** son 60 günde Borsa İstanbul VBTS kararı, **sp** son 365
+  günde SPK tedbir kararı. Birleştirme `tarama.manip_rozet` (try/except; hata hisseyi düşürmez).
+- **KAP tedbir verisi (`kap.tedbir_guncelle`):** aynı byCriteria sorgusu, memberType **DDK**, sınıf **DUY**; hisse kodu `relatedStocks`'ta. VBTS = konu
+  'BISTECH Pay Piyasası Alım Satım Sistemi Duyurusu' + özet 'Volatilite Bazlı Tedbir'; SPK = konu 'Sermaye Piyasası Kurulu Tedbir Kararı'. 'SPK İşlem
+  Yasağı Nedeniyle Pay Duyurusu' (MKK) ALINMAZ: yasaklı kişilerin hesabındaki tüm payları (AKBNK, THYAO...) listeler. Günde ~200-300 'Pay Bazında
+  Devre Kesici' kaydı da gelir → 2000 sınırında aralık ikiye bölünür. kap.json → `td` = {kod: [[yayın, 'v'|'s', id]]} (370 gün, sadece taranan
+  hisseler), `td_bas`/`td_son` (kapsam, fr ile aynı mantık: >7 gün kesintide kapsam yeniden başlar, kayıtlar korunur), `td_t`. Düzenli sorgu son 2
+  gün, geçmiş dolduysa **en çok saatte bir**; ilk kurulumda her taramada ≤3 × 7 günlük geçmiş sorgusu (≤20 sn) → ~18 taramada dolar (yerelde tek
+  seferde 132 sn). Dolmadan bulunamayan KAP işareti yok sayılır (rozet sadece bulunanlarla). `kap_guncelle` artık kap.json'daki `td*` anahtarlarını
+  korur. Son 1 yılda taranan hisselerde 170 VBTS + 10 SPK kaydı (asıl SPK tedbirli hisselerin çoğu MANIPULE'de, taranmıyor).
+- **Doğrulama:** `manip_fiyat` = vektörel tanım 300 rastgele kesilmiş hisse-günde 0 fark; birim testleri 44/44 (`t5_birim.py`: kesinti, erişilemez,
+  saatlik kısma, pencereler). Bilinen manipülatif örnekler (MANIPULE 32 hisse, bugünkü veri + KAP): 30/32 rozet (A1CAP, MAGEN sadece taban serisi);
+  temiz büyükler (THYAO, GARAN, ASELS, BIMAS, AKBNK, TUPRS, KCHOL, SISE, FROTO, EREGL, TCELL, MGROS) 0/12. Canlı evrende 29.10.2026'da 38/287 hisse
+  (fon krizi sonrası; 2018-26'da hisse-günlerin ~%4-5'i). **Sağlık kontrolü** (`t2_fiyat.py`, 10y pkl, sadece 3 fiyat işareti): ≥2 işarette
+  sonraki 60 işlem gününde kilitli taban görülme %11,3 (MANIPULE hariç; tümü %13,3) vs %2,3 → ~4,8 kat, 2018 dışında her yıl aynı yönde.
+- **Gösterim:** tablo rozeti '⚠️ manipülasyon işareti' (title'da işaretler), pencerede kutu (`mnMetin` + `MN_NOT`, taban kutularının ardından),
+  `modalOzet`/`bugunUyari` ('⚠️ manipülasyon işareti (n/5)', portföy + favori), sade anlat uyarı önceliği (🎈/⚠️ dağıtımdan sonra, 🪤'dan önce),
+  sözlük. Telegram: SADECE akşam portföy özetinde not (`tarama.manip_metni`); AL mesajına girmez. Metin Python `pano.manip_isaret` = JS `mnIsaret`;
+  `pano.MN_NOT` şablona gömülür (tek kaynak). durum.json/oda.json'a yeni anahtar YOK (özet zaten günde bir kez); log'da sadece rozet SAYISI.
+- **Dürüstlük notu:** index.html en altında `.durust` kutusu (`pano.DURUST_NOT`). İstenen metin ('yarıdan fazlası küçük zararla kapanır') 🔐 kâr
+  kilidinden sonra YANLIŞ olduğu için ölçülüp düzeltildi (`t0_durustluk.py`, backtest.py v3, 10y 286 hisse MANIPULE hariç 2.050 işlem): %30 zararla
+  (2022-26 %34; %13'ü −%20'den kötü), %41'i 0…+%10 (kâr kilidi çıkışı %43), en iyi %10'luk işlemler toplam net kârın %85'i (2022-26 %93), geri
+  kalanların ortalaması +%3,3. Kural değişirse sayıları yeniden ölç.
+- **Süre/boyut:** Telegram'sız tarama main 98,8/98,6 sn ↔ rozet 100,0/98,5 sn (fark yok); ilk kurulumda KAP geçmişi ≤ +20 sn/tarama; index.html ~+%0,3, kap.json +~8 KB.
+
 ## Veri kalitesi: Yahoo günlük kapanışı yanlış / boş
 Yahoo'nun BIST günlük barlarında kapanış çoğu zaman resmi kapanıştan farklı (Eylül 2026: günlerin ~%30'unda >%0,3; THYAO
 24.09 günlük 288,5, resmi 289,5) ve son günün kapanışı NaN geliyor (dropna ile önceki gün gösteriliyordu: THYAO 288,5 vs

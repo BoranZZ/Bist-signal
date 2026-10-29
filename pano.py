@@ -2,6 +2,7 @@
 """Etkileşimli pano: satıra tıkla -> grafik + o hisseye özel yorum + TradingView linki."""
 import json
 import os
+from html import escape
 import pandas as pd
 
 # Hangi GitHub deposu: Actions GITHUB_REPOSITORY verir (arkadaşın kopyasında onun deposu); yerelde varsayılan.
@@ -25,6 +26,39 @@ def _med(xs):
 BT_NOT = {"g": "Geçmişte (ana liste, 2017-26) güçlü tepki verenler sonraki 60 günde endeksi %56 oranında geçti (normal tepkide %49) — zayıf bir eğilim.",
           "z": "Geçmişte (ana liste, 2017-26) zayıf tepki verenler sonraki 60 günde endeksi %46 oranında geçti (normal tepkide %49) — fark küçük.",
           "n": "Geçmişte (ana liste, 2017-26) normal tepkide (−5…+5 puan) sonraki 60 günde endeksi geçme oranı %49."}
+
+
+# ⚠️ Manipülasyon rozeti (tarama.manip_rozet: 5 işaretten ≥2'si). Metinler JS mnIsaret / MN_NOT ile aynı (MN_NOT şablona gömülür).
+# Sayılar: 10.10.2026 araştırması (~2,7 kat) + scratchpad rozet/t2_fiyat.py (10y pkl 286 hisse 2018-26, sadece 3 fiyat işareti, 5 günde bir
+# hisse-gün: ≥2 işarette sonraki 60 işlem gününde kilitli taban günü %11-13, diğerlerinde %2-3; 2018 dışında her yıl aynı yönde).
+MN_NOT = ("Geçmişte bu işaretlerden 2 ya da daha fazlasını taşıyan hisselerde kilitli tabanda (alıcı yokken) satamama riski birkaç kat "
+          "yüksekti: 10.10.2026 araştırmasında ~2,7 kat; 2018-26 fiyat testinde sonraki 60 günde kilitli taban görülme oranı %11-13 "
+          "(diğer hisselerde %2-3). Alım yasağı ya da sinyal değil; AL/SAT kuralı değişmez. Elindeyse pozisyonu küçük tut, iz stop'u sıkı takip et.")
+# Dürüstlük notu (sayfanın en altı). Sayılar scratchpad rozet/t0_durustluk.py: canlı v3 + 🔐 kâr kilidi, backtest.py motoru, 10y 286 hisse
+# (2017-10 → 2026-10-16, MANIPULE hariç 2.050 işlem): %30 zararla (2022-26 %34; %13'ü −%20'den kötü), kârla kapananların çoğu +%10'un altında
+# (%41; kâr kilidi çıkışı %43), en iyi %10'luk işlemler toplam net kârın %85'i (2022-26 %93), geri kalanların ortalaması +%3,3 (2022-26 +%1,0).
+DURUST_NOT = ("Sinyallerin yaklaşık üçte biri zararla kapanır (bazıları %20'den fazla); kârla kapananların çoğu da küçük kârdır "
+              "(🔐 kâr kilidiyle ~+%5). Kârın çoğu az sayıdaki büyük yükselişten gelir: geçmiş testte (2017-26) en iyi %10'luk "
+              "işlemler toplam kârın ~%85'ini getirdi. Geçmiş sonuçlar geleceği garanti etmez, yatırım tavsiyesi değildir.")
+
+
+def _tarih_tam(t):
+    """'2026-09-25' → '25.09.2026'"""
+    return f"{t[8:10]}.{t[5:7]}.{t[:4]}"
+
+
+def manip_isaret(x):
+    """⚠️ Tek manipülasyon işaretinin metni [tür, tarih, değer] (JS mnIsaret ile aynı)."""
+    k, t, v = x
+    if k == "tv":
+        return f"{v} gün art arda tavan ({_tarih_tam(t)})"
+    if k == "x3":
+        return f"60 günde {str(v).replace('.', ',')} kat yükseliş ({_tarih_tam(t)})"
+    if k == "ts":
+        return f"hisseye özel taban serisi: 15 günde {v} taban ({_tarih_tam(t)})"
+    if k == "vb":
+        return f"Borsa İstanbul VBTS (volatilite bazlı tedbir) kararı ({_tarih_tam(t)})"
+    return f"SPK tedbir kararı ({_tarih_tam(t)})"
 
 
 def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None, endeks=None, gunici=None):
@@ -72,6 +106,11 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None, 
         tz = s.get("tuzak")
         if tz:
             sdrz += f' <span class="gun1b" title="{tz["tarih"]}: düşen trend %{tz["gunluk"]} yükselişle kırıldı. Tüm borsada bu kırılımların %56&#39;sı 15 günde geri düştü; kırılımda almak rastgele günden kötü sonuç verdi">🪤 tuzak riski</span>'
+        mn = s.get("mn")
+        if mn:   # ⚠️ manipülasyon işaretleri (≥2/5) — bilgi, alım yasağı değil
+            mnb = escape("Manipülasyon işaretleri (%d/5): " % mn["n"] + "; ".join(manip_isaret(x) for x in mn["i"]))
+            sdrz += (f' <span class="patlakb" title="{mnb}. Kilitli tabanda satamama riski yüksek; alım yasağı değil">'
+                     '⚠️ manipülasyon işareti</span>')
         th = s.get("tahta") or {}
         if th.get("seviye") == "sisme" and (th.get("yuk20") or 0) < 0:   # çöküş sonrası tepki tavanları: 'şişme' yanıltıcı (metin; tetik aynı)
             sdrz += f' <span class="patlakb" title="{"; ".join(th["neden"])}, ama 20 günde {th["yuk20"]:+.0f}% — çöküş sonrası sert tavan-taban dalgalanması">🎈 sert dalgalanma</span>'
@@ -168,6 +207,8 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None, 
             veri[k]["bt"] = s["bt"]
         if s.get("zr"):   # son 4 çeyrekte zarar (dönem adı) — sadece olan hissede
             veri[k]["zr"] = s["zr"]
+        if s.get("mn"):   # ⚠️ manipülasyon işaretleri — sadece olan hissede
+            veri[k]["mn"] = s["mn"]
 
     banner = ""
     if ornek:
@@ -203,6 +244,7 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None, 
                  ("__TOPLAM__", str(len(sonuclar))),
                  ("__TKBUGUN__", str(sum(1 for s in sonuclar if (s.get("tk") or {}).get("bugun")))),
                  ("__TK5__", str(sum(1 for s in sonuclar if (s.get("tk") or {}).get("durum") == "AL" and ((s.get("tk") or {}).get("gun") or 0) <= 5))), ("__BANNER__", banner),
+                 ("__MNNOT__", json.dumps(MN_NOT, ensure_ascii=False)), ("__DURUST__", escape(DURUST_NOT, quote=False)),
                  ("__ROWS__", "".join(rows)), ("__ARZ__", arzblok),
                  ("__XU__", json.dumps(endeks)), ("__PIYASA__", json.dumps(piyasa)),
                  ("__GI__", json.dumps(gunici, ensure_ascii=False, separators=(",", ":"))),
@@ -370,6 +412,7 @@ td.vd{white-space:nowrap;font-size:12px}.vu,.va,.vy{font-style:normal;font-weigh
 .aciklama{margin-top:32px;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
 .kart{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px 17px}
 .kart h3{margin:0 0 6px;font-size:13.5px}.kart p{margin:0;color:var(--muted);font-size:12.8px;line-height:1.55}
+.durust{margin-top:12px;padding:13px 16px;border:1px solid var(--line);border-left:4px solid #B7791F;border-radius:10px;background:#FFFBF2;color:#5B4A2A;font-size:12.6px;line-height:1.6;overflow-wrap:anywhere}
 .uyari{margin-top:28px;padding:13px 16px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--muted);font-size:12.2px;line-height:1.6}
 .odabtn{display:inline-block;margin-left:10px;vertical-align:2px;font-size:12.5px;font-weight:650;color:#fff;background:#6D3FD8;border-radius:999px;padding:4px 11px;text-decoration:none}.odabtn:hover{background:#5A2FC0}.glink{color:var(--accent);font-weight:600;text-decoration:none}.glink:hover{text-decoration:underline}
 .pfbox{margin-top:18px}
@@ -461,6 +504,7 @@ __ARZ__
 <div class="szgrup"><h3>Uyarılar (dikkat)</h3>
 <div class="sz"><span class="patlakb">🔒 kilitli taban</span><span>2 gündür taban ve bugün gün boyu işlem neredeyse yok (fiyat tabana yapışık, alıcı yok). Geçmişte (2021-26, 587 hisse) benzerlerinin ~%60'ı 15 günde 4+ tabana uzadı (normalde ~%9); 'taban serisi' uyarısından ~2 gün önce gelir. Kilitli tabanda satış emri çoğu zaman gerçekleşmez. Piyasanın çöktüğü günde (BIST 100 −%4 ve altı) başlayan serileri yakalamaz. Kesin değil; AL mesajı gönderilmez.</span></div>
 <div class="sz"><span class="patlakb">🎈 şişme</span><span>Tahtacı şişirmesi olabilir: kısa sürede çok tavan / fiyat ikiye katlandı / aşırı şişkin ve oynak. 20 günde %25+ çakılma olasılığı normalin 7-8 katı. AL mesajı gönderilmez. Aynı işaret düşüşten sonraki tepki tavanlarında da çıkar (20 günde hâlâ eksideyse '🎈 sert dalgalanma' yazar).</span></div>
+<div class="sz"><span class="patlakb">⚠️ manipülasyon işareti</span><span>Şu 5 işaretten en az 2'si var: son 120 günde 3+ gün art arda tavan; son 120 günde fiyat 60 günde 3 katına çıktı; son 250 günde hisseye özel taban serisi (15 günde 4+ taban); son 60 günde Borsa İstanbul VBTS (volatilite bazlı tedbir) kararı; son 365 günde SPK tedbir kararı (son ikisi KAP'tan). Geçmişte bu hisselerde kilitli tabanda satamama riski birkaç kat yüksekti (10.10.2026 araştırması ~2,7 kat; 2018-26 testinde 60 günde kilitli taban %11-13, diğerlerinde %2-3). Bilgi: alım yasağı değil, AL/SAT kuralı değişmez; pozisyonu küçük tut.</span></div>
 <div class="sz"><span class="gun1b">⚠️ dağıtım</span><span>Hacim patlarken fiyat 10 günlük zirvenin %8+ altında: büyük satıcı malı dağıtıyor olabilir (çakılma olasılığı ~4 kat).</span></div>
 <div class="sz"><span class="gun1b">🔻 özel düşüş</span><span>Son 5 ya da 20 günde endeksten belirgin fazla (10 / 20 puan) ve yüksek hacimle düştü; benzer hisseler bu kadar düşmedi. Geçmişte bu durumdakilerin sonraki 20 günde ~%38'i endeksi geçti (normalde ~%46); 2022-23 düşük faiz döneminde fark yoktu. Bilgi, sinyal değil.</span></div>
 <div class="sz"><span class="gun1b">🪤 tuzak riski</span><span>Dipteki hisse düşen trendi %4+ yükselişle kırdı. Grafikte "AL" gibi görünür ama tüm borsada bu kırılımların %56'sı 15 günde geri düştü; kırılımda almak rastgele günden kötüydü.</span></div>
@@ -512,6 +556,7 @@ __ARZ__
 <div class="kart"><h3>Destek / Direnç</h3><p>Son 120 günün dip ve tepe noktaları. <b>Destekten tepki</b>: fiyat eski bir dibe indi ve yukarı dönüyor. <b>Dirence yaklaşıyor</b>: fiyat geçmişte satış gelen bir tepeye yakın, temkinli ol. Hisseye tıklayınca seviyeleri görürsün.</p></div>
 </div>
 <div class="uyari">Yatırım tavsiyesi değildir. Göstergeler geçmişe bakar, geleceği garanti etmez; bu araç yalnızca sistemli karar vermeye yardımcı olur. Veriler ~15 dk gecikmeli olabilir. Kararların sorumluluğu sana aittir.</div>
+<div class="durust"><b>Dürüst olalım:</b> __DURUST__</div>
 </div>
 
 <div class="ust" id="ust" onclick="if(event.target===this)kapat()"><div class="modal" id="modal"></div></div>
@@ -520,6 +565,7 @@ const DATA=__DATA__;
 const XU=__XU__;
 const PIYASA=__PIYASA__;  // BIST 100: son 2 yıl günlük, öncesi haftalık — portföy-endeks kıyası
 const GI=__GI__;
+const MN_NOT=__MNNOT__;  // ⚠️ manipülasyon rozeti açıklaması (pano.MN_NOT)
 const KK=__KK__;  // 🔐 kâr kilidi [eşik %, seviye %] (sinyal.KAR_KILIT_*), kural kapalıysa null — çizgi değerleri Python'dan hazır gelir
 const t=document.getElementById('t');
 [...t.tBodies[0].rows].forEach(function(r){var c=r.querySelector('td.vd');if(c)c.innerHTML=vdHucre((DATA[r.dataset.kod]||{}).vd);});
@@ -570,6 +616,15 @@ function tabloDuzen(){
 
 // --- 📋 Bugün ne var? — tek bakışta: piyasa, yeni 🚀 AL'ler, portföy ve favori uyarıları (hepsi cihazda hesaplanır)
 function _kl(k){return '<a href="#" class="bgk" onclick="ac(\''+k+'\');return false">'+k+'</a>';}
+// ⚠️ Manipülasyon işaretleri (d.mn = {i:[[tür,tarih,değer],...], n}; Python pano.manip_isaret ile aynı metin)
+function mnTarih(t){return t.slice(8,10)+'.'+t.slice(5,7)+'.'+t.slice(0,4);}
+function mnIsaret(x){var k=x[0],t=mnTarih(x[1]),v=x[2];
+ if(k==='tv')return v+' gün art arda tavan ('+t+')';
+ if(k==='x3')return '60 günde '+String(v).replace('.',',')+' kat yükseliş ('+t+')';
+ if(k==='ts')return 'hisseye özel taban serisi: 15 günde '+v+' taban ('+t+')';
+ if(k==='vb')return 'Borsa İstanbul VBTS (volatilite bazlı tedbir) kararı ('+t+')';
+ return 'SPK tedbir kararı ('+t+')';}
+function mnMetin(mn){return mn?'⚠️ <b>Manipülasyon işareti</b> (5 işaretten '+mn.n+' tanesi var): '+mn.i.map(mnIsaret).join('; ')+'. <b>Kilitli tabanda satamama riski yüksek; alım yasağı değil.</b> '+MN_NOT:'';}
 function bugunUyari(k,d,p){  // bir hisse için dikkat notları
  var u=[];if(!d)return u;
  if(d.kt)u.push('🔒 kilitli taban');   // en üstte: satış emri gerçekleşmeyebilir / çöküş
@@ -583,6 +638,7 @@ function bugunUyari(k,d,p){  // bir hisse için dikkat notları
  if(d.tahta&&d.tahta.seviye==='sisme')u.push(thDalga(d.tahta)?'🎈 sert dalgalanma':'🎈 şişme');
  if(d.tahta&&d.tahta.seviye==='dagitim')u.push('⚠️ dağıtım');
  if(d.tuzak)u.push('🪤 tuzak riski');
+ if(d.mn)u.push('⚠️ manipülasyon işareti ('+d.mn.n+'/5)');
  if(p&&d.od)u.push('🔻 hisseye özel düşüş ('+d.od.u+' gün)');
  if(d.bilanco&&d.bilanco.kalan_gun!=null&&d.bilanco.kalan_gun>=0&&d.bilanco.kalan_gun<=7)u.push('📅 bilanço '+d.bilanco.kalan_gun+' gün sonra');
  if(d.temettu&&d.temettu.ex_kalan!=null&&d.temettu.ex_kalan<=7)u.push('💰 temettü '+d.temettu.ex_kalan+' gün sonra');
@@ -1189,6 +1245,7 @@ function sadeHtml(k,d){
  else if(thDalga(th))uy='🎈 <b>En önemli uyarı — sert tavan-taban dalgalanması:</b> düşüşten sonra kısa sürede çok tavan / çok oynak fiyat (20 günde hâlâ '+pyz(th.yuk20)+'); geçmişte bu işaretteki hisselerin ~%15-19\'u sonraki 20 günde %25+ düştü (normalde %2).';
  else if(th.seviye==='sisme')uy='🎈 <b>En önemli uyarı — şişme riski:</b> kısa sürede çok yükseldi; geçmişte bu durumdaki hisselerin ~%15-19\'u sonraki 20 günde %25+ düştü (normalde %2).';
  else if(th.seviye==='dagitim')uy='⚠️ <b>En önemli uyarı — dağıtım işareti:</b> hacim artarken fiyat son zirvesinden geriliyor; büyük satıcı elindekini satıyor olabilir.';
+ else if(d.mn)uy='⚠️ <b>En önemli uyarı — manipülasyon işareti:</b> '+d.mn.i.map(mnIsaret).join('; ')+'. Bu tür hisselerde kilitli tabanda satamama riski yüksek (alım yasağı değil).';
  else if(d.tuzak)uy='🪤 <b>En önemli uyarı — tuzak riski:</b> dipteki hisse düşen trendi yukarı kırdı; geçmişte bu kırılımların yarısından fazlası 15 günde geri düştü.';
  else if(d.od)uy='🔻 <b>En önemli uyarı — hisseye özel hacimli düşüş:</b> son '+d.od.u+' günde '+pyz(d.od.r)+' (BIST 100 '+pyz(d.od.xu)+', hacim ortalamanın '+kat(d.od.hk)+' katı), benzer hisseler bu kadar düşmedi. '+OD_NOT;
  else if(b.kalan_gun!=null&&b.kalan_gun>=0&&b.kalan_gun<=7)uy='📅 <b>'+(b.kalan_gun?b.kalan_gun+' gün sonra':'Bugün')+' bilanço</b> açıklanabilir: o gün fiyat sert oynayabilir.';
@@ -1268,6 +1325,7 @@ function ac(k){
  (d.kt?'<div class="patlakkutu">'+ktMetin(d.kt).replace('🔒 kilitli taban:','🔒 <b>Kilitli taban:</b>')+' <span class="sgun">Tanım: üst üste 2 taban (≤ −%9), 2. gün gün içi fiyat aralığı ≤ %0,15 (alıcı yok), BIST 100 iki gün de −%4\'ten iyi. Piyasanın çöktüğü günde başlayan serileri yakalamaz. Bu hisseden AL mesajı gönderilmez.</span></div>':'')+
  (d.patlak?'<div class="patlakkutu">⚠ <b>Taban serisi:</b> son 15 günde '+d.taban15+' kez ~%10 düştü. Fon krizi tipi çöküş olabilir; bu hisseden AL mesajı gönderilmez.</div>':'')+
  (d.tuzak?'<div class="patlakkutu">🪤 <b>Düşen trend kırılımı — tuzak riski:</b> '+d.tuzak.tarih+' günü hisse düşük seviyedeyken %'+d.tuzak.gunluk+' yükselişle düşen trend çizgisini kırdı ('+d.tuzak.kirilim_fiyat+' TL). Grafikte "AL" gibi görünür ama tüm borsada 5 yılda bu kırılımların <b>%56\'sı 15 gün içinde %5+ geri düştü</b>; kırılımda alıp 60 gün tutmak aynı hisselerde rastgele bir günden kötü sonuç verdi. Hacimli ya da güçlü kapanışlı olması tuzağı ayırmıyor.'+(d.tuzak.geri_dondu?' <b>Şu an kırılım fiyatının %5+ altına döndü.</b>':'')+'</div>':'')+
+ (d.mn?'<div class="patlakkutu">'+mnMetin(d.mn)+' <span class="sgun">İşaretler: son 120 günde 3+ art arda tavan · son 120 günde 60 günde 3 kat yükseliş · son 250 günde hisseye özel taban serisi (15 günde 4+ taban, piyasa çöküş günleri sayılmaz) · son 60 günde VBTS kararı · son 365 günde SPK tedbir kararı (KAP).</span></div>':'')+
  ((d.tahta&&d.tahta.seviye)?'<div class="patlakkutu">'+(thDalga(d.tahta)?'🎈 <b>Sert tavan-taban dalgalanması (düşüş sonrası):</b> '+d.tahta.neden.join('; ')+', ama 20 günde hâlâ '+pyz(d.tahta.yuk20)+'. Tahtacı şişirmesiyle aynı işaret (kısa sürede çok tavan / çok oynak fiyat); bu durumdaki hisselerin ~%15-19\'u sonraki 20 günde %25+ düştü (normalde %2). Yeni alım için AL mesajı gönderilmez.':d.tahta.seviye==='sisme'?'🎈 <b>Şişme riski (tahtacı uyarısı):</b> '+d.tahta.neden.join('; ')+'. 5 yıllık veride bu durumdaki hisselerin ~%15-19\'u sonraki 20 günde %25+ çakıldı (normalde %2). Yeni alım için AL mesajı gönderilmez; elindeyse iz stop\'u sıkı takip et.':'⚠️ <b>Dağıtım işareti:</b> '+d.tahta.neden[0]+'. Büyük satıcı (tahtacı) malı dağıtıyor olabilir; bu durumdakilerin ~%10\'u 20 günde %25+ düştü (normalde %2).')+'</div>':'')+
  (d.bolunme?'<div class="arzkutu">✂️ <b>Bedelsiz/bölünme:</b> '+d.bolunme+' tarihinde fiyat tek günde sınırın ötesinde değişti; grafik ve göstergeler buna göre düzeltildi. Portföyündeyse maliyetini aracı kurumdaki yeni maliyetle güncelle.</div>':'')+
  '<div class="grafik">'+tkSonHtml(d)+((d.spark&&d.spark.w&&d.spark.w.length)?'<div class="graralik"><button id="gra6a" class="grb'+(_grAralik==='6a'?' on':'')+'" onclick="grAralikSec(\''+k+'\',\'6a\')">6 ay</button><button id="gra1y" class="grb'+(_grAralik==='1y'?' on':'')+'" onclick="grAralikSec(\''+k+'\',\'1y\')">1 yıl</button></div>':'')+

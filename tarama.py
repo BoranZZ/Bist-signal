@@ -8,12 +8,12 @@ import bisect, json, math, os, time
 from html import escape
 import pandas as pd
 import yfinance as yf
-from kap import kap_guncelle, kap_mesaji, fr_yayinlar, fr_son_donem
+from kap import kap_guncelle, kap_mesaji, fr_yayinlar, fr_son_donem, tedbir_guncelle, tedbir_son
 from bilanco import bilancolari_al, bilanco_ozet, bilanco_metni, bilanco_yakin, tarih_tr, temettu_ozet, zarar_guncelle
 from sinyal import analiz_et, destek_direnc, bolunme_duzelt, tahta_riski, TABAN_GETIRI, TABAN_GUN, IZ_STOP_ORAN, KILIT_ARALIK
 from sinyal import rs_puanlari, rs_tam, bilanco_tepkisi
-from sinyal import kar_kilit_ayar, iz_seviye
-from pano import pano_uret, gecmis_uret
+from sinyal import kar_kilit_ayar, iz_seviye, MANIP_ESIK
+from pano import pano_uret, gecmis_uret, manip_isaret
 import gunici
 try:
     import oda   # 🏢 İşlem Odası (sanal para); yoksa/bozuksa tarama etkilenmez
@@ -959,6 +959,36 @@ def siki_alt(sc):
     return a
 
 
+# ⚠️ Manipülasyon rozeti (MANIP2): 5 işaretten ≥2'si (sinyal.MANIP_ESIK). Fiyat işaretleri sinyal.manip_fiyat, KAP işaretleri
+# kap.tedbir_son. SADECE BİLGİ: AL/SAT, Telegram AL mesajı, backtest, İşlem Odası DEĞİŞMEZ; Telegram'da sadece portföy özeti.
+MANIP_VBTS_GUN, MANIP_SPK_GUN = 60, 365   # takvim günü
+MANIP_SIRA = ("tv", "x3", "ts", "vb", "sp")
+
+
+def manip_rozet(mf, td, kod, bugun):
+    """Fiyat işaretleri (mf) + KAP tedbirleri → {"i": [[tür, tarih, değer|None], ...] (MANIP_SIRA sırasıyla), "n": sayı}
+    ya da (işaret < MANIP_ESIK ise) None. Tedbir verisi olmayan (KAP geçmişi dolmamış) işaret yok sayılır."""
+    i = [[k, v[0], v[1]] for k, v in (mf or {}).items() if k in ("tv", "x3", "ts")]
+    v = tedbir_son(td, kod, "v", MANIP_VBTS_GUN, bugun) if td else None
+    s = tedbir_son(td, kod, "s", MANIP_SPK_GUN, bugun) if td else None
+    if v:
+        i.append(["vb", v, None])
+    if s:
+        i.append(["sp", s, None])
+    if len(i) < MANIP_ESIK:
+        return None
+    i.sort(key=lambda x: MANIP_SIRA.index(x[0]))
+    return {"i": i, "n": len(i)}
+
+
+def manip_metni(mn):
+    """Portföy özeti notu (JS mnMetin ile aynı işaret metinleri)."""
+    if not mn:
+        return ""
+    return (f"⚠️ manipülasyon işareti ({mn['n']}/5): " + "; ".join(manip_isaret(x) for x in mn["i"])
+            + " — kilitli tabanda satamama riski yüksek; alım yasağı değil")
+
+
 def siki_metni(sc):
     """📏 Sıkı çizgi notu (hisse penceresi 🚀 kutusu; JS scMetin ile aynı)."""
     if not sc:
@@ -1387,6 +1417,8 @@ def portfoy_ozeti(sonuclar, pf, piyasa=None, endeks=None, sd_satir=None):
             notlar.append(f"⚠️ taban serisi ({s['taban15']} kez/15 gün)")
         if s.get("kt"):
             notlar.insert(0, kilit_metni(s["kt"]))
+        if s.get("mn"):   # ⚠️ manipülasyon işaretleri (bilgi; sadece portföy özetinde, AL mesajına girmez)
+            notlar.append(manip_metni(s["mn"]))
         sc = (s.get("tk") or {}).get("sc") if (s.get("tk") or {}).get("durum") == "AL" else None
         if siki_alt(sc):   # 📏 aşırı uzamış 🚀 pozisyonunda son 5 günde sıkı çizgi (kijun) altında kapanış — bilgi
             notlar.append(f"📏 sıkı çizginin altında kapandı ({', '.join(_gun_ay(x) for x in siki_alt(sc))}; çizgi {_sayi_tr(sc['s'])} TL, kijun) — "
@@ -1557,6 +1589,11 @@ def main():
     oranlar = oranlari_al(KODLAR)
     bilancolar = bilancolari_al(KODLAR)
     kap_hisse, kap_yeni, kap_fr = kap_guncelle(KODLAR)
+    try:   # ⚠️ manipülasyon rozeti: KAP'taki pay bazında VBTS / SPK tedbir duyuruları (önbellekli; hata taramayı bozmaz)
+        tedbir = tedbir_guncelle(KODLAR)
+    except Exception as e:
+        print(f"KAP tedbir verisi alınamadı ({type(e).__name__}); rozet sadece fiyat işaretleriyle.")
+        tedbir = None
     _ana = set(BIST100) | set(EK_HISSELER)
     try:   # 'zarardaki şirket' notu: son 4 çeyrek net kâr (İş Yatırım, önbellekli; sadece yeni dönem yayınlanınca çekilir)
         _sira = [k for k in KODLAR if k in _ana] + [k for k in KODLAR if k not in _ana]
@@ -1613,6 +1650,10 @@ def main():
                     a["bt"] = None
             _z = zarar.get(kod)
             a["zr"] = _z["d"] if _z and _z["n"] <= 0 else None   # son 4 çeyrekte zarar (dönem adı); sadece panoda not
+            try:   # ⚠️ manipülasyon işaretleri (≥2/5) — bilgi; hata hisseyi düşürmesin
+                a["mn"] = manip_rozet(a.get("mf"), tedbir, kod, str(_sim.date()))
+            except Exception:
+                a["mn"] = None
             sonuclar.append(a)
         except Exception as e:
             print(f"Atlandı {kod}: {e}")
@@ -1757,7 +1798,7 @@ def main():
         f.write(pano_uret(sonuclar, ornek=False, uyari=uyari, piyasa=piyasa, yeni_arzlar=yeni_arzlar, endeks=endeks,
                           gunici=gi))
     print(f"index.html: {len(sonuclar)} hisse (+{len(yeni_arzlar)} yeni arz), {len(bugun_al)} AL, {len(yeni)} yeni | "
-          f"taban serisi: {sum(1 for s in sonuclar if s.get('patlak'))} | "
+          f"taban serisi: {sum(1 for s in sonuclar if s.get('patlak'))} | ⚠️ manipülasyon işareti: {sum(1 for s in sonuclar if s.get('mn'))} | "
           f"piyasa: {'zayıf' if piyasa and piyasa['zayif'] else 'normal'} | "
           f"karne: {karne['kapanan']} kapanan, {karne['acik']} açık.")
     if patlak_al:

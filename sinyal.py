@@ -803,6 +803,67 @@ def trend_tuzagi(d, son_gun=5):
     return None
 
 
+# ⚠️ Manipülasyon işaretleri (MANIP2, 10.10.2026 araştırma kararı; sadece BİLGİ rozeti — AL/SAT, backtest, İşlem Odası,
+# alım filtresi DEĞİŞMEZ). 5 işaretten ≥2'si → rozet; bu hisselerde kilitli tabanda satamama riski ~2,7 kat çıkmıştı.
+# Fiyat işaretleri burada (bölünme düzeltilmiş günlük veri, işlem günü sayısı); KAP işaretleri (VBTS, SPK tedbiri) kap.py'de,
+# birleştirme tarama.manip_rozet'te.
+MANIP_TAVAN, MANIP_TAVAN_SERI, MANIP_TAVAN_GUN = 0.095, 3, 120   # (1) son 120 günde 3+ art arda tavan (≥ +%9,5, tahta_riski ile aynı)
+MANIP_KAT, MANIP_KAT_GUN, MANIP_KAT_PENCERE = 3.0, 60, 120        # (2) son 120 günde bir gün kapanış 60 gün öncesinin ≥3 katı
+MANIP_TABAN_PENCERE = 250   # (3) son 250 günde hisseye özel taban serisi: 15 günde ≥4 taban (≤ −%9), BIST 100'ün −%4 ve altı günleri sayılmaz
+MANIP_ESIK = 2              # rozet için en az kaç işaret
+
+
+def manip_fiyat(d, xu=None):
+    """⚠️ Manipülasyon rozetinin fiyat işaretleri (o güne kadarki veriyle). Döner (sadece olanlar):
+    {"tv": [serinin son günü, art arda tavan sayısı], "x3": [en yüksek katın günü, kat], "ts": [serinin son taban günü, 15 günde
+    en çok taban sayısı]}; hiçbiri yoksa {}. 'ts' için taban günü hisseye özel olmalı: BIST 100 o gün > −%4 (piyasa çöküşü
+    günleri sayılmaz; XU verisi eksik gün çöküş sayılmaz — kilitli_taban_seri ile aynı)."""
+    c = d["Close"]
+    n = len(c)
+    out = {}
+    if n < 2:
+        return out
+    cv = c.values.astype(float)
+    r = c.pct_change().values
+    idx = d.index
+    # (1) art arda tavan: son 120 günde biten en son 3+ seri
+    tav = r >= MANIP_TAVAN
+    run = np.zeros(n, dtype=int)
+    for i in range(1, n):
+        run[i] = run[i - 1] + 1 if tav[i] else 0
+    w0 = max(1, n - MANIP_TAVAN_GUN)
+    for i in range(n - 1, w0 - 1, -1):
+        if run[i] >= MANIP_TAVAN_SERI and (i == n - 1 or not tav[i + 1]):
+            out["tv"] = [str(idx[i].date()), int(run[i])]
+            break
+    # (2) 60 günde ×3: son 120 günün herhangi bir günü kapanış / 60 gün önceki kapanış
+    w0 = max(MANIP_KAT_GUN, n - MANIP_KAT_PENCERE)
+    if n > MANIP_KAT_GUN:
+        with np.errstate(divide="ignore", invalid="ignore"):
+            kat = cv[w0:] / cv[w0 - MANIP_KAT_GUN:n - MANIP_KAT_GUN]
+        kat = np.where(np.isfinite(kat), kat, 0.0)
+        if kat.size and kat.max() >= MANIP_KAT:
+            j = int(kat.argmax())
+            out["x3"] = [str(idx[w0 + j].date()), round(float(kat[j]), 1)]
+    # (3) hisseye özel taban serisi (son 250 gün)
+    xr = (xu.dropna().pct_change().reindex(idx).values if xu is not None else np.full(n, np.nan))
+    tab = (r <= TABAN_GETIRI) & ~(xr <= KILIT_XU)
+    say = pd.Series(tab.astype(int), index=idx).rolling(TABAN_GUN, min_periods=1).sum().values
+    w0 = max(0, n - MANIP_TABAN_PENCERE)
+    seri = [i for i in range(w0, n) if say[i] >= PATLAK_TABAN and tab[i]]
+    if seri:
+        out["ts"] = [str(idx[seri[-1]].date()), int(say[w0:].max())]
+    return out
+
+
+def _manip_guvenli(d, xu):
+    """manip_fiyat; hata analizi bozmasın (bilgi rozeti) → {}."""
+    try:
+        return manip_fiyat(d, xu)
+    except Exception:
+        return {}
+
+
 def guc_puani(d, ham=False):
     """💪 Güç puanı (0-7): gece testlerinde tek başına iyi çıkan 7 göstergeden kaçı şu an olumlu. Olay çalışması (2022-26,
     125 ve 586 hisse): puan arttıkça SONRAKİ ~20 GÜNDE endekse göre getiri artıyor (iki faiz döneminde de; 7/7 ≈ +%2-6,
@@ -1095,6 +1156,7 @@ def analiz_et(df, xu_ust=None, xu=None, bar_kesin=True, bugun=None):
         "kt": None if taban >= PATLAK_TABAN else kilitli_taban(d, xu),
         "tahta": tahta_riski(d),
         "tuzak": trend_tuzagi(d),
+        "mf": _manip_guvenli(d, xu),   # ⚠️ manipülasyon rozetinin fiyat işaretleri (KAP işaretleriyle tarama.manip_rozet birleştirir)
         "sinyal_tarih": sinyal_tarih,
         "sinyal_degisim": sinyal_degisim,
         "yeni": bool(yeni),

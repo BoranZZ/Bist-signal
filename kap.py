@@ -1,6 +1,8 @@
 """KAP bildirimleri (bilgi amaçlı): kap.org.tr'nin kendi sitesinin kullandığı bildirim sorgusu (tek POST ile tüm
 şirketler). Özel durum açıklamaları (ODA) ve finansal raporlar (FR); tekrar eden/teknik konular ayıklanır.
 Haberin çoğu fiyata hızla yansır — sinyal değil, bağlam.
+⚠️ Manipülasyon rozeti için Borsa İstanbul / SPK'nın KAP duyurularından (memberType DDK, sınıf DUY) pay bazında VBTS (volatilite bazlı
+tedbir) ve SPK tedbir kararları `td` olarak ~370 gün saklanır (`tedbir_guncelle`; ilk kurulumda geçmiş parça parça dolar).
 Ayrıca 📊 bilanço tepkisi ve 'zarardaki şirket' notu için her şirketin dönem başına İLK 'Finansal Rapor' yayın zamanı (`fr`)
 kap.json'da ~400 gün saklanır (aynı FR sorgusundan; ilk kurulumda geçmiş, taramaya birkaç küçük sorgu eklenerek parça parça dolar)."""
 import json
@@ -29,8 +31,8 @@ FR_ADIM = 4             # her taramada en çok bu kadar geçmiş sorgusu (~1-2 s
 FR_BEKLE = 1.0          # geçmiş sorguları arasında bekleme (sn) — KAP'a nazik
 
 
-def _sorgu(sinif, bas, son):
-    govde = {"fromDate": bas, "toDate": son, "memberType": "IGS", "mkkMemberOidList": [], "disclosureClass": sinif,
+def _sorgu(sinif, bas, son, uye="IGS"):
+    govde = {"fromDate": bas, "toDate": son, "memberType": uye, "mkkMemberOidList": [], "disclosureClass": sinif,
              "subjectList": [], "isLate": "", "mainSector": "", "sector": "", "subSector": "", "marketOidList": [],
              "index": "", "bdkReview": "", "bdkMemberOidList": [], "year": "", "term": "", "ruleType": "", "period": "",
              "fromSrc": False, "srcCategory": "", "discIndex": []}
@@ -153,14 +155,144 @@ def kap_guncelle(kodlar, bugun=None, fr_doldur=True):
     kodset = set(kodlar)
     sakla = sorted((b for b in tum.values() if b["t"] >= sinir and kodset.intersection(b["kodlar"])),
                    key=lambda b: b["id"], reverse=True)
+    ek = {k: v for k, v in onb.items() if k.startswith("td")}   # ⚠️ tedbir kayıtları (tedbir_guncelle yazar) korunur
     with open(KAP_CACHE, "w", encoding="utf-8") as f:
-        json.dump({"tarih": bugun, "bildirim": sakla, "fr_bas": fr_bas, "fr_son": fr_son, "fr": fr}, f, ensure_ascii=False)
+        json.dump({"tarih": bugun, "bildirim": sakla, "fr_bas": fr_bas, "fr_son": fr_son, "fr": fr, **ek}, f, ensure_ascii=False)
     hisse = {}
     for b in sakla:
         for k in b["kodlar"]:
             if k in kodset and len(hisse.setdefault(k, [])) < HISSE_BASI:
                 hisse[k].append({"id": b["id"], "t": b["t"], "konu": b["konu"], "ozet": b["ozet"][:220]})
     return hisse, yeni, {"kod": fr, "tam": bool(fr_bas and fr_bas <= hedef)}
+
+
+# --- ⚠️ Manipülasyon rozeti: pay bazında tedbir duyuruları (Borsa İstanbul VBTS + SPK tedbir kararı) --------------------------
+# Kaynak: aynı byCriteria sorgusu, memberType "DDK" (Borsa İstanbul / SPK / MKK / KAP duyuruları), disclosureClass "DUY"; hisse
+# kodu `relatedStocks`'ta. Günde ~200-300 'Pay Bazında Devre Kesici' kaydı da gelir (2000 sınırına yaklaşırsa aralık ikiye bölünür).
+# 'SPK İşlem Yasağı Nedeniyle Pay Duyurusu' (MKK) ALINMAZ: işlem yasağı getirilen kişilerin hesabındaki TÜM payları listeler
+# (AKBNK, THYAO...), hisseye özel tedbir değil.
+TD_SAKLA_GUN = 370      # SPK tedbiri son 365 gün aranır
+TD_SORGU_GUN = 2        # düzenli sorgu: son 2 gün (VBTS kararları ~18:20-18:45'te yayınlanır)
+TD_ARALIK_DK = 60       # geçmiş dolduysa en çok saatte bir sorgu (KAP'a nazik; ~150-300 KB/sorgu)
+TD_PENCERE = 7          # geçmiş doldurma: sorgu başına gün (7 günde ~1.200-1.400 kayıt)
+TD_ADIM = 3             # her taramada en çok bu kadar geçmiş sorgusu (~2-6 sn/sorgu); 370 gün ~18 taramada dolar
+TD_BUTCE_SN = 20        # geçmiş doldurmaya bir taramada ayrılan en çok süre
+
+
+def _td_tur(x):
+    """Ham DUY kaydı → 'v' (VBTS), 's' (SPK tedbir kararı) ya da None."""
+    konu, ozet = (x.get("subject") or "").strip(), (x.get("summary") or "")
+    if konu.startswith("BISTECH Pay Piyasası") and "Volatilite Bazlı Tedbir" in ozet:
+        return "v"
+    if konu == "Sermaye Piyasası Kurulu Tedbir Kararı":
+        return "s"
+    return None
+
+
+def td_cek(bas, son):
+    """[bas, son] aralığındaki VBTS / SPK tedbir duyuruları: [(kod, tür, 'YYYY-MM-DD HH:MM', id)]."""
+    d = _sorgu("DUY", bas, son, uye="DDK")
+    if len(d) >= 1990 and bas != son:
+        a, b = pd.Timestamp(bas), pd.Timestamp(son)
+        m = (a + (b - a) / 2).normalize()
+        return td_cek(bas, str(m.date())) + td_cek(str((m + pd.Timedelta(days=1)).date()), son)
+    out = []
+    for x in d:
+        tur = _td_tur(x)
+        if not tur or not x.get("relatedStocks"):
+            continue
+        try:
+            t = pd.to_datetime(x["publishDate"], format="%d.%m.%Y %H:%M:%S").strftime("%Y-%m-%d %H:%M")
+            i = int(x["disclosureIndex"])
+        except Exception:
+            continue
+        for k in str(x["relatedStocks"]).split(","):
+            if k.strip():
+                out.append((k.strip(), tur, t, i))
+    return out
+
+
+def td_birlestir(eski, yeni, kodset=None, sinir=None):
+    """{kod: [[t, tür, id], ...]} + [(kod, tür, t, id)] → aynı (kod, id) bir kez, eskiden yeniye; sinir'den eski atılır."""
+    en = {}
+    for k, L in (eski or {}).items():
+        for t, tur, i in L:
+            en[(k, i)] = (t, tur)
+    for k, tur, t, i in yeni:
+        en[(k, i)] = (t, tur)
+    out = {}
+    for (k, i), (t, tur) in en.items():
+        if (sinir is None or t >= sinir) and (kodset is None or k in kodset):
+            out.setdefault(k, []).append([t, tur, i])
+    return {k: sorted(L) for k, L in sorted(out.items())}
+
+
+def tedbir_guncelle(kodlar, simdi=None, dosya=None):
+    """kap.json'daki tedbir kayıtlarını (td) günceller. Döner: {"kod": {kod: [[t, tür, id], ...]}, "bas": kapsamın en eski günü
+    ya da None, "son": son başarılı sorgu günü}. KAP'a ulaşılamazsa önbellekle devam eder. Kapsam (`td_bas`/`td_son`) fr ile aynı
+    mantık: taramalar TD_PENCERE'den uzun kesilirse kapsam bugünden yeniden başlar, geçmiş yeniden doldurulur (kayıtlar korunur)."""
+    dosya = dosya or KAP_CACHE
+    simdi = simdi or pd.Timestamp.now(tz="Europe/Istanbul").tz_localize(None)
+    bugun = str(simdi.date())
+    try:
+        with open(dosya, encoding="utf-8") as f:
+            onb = json.load(f)
+    except Exception:
+        onb = {}
+    td, bas, son, tt = onb.get("td") or {}, onb.get("td_bas"), onb.get("td_son"), onb.get("td_t")
+    hedef = str((pd.Timestamp(bugun) - pd.Timedelta(days=TD_SAKLA_GUN)).date())
+    dolu = bool(bas and bas <= hedef)
+    taze = bool(tt and son == bugun and (simdi - pd.Timestamp(tt)).total_seconds() < TD_ARALIK_DK * 60)
+    yeni = []
+    if not (dolu and taze):
+        try:
+            q_bas = str((pd.Timestamp(bugun) - pd.Timedelta(days=TD_SORGU_GUN - 1)).date())
+            kesinti = not (bas and son and son >= str((pd.Timestamp(bugun) - pd.Timedelta(days=TD_PENCERE)).date()))
+            if not kesinti:
+                q_bas = min(son, q_bas)
+            yeni += td_cek(q_bas, bugun)
+            if kesinti:   # ilk kurulum ya da uzun kesinti: kapsam bugünkü sorgudan başlar (eski kayıtlar korunur)
+                bas = q_bas
+            son, tt = bugun, simdi.strftime("%Y-%m-%d %H:%M")
+        except Exception as e:
+            print(f"KAP tedbir duyurularına ulaşılamadı ({type(e).__name__}); önbellekle devam.")
+        if son == bugun and bas and bas > hedef:   # geçmişi parça parça doldur (yeniden eskiye)
+            t0 = time.time()
+            try:
+                for _ in range(TD_ADIM):
+                    if bas <= hedef or time.time() - t0 > TD_BUTCE_SN:
+                        break
+                    son_ = str((pd.Timestamp(bas) - pd.Timedelta(days=1)).date())
+                    bas_ = str(max(pd.Timestamp(bas) - pd.Timedelta(days=TD_PENCERE), pd.Timestamp(hedef)).date())
+                    time.sleep(FR_BEKLE)
+                    yeni += td_cek(bas_, son_)
+                    bas = bas_
+            except Exception as e:
+                print(f"KAP tedbir geçmişi bu taramada doldurulamadı ({type(e).__name__}).")
+        td = td_birlestir(td, yeni, set(kodlar), sinir=hedef)
+        try:
+            with open(dosya, encoding="utf-8") as f:   # kap_guncelle'nin bu taramada yazdığı en güncel hâl
+                onb = json.load(f)
+        except Exception:
+            pass
+        onb.update({"td": td, "td_bas": bas, "td_son": son, "td_t": tt})
+        with open(dosya, "w", encoding="utf-8") as f:
+            json.dump(onb, f, ensure_ascii=False)
+    print(f"KAP tedbir: {sum(len(L) for L in td.values())} kayıt, {len(td)} hisse (kapsam {bas or '—'} → {son or '—'}).")
+    return {"kod": td, "bas": bas, "son": son}
+
+
+def tedbir_son(td, kod, tur, gun, bugun):
+    """Hissenin son `gun` takvim gününde (bugün dahil) `tur` tedbirinin en son yayın günü ('YYYY-MM-DD') ya da None."""
+    sinir = str((pd.Timestamp(bugun) - pd.Timedelta(days=gun)).date())
+    L = [t[:10] for t, tr, _ in ((td or {}).get("kod") or {}).get(kod) or [] if tr == tur and t[:10] >= sinir]
+    return max(L) if L else None
+
+
+def tedbir_kapsam(td, gun, bugun):
+    """Son `gun` takvim günü tedbir verisiyle kapsanıyor mu (geçmiş doldu mu)?"""
+    b = (td or {}).get("bas")
+    return bool(b and (td or {}).get("son") and b <= str((pd.Timestamp(bugun) - pd.Timedelta(days=gun)).date()))
 
 
 def donem_adi(y, q):
