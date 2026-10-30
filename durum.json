@@ -1,7 +1,6 @@
 {
   "al": [
-    "GMTAS",
-    "RYGYO"
+    "GMTAS"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -655,7 +654,8 @@
   "gunici": {
     "tarih": "2026-10-30",
     "g": [
-      "b11f4dd6e11c2e2f"
+      "b11f4dd6e11c2e2f",
+      "da61cd3d97af374b"
     ]
   },
   "sabah_tarih": "2026-10-30"
