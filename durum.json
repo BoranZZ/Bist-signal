@@ -334,17 +334,11 @@
     "ed52d36b8529c244",
     "fc9a269fa7f1b36a"
   ],
-  "ozet_tarih": "2026-10-29",
-  "hafta_tarih": "2026-10-23",
+  "ozet_tarih": "2026-10-30",
+  "hafta_tarih": "2026-10-30",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {
-    "INDES": {
-      "sinyal": "SAT",
-      "onceki": "AL",
-      "tarih": "2026-10-30"
-    }
-  },
+  "on_sinyal": {},
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
@@ -582,7 +576,7 @@
     "SKBNK": "SAT",
     "SMRTG": "SAT",
     "SNGYO": "SAT",
-    "SOKM": "AL",
+    "SOKM": "SAT",
     "SUNTK": "SAT",
     "SURGY": "SAT",
     "TABGD": "SAT",
@@ -624,7 +618,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1690023,
+  "kap_son": 1690062,
   "tk_gonderilen": {
     "tarih": "2026-10-30",
     "kodlar": []
