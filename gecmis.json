@@ -34,8 +34,8 @@
       "giris_fiyat": 411.5,
       "stop": 329.2,
       "durum": "açık",
-      "guncel": 350.25,
-      "anlik": -14.9,
+      "guncel": 350.5,
+      "anlik": -14.8,
       "tepe": 411.5
     },
     {
@@ -86,8 +86,8 @@
       "giris_fiyat": 44.34,
       "stop": 39.2,
       "durum": "açık",
-      "guncel": 46.5,
-      "anlik": 4.9,
+      "guncel": 46.54,
+      "anlik": 5.0,
       "tepe": 49.0
     },
     {
@@ -124,8 +124,8 @@
       "giris_fiyat": 58.2,
       "stop": 47.92,
       "durum": "açık",
-      "guncel": 53.6,
-      "anlik": -7.9,
+      "guncel": 53.65,
+      "anlik": -7.8,
       "tepe": 59.9
     },
     {
@@ -148,7 +148,7 @@
       "giris_fiyat": 429.0,
       "stop": 343.2,
       "durum": "açık",
-      "guncel": 355.0,
+      "guncel": 355.25,
       "anlik": -17.2,
       "tepe": 429.0
     }
