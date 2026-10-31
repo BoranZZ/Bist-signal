@@ -938,3 +938,18 @@ Tamamı istemci JS (`pano.py` şablonunda `df*` fonksiyonları), portföyün alt
 ## 👔 Patron (içeriden) alımı — TEST EDİLDİ, EKLENMEDİ (2026-10-30, arşiv Documents/Bist-arastirma/2026-10-23/patron/RAPOR.md; tekrar araştırma)
 - KAP Pay Alım Satım Bildirimleri 2020-01…2026-10 (4.182 bildirim, ayrıştırma hatası ~%7,5, yön hatası 0). Alım sinyalleri A1–A7 (yönetici, büyük ortak, holding, küme, düşüş sonrası, trend içi): 1 hafta/1-3-6 ayda aynı hissenin rastgele günlerinden farksız; 56 testte BH düzeltmesi sonrası hiçbiri anlamlı değil, yıldan yıla işaret değiştiriyor.
 - 👔 robot (net alım): +%2.072 vs 🔐 Kırılımcı +%3.019, rastgele ikizlerin %69'unu geçiyor (ana %16, küçük %9) → robot yok. Tek zayıf aday "son 60 günde patron satışı" (v3 isabeti %61 vs %70; düzeltme sonrası p≈0,08) → eklenmedi. Şirket geri alımı (G2) anlamlı değil.
+
+## 🧪 AKIN 4 göstergesi — TEST EDİLDİ, PANOYA EKLENMEDİ; İşlem Odası'nda 2 DENEME robotu (2026-10-31, arşiv Documents/Bist-arastirma/2026-10-23/akin/RAPOR.md; tekrar araştırma)
+- Kullanıcının bulduğu TradingView göstergesi 'AKIN 4 · Sade' = BigBeluga Volume Delta + ChartPrime Ghost + DAFE RPD (Reversal Point Dynamics) + reees
+  Harmonics (XABCD). Varsayılan ayarlarla günlük grafikte 58 kural (tek başına / v3 filtresi / v3 erken çıkışı / adamın ▲▼ kullanımı / harmonik kendi
+  giriş-stop-hedefi / birleşik), MANIPULE hariç 257 hisse, 10 yıl, borsacı motoru (10 yuva, 200 yarım liste, dengeli puan, 🎲 100 deneme, BH): **hiçbiri
+  geçmedi** (55 GEÇMEDİ, 3 ZAYIF = canlıyla aynı). Adamın RPD ▲ al / ▼ sat kullanımı 10 yuva kârı canlının %16 / %12'si; harmonik kendi kuralı %3-5, isabet %29-47.
+- RPD 'olasılık %' ölçülmemiş puan: %99 yazan dipler de %65 yazanlar kadar tuttu (20 gün sonra yukarıda %49-51, rastgele gün %52,7); sinyallerin %58'inde %99.
+  MTF bölümü günlük grafikte geçmiş mumlarda hiç tetiklenmiyor (gaps_on); 'Fibonacci kanalı' 8-55 günlük en yüksek/düşük.
+- Grafik yanılsaması: Ghost 'B' ~22 gün, Delta halkası 5 gün, harmonik 'oluşuyor' ~5 gün geriye çiziliyor; Ghost yükseliş B'si çizildiği günden alınsa 20g
+  +%9,9, bilindiği günden +%4,0 (rastgele +%3,4).
+- **Odadaki deneme robotları** (`tur: 'akin'`, `sinyal: 'rpd'|'dk'`; iz %20 + 🔐 A4; salon köşesi '🧪 AKIN DENEME'): 🔄 AKIN dip (RPD) `akin_rpd` — RPD ▲ dip
+  (▲ + '?' + ◈) → iz + kilit; 🟢 AKIN delta kırılımı `akin_delta` — görünür (≥%20) delta direnci kapanışla aşılınca → iz + kilit. Canlı: `sinyal.akin_rpd` /
+  `akin_delta_kirilim` / `akin_sinyal` → `analiz_et` `ak` (SADECE `bar_kesin` taramada; ~22 ms/hisse; panoya gömülmez) → `oda.ozet_hazirla` `ak`; replay
+  `ozellik` `ak_rpd`/`ak_dk` (+ aday). Saf numpy sürüm = araştırma (numba) 257 hissede 10 yılda RPD 6.803/6.803, delta 12.121/12.121; 4 yıllık pencere = 10
+  yıl son 250 günde RPD 0 fark, delta 1/1.642.

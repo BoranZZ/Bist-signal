@@ -934,6 +934,196 @@ def weinstein_evre2(c, xu, n=200):
     return (c > ma) & (ma > ma.shift(20)) & (mrs > 0)
 
 
+# ================== 🏢 AKIN 4 göstergeleri (İşlem Odası deneme robotları; scratchpad akin/RAPOR.md) ==================
+# Kullanıcının bulduğu TradingView göstergesi 'AKIN 4 · Sade' (RPD + Volume Delta + Ghost + Harmonics), varsayılan ayarlar,
+# günlük mum. 10 yıllık testte hiçbir parçası v3+🔐'ü ya da 🎲 rastgele girişi geçmedi → panoya GİRMEZ, sadece odada karne tutar.
+# Araştırma karşılığı scratchpad akin/akin_gosterge.py (numba); bu saf numpy sürümü onunla birebir (test: akin/t_esit.py).
+def _rma_np(x, n):
+    out = np.full(len(x), np.nan); s = 0.0; k = 0; prev = np.nan
+    for t in range(len(x)):
+        v = x[t]
+        if v != v:
+            out[t] = prev; continue
+        if prev != prev:
+            s += v; k += 1
+            if k == n:
+                prev = s / n; out[t] = prev
+        else:
+            prev = (prev * (n - 1) + v) / n; out[t] = prev
+    return out
+
+
+def _atr_np(H, L, C, n):
+    pc = np.r_[np.nan, C[:-1]]
+    tr = np.where(np.isnan(pc), H - L, np.fmax(H - L, np.fmax(np.abs(H - pc), np.abs(L - pc))))
+    return _rma_np(tr, n)
+
+
+def _ema_np(x, n):
+    a = 2.0 / (n + 1); out = np.full(len(x), np.nan); prev = np.nan
+    for t in range(len(x)):
+        v = x[t]
+        if v != v:
+            out[t] = prev; continue
+        prev = v if prev != prev else a * v + (1 - a) * prev
+        out[t] = prev
+    return out
+
+
+def akin_rpd(d):
+    """RPD (Reversal Point Dynamics, DAFE) ▲ dip / ▼ tepe sinyalleri, Pine varsayılanları (period 25, fractal 2, 6 seviye, kenar 3,
+    eşik 65 − uyarlamalı, en az 10 mum ara, entropi 0,85, erken mod AÇIK, RSI 17 65/40, hacim 17×1,2, SuperTrend hlcc4 1,1/16).
+    Puan Pine'daki gibi (uyarlamalı bonus TL cinsinden ham — araştırmada sonucu değiştirmedi). MTF (4D, gaps_on) geçmiş mumlarda
+    hiç tetiklenmediği için yok. Döner: (dip, tepe) bool dizileri (günün kapanışında bilinir)."""
+    O, H, L, C = (d[k].to_numpy(dtype=float) for k in ("Open", "High", "Low", "Close"))
+    V = np.nan_to_num(d["Volume"].to_numpy(dtype=float)) if "Volume" in d else np.zeros(len(C))
+    T = len(C)
+    vv = np.zeros(T, bool); pv = np.zeros(T, bool)
+    if T < 40:
+        return vv, pv
+    P, A, LV, ED, MINP, MIND, ENT = 25, 2, 6, 3, 65.0, 10, 0.85
+    hlc3 = (H + L + C) / 3.0
+    s = np.full(T, np.nan)
+    s[2:] = (3 * hlc3[2:] + 2 * hlc3[1:-1] + hlc3[:-2]) / 6.0
+    at = _atr_np(H, L, C, 14)
+    src = (H + L + 2 * C) / 4.0
+    a16 = _atr_np(H, L, C, 16)
+    up = np.full(T, np.nan); lo = np.full(T, np.nan); tr = np.ones(T, int); trend = 1
+    for t in range(T):
+        u = src[t] - 1.1 * a16[t]; l_ = src[t] + 1.1 * a16[t]
+        if t > 0 and up[t - 1] == up[t - 1] and u == u and C[t - 1] > up[t - 1]:
+            u = max(u, up[t - 1])
+        if t > 0 and lo[t - 1] == lo[t - 1] and l_ == l_ and C[t - 1] < lo[t - 1]:
+            l_ = min(l_, lo[t - 1])
+        up[t] = u; lo[t] = l_
+        if t > 0:
+            if trend == -1 and lo[t - 1] == lo[t - 1] and C[t] > lo[t - 1]:
+                trend = 1
+            elif trend == 1 and up[t - 1] == up[t - 1] and C[t] < up[t - 1]:
+                trend = -1
+        tr[t] = trend
+    ss = pd.Series(s)
+    hi = ss.rolling(P).max().to_numpy(); lw = ss.rolling(P).min().to_numpy()
+    rg = hi - lw
+    with np.errstate(invalid="ignore", divide="ignore"):
+        state = np.where(rg > 0, np.floor((s - lw) / rg * (LV - 1) + 0.5), 0.0)
+    state[np.isnan(rg)] = np.nan
+    lag = 13
+    vel = np.full(T, np.nan); vel[lag:] = s[lag:] - s[:-lag]
+    acc = np.full(T, np.nan); acc[1:] = vel[1:] - vel[:-1]
+    ds = np.full(T, np.nan); ds[1:] = s[1:] - s[:-1]
+    gec = (~np.isnan(ds)).astype(float); yuk = (ds > 0).astype(float)
+    tot = pd.Series(gec).rolling(P, min_periods=1).sum().to_numpy()
+    upc = pd.Series(yuk).rolling(P, min_periods=1).sum().to_numpy()
+    p = upc / np.maximum(tot, 1.0)
+    with np.errstate(invalid="ignore", divide="ignore"):
+        ent = np.where((p > 0) & (p < 1), (-p * np.log(p) - (1 - p) * np.log(1 - p)) / np.log(2), 0.5)
+    ent[0] = np.nan
+    r = rsi(pd.Series(C), 17).to_numpy()
+    vs = pd.Series(V).rolling(17).mean().to_numpy(); v5 = pd.Series(V).rolling(5).mean().to_numpy()
+    ts = np.abs(_ema_np(vel, 10))
+    last = -1; lpk_p = lpk_v = lvl_p = lvl_v = np.nan
+    for t in range(6, T):
+        if not (at[t] > 0) or state[t] != state[t] or state[t - 1] != state[t - 1] or ent[t - 1] != ent[t - 1] or ts[t] != ts[t]:
+            continue
+        piv_h = H[t - 1] > H[t - 2] and H[t - 1] > H[t]
+        piv_l = L[t - 1] < L[t - 2] and L[t - 1] < L[t]
+        c0 = t - 3
+        fh = all(H[c0] > H[c0 - i] and H[c0] > H[c0 + i] for i in range(1, A + 1))
+        fl = all(L[c0] < L[c0 - i] and L[c0] < L[c0 + i] for i in range(1, A + 1))
+        pe = (piv_h or fh) and C[t] < L[t - 1]
+        ve = (piv_l or fl) and C[t] > H[t - 1]
+        bdiv = pe and lpk_p == lpk_p and H[t - 1] > lpk_p and vel[t - 1] < lpk_v
+        udiv = ve and lvl_p == lvl_p and L[t - 1] < lvl_p and vel[t - 1] > lvl_v
+        ch = tr[t] - tr[t - 1]
+        pst = pe and state[t - 1] >= LV - 1 - ED and (tr[t] == -1 or ch < 0)
+        vst = ve and state[t - 1] <= ED and (tr[t] == 1 or ch > 0)
+        ppot = state[t] >= LV - 1 - ED and acc[t] < 0 and ent[t] < ENT and tr[t] == -1
+        vpot = state[t] <= ED and acc[t] > 0 and ent[t] < ENT and tr[t] == 1
+        if not (pst or ppot or vst or vpot):
+            continue
+        volsp = vs[t] == vs[t] and V[t] > 1.2 * vs[t]
+        pe1 = ent[t - 1]
+        base = 40 + ts[t] / at[t] * 30 + (1 - pe1) * 10
+        es = 10 + (1 - pe1) * 5 if pe1 < ENT else -5.0
+        vb = 5 + (V[t] / v5[t] - 1) * 3 if (volsp and v5[t] > 0) else 0.0
+        adb = 10 + ts[t] * 0.5 if ts[t] > at[t] else 0.0
+        var_ = (H[t] - L[t]) / at[t] * 3 - 1.5
+        dacc = abs(acc[t])
+        rb_p = 8 + (r[t] - 50) / 5 if (r[t] > 65 and pe) else 0.0
+        rb_v = 8 + (r[t] - 50) / 5 if (r[t] < 40 and ve) else 0.0
+        prp = min(99.0, max(40.0, round(base + es + (20 + dacc * 2 if bdiv else 0.0) + rb_p + vb + adb + var_, 1)))
+        prv = min(99.0, max(40.0, round(base + es + (20 + dacc * 2 if udiv else 0.0) + rb_v + vb + adb + var_, 1)))
+        effmin = MINP - ts[t] / at[t] * 5
+        mesafe = last < 0 or (t - last > MIND)
+        okp = (pst or ppot) and prp >= effmin and mesafe
+        okv = (vst or vpot) and prv >= effmin and mesafe
+        if okp:
+            last = t; lpk_p = H[t - 1]; lpk_v = vel[t - 1]; pv[t] = True
+        if okv:
+            last = t; lvl_p = L[t - 1]; lvl_v = vel[t - 1]; vv[t] = True
+    return vv, pv
+
+
+def akin_delta_kirilim(d, n=5, mx=10, minp=20.0):
+    """Volume Delta (BigBeluga) direnç kırılımı: 5/5 pivot tepelerinden direnç seviyeleri (pivot 5 mum sonra bilinir), delta =
+    pivot çevresindeki 11 mumda hacim × (kapanışın mum içindeki yeri ×2 − 1). Grafikte görünen = kırılmamış en yeni 10 seviyeden
+    |delta|'sı en büyüğün ≥%20'si olanlar. Döner: bool dizi — o gün kapanış, DÜN görünen bir direncin üstüne çıktı (seviye silindi)."""
+    O, H, L, C = (d[k].to_numpy(dtype=float) for k in ("Open", "High", "Low", "Close"))
+    V = np.nan_to_num(d["Volume"].to_numpy(dtype=float)) if "Volume" in d else np.zeros(len(C))
+    T = len(C)
+    out = np.zeros(T, bool)
+    lv, dl, sp, vis = [], [], [], []      # seviye, delta, destek mi, dünkü görünürlük (yüzde, 0 = görünmez)
+
+    def pivot(x, t, yuksek):
+        c = t - n
+        if c - n < 0:
+            return False
+        v = x[c]
+        if v != v:
+            return False
+        w = x[c - n:t + 1]
+        if np.isnan(w).any():
+            return False
+        sol, sag = x[c - n:c], x[c + 1:t + 1]
+        if yuksek:
+            return bool((sol < v).all() and (sag <= v).all())
+        return bool((sol > v).all() and (sag >= v).all())
+
+    for t in range(T):
+        if C[t] != C[t]:
+            continue
+        for yuksek in (True, False):
+            if pivot(H if yuksek else L, t, yuksek):
+                k = np.arange(t - 2 * n, t + 1)
+                rg = H[k] - L[k]
+                with np.errstate(invalid="ignore", divide="ignore"):
+                    w = np.where(rg > 0, V[k] * ((C[k] - L[k]) / np.where(rg > 0, rg, 1) * 2 - 1),
+                                 np.where(C[k] >= O[k], V[k], -V[k]))
+                lv.append(H[t - n] if yuksek else L[t - n]); dl.append(float(w[::-1].sum())); sp.append(not yuksek); vis.append(0.0)
+        for i in range(len(lv) - 1, -1, -1):
+            if (sp[i] and C[t] <= lv[i]) or ((not sp[i]) and C[t] >= lv[i]):
+                if not sp[i] and vis[i] > 0:
+                    out[t] = True
+                del lv[i], dl[i], sp[i], vis[i]
+        m = len(lv); a0 = max(0, m - mx)
+        md = max([0.0001] + [abs(x) for x in dl[a0:]])
+        for j in range(m):
+            pct = abs(dl[j]) / md * 100 if j >= a0 else 0.0
+            vis[j] = pct if pct >= minp else 0.0
+    return out
+
+
+def akin_sinyal(d):
+    """🏢 AKIN robotlarının bugünkü girişleri: {'rpd': ▲ dip bugün, 'dk': delta direnci bugün kırıldı}. Hata → boş."""
+    try:
+        vv, _ = akin_rpd(d)
+        dk = akin_delta_kirilim(d)
+        return {"rpd": bool(vv[-1]), "dk": bool(dk[-1])}
+    except Exception:
+        return {"rpd": False, "dk": False}
+
+
 def _vade_ok(c, s, yukseliyor):
     """+1 yukarı (fiyat ortalamanın üstünde ve ortalama yükseliyor), −1 aşağı (altında ve yükselmiyor), 0 yatay; None = veri az."""
     if pd.isna(s) or pd.isna(c):
@@ -1144,6 +1334,7 @@ def analiz_et(df, xu_ust=None, xu=None, bar_kesin=True, bugun=None):
         "tk": tk,
         "tk_oda": tk_oda,
         "tq": tq,
+        "ak": akin_sinyal(d) if bar_kesin else None,   # 🏢 🧪 AKIN deneme robotları (sadece kesin kapanışta; panoya gömülmez)
         "vd": vade_durum(d, bar_kesin, bugun),
         "guc": _guc,
         "gh": _gh,          # 🏢 İşlem Odası güç robotları (ham değerler; panoya gömülmez)
