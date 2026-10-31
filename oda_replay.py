@@ -232,6 +232,9 @@ def ozellik(d, xu_ust, xu):
     for x in S.trend_kirilimi(d, xu_ust, ham=True, kar_kilit=False, erken=True):
         tq[x["i"]] = True
     F["tq_bugun"] = tq
+    if any(r["tur"] == "akin" for r in oda.ROBOTLAR.values()):     # 🧪 AKIN 4 deneme robotları
+        F["ak_rpd"] = S.akin_rpd(d)[0]
+        F["ak_dk"] = S.akin_delta_kirilim(d)
     F["oynak"] = (r.rolling(60).std() > S.OYNAK_ESIK).values
     F["mom20"] = (c / c.shift(20) - 1).values
     F["mom6"] = (c.shift(21) / c.shift(126) - 1).values
@@ -317,6 +320,8 @@ def hazirla(g):
     M["aday"] = M["tk_bugun"] | erken | M["sd_tepki"] | M["uv_yeni"] | M["rsi_al"] | guc_aday(M)
     if any(r["tur"] == "erkenkir" for r in oda.ROBOTLAR.values()):
         M["aday"] |= M["tq_bugun"]      # ⏩ (eski robotların kararları aday kümesinin genişliğinden bağımsız — test edildi)
+    if "ak_rpd" in M:
+        M["aday"] |= M["ak_rpd"] | M["ak_dk"]
     M["Cf"] = pd.DataFrame(M["C"].T).ffill().values.T
     buyuk = set(tarama.BIST100) | set(tarama.EK_HISSELER)
     return {"kod": tamam, "gun": gun, "A": M, "xu": xu, "xu_open": xd["Open"].astype(float).reindex(gun), "xu_ust": xu_ust,
@@ -369,7 +374,8 @@ def ozet(D, k, t):
             "uzama": bool(A["uzama"][k, t]), "kijun": None if kj != kj else float(kj),
             "kisa": bool(A["gecmis"][k, t] < 250), "g": guc_ozet(A, k, t),
             "tq": {"bugun": bool(A["tq_bugun"][k, t]),
-                   "seviye": None if A["hh20"][k, t] != A["hh20"][k, t] else float(A["hh20"][k, t])}}
+                   "seviye": None if A["hh20"][k, t] != A["hh20"][k, t] else float(A["hh20"][k, t])},
+            "ak": {"rpd": bool(A["ak_rpd"][k, t]), "dk": bool(A["ak_dk"][k, t])} if "ak_rpd" in A else {}}
 
 
 def guc_ozet(A, k, t):

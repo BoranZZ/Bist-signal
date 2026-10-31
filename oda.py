@@ -115,6 +115,18 @@ ROBOTLAR = {
                                   "gevşek: 150 günlük ortalama şartları yerine fiyat > 50 günlük > 200 günlük ortalama yeter (sert "
                                   "düşüşten sonra toparlanan hisseye daha erken girer). Çıkış 🔐 Kırılımcı gibi: %20 iz stop + kâr "
                                   "kilidi (+%8 görülünce stop ≥ alış +%5)."},
+    # 2026-10-31: kullanıcının bulduğu TradingView göstergesi 'AKIN 4' (scratchpad akin/RAPOR.md): DENEME robotları — 10 yıllık testte
+    # v3+🔐'ü ve 🎲 rastgele girişi GEÇMEDİ; panoya girmez, karne için odada
+    "akin_rpd": {"ad": "🔄 AKIN dip (RPD)", "tur": "akin", "sinyal": "rpd", "yuva": 10, "iz": 0.20, "kar_kilit": (0.08, 0.05),
+                 "filtre": True,
+                 "aciklama": "AKIN 4 göstergesinin RPD (Reversal Point Dynamics) ▲ dip işareti gelen hisseyi ertesi açılışta alır "
+                             "(varsayılan ayarlar, ▲ + '?' erken + ◈ uyumsuzluk). Çıkış 🔐 Kırılımcı gibi: %20 iz stop + kâr kilidi "
+                             "(+%8 görülünce stop ≥ alış +%5). Göstergenin kendi ▼ tepe çıkışı testte çok daha kötü olduğu için kullanılmadı."},
+    "akin_delta": {"ad": "🟢 AKIN delta kırılımı", "tur": "akin", "sinyal": "dk", "yuva": 10, "iz": 0.20, "kar_kilit": (0.08, 0.05),
+                   "filtre": True,
+                   "aciklama": "AKIN 4 göstergesinin Volume Delta seviyelerinden: grafikte halkalı görünen bir direnç (5/5 pivot tepesi, "
+                               "delta gücü ≥%20) kapanışla aşılınca ertesi açılışta alır. Çıkış: %20 iz stop + kâr kilidi (+%8 görülünce "
+                               "stop ≥ alış +%5)."},
     "rastgele": {"ad": "🎲 Rastgele", "tur": "rastgele", "yuva": 10, "iz": 0.20, "filtre": True,
                  "aciklama": "Şans kıyası: 🚀 kırılım gelen gün, o gün kaç kırılım varsa o kadar RASTGELE hisse alır; "
                              "Kırılımcı ile aynı %20 iz stop. Kırılımcı bunu yenemiyorsa seçim becerisi yok demektir."},
@@ -223,7 +235,8 @@ def ozet_hazirla(s, d=None, buyuk=False):
          "riskli": bool(s.get("patlak") or s.get("kt") or th.get("seviye") == "sisme"),
          "uzama": False, "kijun": None,
          "kisa": bool(tk.get("kisa")), "g": guc_ozet(s.get("guc"), s.get("gh")),
-         "tq": {"bugun": bool((s.get("tq") or {}).get("bugun")), "seviye": (s.get("tq") or {}).get("seviye")}}
+         "tq": {"bugun": bool((s.get("tq") or {}).get("bugun")), "seviye": (s.get("tq") or {}).get("seviye")},
+         "ak": dict(s.get("ak") or {})}
     if d is not None and len(d) > 2:
         import sinyal as S
         r = d["RSI"] if "RSI" in d else S.rsi(d["Close"])
@@ -373,6 +386,8 @@ def _al_adaylari(robot, gv, kasa):
             if robot.get("trend") and not h["s200_ust"]:
                 continue
             aday.append((h["mom20"], kod))
+        elif tur == "akin" and (h.get("ak") or {}).get(robot.get("sinyal")):
+            aday.append((h["mom20"], kod))                       # 🧪 AKIN 4 (sinyal.akin_sinyal)
         elif tur == "uzun" and h["uv"]["yeni"]:
             aday.append((h["mom20"], kod))
         elif tur == "rsi":
@@ -825,6 +840,15 @@ ROBOT_EK = {
                              "🚀 + kâr kilidinden iyi (10 yılda %3.372 → %4.245), küçüklerde 6'sında; en büyük düşüş aynı (~%28). "
                              "Fark kâr kilidinin katkısının ~1/8'i kadar — küçük. BRSAN'da 24.08 yerine 14.08'de alırdı. Panoya "
                              "almadan önce canlı karne için odada."},
+    "akin_rpd": {"renk": "#22D3EE", "kisa": "AKIN dip",
+                 "not": "DENEME (testte GEÇMEDİ): 10 yıllık testte (2017-26, 257 hisse, 10 yuva) portföy kârı canlı 🚀 + kâr kilidinin "
+                        "ana listede %64'ü, küçüklerde %40'ı; 🎲 aynı günlerde rastgele hisse almaktan iyi değil (ana %6, küçük %0 "
+                        "yüzdelik). Göstergedeki 'olasılık %' gerçek isabetle örtüşmüyor (%99 yazan dipler de %65 yazanlar kadar "
+                        "tuttu). Kullanıcının bulduğu göstergeyi canlıda izlemek için odada."},
+    "akin_delta": {"renk": "#4ADE80", "kisa": "AKIN delta",
+                   "not": "DENEME (testte GEÇMEDİ): 10 yıllık testte portföy kârı canlı 🚀 + kâr kilidinin ana listede %88'i, "
+                          "küçüklerde %82'si; dengeli ölçütte 9 yılın 4'ünde önde; 🎲 rastgele girişten iyi değil (yüzdelik 7/11). "
+                          "Mantığı v3'e benziyor (direnç kırılımı) ama trend şartı yok."},
     "endeksci": {"renk": "#B9A6FF", "not": "Kıyas çizgisi: BIST 100 al-tut (fiyat endeksi; temettü yok)."},
     "faizci": {"renk": "#60A5FA", "not": "Birikim kıyası (yarışmacı değil). Politika faizi gerçek mevduat faizinden farklı olabilir; "
                                          "kasa değeri vadenin bugüne kadar işlemiş net faizini de içerir (vade bozulursa alınmaz)."},
@@ -1529,7 +1553,7 @@ var MASA={kirilimci:[1.0,2.0],siki:[3.7,2.0],erkenci:[6.4,2.0],momentumcu:[9.1,2
  kirilimci20:[9.1,5.4],rastgele:[12.6,2.2],endeksci:[12.6,5.4],bekci:[14.6,9.5],ai1:[1.6,15.6],ai2:[4.6,15.6],
  guclu:[1.0,8.8],sablonci:[3.7,8.8],bulutcu:[6.4,8.8],zirveci:[9.1,8.8],paraci:[11.8,8.8],adxci:[1.0,12.2],emaci:[3.7,12.2],rsi50:[6.4,12.2],
  kilitli_kirilimci:[9.1,12.2],bulutcu_kilit:[11.8,12.2],sablon_kilit:[14.5,12.2],daralan:[9.1,15.6],weinstein:[11.8,15.6],erken_kirilim:[14.5,15.6],
- faizci:[1.0,19.0],altinci:[3.7,19.0],dolarci:[6.4,19.0],dengeci:[9.1,19.0]};
+ faizci:[1.0,19.0],altinci:[3.7,19.0],dolarci:[6.4,19.0],dengeci:[9.1,19.0],akin_rpd:[12.3,19.0],akin_delta:[14.8,19.0]};
 var KESIR={XU100:1,ALTIN:1,USD:1},MAKAS={ALTIN:.01,USD:.005},TF=null;
 var W=16.8,D=21.2,H=3.8,TAHTA=[5.0,12.6],TAHTA_ON=[8.8,0.8];
 var FIG={};
@@ -1595,6 +1619,7 @@ function sahne(){
  bolge(g,8.6,11.4,8.1,6.0,'#FDE047',false);zeminYazi(g,8.75,17.25,'🔐 ÇIKIŞ DENEMESİ · KÂR KİLİDİ','#E9D66B',11);
  bolge(g,0.6,14.8,7.6,2.8,'#8E7BC9',true);zeminYazi(g,0.8,17.45,'YAPAY ZEKÂ EKİBİ · YAKINDA','#7A68B4',11);
  bolge(g,0.6,18.3,11.2,2.7,'#60A5FA',false);zeminYazi(g,0.8,20.85,'💰 BİRİKİM KÖŞESİ · KIYAS','#60A5FA',12);
+ bolge(g,12.1,18.3,4.6,2.7,'#22D3EE',true);zeminYazi(g,12.25,20.85,'🧪 AKIN DENEME','#22D3EE',11);
  FIG.hat={};
  RID.forEach(function(id){if(RB[id].grup==='birikim')return;var m=MASA[id],a=P(m[0]+0.95,m[1]+0.55),b=P(m[0]+0.95,TAHTA_ON[1]),c=P(TAHTA_ON[0],TAHTA_ON[1]);
   FIG.hat[id]=el('polyline',{points:pts([a,b,c]),fill:'none',stroke:RB[id].renk,'stroke-width':1.6,opacity:.34,'class':'akan'},g);});
