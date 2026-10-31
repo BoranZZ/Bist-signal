@@ -86,6 +86,7 @@ AL ile NÖTR arasında gidip gelen hisse tekrar mesaj atmaz. Sinyalin önce SAT'
 **Portföyü Telegram'a bağlamak (her cihazda bir kez):** Panoda Portföyüm'ün altındaki **Telegram'a bağla**'ya bas, ekrandaki adımlarla bir GitHub anahtarı oluştur ("Variables: Read and write" yetkili) ve yapıştır. Sonrasında:
 - **+ Ekle / ✎ / ✕** ile yaptığın her değişiklik GitHub'daki `PORTFOY` variable'ına otomatik kaydedilir, sonraki taramanın Telegram mesajları buna göre çıkar.
 - **Aynı hisseyi tekrar eklersen** adetler toplanır, maliyet ağırlıklı ortalama olur.
+- **Sattım** → satış 📒 **İşlem Defterim**'e yazılır (kısmi satış da olur; ✕ ise kayıt tutmadan siler). Defter aynı anahtarla GitHub'daki ayrı, gizli `DEFTER` variable'ında eşitlenir; Telegram'a ve herkese açık dosyalara gitmez. **⬇ CSV yedeği** ile Excel'e alabilirsin.
 - **Cihazlar arası eşitleme:** Anahtarı girdiğin başka bir cihaz portföyü GitHub'dan alır. Telefonda ve bilgisayarda aynı portföyü görürsün.
 - **Gizlilik:** `PORTFOY` herkese açık değil. Onu sadece sen ve anahtarlarını görebilir; sistem portföyünü loglara yazmaz. Anahtar sadece girdiğin cihazda saklanır, kaldırmak için "Bu cihazdaki bağlantıyı kaldır".
 

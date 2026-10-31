@@ -908,6 +908,33 @@ Gerekçe/kaynaklar scratchpad `digerleri/RAPOR.md` (özellik listesi), testler `
   kıyası, lot hesabı ve ayarın hatırlanması görünüyor.
 
 
+## 📒 İşlem Defterim (2026-10-31, dal `islem-defteri`; kullanıcının KENDİ gerçek alım-satımları — AL/SAT, Telegram, backtest, İşlem Odası DEĞİŞMEZ)
+Tamamı istemci JS (`pano.py` şablonunda `df*` fonksiyonları), portföyün altında katlanabilir `<details id="dfbox">` (açık/kapalı `defter_acik_v1`). Testler scratchpad
+`759f2c70…/scratchpad/defter/` (`test_defter.py` Playwright + sistem Chrome, 72/72; `regen.py` taramasız yeniden üretim: eski şablonun yer tutucu değerlerini mevcut index.html'den çıkarıp yeni şablona koyar).
+- **Akış:** portföy satırında **Sattım** → `dfFormAc('sat',i)` (modal `#dfust`): satış tarihi (bugün), fiyat (son fiyat), adet (tamamı; kısmi satışta portföy adedi ve `xu_birim` orantılı azalır,
+  tamamı satılırsa satır silinir), komisyon (toplam TL, isteğe bağlı, boş = 0 → kâr biraz iyimser), plan/neden, not, duygu (`DF_DUYGU`: sakin, emin, fomo, korku, intikam, asiri,
+  yorgun), plana uyum e/h/k, kalite A/B/C. ✕ artık 'Sil (kayıt tutmaz)'. '+ Geçmiş işlem' ile elle kayıt; ✎ düzenle, 🗑 sayfa içi onayla sil, 'Defteri temizle' onaylı.
+  Portföy formunda isteğe bağlı **'Neden aldım?'** (`#pfneden`) → `defter.p[kod]` (PORTFOY'a YAZILMAZ), satışta plan alanına gelir, hisse portföyden çıkınca silinir.
+- **Otomatik alanlar (kayıt anında hesaplanıp SAKLANIR; DATA zamanla değiştiği için sonradan yeniden hesaplanmaz — düzenlemede yalnız hisse/tarih/fiyat değişirse):**
+  `dfSinyal`: `DATA.tkg` (son 6 🚀 v3 işlemi, çıkışı son 2 yılda/açık) ile alışta `sa` = al (açık pozisyon, sinyalden ≤5 işlem günü — XU takvimi) / tr (geç giriş) / yok / ?
+  (alış tarihi yok, 2 yıldan eski ya da 6 işlem sınırının öncesi, hisse taranmıyor); satışta `ss` = erken (sistem hâlâ AL) / ayni (çıkış günü) / cikti (sistem tutuş sırasında çıkmıştı; `cg`,
+  `cb` bitleri) / stopalti / yok / ?. Satış son veri gününe ≤3 gün yakınsa bugünkü stop: portföyden satışta `pozPlan` (uzun vadede karar çizgisi; portföy iz'i kırıldıysa
+  stopalti), değilse açık `tk.stop`; gösterge SAT başlangıcı `gs`. `x` = aynı günlerde BIST 100 (`xuDeger`). Ek veri gömülmedi (tkg/XU zaten vardı).
+- **Ekran:** 5 kart (net, isabet — BE ±%0,5 hariç, sayı, ortalama TL/%, en iyi), süzgeçler (arama hisse+not+duygu, sonuç, sinyal: AL'de / sinyalsiz-geç / erken çıkış; kartlar,
+  eğri, takvim, analiz süzgece uyar), kümülatif kâr eğrisi (kendi SVG), aylık takvim (Pzt, Türkçe ay, bugün çerçeveli), tablo + ayrıntı satırı, analiz (duygu, plan, kalite,
+  alışta/satışta sistem, tutma süresi ≤5/6-30/30+, BIST 100'ü yenme), 'Ne görüyorum?' cümleleri (grup başına ≥3 işlem `DF_MIN`, yoksa 'Daha fazla veri gerekli') + şans uyarısı (<20 işlem).
+  Pano açık tema tek (koyu tema yok); 390 px'te sayfa taşmıyor (tablo kendi kaydırmalı kutusunda).
+- **Saklama/eşitleme:** localStorage `defter_v1` = {v, u (son değişiklik ms), k [kayıt], p {kod: neden}}; kısa anahtarlar pano.py'de `DF_KEY` üstündeki yorumda (i, h, a, s, n, m, f, k, pl, no, d, u, q, t,
+  sa, ss, x, sg, cg, cb, st, gs). id = `crypto.randomUUID` ilk 12 hex (yoksa zaman+rastgele). GitHub `DEFTER` Actions variable'ı, portföyle aynı anahtar (Variables R/W):
+  bulutun `u`'su ≥ yereldeyse bulut esas (`dfBirlestir`), bu cihazdaki daha yeniyse buluta yazılır. İki cihazda aynı anda çevrimdışı değişiklik → yenisi kazanır (birleştirme yok).
+  **48 KB sınırı:** `DF_SINIR` 46.000 bayt; aşılırsa en eski kayıtların notları (`kn`), sonra 'neden aldım'lar (`pk`), en son kayıtların kendisi (`ky`) yalnız bu cihazda kalır,
+  birleştirmede korunur, `#dfbulut`'ta not. Repo variable toplamı 256 KB.
+- **CSV:** UTF-8 BOM, `;`, ondalık VİRGÜL (Excel TR), duygu/plan/sistem Türkçe etiket; =+-@ ile başlayan metin `'` önekli. İçe aktarma `;`/`,`/sekme, virgül ya da nokta ondalık,
+  GG.AA.YYYY de okur, mevcut kayıt silinmez, aynı id atlanır, eksik oto alanlar hesaplanır. Test: indir → temizle → içe aktar birebir aynı.
+- **GİZLİLİK:** `DEFTER` `tarama.yml` env'ine EKLENMEZ (step env'indeki variable değerleri Actions logunun adım başlığında açık görünür — PORTFOY/ALARMLAR için bu zaten
+  böyle). tarama.py defteri okumaz; durum.json/index.html'e defter içeriği girmez. Bu yüzden Telegram /defter komutu yapılmadı (yapılacaksa variable'ı env'e koymadan, API ile ve log'a sayı dışında bir şey yazmadan).
+- **Boyut:** index.html +~53 KB (3.436 → 3.489 KB, %1,5; gzip +~17 KB) — sadece JS/CSS.
+
 ## 👔 Patron (içeriden) alımı — TEST EDİLDİ, EKLENMEDİ (2026-10-30, arşiv Documents/Bist-arastirma/2026-10-23/patron/RAPOR.md; tekrar araştırma)
 - KAP Pay Alım Satım Bildirimleri 2020-01…2026-10 (4.182 bildirim, ayrıştırma hatası ~%7,5, yön hatası 0). Alım sinyalleri A1–A7 (yönetici, büyük ortak, holding, küme, düşüş sonrası, trend içi): 1 hafta/1-3-6 ayda aynı hissenin rastgele günlerinden farksız; 56 testte BH düzeltmesi sonrası hiçbiri anlamlı değil, yıldan yıla işaret değiştiriyor.
 - 👔 robot (net alım): +%2.072 vs 🔐 Kırılımcı +%3.019, rastgele ikizlerin %69'unu geçiyor (ana %16, küçük %9) → robot yok. Tek zayıf aday "son 60 günde patron satışı" (v3 isabeti %61 vs %70; düzeltme sonrası p≈0,08) → eklenmedi. Şirket geri alımı (G2) anlamlı değil.

@@ -595,6 +595,48 @@ table.pf{min-width:900px}
 .ekler{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
 .ekb{background:#FBF7EE;border:1px solid #EADFC7;border-radius:8px;padding:5px 9px;font-size:11.5px;color:#7A5B10}
 @media(max-width:560px){.ozet .b{font-size:30px}}
+/* 📒 İşlem Defterim */
+.pfsat{border:1px solid #BFDDC9;background:#E4F2E9;color:#14633A;font-weight:650;font-size:11.5px;padding:4px 8px;border-radius:6px;cursor:pointer;font-family:inherit}
+.pfacik{margin-top:6px;font-size:11.8px;color:var(--muted);line-height:1.5}
+.dfbox{margin-top:18px;border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:0 14px}
+.dfbox>summary{cursor:pointer;list-style:none;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;padding:13px 0}
+.dfbox>summary::-webkit-details-marker{display:none}
+.dfbox>summary::before{content:"▸";color:var(--muted);font-size:13px}.dfbox[open]>summary::before{content:"▾"}
+.dfbaslik{font-size:16px;font-weight:650}.dfozet{font-size:12.5px;color:var(--muted)}
+.dfic{padding:0 0 14px;min-width:0}
+.dfodak{border:1px solid #DCE3EE;background:#F6F8FB;border-radius:10px;padding:10px 13px;font-size:12.8px;line-height:1.55;margin:0 0 10px}
+.dfcubuk{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 10px}
+.dfcubuk input{flex:1 1 150px;max-width:230px;min-width:0;padding:7px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;font-family:inherit}
+.dfcubuk select{border:1px solid var(--line);border-radius:8px;padding:7px 8px;font-size:13px;background:#fff;max-width:100%;font-family:inherit}
+.dfbtn{border:1px solid var(--line);background:#fff;color:var(--ink);padding:7px 11px;border-radius:8px;cursor:pointer;font-size:12.5px;font-family:inherit}
+.dfbtn.p{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}.dfbtn.tehlike{color:var(--sat)}.dfbtn.kucuk{padding:3px 8px;font-size:11.5px}
+.dfkartlar{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0 0 12px}
+.dfk{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#FCFCFB;min-width:0}
+.dfk .l{font-size:11.5px;color:var(--muted)}.dfk .v{font-size:19px;font-weight:680;margin-top:2px;overflow-wrap:anywhere}.dfk .a{font-size:11.5px;color:var(--muted);margin-top:2px;line-height:1.4}
+.dfgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:12px;margin:12px 0}
+.dfpanel{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#FCFCFB;min-width:0}
+.dfpanel h3{margin:0 0 6px;font-size:13.5px}.dfpanel svg{display:block;width:100%;height:auto}
+.dftakbas{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;font-size:13px}
+.dftak{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+.dftak .dgb{font-size:10.5px;color:var(--muted);text-align:center;padding:2px 0}
+.dftak .dgk{min-height:44px;border:1px solid var(--line);border-radius:6px;padding:3px;font-size:10px;line-height:1.25;background:#fff;overflow:hidden;min-width:0}
+.dftak .dgk.bos{border:none;background:none}.dftak .dgk.kaz{background:#E4F2E9;border-color:#BFDDC9;color:#14633A}.dftak .dgk.zar{background:#F7E7E5;border-color:#E6C3BD;color:#8A2F26}.dftak .dgk.be{background:#F1EFE8}
+.dftak .dgk.bugun{outline:2px solid var(--accent);outline-offset:-1px}.dftak .dgn{font-weight:650;color:var(--muted)}.dftak .dgt{font-weight:700;overflow-wrap:anywhere}
+table.df{min-width:860px;font-size:13px}table.df td,table.df th{padding:8px 9px}
+.dfroz{display:inline-block;font-size:10.5px;font-weight:650;padding:2px 6px;border-radius:5px;margin:1px 3px 1px 0;white-space:nowrap;background:#F1F1EE;color:#555}
+.dfroz.iyi{background:#E4F2E9;color:#14633A}.dfroz.kot{background:#FDE1CC;color:#B0480C}
+tr.dfdetay td{white-space:normal;background:#FAFAF8;font-size:12.5px;line-height:1.6;cursor:default}tr.dfdetay:hover td{background:#FAFAF8}
+.dfdk{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:4px 16px;max-width:1000px}.dfmetin{white-space:pre-wrap;overflow-wrap:anywhere}
+.dfat{font-size:12.5px;line-height:1.55}.dfat table{min-width:0;font-size:12px}.dfat th,.dfat td{padding:4px 6px;white-space:normal}.dfat td.num,.dfat th.num{white-space:nowrap}.dfat tbody tr{cursor:default}
+.dfaz{color:var(--muted)}
+.dfcik{margin:12px 0 0;padding:10px 13px;border-radius:10px;background:#F3F7F5;border:1px solid #DCE8E2;font-size:12.8px;line-height:1.6}.dfcik ul{margin:4px 0 0;padding-left:18px}
+.dfsans{margin-top:8px;padding:9px 12px;border-radius:9px;background:#FFFBF2;border:1px solid #EADFC7;color:#5B4A2A;font-size:12.3px;line-height:1.55}
+.dfform{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
+.dfform label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--muted);min-width:0}
+.dfform input,.dfform select,.dfform textarea{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13px;font-family:inherit;color:var(--ink);background:#fff;width:100%;min-width:0}
+.dfform input:disabled{background:#F1F1EE}.dfform textarea{min-height:58px;resize:vertical}.dfform .tam{grid-column:1/-1}.dfform .ipucu2{font-size:11.5px;color:var(--muted);line-height:1.45}
+.dfonay{display:inline-flex;flex-wrap:wrap;gap:4px;align-items:center;font-size:12px}
+@media(max-width:480px){.dfform{grid-template-columns:1fr}.dfk .v{font-size:17px}}
 </style>
 </head><body><div class="wrap">
 <header><div><h1>BIST Sinyal Panosu <a class="odabtn" href="oda.html" title="Sanal parayla kural robotları: panonun kurallarını 100.000 sanal TL ile deniyorlar (yatırım tavsiyesi değil)">🏢 İşlem Odası</a></h1><div class="tarih">Son güncelleme: __TARIH__ · <a href="#" onclick="yenile();return false" title="Sayfanın en son halini getirir (önbelleği atlar)">↻ Yenile</a> · <a href="https://github.com/__REPO__/actions/workflows/tarama.yml" target="_blank" rel="noopener" title="GitHub'da 'Run workflow' ile taramayı hemen başlat; 3-5 dk sonra Yenile'ye bas">Taramayı şimdi başlat ↗</a></div></div>
@@ -616,12 +658,29 @@ __BANNER__
     <input id="pfadet" type="number" min="1" placeholder="Adet">
     <input id="pfmal" type="number" step="any" min="0" placeholder="Maliyet (TL)">
     <input id="pfalis" type="date" title="Alış tarihi (isteğe bağlı): girersen portföyün aynı parayla aynı gün BIST 100 almakla kıyaslanır">
+    <input id="pfneden" maxlength="500" placeholder="Neden aldım? (isteğe bağlı)" title="İsteğe bağlı: alım nedenin / planın. Bu cihazda ve GitHub'daki DEFTER kaydında tutulur (Telegram'a ve herkese açık dosyalara gitmez); satarken 📒 deftere kendiliğinden gelir" style="flex:1 1 220px;min-width:0">
     <label class="pfuv" title="Uzun vadeli tuttuğun hisse: kısa vadeli SAT sinyalleri bilgi olarak gelir, çıkış yerine karar çizgisi (ana destek) gösterilir"><input id="pfuzun" type="checkbox"> Uzun vade</label>
     <button id="pfkaydetbtn" class="pfkaydet" onclick="pfKaydet()">Ekle</button>
     <button class="pfipt" onclick="pfFormKapat()">İptal</button>
   </div>
   <div id="pflist"></div>
 </div>
+<details class="dfbox" id="dfbox" ontoggle="dfAcikKaydet()"><summary><span class="dfbaslik">📒 İşlem Defterim</span><span id="dfozet" class="dfozet"></span></summary>
+<div class="dfic">
+  <div id="dfbulut" class="pfbulut"></div>
+  <div id="dfnot" class="zaman" hidden></div>
+  <div class="dfodak">🎯 <b>Defterin amacı</b> sadece ne kadar kazandığını görmek değil: <b>hangi koşullarda iyi, hangilerinde kötü işlem yaptığını</b> anlamak. Portföyünde <b>Sattım</b>'a basınca işlem buraya yazılır. Duygunu, planına uyup uymadığını ve kaliteyi dürüstçe işaretle; alış ve satış günü sistemin (🚀) ne dediğini ve aynı günlerde BIST 100'ün ne yaptığını pano kendisi ekler. <b>Kalite sonuca göre değil karara göre</b>: zararla kapanan planlı işlem A olabilir, kârla kapanan dürtüsel işlem C. Yatırım tavsiyesi değildir.</div>
+  <div class="dfcubuk"><input id="dfara" type="search" placeholder="🔍 Hisse ya da notta ara" autocomplete="off" oninput="dfRender()">
+   <select id="dfsonuc" onchange="dfRender()" title="Sonuca göre süz"><option value="">Tüm sonuçlar</option><option value="kaz">Kazançlar</option><option value="zar">Zararlar</option><option value="be">Başa baş (±%0,5)</option></select>
+   <select id="dfsin" onchange="dfRender()" title="Alış günü sistemde 🚀 AL var mıydı?"><option value="">Sinyal: hepsi</option><option value="uy">🚀 AL'de aldıklarım</option><option value="uymaz">Sinyalsiz / geç aldıklarım</option><option value="erken">Erken çıktıklarım</option></select>
+   <button class="dfbtn p" onclick="dfFormAc('yeni')" title="Portföye hiç girmemiş eski bir işlemi elle ekle">+ Geçmiş işlem</button>
+   <button class="dfbtn" onclick="dfCsvIndir()" title="Excel'de açılır (Türkçe, noktalı virgüllü)">⬇ CSV yedeği</button>
+   <button class="dfbtn" onclick="document.getElementById('dfdosya').click()" title="CSV'den ekle: mevcut kayıtlar silinmez, aynı kayıt (id) varsa atlanır">⬆ İçe aktar</button><input id="dfdosya" type="file" accept=".csv,text/csv" hidden onchange="dfCsvOku(this)">
+   <button class="dfbtn tehlike" onclick="dfTemizleSor()">Defteri temizle</button></div>
+  <div id="dfkartlar" class="dfkartlar"></div>
+  <div id="dfgovde"></div>
+</div>
+</details>
 <div class="tabcubuk"><input id="ara" placeholder="🔍 Hisse ara (örn. THY)" autocomplete="off" oninput="tabloDuzen()"><label class="sfav"><input id="sadecefav" type="checkbox" onchange="tabloDuzen()"> ⭐ Sadece favoriler <span id="favsay"></span></label><label class="sfav" title="Son N işlem gününde 🚀 AL almış hisseler: sinyal günü, girişten beri getiri, BIST 100'e göre fark; iz stop ile kapananlar da dahil">🚀 Son roketler <select id="roket" onchange="tabloDuzen()"><option value="0">kapalı</option><option value="5">5 gün</option><option value="20">20 gün</option><option value="60">60 gün</option></select></label><span class="sgun">☆'ya basınca hisse favorilere eklenir ve en üste çıkar.</span></div>
 <div id="roketkutu" hidden></div>
 <div class="sar" id="tsar"><table id="t"><thead><tr>
@@ -700,6 +759,7 @@ __KOTUGUN__
 </div>
 
 <div class="ust" id="ust" onclick="if(event.target===this)kapat()"><div class="modal" id="modal"></div></div>
+<div class="ust" id="dfust" onclick="if(event.target===this)dfFormKapat()"><div class="modal" id="dfmodal" role="dialog" aria-label="İşlem defteri kaydı"></div></div>
 <script>
 const DATA=__DATA__;
 const XU=__XU__;
@@ -1620,6 +1680,7 @@ function pfFormAc(i){
  pfDuzenlenen=(typeof i==='number')?i:-1;var p=pfDuzenlenen>=0?pfOku()[i]:null;
  document.getElementById('pfkod').value=p?p.kod:'';document.getElementById('pfkod').disabled=!!p;
  document.getElementById('pfadet').value=p?p.adet:'';document.getElementById('pfmal').value=p?p.maliyet:'';document.getElementById('pfuzun').checked=!!(p&&p.uzun);document.getElementById('pfalis').value=(p&&p.tarih)||'';
+ document.getElementById('pfneden').value=p?(dfOku().p[p.kod]||''):'';
  document.getElementById('pfkaydetbtn').textContent=p?'Kaydet':'Ekle';
  document.getElementById('pfform').style.display='flex';pfNot('');
  document.getElementById(p?'pfadet':'pfkod').focus();
@@ -1648,9 +1709,11 @@ function pfKaydet(){
    not=k+' mevcut pozisyona eklendi: toplam '+top+' adet, ortalama maliyet '+a[j].maliyet.toFixed(2)+' TL.';
   }else{var y={kod:k,adet:ad,maliyet:ma,uzun:uz};if(ta){y.tarih=ta;y.xu_birim=xb;}a.push(y);}
  }
+ var nd=(document.getElementById('pfneden').value||'').trim().slice(0,500),dfo=dfOku();  // 'neden aldım' PORTFOY'a DEĞİL deftere (DEFTER) yazılır: Actions'a gitmez
+ if(nd!==(dfo.p[k]||'')&&(nd||pfDuzenlenen>=0)){if(nd)dfo.p[k]=nd;else delete dfo.p[k];dfYaz(dfo);}
  pfYaz(a);pfFormKapat();pfRender();pfNot(not);
 }
-function pfSil(i){var a=pfOku();a.splice(i,1);pfYaz(a);pfRender();pfNot('');}
+function pfSil(i){var a=pfOku(),k=(a[i]||{}).kod;a.splice(i,1);pfYaz(a);dfPlanTemizle(k,a);pfRender();pfNot('');}  // kayıt tutmaz (yanlış girilen satır için)
 
 // --- GitHub eşitleme: portföy repo'nun PORTFOY değişkenine yazılır, tarama (Telegram) oradan okur ---
 function ghAnahtar(){try{return localStorage.getItem(GH_KEY)||''}catch(e){return''}}
@@ -1745,11 +1808,11 @@ function ghKaydet(){
  try{localStorage.setItem(GH_KEY,t);}catch(e){s.textContent='Tarayıcı anahtarı kaydetmeye izin vermedi.';return;}
  s.textContent='Deneniyor…';
  pfBulutOku().then(function(ok){
-  if(ok){alBulutOku().then(function(v){if(!v)alYaz(alOku());});document.getElementById('pfkur').hidden=true;pfNot('✓ Bağlandı. Portföyündeki değişiklikler artık otomatik olarak Telegram mesajlarına yansıyacak.');}
+  if(ok){alBulutOku().then(function(v){if(!v)alYaz(alOku());});dfBulutOku();document.getElementById('pfkur').hidden=true;pfNot('✓ Bağlandı. Portföyündeki değişiklikler artık otomatik olarak Telegram mesajlarına yansıyacak.');}
   else{try{localStorage.removeItem(GH_KEY);}catch(e){}s.textContent='Olmadı: anahtar yanlış ya da "Variables: Read and write" yetkisi yok. Adımları kontrol edip tekrar dene.';pfBulutDurum('yerel');}
  });
 }
-function ghKaldir(){try{localStorage.removeItem(GH_KEY);}catch(e){}document.getElementById('pfkur').hidden=true;pfBulutDurum('yerel');}
+function ghKaldir(){try{localStorage.removeItem(GH_KEY);}catch(e){}document.getElementById('pfkur').hidden=true;pfBulutDurum('yerel');dfBulutDurum('yerel');}
 
 // tarama.py sektor_dagilimi() ile aynı: güncel değere göre endüstri payları
 function xuDeger(t){  // t tarihindeki (ya da önceki son) BIST 100 kapanışı
@@ -1794,9 +1857,10 @@ function pfRender(){
        return '<td class="num stop">'+(pl.stop?(pl.asildi?'<b>'+pl.stop+' ⚠</b>':pl.stop+' <span class="sgun">'+yzd(pl.stopUzak)+'</span>'):'—')+'</td>'+
               '<td class="num pos">'+(h?h+' <span class="sgun">'+yzd((h/f-1)*100)+'</span>':'—')+'</td>';})()+
      '<td class="num"><button class="pfsil pfduz" title="Düzenle" onclick="event.stopPropagation();pfFormAc('+i+')">✎</button> '+
-     '<button class="pfsil" title="Sil" onclick="event.stopPropagation();pfSil('+i+')">✕</button></td></tr>';
+     '<button class="pfsat" title="Sattım: satışı 📒 İşlem Defterim\'e yazar (kısmi satış da olur)" onclick="event.stopPropagation();dfFormAc(\'sat\','+i+')">Sattım</button> '+
+     '<button class="pfsil" title="Sil (kayıt tutmaz — yanlış girilen satır için)" aria-label="Sil (kayıt tutmaz)" onclick="event.stopPropagation();pfSil('+i+')">✕</button></td></tr>';
  });
- r+='</tbody></table></div>';
+ r+='</tbody></table></div><div class="pfacik"><b>Sattım</b>: satışı 📒 İşlem Defterim\'e yazar (kısmi satışta kalan adet portföyde kalır) · <b>✕ Sil</b>: kayıt tutmaz, yanlış girilen satır için.</div>';
  var dag=pfDagilim(a);
  if(dag.length){
   var ust=a.length>=2&&dag[0][1]>40;
@@ -1814,7 +1878,456 @@ function pfRender(){
  if(typeof bugunRender==='function')bugunRender();
  top.innerHTML='Toplam K/Z: <b class="'+(toplam>=0?'pos':'neg')+'">'+(toplam>=0?'+':'')+Math.round(toplam).toLocaleString('tr-TR')+' TL</b>';
 }
-(function(){var dl=document.getElementById('pfkodlar');if(dl){dl.innerHTML=Object.keys(DATA).sort().map(function(k){return '<option value="'+k+'"></option>';}).join('');}pfRender();pfBulutOku();alBulutOku();tabloDuzen();favBulutOku();bugunRender();})();
+// --- 📒 İşlem Defterim: kapanmış GERÇEK işlemler (kullanıcının kendi alım-satımı). Cihazda (defter_v1) + GitHub'daki DEFTER variable'ı
+// (portföyle aynı anahtar, aynı çakışma mantığı: bulut esas, bu cihazdaki değişiklik daha yeniyse buluta yazılır).
+// GİZLİLİK: DEFTER tarama.yml'e verilmez → Actions loguna, durum.json'a, index.html'e ASLA girmez; tüm hesap tarayıcıda.
+// Kayıt (kısa anahtarlar, 48 KB variable sınırı için): i id, h hisse, a alış tarihi, s satış tarihi, n adet, m alış fiyatı, f satış fiyatı,
+// k komisyon TL (toplam, isteğe bağlı), pl plan/neden, no not, d duygu, u plana uyum (e/h/k), q kalite (A/B/C), t kayıt zamanı (ms);
+// otomatik: sa alışta sistem (al/tr/yok/?), ss satışta (erken/ayni/stopalti/cikti/yok/?), x aynı günlerde BIST 100 %, sg ilgili 🚀 sinyal günü,
+// cg sistemin çıkış günü, cb çıkış bitleri (tkg: 1 kilitli taban, 2 🔐), st satış günü stop/karar çizgisi, gs gösterge SAT başlangıcı.
+// Yerel bayraklar: kn = notları buluta sığmadı (bu cihazda), ky = kaydın tamamı sadece bu cihazda. Nesne: {v,u (son değişiklik ms),k,p {hisse: neden aldım}, pk}.
+var DF_KEY='defter_v1',DF_ACIK_KEY='defter_acik_v1',DF_SINIR=46000,DF_BE=0.5,DF_MIN=3,dfMod=null,dfAy=null,dfSilId=null,dfAcikId=null,dfKesik=null;
+var DF_SON=(XU&&XU.t&&XU.t.length)?XU.t[XU.t.length-1]:'';
+var DF_DUYGU={sakin:['😌','Sakin','acele etmeden, planımla karar verdim'],emin:['💪','Emin','analizime güvendim'],fomo:['🏃','FOMO','kaçırma korkusu: yükseliyor diye kaçırmamak için girdim'],
+ korku:['😨','Korku','düşer diye panikle karar verdim'],intikam:['😤','İntikam','önceki zararı hemen çıkarmak için girdim'],asiri:['🦚','Aşırı güven','"kesin olur" dedim, kurallarımı esnettim'],yorgun:['😴','Yorgun','dikkatim dağınıktı, dalgındım']};
+var DF_PLAN={e:'Evet',h:'Hayır',k:'Kısmen'};
+var DF_KALITE={A:'A — planlı, kurallarıma uygun',B:'B — idare eder, birkaç eksik',C:'C — dürtüsel, kuralsız'};
+var DF_SA={al:['🚀 AL\'de aldın','AL\'de','iyi','Alış günü sistemin 🚀 AL sinyali vardı (sinyalden en fazla 5 işlem günü sonra)'],
+ tr:['⏳ geç giriş','geç giriş','','Sistem pozisyondaydı ama 🚀 AL 5 işlem gününden eskiydi (yeni alım sinyali değildi)'],
+ yok:['✋ sistem dışı','sistem dışı','kot','Alış günü bu hissede sistemin 🚀 AL\'i yoktu'],
+ '?':['? bilinmiyor','bilinmiyor','','Alış tarihi girilmemiş ya da o tarih için sinyal verisi yok (son 2 yıl / son 6 işlem)']};
+var DF_SS={erken:['⏩ erken çıkış','erken çıkış','kot','Sattığın gün sistem hâlâ AL\'deydi (iz stop kırılmamıştı)'],
+ ayni:['✅ sistemle çıktın','sistemle çıktı','iyi','Sistem aynı gün çıkış verdi (iz stop / 🔐 kâr kilidi)'],
+ stopalti:['✅ stop altında sattın','stop altında','iyi','Sattığın fiyat iz stop / karar çizgisinin altındaydı'],
+ cikti:['⌛ geç çıkış','geç çıkış','kot','Sistem senden önce çıkış vermişti'],
+ yok:['— sistem dışı','sistem dışı','','Tuttuğun sürede sistem bu hissede pozisyonda değildi'],
+ '?':['? bilinmiyor','bilinmiyor','','O tarih için sinyal verisi yok']};
+var DF_AYLAR=['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+
+function dfBos(){return {v:1,u:0,k:[],p:{}};}
+function dfOku(){try{var o=JSON.parse(localStorage.getItem(DF_KEY));if(o&&Array.isArray(o.k)){if(!o.p||typeof o.p!=='object')o.p={};return o;}}catch(e){}return dfBos();}
+function dfYazYerel(o){try{localStorage.setItem(DF_KEY,JSON.stringify(o));return true;}catch(e){return false;}}
+function dfYaz(o){o.u=Date.now();if(!dfYazYerel(o))dfNot('⚠ Tarayıcı kaydetmeye izin vermedi (gizli pencere / depolama dolu olabilir). <b>CSV yedeği</b> al.');dfBulutYaz(o);}
+function dfNot(t){var n=document.getElementById('dfnot');if(!n)return;n.innerHTML=t||'';n.hidden=!t;}
+function dfId(o){var id='';try{if(window.crypto&&crypto.randomUUID)id=crypto.randomUUID().replace(/-/g,'').slice(0,12);}catch(e){}
+ if(!id)id=Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+ return (o&&o.k.some(function(r){return r.i===id;}))?dfId(o):id;}
+function dfBugun(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
+function dfGun(a,b){if(!a||!b)return null;return Math.round((Date.parse(b+'T00:00:00Z')-Date.parse(a+'T00:00:00Z'))/864e5);}
+function dfTr(t){return t?t.slice(8,10)+'.'+t.slice(5,7)+'.'+t.slice(0,4):'—';}
+function dfSayi(x,b){return (+x).toLocaleString('tr-TR',{maximumFractionDigits:b==null?4:b});}
+function dfKZ(r){var mal=r.m*r.n,tl=(r.f-r.m)*r.n-(r.k||0),y=mal>0?tl/mal*100:0;return {tl:tl,y:y,s:Math.abs(y)<=DF_BE?'be':(tl>0?'kaz':'zar')};}
+function dfEk(n){n=Math.round(Math.abs(n));if(n===100)return 'ünde';var b=n%10,o=Math.floor(n/10)%10;  // '%85'inde', '3'ünde' — Türkçe bulunma eki
+ if(b)return ['','inde','sinde','ünde','ünde','inde','sında','sinde','inde','unda'][b];
+ return ['ında','unda','sinde','unda','ında','sinde','ında','inde','inde','ında'][o];}
+function dfSirala(x,y){return x.s<y.s?-1:x.s>y.s?1:((x.t||0)-(y.t||0));}  // eskiden yeniye
+function dfPlanTemizle(k,pf){if(!k)return;var o=dfOku();if(o.p[k]&&!(pf||pfOku()).some(function(x){return x.kod===k;})){delete o.p[k];dfYaz(o);}}
+
+// --- Otomatik alanlar: alış/satış günü sistem ne diyordu? (DATA.tkg = son 6 🚀 v3 işlemi, çıkışı son 2 yılda olan ya da açık)
+function dfIsGunu(a,b){if(!XU)return null;var n=0;for(var i=XU.t.length-1;i>=0&&XU.t[i]>a;i--)if(XU.t[i]<=b)n++;return n;}
+function dfSinyal(h,a,s,f,p){
+ var d=DATA[h],o={sa:'?',ss:'?'},xa=a?xuDeger(a):null,xs=s?xuDeger(s):null;
+ o.x=(xa&&xs&&a<=s)?Math.round((xs/xa-1)*1000)/10:null;
+ if(!d)return o;
+ var g=d.tkg||[],tk=d.tk||{},sinir=DF_SON?(+DF_SON.slice(0,4)-2)+DF_SON.slice(4):'9999',ilk=g.length>=6?g[0][0]:'0000';
+ function kapsar(t){return !!t&&t>=sinir&&t>=ilk;}
+ function acik(t){for(var i=g.length-1;i>=0;i--){var x=g[i];if(x[0]<=t&&(x[2]==null||t<x[2]))return x;}return null;}
+ if(a){var ta=acik(a);
+  if(ta){var n=dfIsGunu(ta[0],a);o.sa=(n!=null&&n<=5)?'al':'tr';o.sg=ta[0];}
+  else if(kapsar(a))o.sa='yok';}
+ if(s){
+  var ts=acik(s),c=null;
+  if(ts){o.ss='erken';if(!o.sg)o.sg=ts[0];}
+  else{
+   for(var i=g.length-1;i>=0;i--){var x=g[i];if(x[2]&&x[2]<=s&&(a?x[2]>a:dfGun(x[2],s)<=30)){c=x;break;}}
+   if(c){o.ss=(c[2]===s)?'ayni':'cikti';o.cg=c[2];if(c[4]&3)o.cb=c[4]&3;if(!o.sg)o.sg=c[0];}
+   else if(kapsar(a||s))o.ss='yok';
+  }
+  var yakin=DF_SON&&s>=DF_SON?true:(DF_SON&&dfGun(s,DF_SON)<=3);  // satış son veri gününe yakınsa bugünkü stop / sinyal geçerli
+  if(yakin&&d.fiyat!=null){
+   var st=null;
+   if(p){var pl=pozPlan(d,p);st=pl.uzun?pl.karar:(pl.izCikti?null:pl.stop);if(!pl.uzun&&pl.izCikti&&(o.ss==='erken'||o.ss==='yok'||o.ss==='?'))o.ss='stopalti';}
+   else if(tk.durum==='AL')st=tk.stop;
+   if(st){o.st=st;if(f<st&&(o.ss==='erken'||o.ss==='yok'||o.ss==='?'))o.ss='stopalti';}
+   if(d.sinyal==='SAT'&&d.sinyal_tarih&&d.sinyal_tarih<=s)o.gs=d.sinyal_tarih;
+  }
+ }
+ return o;
+}
+function dfOtoKoy(r,o){['sa','ss','x','sg','cg','cb','st','gs'].forEach(function(k){if(o[k]==null||o[k]==='')delete r[k];else r[k]=o[k];});}
+function dfRoz(r){
+ var a=DF_SA[r.sa||'?']||DF_SA['?'],b=DF_SS[r.ss||'?']||DF_SS['?'];
+ var at=a[3]+(r.sg?' · sinyal günü '+dfTr(r.sg):''),bt=b[3]+(r.cg?' · sistem çıkışı '+dfTr(r.cg)+((r.cb&2)?' (🔐 kâr kilidi)':''):'')+(r.st?' · satış günü stop '+dfSayi(r.st,2):'');
+ return '<span class="dfroz '+a[2]+'" title="Alışta: '+hEsc(at)+'">'+a[0]+'</span><span class="dfroz '+b[2]+'" title="Satışta: '+hEsc(bt)+'">'+b[0]+'</span>';
+}
+
+// --- GitHub eşitleme (DEFTER variable'ı). 48 KB sınırı: sığmazsa en eski kayıtların notları, gerekirse kayıtların kendisi sadece bu cihazda kalır.
+function dfBayt(s){try{return new TextEncoder().encode(s).length;}catch(e){return unescape(encodeURIComponent(s)).length;}}
+function dfBulutHazirla(o){
+ var k=o.k.map(function(r){var c={};for(var x in r)if(x!=='kn'&&x!=='ky')c[x]=r[x];return c;});
+ var sira=k.slice().sort(dfSirala),ky={},kn={},pk=false;
+ function js(){var b={v:1,u:o.u,k:k.filter(function(r){return !ky[r.i];}),p:pk?{}:o.p};if(pk)b.pk=1;return JSON.stringify(b);}
+ var s=js(),i=0;
+ while(dfBayt(s)>DF_SINIR&&i<sira.length){var r=sira[i++];if(r.pl||r.no){delete r.pl;delete r.no;r.kn=1;kn[r.i]=1;s=js();}}
+ if(dfBayt(s)>DF_SINIR&&Object.keys(o.p).length){pk=true;s=js();}
+ i=0;while(dfBayt(s)>DF_SINIR&&i<sira.length){ky[sira[i++].i]=1;s=js();}
+ return {s:s,kn:kn,ky:ky,pk:pk};
+}
+function dfIsaretle(o,h){  // yerel bayraklar (sadece bilgi; u değişmez)
+ var deg=false;o.k.forEach(function(r){var n=h.kn[r.i]?1:0,y=h.ky[r.i]?1:0;if((r.kn||0)!==n){if(n)r.kn=1;else delete r.kn;deg=true;}if((r.ky||0)!==y){if(y)r.ky=1;else delete r.ky;deg=true;}});
+ if(deg)dfYazYerel(o);
+ var nk=Object.keys(h.kn).length,yk=Object.keys(h.ky).length;dfKesik=(nk||yk||h.pk)?{kn:nk,ky:yk,pk:h.pk}:null;
+}
+function dfBulutDurum(d,kod){
+ var el=document.getElementById('dfbulut');if(!el)return;
+ var yetki=(kod===401||kod===403||kod===404);
+ var t={yerel:'Bu cihazda saklanıyor. Başka cihazda da görmek için Portföyüm → <a href="#" onclick="ghKurulum();return false">Telegram\'a bağla</a> (aynı anahtar; defter Telegram\'a gönderilmez).',
+  kaydediliyor:'☁ Kaydediliyor…',ok:'☁ GitHub\'daki gizli DEFTER kaydıyla eşit (Telegram\'a ve herkese açık dosyalara gitmez)',
+  hata:'⚠ GitHub\'a kaydedilemedi'+(kod?' ('+kod+')':'')+(yetki?' — anahtar geçersiz ya da yetkisi eksik':' — sonra tekrar dene')+'. Kayıtlar bu cihazda duruyor.'}[d];
+ if(d==='ok'&&dfKesik)t+=' <span class="pfuy">· defter büyüdü: '+(dfKesik.kn?'en eski '+dfKesik.kn+' işlemin notları':'')+(dfKesik.ky?(dfKesik.kn?', ':'')+dfKesik.ky+' işlemin tamamı':'')+(dfKesik.pk?(dfKesik.kn||dfKesik.ky?', ':'')+'"neden aldım" notları':'')+' GitHub sınırına (48 KB) sığmadı, sadece bu cihazda. CSV yedeği al.</span>';
+ el.innerHTML=t;el.className='pfbulut '+d;
+}
+function dfBulutYaz(o){
+ var h=dfBulutHazirla(o);dfIsaretle(o,h);
+ if(!ghAnahtar()){dfBulutDurum('yerel');return Promise.resolve(false);}
+ var v={name:'DEFTER',value:h.s};dfBulutDurum('kaydediliyor');
+ return ghIstek('PATCH','/actions/variables/DEFTER',v).then(function(r){return r.status===404?ghIstek('POST','/actions/variables',v):r;})
+  .then(function(r){dfBulutDurum(r.ok?'ok':'hata',r.ok?0:r.status);return r.ok;}).catch(function(){dfBulutDurum('hata');return false;});
+}
+function dfBirlestir(b,y){  // bulut esas; notu buluta sığmamış kayıtların notları ve sadece bu cihazdaki kayıtlar korunur
+ var yy={};y.k.forEach(function(r){yy[r.i]=r;});
+ var k=b.k.filter(function(r){return r&&r.i&&r.h;}).map(function(r){var l=yy[r.i];r=Object.assign({},r);
+  if(r.kn&&l){if(l.pl)r.pl=l.pl;if(l.no)r.no=l.no;}return r;});
+ var var_={};k.forEach(function(r){var_[r.i]=1;});
+ y.k.forEach(function(r){if(r.ky&&!var_[r.i])k.push(r);});
+ return {v:1,u:b.u||0,k:k,p:b.pk?(y.p||{}):(b.p||{})};
+}
+function dfBulutOku(){
+ if(!ghAnahtar()){dfBulutDurum('yerel');return Promise.resolve(false);}
+ dfBulutDurum('kaydediliyor');
+ return ghIstek('GET','/actions/variables/DEFTER').then(function(r){
+  var o=dfOku();
+  if(r.status===404){if(o.k.length||Object.keys(o.p).length)return dfBulutYaz(o);dfBulutDurum('ok');return true;}
+  if(!r.ok){dfBulutDurum('hata',r.status);return false;}
+  return r.json().then(function(j){var b=null;try{b=JSON.parse(j.value);}catch(e){}
+   if(!b||!Array.isArray(b.k))return dfBulutYaz(o);
+   if((b.u||0)>=(o.u||0)){var m=dfBirlestir(b,o);dfYazYerel(m);dfIsaretle(m,dfBulutHazirla(m));dfRender();dfBulutDurum('ok');return true;}
+   return dfBulutYaz(o);  // bu cihazdaki değişiklik daha yeni (ör. bağlantısızken yapıldı) → buluta yazılır
+  });
+ }).catch(function(){dfBulutDurum('hata');return false;});
+}
+
+// --- Form: 'sat' (portföy satırından), 'duz' (kayıt düzenle), 'yeni' (geçmiş işlemi elle ekle)
+function dfSecenek(obj,sec,bos,fn){var h='<option value="">'+bos+'</option>';for(var k in obj)h+='<option value="'+k+'"'+(k===sec?' selected':'')+'>'+fn(k,obj[k])+'</option>';return h;}
+function dfFormAc(mod,x){
+ var o=dfOku(),r={},p=null,bug=dfBugun();
+ if(mod==='sat'){p=pfOku()[x];if(!p)return;var d=DATA[p.kod]||{};
+  r={h:p.kod,a:p.tarih||'',m:p.maliyet,s:bug,f:d.fiyat!=null?d.fiyat:'',n:p.adet,pl:o.p[p.kod]||''};}
+ else if(mod==='duz'){r=o.k.filter(function(z){return z.i===x;})[0];if(!r)return;}
+ else r={s:bug};
+ dfMod={mod:mod,x:x,i:r.i||null};
+ var dz=r.d&&DF_DUYGU[r.d];
+ document.getElementById('dfmodal').innerHTML='<div class="mh"><div class="sol"><h2>'+(mod==='sat'?'Sattım: '+hEsc(r.h):mod==='duz'?'Kaydı düzenle: '+hEsc(r.h):'Geçmiş işlem ekle')+'</h2></div><button class="kapa" onclick="dfFormKapat()" aria-label="Kapat">×</button></div>'+
+  '<div class="mfiyat">'+(mod==='sat'?'Kapanan işlem 📒 deftere yazılır'+(p?'; portföyde '+dfSayi(p.adet)+' adet var — daha azını yazarsan kalanı portföyde kalır.':'.'):mod==='yeni'?'Portföye girmemiş eski bir alım-satımı deftere ekle.':'Tarih/fiyat değişirse sistem bilgisi (🚀) yeniden hesaplanır.')+'</div>'+
+  '<div class="dfform">'+
+  '<label>Hisse<input id="dfh" value="'+hEsc(r.h||'')+'" list="pfkodlar" autocomplete="off" placeholder="örn. THYAO"'+(mod==='sat'?' disabled':'')+'></label>'+
+  '<label>Adet<input id="dfn" type="number" step="any" min="0" value="'+(r.n!=null?r.n:'')+'"></label>'+
+  '<label>Alış tarihi <span class="ipucu2">(bilmiyorsan boş bırak)</span><input id="dfa" type="date" value="'+(r.a||'')+'" max="'+bug+'"></label>'+
+  '<label>Alış fiyatı (TL)<input id="dfm" type="number" step="any" min="0" value="'+(r.m!=null?r.m:'')+'"></label>'+
+  '<label>Satış tarihi<input id="dfs" type="date" value="'+(r.s||'')+'" max="'+bug+'"></label>'+
+  '<label>Satış fiyatı (TL)<input id="dff" type="number" step="any" min="0" value="'+(r.f!=null?r.f:'')+'"></label>'+
+  '<label class="tam">Komisyon, toplam TL <span class="ipucu2">(isteğe bağlı; alış + satış komisyonu ve vergiler. Boş = 0 sayılır, kâr biraz iyimser görünür)</span><input id="dfk" type="number" step="any" min="0" value="'+(r.k||'')+'" placeholder="0"></label>'+
+  '<label class="tam">İşlem öncesi plan / neden aldım? <span class="ipucu2">(isteğe bağlı)</span><textarea id="dfpl" maxlength="1000" placeholder="örn. 🚀 AL geldi, iz stop\'a kadar tutacaktım">'+hEsc(r.pl||'')+'</textarea></label>'+
+  '<label class="tam">İşlem sonrası not / ne öğrendim? <span class="ipucu2">(isteğe bağlı)</span><textarea id="dfno" maxlength="1000" placeholder="örn. düşünce panikledim, stop\'u beklemedim">'+hEsc(r.no||'')+'</textarea></label>'+
+  '<label>Baskın duygun<select id="dfd" onchange="dfDuyguAcik()">'+dfSecenek(DF_DUYGU,r.d,'— seçmedim —',function(k,v){return v[0]+' '+v[1];})+'</select><span id="dfdac" class="ipucu2">'+(dz?hEsc(dz[2]):'Dürüst ol: kimse görmüyor, amaç kendini tanımak.')+'</span></label>'+
+  '<label>Planına uydun mu?<select id="dfu">'+dfSecenek(DF_PLAN,r.u,'— seçmedim —',function(k,v){return v;})+'</select></label>'+
+  '<label>Kalite (karara göre, sonuca göre değil)<select id="dfq">'+dfSecenek(DF_KALITE,r.q,'— seçmedim —',function(k,v){return v;})+'</select></label>'+
+  '<div class="tam ipucu2">Kaydedince pano kendisi ekler: alış günü sistemde 🚀 AL var mıydı, satış günü sistem hâlâ AL\'de miydi (erken çıkış) ya da stop altında mıydı, aynı günlerde BIST 100 ne yaptı, kaç gün tuttun. Hepsi bu cihazda hesaplanır.</div>'+
+  '</div><div id="dfformnot" class="zaman" hidden></div>'+
+  '<div class="btnler"><button class="pfkaydet" onclick="dfKaydet()">'+(mod==='sat'?'Satışı deftere yaz':'Kaydet')+'</button><button class="pfipt" onclick="dfFormKapat()">İptal</button></div>';
+ document.getElementById('dfust').classList.add('acik');
+ var ilk=document.getElementById(mod==='yeni'?'dfh':'dff');if(ilk)ilk.focus();
+}
+function dfDuyguAcik(){var v=document.getElementById('dfd').value,e=document.getElementById('dfdac');e.textContent=v&&DF_DUYGU[v]?DF_DUYGU[v][2]:'Dürüst ol: kimse görmüyor, amaç kendini tanımak.';}
+function dfFormKapat(){document.getElementById('dfust').classList.remove('acik');dfMod=null;}
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&dfMod)dfFormKapat();});
+function dfDeger(id){var e=document.getElementById(id);return e?(e.value||'').trim():'';}
+function dfKaydet(){
+ var m=dfMod;if(!m)return;
+ var hata=function(t){var n=document.getElementById('dfformnot');n.textContent=t;n.hidden=false;};
+ var h=dfDeger('dfh').toLocaleUpperCase('tr').replace(/[^A-Z0-9ÇĞİÖŞÜ]/g,'').slice(0,12),a=dfDeger('dfa'),s=dfDeger('dfs'),bug=dfBugun();
+ var n=parseFloat(dfDeger('dfn')),mf=parseFloat(dfDeger('dfm')),f=parseFloat(dfDeger('dff')),k=parseFloat(dfDeger('dfk'))||0;
+ if(!h)return hata('Hisse kodunu yaz.');
+ if(!(n>0))return hata('Adet sıfırdan büyük olmalı.');
+ if(!(mf>0)||!(f>0))return hata('Alış ve satış fiyatını yaz.');
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(s))return hata('Satış tarihini seç.');
+ if(s>bug)return hata('Satış tarihi bugünden sonra olamaz.');
+ if(a&&a>s)return hata('Alış tarihi satış tarihinden sonra olamaz.');
+ if(k<0)return hata('Komisyon eksi olamaz.');
+ var o=dfOku(),pf=null,pa=null;
+ if(m.mod==='sat'){pa=pfOku();pf=pa[m.x];if(!pf||pf.kod!==h)return hata('Portföy satırı değişmiş; pencereyi kapatıp yeniden dene.');
+  if(n>pf.adet+1e-9)return hata('Portföyde '+dfSayi(pf.adet)+' adet var; daha fazlasını satamazsın.');}
+ var eski=m.mod==='duz'?o.k.filter(function(z){return z.i===m.i;})[0]:null;
+ if(m.mod==='duz'&&!eski)return hata('Kayıt bulunamadı (başka cihazda silinmiş olabilir).');
+ var r=eski?Object.assign({},eski):{i:dfId(o),t:Date.now()};
+ r.h=h;r.s=s;r.n=n;r.m=mf;r.f=f;if(a)r.a=a;else delete r.a;if(k)r.k=k;else delete r.k;
+ [['pl','dfpl'],['no','dfno'],['d','dfd'],['u','dfu'],['q','dfq']].forEach(function(z){var v=dfDeger(z[1]);if(z[0]==='pl'||z[0]==='no')v=v.slice(0,1000);if(v)r[z[0]]=v;else delete r[z[0]];});
+ if(r.pl||r.no)delete r.kn;
+ if(!eski||eski.h!==h||(eski.a||'')!==(a||'')||eski.s!==s||eski.f!==f||eski.sa==null)dfOtoKoy(r,dfSinyal(h,a,s,f,pf));
+ if(eski)o.k=o.k.map(function(z){return z.i===r.i?r:z;});else o.k.push(r);
+ var kz=dfKZ(r),not=hEsc(h)+' '+(eski?'kaydı güncellendi.':'satışı deftere yazıldı: <b class="'+(kz.tl>=0?'pos':'neg')+'">'+tlf(kz.tl)+' ('+pyz(kz.y)+')</b>.');
+ if(pf){  // portföyden düş: tamamı satıldıysa satır silinir, kısmi satışta adet (ve endeks birimi) orantılı azalır
+  if(n>=pf.adet-1e-9){pa.splice(m.x,1);if(!pa.some(function(z){return z.kod===h;}))delete o.p[h];not+=' Portföyden çıkarıldı.';}
+  else{var kal=Math.round((pf.adet-n)*1e6)/1e6;if(pf.xu_birim)pf.xu_birim=pf.xu_birim*kal/pf.adet;pf.adet=kal;not+=' Portföyde '+dfSayi(kal)+' adet kaldı.';}
+  pfYaz(pa);pfRender();
+ }
+ dfYaz(o);dfFormKapat();dfAcikId=null;
+ var bx=document.getElementById('dfbox');if(bx&&!bx.open){bx.open=true;}
+ dfRender();
+ var msg=not+' <a href="#dfbox" onclick="dfGoster();return false">📒 Deftere bak</a>';
+ if(pf)pfNot(msg);else dfNot(msg);
+}
+function dfGoster(){var b=document.getElementById('dfbox');if(b){b.open=true;b.scrollIntoView({behavior:'smooth',block:'start'});}}
+function dfAcikKaydet(){var b=document.getElementById('dfbox');try{localStorage.setItem(DF_ACIK_KEY,b&&b.open?'1':'0');}catch(e){}}
+function dfSilSor(id){dfSilId=id;dfRender();}
+function dfSil(id){var o=dfOku();o.k=o.k.filter(function(r){return r.i!==id;});dfSilId=null;if(dfAcikId===id)dfAcikId=null;dfYaz(o);dfRender();dfNot('Kayıt silindi.');}
+function dfAc(id){dfAcikId=dfAcikId===id?null:id;dfRender();}
+function dfTemizleSor(){var n=dfOku().k.length;if(!n){dfNot('Defter zaten boş.');return;}
+ dfNot('Defterdeki <b>'+n+'</b> işlemin hepsi silinecek'+(ghAnahtar()?' (bu cihazdan ve GitHub\'dan)':'')+'. Önce <b>⬇ CSV yedeği</b> almanı öneririz. <span class="dfonay"><button class="dfbtn tehlike" onclick="dfTemizle()">Evet, hepsini sil</button><button class="dfbtn" onclick="dfNot(\'\')">Vazgeç</button></span>');}
+function dfTemizle(){var o=dfOku();o.k=[];dfAcikId=null;dfSilId=null;dfYaz(o);dfRender();dfNot('Defter temizlendi.');}
+
+// --- Süzgeç + çizim
+function dfSuz(o){
+ var q=(dfDeger('dfara')||'').toLocaleLowerCase('tr'),so=dfDeger('dfsonuc'),si=dfDeger('dfsin');
+ return o.k.map(function(r){var z=Object.assign({},r);z._kz=dfKZ(r);z._g=dfGun(r.a,r.s);return z;}).filter(function(r){
+  if(q&&(r.h+' '+(r.pl||'')+' '+(r.no||'')+' '+((DF_DUYGU[r.d]||[])[1]||'')).toLocaleLowerCase('tr').indexOf(q)<0)return false;
+  if(so&&r._kz.s!==so)return false;
+  if(si==='uy'&&r.sa!=='al')return false;
+  if(si==='uymaz'&&r.sa!=='tr'&&r.sa!=='yok')return false;
+  if(si==='erken'&&r.ss!=='erken')return false;
+  return true;});
+}
+function dfKart(l,v,a,c){return '<div class="dfk"><div class="l">'+l+'</div><div class="v'+(c?' '+c:'')+'">'+v+'</div><div class="a">'+a+'</div></div>';}
+function dfKartlar(L,hepsi){
+ var el=document.getElementById('dfkartlar');
+ if(!L.length){el.innerHTML='';return;}
+ var net=0,ty=0,kaz=0,zar=0,be=0,en=null,ek=null,gun=0,gn=0;
+ L.forEach(function(r){var z=r._kz;net+=z.tl;ty+=z.y;if(z.s==='kaz')kaz++;else if(z.s==='zar')zar++;else be++;if(!en||z.tl>en._kz.tl)en=r;if(!ek||z.tl<ek._kz.tl)ek=r;if(r._g!=null){gun+=r._g;gn++;}});
+ var is=(kaz+zar)?kaz/(kaz+zar)*100:null,f=L.length<hepsi?' <span class="pfuy" style="margin:0">süzgeçli</span>':'';
+ el.innerHTML=dfKart('Net kâr/zarar'+f,tlf(net),'kapanan işlemler'+(L.some(function(r){return r.k;})?', girilen komisyon düşülmüş':', komisyon girilmediyse düşülmedi'),net>=0?'pos':'neg')+
+  dfKart('İsabet',is==null?'—':'%'+Math.round(is),kaz+' kazanç · '+zar+' zarar'+(be?' · '+be+' başa baş (±%0,5, sayılmaz)':''))+
+  dfKart('İşlem sayısı',String(L.length),(gn?'ort. '+Math.round(gun/gn)+' gün tutuş':'tutuş süresi için alış tarihi gir')+(L.length<20?' · az işlem: sonuçlar şans olabilir':''))+
+  dfKart('Ortalama sonuç',tlf(net/L.length),'işlem başı '+pyz(ty/L.length)+' (eşit ağırlık)',net>=0?'pos':'neg')+
+  dfKart('En iyi işlem',hEsc(en.h)+' <span class="'+(en._kz.tl>=0?'pos':'neg')+'" style="font-size:13px">'+tlf(en._kz.tl)+'</span>',pyz(en._kz.y)+(L.length>1?' · en kötü: '+hEsc(ek.h)+' '+tlf(ek._kz.tl):''));
+}
+function dfKisaTL(x){var a=Math.abs(x),t=a>=1e6?(a/1e6).toLocaleString('tr-TR',{maximumFractionDigits:1})+' mn':a>=1e4?Math.round(a/1e3)+' bin':a>=1e3?(a/1e3).toLocaleString('tr-TR',{maximumFractionDigits:1})+' bin':Math.round(a).toString();return (x>=0?'+':'−')+t;}
+function dfEgri(L){
+ if(!L.length)return '';
+ var s=L.slice().sort(dfSirala),W=640,H=190,pl=58,pr=12,pt=14,pb=26,top=0,y=[0];
+ s.forEach(function(r){top+=r._kz.tl;y.push(top);});
+ var mn=Math.min.apply(null,y),mx=Math.max.apply(null,y);if(mx===mn){mx+=1;mn-=1;}
+ var X=function(i){return pl+(W-pl-pr)*i/(y.length-1||1);},Y=function(v){return pt+(H-pt-pb)*(mx-v)/(mx-mn);};
+ var d=y.map(function(v,i){return (i?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1);}).join(' ');
+ var son=y[y.length-1],renk=son>=0?'#1B7F4B':'#B4362E';
+ var nok=s.map(function(r,i){return '<circle cx="'+X(i+1).toFixed(1)+'" cy="'+Y(y[i+1]).toFixed(1)+'" r="3.2" fill="'+(r._kz.tl>=0?'#1B7F4B':'#B4362E')+'"><title>'+dfTr(r.s)+' '+hEsc(r.h)+': '+tlf(r._kz.tl)+' · toplam '+tlf(y[i+1])+'</title></circle>';}).join('');
+ return '<div class="dfpanel"><h3>📈 Gerçekleşen kâr eğrisi <span class="sgun" style="font-weight:400">(kümülatif, satış sırasıyla)</span></h3>'+
+  '<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Kümülatif gerçekleşen kâr">'+
+  '<line x1="'+pl+'" x2="'+(W-pr)+'" y1="'+Y(0).toFixed(1)+'" y2="'+Y(0).toFixed(1)+'" stroke="#9AA0A6" stroke-dasharray="4 3"/>'+
+  '<text x="'+(pl-6)+'" y="'+(Y(mx)+4).toFixed(1)+'" text-anchor="end" font-size="13" fill="#6B7079">'+dfKisaTL(mx)+'</text>'+
+  '<text x="'+(pl-6)+'" y="'+(Y(mn)+4).toFixed(1)+'" text-anchor="end" font-size="13" fill="#6B7079">'+dfKisaTL(mn)+'</text>'+
+  (mx>0&&mn<0&&Y(0)-Y(mx)>14&&Y(mn)-Y(0)>14?'<text x="'+(pl-6)+'" y="'+(Y(0)+4).toFixed(1)+'" text-anchor="end" font-size="13" fill="#6B7079">0</text>':'')+
+  '<path d="'+d+'" fill="none" stroke="'+renk+'" stroke-width="2.2" stroke-linejoin="round"/>'+nok+
+  '<text x="'+pl+'" y="'+(H-6)+'" font-size="13" fill="#6B7079">'+dfTr(s[0].s)+'</text>'+
+  '<text x="'+(W-pr)+'" y="'+(H-6)+'" text-anchor="end" font-size="13" fill="#6B7079">'+dfTr(s[s.length-1].s)+' · toplam '+tlf(son)+'</text>'+
+  '</svg></div>';
+}
+function dfAyDegis(n){var p=(dfAy||dfBugun().slice(0,7)).split('-'),d=new Date(+p[0],+p[1]-1+n,1);dfAy=d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2);dfRender();}
+function dfTakvim(L){
+ if(!dfAy){var son=L.slice().sort(dfSirala).pop();dfAy=(son&&son.s.slice(0,7)!==dfBugun().slice(0,7)&&!L.some(function(r){return r.s.slice(0,7)===dfBugun().slice(0,7);}))?son.s.slice(0,7):dfBugun().slice(0,7);}
+ var y=+dfAy.slice(0,4),m=+dfAy.slice(5,7),gun={},top=0,adet=0,bug=dfBugun();
+ L.forEach(function(r){if(r.s.slice(0,7)!==dfAy)return;var g=gun[r.s]||(gun[r.s]={tl:0,n:0});g.tl+=r._kz.tl;g.n++;top+=r._kz.tl;adet++;});
+ var bas=(new Date(y,m-1,1).getDay()+6)%7,son_=new Date(y,m,0).getDate();
+ var h='<div class="dfpanel"><h3>📅 Takvim</h3><div class="dftakbas"><button class="dfbtn kucuk" onclick="dfAyDegis(-1)" aria-label="Önceki ay">‹</button><b>'+DF_AYLAR[m-1]+' '+y+'</b>'+
+  '<span class="'+(top>=0?'pos':'neg')+'" style="font-size:12px">'+(adet?tlf(top)+' · '+adet+' işlem':'<span class="sgun">işlem yok</span>')+'</span><button class="dfbtn kucuk" onclick="dfAyDegis(1)" aria-label="Sonraki ay">›</button></div><div class="dftak">';
+ ['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'].forEach(function(g){h+='<div class="dgb">'+g+'</div>';});
+ for(var i=0;i<bas;i++)h+='<div class="dgk bos"></div>';
+ for(var g=1;g<=son_;g++){var t=dfAy+'-'+('0'+g).slice(-2),v=gun[t],c=v?(Math.abs(v.tl)<0.005?'be':v.tl>0?'kaz':'zar'):'';
+  h+='<div class="dgk '+c+(t===bug?' bugun':'')+'"'+(v?' title="'+dfTr(t)+': '+v.n+' işlem, '+tlf(v.tl)+'"':'')+'><div class="dgn">'+g+'</div>'+(v?'<div class="dgt">'+dfKisaTL(v.tl)+'</div><div>'+v.n+' işl.</div>':'')+'</div>';}
+ return h+'</div><div class="sgun" style="font-size:11px;margin-top:5px">Kutuda o gün kapanan (satılan) işlemlerin toplam kâr/zararı ve sayısı.</div></div>';
+}
+function dfTablo(L){
+ var s=L.slice().sort(dfSirala).reverse();
+ var h='<div class="sar" style="margin-top:0"><table class="df"><thead><tr><th>Satış</th><th>Hisse</th><th class="num">Alış → Satış</th><th class="num">Adet</th><th class="num">Kâr/zarar</th><th class="num">%</th><th class="num">Gün</th><th>Sistem (🚀)</th><th>Duygu</th><th>Plan</th><th></th></tr></thead><tbody>';
+ s.forEach(function(r){
+  var z=r._kz,c=z.s==='be'?'':(z.tl>=0?'pos':'neg'),dg=DF_DUYGU[r.d];
+  var bt=dfSilId===r.i?'<span class="dfonay">Silinsin mi? <button class="dfbtn kucuk tehlike" onclick="event.stopPropagation();dfSil(\''+r.i+'\')">Evet, sil</button><button class="dfbtn kucuk" onclick="event.stopPropagation();dfSilSor(null)">Vazgeç</button></span>':
+   '<button class="pfsil pfduz" title="Düzenle" aria-label="Düzenle" onclick="event.stopPropagation();dfFormAc(\'duz\',\''+r.i+'\')">✎</button> <button class="pfsil" title="Sil" aria-label="Sil" onclick="event.stopPropagation();dfSilSor(\''+r.i+'\')">🗑</button>';
+  h+='<tr onclick="dfAc(\''+r.i+'\')" title="Ayrıntı için tıkla"><td>'+dfTr(r.s)+'</td><td class="kod">'+hEsc(r.h)+((r.pl||r.no)?' <span title="Not var">📝</span>':'')+'</td>'+
+   '<td class="num">'+dfSayi(r.m)+' → '+dfSayi(r.f)+'</td><td class="num">'+dfSayi(r.n)+'</td>'+
+   '<td class="num '+c+'"><b>'+tlf(z.tl)+'</b></td><td class="num '+c+'">'+pyz(z.y)+'</td><td class="num">'+(r._g!=null?r._g:'—')+'</td>'+
+   '<td>'+dfRoz(r)+'</td><td>'+(dg?'<span title="'+hEsc(dg[2])+'">'+dg[0]+' '+dg[1]+'</span>':'<span class="sgun">—</span>')+'</td>'+
+   '<td>'+(r.u?DF_PLAN[r.u]:'<span class="sgun">—</span>')+(r.q?' <span class="dfroz" title="'+hEsc(DF_KALITE[r.q]||'')+'">'+r.q+'</span>':'')+'</td><td class="num">'+bt+'</td></tr>';
+  if(dfAcikId===r.i){
+   var xb=r.x!=null?'<div>📊 Aynı günlerde BIST 100: <b>'+pyz(r.x)+'</b> → '+(z.y>r.x?'<span class="pos">endeksi '+(z.y-r.x).toFixed(1).replace('.',',')+' puan geçtin</span>':'<span class="neg">endeksin '+(r.x-z.y).toFixed(1).replace('.',',')+' puan gerisinde kaldın</span>')+'</div>':'<div class="sgun">📊 BIST 100 kıyası için alış tarihi gerekli.</div>';
+   var sa=DF_SA[r.sa||'?']||DF_SA['?'],ss=DF_SS[r.ss||'?']||DF_SS['?'];
+   h+='<tr class="dfdetay"><td colspan="11"><div class="dfdk">'+
+    '<div>🗓 Alış '+dfTr(r.a)+' · satış '+dfTr(r.s)+(r._g!=null?' · '+r._g+' gün':'')+'</div>'+xb+
+    '<div>🚀 Alışta: '+sa[3]+(r.sg?' (sinyal günü '+dfTr(r.sg)+')':'')+'</div>'+
+    '<div>🚪 Satışta: '+ss[3]+(r.cg?' (sistem çıkışı '+dfTr(r.cg)+((r.cb&2)?', 🔐 kâr kilidi':'')+((r.cb&1)?', kilitli taban':'')+')':'')+(r.st?' · satış günü stop '+dfSayi(r.st,2)+' TL':'')+(r.gs?' · gösterge SAT '+dfTr(r.gs)+'\'den beri':'')+'</div>'+
+    '<div>💸 Komisyon: '+(r.k?dfSayi(r.k,2)+' TL':'girilmedi (0)')+(r.q?' · Kalite '+hEsc(DF_KALITE[r.q]||r.q):'')+'</div>'+
+    '<div>📝 Plan: '+(r.pl?'<span class="dfmetin">'+hEsc(r.pl)+'</span>':'<span class="sgun">'+(r.kn?'bu cihazda değil (GitHub sınırı)':'—')+'</span>')+'</div>'+
+    '<div>💡 Not: '+(r.no?'<span class="dfmetin">'+hEsc(r.no)+'</span>':'<span class="sgun">—</span>')+'</div>'+
+    '</div></td></tr>';
+  }
+ });
+ return h+'</tbody></table></div>';
+}
+// --- Analiz: gruplara göre sonuç + kısa çıkarımlar (grup başına en az DF_MIN işlem; az işlemde şans uyarısı)
+function dfGrup(L,fn,sira,ad){
+ var g={};L.forEach(function(r){var k=fn(r);if(k==null)return;var x=g[k]||(g[k]={n:0,kaz:0,zar:0,tl:0,y:0});x.n++;x.tl+=r._kz.tl;x.y+=r._kz.y;if(r._kz.s==='kaz')x.kaz++;else if(r._kz.s==='zar')x.zar++;});
+ return sira.filter(function(k){return g[k];}).map(function(k){var x=g[k];return {k:k,ad:ad(k),n:x.n,tl:x.tl,oy:x.y/x.n,is:(x.kaz+x.zar)?x.kaz/(x.kaz+x.zar)*100:null};});
+}
+function dfGrupHtml(baslik,G,alt){
+ if(!G.length)return '<div class="dfpanel dfat"><h3>'+baslik+'</h3><div class="dfaz">Bu bilgi henüz girilmemiş.</div></div>';
+ var h='<div class="dfpanel dfat"><h3>'+baslik+'</h3><div class="sar" style="margin-top:0;border:none;background:none"><table><thead><tr><th>Grup</th><th class="num">İşlem</th><th class="num">İsabet</th><th class="num">Net</th><th class="num">Ort.</th></tr></thead><tbody>';
+ G.forEach(function(x){var az=x.n<DF_MIN;h+='<tr'+(az?' class="dfaz" title="Daha fazla veri gerekli (en az '+DF_MIN+' işlem)"':'')+'><td>'+x.ad+(az?' <span class="sgun">· az veri</span>':'')+'</td><td class="num">'+x.n+'</td><td class="num">'+(x.is==null?'—':'%'+Math.round(x.is))+'</td><td class="num '+(az?'':(x.tl>=0?'pos':'neg'))+'">'+dfKisaTL(x.tl)+'</td><td class="num">'+pyz(x.oy)+'</td></tr>';});
+ h+='</tbody></table></div>';
+ if(G.every(function(x){return x.n<DF_MIN;}))h+='<div class="sgun" style="font-size:11.5px">Daha fazla veri gerekli: bir grubu yorumlamak için en az '+DF_MIN+' işlem.</div>';
+ return h+(alt?'<div class="sgun" style="font-size:11.5px;margin-top:4px">'+alt+'</div>':'')+'</div>';
+}
+function dfAnaliz(L){
+ if(!L.length)return '';
+ var dg=dfGrup(L,function(r){return r.d||null;},Object.keys(DF_DUYGU),function(k){return DF_DUYGU[k][0]+' '+DF_DUYGU[k][1];});
+ var pl=dfGrup(L,function(r){return r.u||null;},['e','k','h'],function(k){return DF_PLAN[k];});
+ var ka=dfGrup(L,function(r){return r.q||null;},['A','B','C'],function(k){return k;});
+ var sa=dfGrup(L,function(r){return r.sa||'?';},['al','tr','yok','?'],function(k){return DF_SA[k][0];});
+ var ss=dfGrup(L,function(r){return r.ss||'?';},['ayni','stopalti','erken','cikti','yok','?'],function(k){return DF_SS[k][0];});
+ var su=dfGrup(L,function(r){return r._g==null?null:r._g<=5?'a':r._g<=30?'b':'c';},['a','b','c'],function(k){return {a:'≤ 5 gün',b:'6-30 gün',c:'30+ gün'}[k];});
+ var xl=L.filter(function(r){return r.x!=null;}),xy=xl.filter(function(r){return r._kz.y>r.x;}).length,xf=0;xl.forEach(function(r){xf+=r._kz.y-r.x;});
+ var xh='<div class="dfpanel dfat"><h3>📊 BIST 100\'ü yendiğin işlemler</h3>'+(xl.length?'<div style="font-size:13px"><b>'+xl.length+'</b> işlemin <b>'+xy+'</b>\''+dfEk(xy)+' (<b>%'+Math.round(xy/xl.length*100)+'</b>) aynı günlerde BIST 100 almaktan iyi sonuç aldın; ortalama fark <b class="'+(xf>=0?'pos':'neg')+'">'+(xf>=0?'+':'−')+Math.abs(xf/xl.length).toFixed(1).replace('.',',')+' puan</b>.</div>'+(xl.length<DF_MIN?'<div class="sgun" style="font-size:11.5px">Daha fazla veri gerekli.</div>':''):'<div class="dfaz">Kıyas için işlemlerde alış tarihi gerekli.</div>')+
+  '<div class="sgun" style="font-size:11.5px;margin-top:4px">Temettü iki tarafta da yok; komisyon sadece girdiysen düşülür.</div></div>';
+ // çıkarımlar
+ var c=[],tam=function(G,k){return G.filter(function(x){return x.k===k&&x.n>=DF_MIN;})[0];};
+ var dgs=dg.filter(function(x){return x.n>=DF_MIN;}).sort(function(a,b){return Math.abs(b.tl)-Math.abs(a.tl);}).slice(0,2);
+ dgs.forEach(function(x){c.push(x.ad+' duygusuyla girdiğin '+x.n+' işlem toplam <b class="'+(x.tl>=0?'pos':'neg')+'">'+tlf(x.tl)+'</b> (ortalama '+pyz(x.oy)+').');});
+ var pe=tam(pl,'e'),ph=tam(pl,'h');if(pe&&ph)c.push('Planına uyduğun işlemlerde ortalama <b>'+pyz(pe.oy)+'</b>, uymadığında <b>'+pyz(ph.oy)+'</b>.');
+ else if(ph&&ph.tl<0)c.push('Planına uymadığın '+ph.n+' işlem toplam <b class="neg">'+tlf(ph.tl)+'</b>.');
+ var qa=tam(ka,'A'),qc=tam(ka,'C');if(qa&&qc)c.push('A kalite işlemlerin ortalama <b>'+pyz(qa.oy)+'</b>, C kalite (dürtüsel) olanlar <b>'+pyz(qc.oy)+'</b>.');
+ var al=tam(sa,'al'),yk=tam(sa,'yok');if(al&&yk)c.push('Sistemin 🚀 AL verdiği günlerde aldıkların ortalama <b>'+pyz(al.oy)+'</b>; sistem dışı aldıkların <b>'+pyz(yk.oy)+'</b>.');
+ else if(yk)c.push('Sistem dışı (🚀 AL yokken) aldığın '+yk.n+' işlem: toplam <b class="'+(yk.tl>=0?'pos':'neg')+'">'+tlf(yk.tl)+'</b>, isabet %'+Math.round(yk.is||0)+'.');
+ var er=tam(ss,'erken');if(er)c.push('Sistem hâlâ AL\'deyken erken çıktığın '+er.n+' işlemin ortalaması <b>'+pyz(er.oy)+'</b>. (Testlerde erken çıkış büyük yükselişleri sık kesti; bu işlemlerden sonra hisse ne yaptı, ara ara bak.)');
+ var gc=tam(ss,'cikti');if(gc)c.push('Sistem çıktıktan sonra hâlâ tuttuğun '+gc.n+' işlemin ortalaması <b>'+pyz(gc.oy)+'</b>.');
+ var sx=su.filter(function(x){return x.n>=DF_MIN;});if(sx.length>=2){sx.sort(function(a,b){return b.oy-a.oy;});c.push('En iyi sonuç <b>'+sx[0].ad+'</b> tuttuklarında (ort. '+pyz(sx[0].oy)+'), en zayıf <b>'+sx[sx.length-1].ad+'</b> tuttuklarında (ort. '+pyz(sx[sx.length-1].oy)+').');}
+ if(xl.length>=DF_MIN)c.push('İşlemlerinin %'+Math.round(xy/xl.length*100)+'\''+dfEk(Math.round(xy/xl.length*100))+' aynı günlerde BIST 100\'den iyi sonuç aldın.');
+ var n=L.length;
+ var h='<div class="dfcik"><b>🧠 Ne görüyorum?</b>'+(c.length?'<ul>'+c.map(function(x){return '<li>'+x+'</li>';}).join('')+'</ul>':'<div class="dfaz">Henüz yorum için yeterli veri yok: bir grubun yorumlanması için en az '+DF_MIN+' işlem gerekiyor. Satışlarda duygu / plan / kalite alanlarını doldurdukça burası dolar.</div>')+
+  '<div class="dfsans">⚠️ <b>Şansa dikkat:</b> '+(n<20?'Şu an '+n+' işlem var. Bu kadar az işlemde iyi ya da kötü sonuç büyük ölçüde şans olabilir; bir desene güvenmek için en az 20-30 işlem bekle.':n+' işlem var; yine de bir grubun iyi görünmesi o koşulun her zaman iyi olduğunu kanıtlamaz — birkaç büyük işlem ortalamayı tek başına çekebilir.')+' Geçmiş sonuç geleceği garanti etmez.</div></div>';
+ return h+'<div class="dfgrid">'+dfGrupHtml('🙂 Duyguya göre',dg,'Duygu seçmediğin işlemler bu tabloda yok.')+dfGrupHtml('📋 Planına uyma',pl)+dfGrupHtml('🏅 Kaliteye göre',ka,'Kalite karara göre: A planlı, C dürtüsel.')+
+  dfGrupHtml('🚀 Alışta sistem',sa,'Sisteme uyduğun (🚀 AL\'de) ve uymadığın işlemler. "Geç giriş": AL 5 işlem gününden eskiydi.')+dfGrupHtml('🚪 Satışta sistem',ss,'"Erken çıkış": sattığın gün sistem hâlâ AL\'deydi. "Geç çıkış": sistem senden önce çıkmıştı.')+
+  dfGrupHtml('⏱️ Tutma süresine göre',su,'Alış tarihi olmayan işlemler bu tabloda yok.')+xh+'</div>';
+}
+function dfRender(){
+ var o=dfOku(),oz=document.getElementById('dfozet'),gv=document.getElementById('dfgovde');if(!gv)return;
+ var net=0;o.k.forEach(function(r){net+=dfKZ(r).tl;});
+ oz.innerHTML=o.k.length?o.k.length+' işlem · net <b class="'+(net>=0?'pos':'neg')+'">'+tlf(net)+'</b>':'henüz kayıt yok';
+ if(!o.k.length){document.getElementById('dfkartlar').innerHTML='';gv.innerHTML='<div class="pfy bos">Henüz kapanmış işlem yok. Portföyünde bir hisseyi sattığında satırdaki <b>Sattım</b>\'a bas (kısmi satış da olur) ya da <b>+ Geçmiş işlem</b> ile eski bir işlemi ekle.</div>';return;}
+ var L=dfSuz(o);dfKartlar(L,o.k.length);
+ if(!L.length){gv.innerHTML='<div class="pfy bos">Süzgece uyan işlem yok.</div>';return;}
+ gv.innerHTML='<div class="dfgrid" style="margin-top:0">'+dfEgri(L)+dfTakvim(L)+'</div>'+dfTablo(L)+dfAnaliz(L);
+}
+function dfBaslat(){
+ var b=document.getElementById('dfbox');if(!b)return;
+ var ac=null;try{ac=localStorage.getItem(DF_ACIK_KEY);}catch(e){}
+ if(ac==='1')b.open=true;
+ dfIsaretle(dfOku(),dfBulutHazirla(dfOku()));dfRender();dfBulutOku();
+}
+
+// --- CSV yedeği (Excel Türkçe: UTF-8 BOM, ';' ayırıcı, ondalık virgül) ve içe aktarma (virgül ya da nokta; mevcut kayıtlar silinmez, aynı id atlanır)
+var DF_CSV=[['id','i'],['hisse','h'],['alis_tarihi','a'],['satis_tarihi','s'],['adet','n','#'],['alis_fiyati','m','#'],['satis_fiyati','f','#'],['komisyon_tl','k','#'],
+ ['kar_zarar_tl',null],['yuzde',null],['gun',null],['bist100_yuzde','x','#'],['alis_sistem','sa','sa'],['satis_sistem','ss','ss'],['sinyal_gunu','sg'],['sistem_cikis_gunu','cg'],
+ ['cikis_bit','cb','#'],['satis_gunu_stop','st','#'],['gosterge_sat_tarihi','gs'],['duygu','d','d'],['plana_uydu','u','u'],['kalite','q'],['plan','pl','m'],['not','no','m'],['kayit_zamani','t','#']];
+function dfCsvHucre(v){v=v==null?'':String(v);return /[;"\r\n]/.test(v)||/^\s|\s$/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}
+function dfCsvSayi(x){return x==null||x===''?'':(Number.isInteger(+x)?String(+x):String(Math.round(x*1e6)/1e6).replace('.',','));}
+function dfCsvMetin(v){return v&&/^[=+\-@\t\r]/.test(v)?'\''+v:v;}  // Excel formül sanmasın
+function dfCsvIndir(){
+ var o=dfOku();if(!o.k.length){dfNot('İndirilecek kayıt yok.');return;}
+ var sat=[DF_CSV.map(function(c){return c[0];}).join(';')];
+ o.k.slice().sort(dfSirala).forEach(function(r){var z=dfKZ(r);
+  sat.push(DF_CSV.map(function(c){var k=c[1],t=c[2],v;
+   if(c[0]==='kar_zarar_tl')v=dfCsvSayi(Math.round(z.tl*100)/100);else if(c[0]==='yuzde')v=dfCsvSayi(Math.round(z.y*100)/100);else if(c[0]==='gun'){var g=dfGun(r.a,r.s);v=g==null?'':g;}
+   else if(t==='#')v=dfCsvSayi(r[k]);else if(t==='sa')v=r.sa?(DF_SA[r.sa]||DF_SA['?'])[1]:'';else if(t==='ss')v=r.ss?(DF_SS[r.ss]||DF_SS['?'])[1]:'';else if(t==='d')v=r.d&&DF_DUYGU[r.d]?DF_DUYGU[r.d][1]:'';
+   else if(t==='u')v=r.u?DF_PLAN[r.u]:'';else if(t==='m')v=dfCsvMetin(r[k]||'');else v=r[k]==null?'':r[k];
+   return dfCsvHucre(v);}).join(';'));});
+ var blob=new Blob(['﻿'+sat.join('\r\n')+'\r\n'],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');
+ a.href=URL.createObjectURL(blob);a.download='islem-defteri-'+dfBugun()+'.csv';document.body.appendChild(a);a.click();
+ setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},1000);
+ dfNot('⬇ CSV yedeği indirildi ('+o.k.length+' işlem). Excel\'de açılır; notlar dahil, bu dosyayı kimseyle paylaşma.');
+}
+function dfCsvAyristir(t,ay){
+ var sat=[],h=[],v='',q=false,i=0,c;
+ for(;i<t.length;i++){c=t[i];
+  if(q){if(c==='"'){if(t[i+1]==='"'){v+='"';i++;}else q=false;}else v+=c;}
+  else if(c==='"')q=true;else if(c===ay){h.push(v);v='';}
+  else if(c==='\n'||c==='\r'){if(c==='\r'&&t[i+1]==='\n')i++;h.push(v);v='';if(h.length>1||h[0]!=='')sat.push(h);h=[];}
+  else v+=c;}
+ if(v!==''||h.length){h.push(v);sat.push(h);}
+ return sat;
+}
+function dfCsvSayiOku(s){s=String(s||'').replace(/\s|TL|%/g,'');if(!s)return null;
+ if(s.indexOf(',')>=0&&s.indexOf('.')>=0){if(s.lastIndexOf(',')>s.lastIndexOf('.'))s=s.replace(/\./g,'').replace(',','.');else s=s.replace(/,/g,'');}
+ else s=s.replace(',','.');
+ var x=parseFloat(s);return isFinite(x)?x:null;}
+function dfCsvTarih(s){s=String(s||'').trim();if(!s)return '';var m;
+ if(/^\d{4}-\d{2}-\d{2}/.test(s))return s.slice(0,10);
+ if((m=s.match(/^(\d{1,2})[.\/](\d{1,2})[.\/](\d{4})/)))return m[3]+'-'+('0'+m[2]).slice(-2)+'-'+('0'+m[1]).slice(-2);
+ return null;}
+function dfKodBul(obj,v,ix){v=String(v||'').trim();if(!v)return '';var lv=v.toLocaleLowerCase('tr');
+ for(var k in obj){var o=obj[k],e=Array.isArray(o)?o[ix]:o;if(k.toLocaleLowerCase('tr')===lv||(e&&String(e).toLocaleLowerCase('tr')===lv))return k;}return null;}
+function dfCsvOku(inp){
+ var dosya=inp.files&&inp.files[0];if(!dosya)return;
+ var fr=new FileReader();
+ fr.onload=function(){
+  try{dfCsvIceAl(String(fr.result||''));}catch(e){dfNot('⚠ Dosya okunamadı: '+hEsc(e.message||e));}
+  inp.value='';
+ };
+ fr.onerror=function(){dfNot('⚠ Dosya okunamadı.');inp.value='';};
+ fr.readAsText(dosya,'utf-8');
+}
+function dfCsvIceAl(t){
+ t=t.replace(/^﻿/,'');
+ var ilk=t.split(/\r?\n/)[0]||'';if(/^sep=/i.test(ilk)){t=t.slice(ilk.length).replace(/^\r?\n/,'');ilk=t.split(/\r?\n/)[0]||'';}
+ var ay=ilk.indexOf(';')>=0?';':(ilk.indexOf('\t')>=0?'\t':',');
+ var S=dfCsvAyristir(t,ay);if(S.length<2){dfNot('⚠ Dosyada kayıt bulunamadı.');return 0;}
+ var bas=S[0].map(function(x){return x.trim().toLocaleLowerCase('tr');}),ix={};DF_CSV.forEach(function(c){ix[c[0]]=bas.indexOf(c[0]);});
+ if(ix.hisse<0||ix.satis_tarihi<0||ix.adet<0||ix.alis_fiyati<0||ix.satis_fiyati<0){dfNot('⚠ Sütun başlıkları tanınmadı. Bu panonun <b>⬇ CSV yedeği</b> ile indirdiğin dosyayı kullan (hisse; satis_tarihi; adet; alis_fiyati; satis_fiyati gerekli).');return 0;}
+ var o=dfOku(),var_={},ekle=0,atla=0,hata=0;o.k.forEach(function(r){var_[r.i]=1;});
+ S.slice(1).forEach(function(sat){
+  var al=function(ad){var j=ix[ad];return j>=0&&j<sat.length?sat[j]:'';};
+  var r={},tamam=true;
+  DF_CSV.forEach(function(c){var k=c[1],tp=c[2];if(!k)return;var v=al(c[0]);if(v==null||String(v).trim()===''){return;}
+   if(tp==='#'){var x=dfCsvSayiOku(v);if(x!=null)r[k]=x;}
+   else if(tp==='sa'){var a=dfKodBul(DF_SA,v,1);if(a)r.sa=a;}
+   else if(tp==='ss'){var b=dfKodBul(DF_SS,v,1);if(b)r.ss=b;}
+   else if(tp==='d'){var d=dfKodBul(DF_DUYGU,v,1);if(d)r.d=d;}
+   else if(tp==='u'){var u=dfKodBul(DF_PLAN,v);if(u)r.u=u;}
+   else if(tp==='m'){v=String(v);if(/^'[=+\-@\t\r]/.test(v))v=v.slice(1);r[k]=v.slice(0,1000);}
+   else if(k==='a'||k==='s'||k==='sg'||k==='cg'||k==='gs'){var tt=dfCsvTarih(v);if(tt===null){if(k==='s'||k==='a')tamam=false;}else if(tt)r[k]=tt;}
+   else if(k==='q'){v=String(v).trim().toUpperCase();if(DF_KALITE[v])r.q=v;}
+   else r[k]=String(v).trim();});
+  if(r.h)r.h=r.h.toLocaleUpperCase('tr').replace(/[^A-Z0-9ÇĞİÖŞÜ]/g,'').slice(0,12);
+  if(!tamam||!r.h||!r.s||!(r.n>0)||!(r.m>0)||!(r.f>0)){hata++;return;}
+  if(r.i&&var_[r.i]){atla++;return;}
+  if(!r.i||!/^[A-Za-z0-9]{4,40}$/.test(r.i))r.i=dfId(o);
+  if(r.cb!=null)r.cb=Math.round(r.cb)&3;if(!r.cb)delete r.cb;if(!r.k)delete r.k;
+  if(!r.t)r.t=Date.now();
+  if(!r.sa||!r.ss)dfOtoKoy(r,dfSinyal(r.h,r.a,r.s,r.f,null));
+  o.k.push(r);var_[r.i]=1;ekle++;});
+ if(ekle)dfYaz(o);
+ dfRender();
+ dfNot('⬆ İçe aktarma: <b>'+ekle+'</b> işlem eklendi'+(atla?', '+atla+' işlem zaten defterde vardı (atlandı)':'')+(hata?', '+hata+' satır eksik/hatalı olduğu için alınmadı':'')+'.');
+ return ekle;
+}
+(function(){var dl=document.getElementById('pfkodlar');if(dl){dl.innerHTML=Object.keys(DATA).sort().map(function(k){return '<option value="'+k+'"></option>';}).join('');}pfRender();pfBulutOku();alBulutOku();tabloDuzen();favBulutOku();bugunRender();dfBaslat();})();
 </script></body></html>"""
 
 
