@@ -1,7 +1,6 @@
 {
   "al": [
-    "GMTAS",
-    "RYGYO"
+    "GMTAS"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -334,7 +333,7 @@
     "ed52d36b8529c244",
     "fc9a269fa7f1b36a"
   ],
-  "ozet_tarih": "2026-10-30",
+  "ozet_tarih": "2026-11-02",
   "hafta_tarih": "2026-10-30",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
@@ -464,7 +463,7 @@
     "GUNDG": "SAT",
     "GWIND": "SAT",
     "GZNMI": "SAT",
-    "HALKB": "AL",
+    "HALKB": "SAT",
     "HATSN": "SAT",
     "HDFGS": "SAT",
     "HEDEF": "SAT",
@@ -481,7 +480,7 @@
     "INDES": "AL",
     "INFO": "SAT",
     "ISCTR": "SAT",
-    "ISDMR": "AL",
+    "ISDMR": "SAT",
     "ISGSY": "SAT",
     "ISGYO": "SAT",
     "ISKPL": "SAT",
@@ -618,37 +617,21 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1691157,
+  "kap_son": 1691168,
   "tk_gonderilen": {
     "tarih": "2026-11-02",
     "kodlar": []
   },
   "mom_ay": {
-    "ay": "2026-10",
+    "ay": "2026-11",
     "kodlar": [
       "TKFEN",
       "AHGAZ",
-      "TCKRC",
-      "RYSAS",
-      "TUPRS",
-      "ISDMR",
-      "KRDMD",
-      "EREGL",
-      "BRSAN",
-      "AYGAZ",
-      "ISGYO",
-      "RGYAS",
       "ENERY",
-      "HALKB",
-      "BIMAS",
-      "CCOLA",
-      "ASELS",
-      "TRGYO",
+      "TUPRS",
+      "BRSAN",
+      "RYSAS",
       "GLYHO",
-      "KCHOL",
-      "ALBRK",
-      "VAKBN",
-      "SOKM",
       "ENJSA"
     ]
   },
