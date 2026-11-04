@@ -2,6 +2,7 @@
   "al": [
     "ENJSA",
     "ENTRA",
+    "GRSEL",
     "RYSAS"
   ],
   "son": {
@@ -640,6 +641,7 @@
   "gunici": {
     "tarih": "2026-11-04",
     "g": [
+      "2b0fc7bd9c777cfa",
       "2e7fc2f195421a8a"
     ]
   },
