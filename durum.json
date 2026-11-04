@@ -1,7 +1,6 @@
 {
   "al": [
     "ENTRA",
-    "LMKDC",
     "RYSAS"
   ],
   "son": {
@@ -619,7 +618,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1692311,
+  "kap_son": 1692316,
   "tk_gonderilen": {
     "tarih": "2026-11-04",
     "kodlar": []
