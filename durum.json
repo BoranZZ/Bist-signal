@@ -1,5 +1,7 @@
 {
   "al": [
+    "ENTRA",
+    "LMKDC",
     "RYGYO",
     "RYSAS"
   ],
@@ -638,7 +640,9 @@
   },
   "gunici": {
     "tarih": "2026-11-04",
-    "g": []
+    "g": [
+      "2e7fc2f195421a8a"
+    ]
   },
   "sabah_tarih": "2026-11-04"
 }
