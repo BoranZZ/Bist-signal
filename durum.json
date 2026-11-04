@@ -2,6 +2,7 @@
   "al": [
     "ENJSA",
     "ENTRA",
+    "GRSEL",
     "RYSAS"
   ],
   "son": {
@@ -619,7 +620,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1692389,
+  "kap_son": 1692403,
   "tk_gonderilen": {
     "tarih": "2026-11-04",
     "kodlar": []
