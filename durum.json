@@ -3,6 +3,7 @@
     "ENJSA",
     "ENTRA",
     "GRSEL",
+    "LMKDC",
     "RYSAS"
   ],
   "son": {
@@ -201,7 +202,7 @@
     "LIDER": "SAT",
     "LILAK": "SAT",
     "LINK": "SAT",
-    "LMKDC": "SAT",
+    "LMKDC": "AL",
     "LOGO": "SAT",
     "LXGYO": "SAT",
     "LYDHO": "SAT",
@@ -352,6 +353,11 @@
       "tarih": "2026-11-04"
     },
     "GRSEL": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-04"
+    },
+    "LMKDC": {
       "sinyal": "AL",
       "onceki": "SAT",
       "tarih": "2026-11-04"
@@ -636,7 +642,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1692443,
+  "kap_son": 1692525,
   "tk_gonderilen": {
     "tarih": "2026-11-04",
     "kodlar": []
