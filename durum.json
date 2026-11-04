@@ -2,7 +2,6 @@
   "al": [
     "ENTRA",
     "LMKDC",
-    "RYGYO",
     "RYSAS"
   ],
   "son": {
@@ -620,7 +619,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1692290,
+  "kap_son": 1692311,
   "tk_gonderilen": {
     "tarih": "2026-11-04",
     "kodlar": []
