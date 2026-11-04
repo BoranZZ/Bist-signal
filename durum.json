@@ -3,7 +3,6 @@
     "ENJSA",
     "ENTRA",
     "GRSEL",
-    "LMKDC",
     "RYSAS"
   ],
   "son": {
@@ -642,7 +641,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1692547,
+  "kap_son": 1692592,
   "tk_gonderilen": {
     "tarih": "2026-11-04",
     "kodlar": []
