@@ -33,10 +33,14 @@
       "giris_tarih": "2026-09-24",
       "giris_fiyat": 411.5,
       "stop": 329.2,
-      "durum": "açık",
-      "guncel": 329.25,
+      "durum": "kapalı",
+      "guncel": 329.0,
       "anlik": -20.0,
-      "tepe": 411.5
+      "tepe": 411.5,
+      "cikis_tarih": "2026-11-05",
+      "cikis_fiyat": 329.0,
+      "sonuc": -20.0,
+      "sebep": "iz stop"
     },
     {
       "kod": "KRDMD",
@@ -86,8 +90,8 @@
       "giris_fiyat": 44.34,
       "stop": 39.2,
       "durum": "açık",
-      "guncel": 47.12,
-      "anlik": 6.3,
+      "guncel": 47.04,
+      "anlik": 6.1,
       "tepe": 49.0
     },
     {
@@ -124,8 +128,8 @@
       "giris_fiyat": 58.2,
       "stop": 47.92,
       "durum": "açık",
-      "guncel": 53.75,
-      "anlik": -7.6,
+      "guncel": 53.55,
+      "anlik": -8.0,
       "tepe": 59.9
     },
     {
@@ -148,8 +152,8 @@
       "giris_fiyat": 429.0,
       "stop": 343.2,
       "durum": "açık",
-      "guncel": 372.75,
-      "anlik": -13.1,
+      "guncel": 372.0,
+      "anlik": -13.3,
       "tepe": 429.0
     }
   ]
