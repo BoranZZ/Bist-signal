@@ -1,16 +1,15 @@
 {
   "al": [
     "AKHAN",
-    "AVHOL",
     "BRSAN",
     "ENJSA",
     "ENTRA",
     "GARAN",
     "HKTM",
-    "METRO",
     "OZSUB",
     "RYGYO",
-    "RYSAS"
+    "RYSAS",
+    "TAVHL"
   ],
   "son": {
     "A1CAP": "SAT",
