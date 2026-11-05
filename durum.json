@@ -4,6 +4,7 @@
     "ENJSA",
     "ENTRA",
     "GARAN",
+    "HKTM",
     "METRO",
     "OZSUB",
     "RYSAS"
@@ -154,7 +155,7 @@
     "HDFGS": "SAT",
     "HEDEF": "SAT",
     "HEKTS": "SAT",
-    "HKTM": "SAT",
+    "HKTM": "AL",
     "HLGYO": "SAT",
     "HOROZ": "SAT",
     "HRKET": "SAT",
@@ -350,6 +351,11 @@
       "tarih": "2026-11-05"
     },
     "GARAN": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-05"
+    },
+    "HKTM": {
       "sinyal": "AL",
       "onceki": "SAT",
       "tarih": "2026-11-05"
