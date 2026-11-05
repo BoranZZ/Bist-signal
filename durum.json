@@ -4,10 +4,12 @@
     "ENJSA",
     "ENTRA",
     "GARAN",
+    "GRSEL",
     "HKTM",
     "METRO",
     "OZSUB",
-    "RYSAS"
+    "RYSAS",
+    "VAKFA"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -317,7 +319,7 @@
     "ULUUN": "SAT",
     "USAK": "SAT",
     "VAKBN": "SAT",
-    "VAKFA": "SAT",
+    "VAKFA": "AL",
     "VBTYZ": "SAT",
     "VESBE": "SAT",
     "VESTL": "SAT",
@@ -366,6 +368,11 @@
       "tarih": "2026-11-05"
     },
     "OZSUB": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-05"
+    },
+    "VAKFA": {
       "sinyal": "AL",
       "onceki": "SAT",
       "tarih": "2026-11-05"
