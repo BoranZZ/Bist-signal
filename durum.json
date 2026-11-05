@@ -25,7 +25,7 @@
     "AKFIS": "SAT",
     "AKFYE": "SAT",
     "AKGRT": "SAT",
-    "AKHAN": "SAT",
+    "AKHAN": "AL",
     "AKSA": "SAT",
     "AKSEN": "SAT",
     "AKSUE": "SAT",
@@ -130,7 +130,7 @@
     "FRMPL": "SAT",
     "FROTO": "SAT",
     "FZLGY": "SAT",
-    "GARAN": "SAT",
+    "GARAN": "AL",
     "GENIL": "SAT",
     "GENKM": "SAT",
     "GEREL": "SAT",
@@ -218,7 +218,7 @@
     "MEGMT": "SAT",
     "MERCN": "SAT",
     "METEN": "SAT",
-    "METRO": "SAT",
+    "METRO": "AL",
     "MEYSU": "SAT",
     "MGROS": "SAT",
     "MIATK": "SAT",
@@ -241,7 +241,7 @@
     "OTKAR": "SAT",
     "OYAKC": "SAT",
     "OZATD": "SAT",
-    "OZSUB": "SAT",
+    "OZSUB": "AL",
     "PAHOL": "SAT",
     "PAPIL": "SAT",
     "PASEU": "SAT",
@@ -344,7 +344,28 @@
   "hafta_tarih": "2026-10-30",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {},
+  "on_sinyal": {
+    "AKHAN": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-05"
+    },
+    "GARAN": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-05"
+    },
+    "METRO": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-05"
+    },
+    "OZSUB": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-05"
+    }
+  },
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
