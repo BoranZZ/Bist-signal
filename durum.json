@@ -4,6 +4,9 @@
     "ENJSA",
     "ENTRA",
     "GARAN",
+    "HKTM",
+    "OZSUB",
+    "RYGYO",
     "RYSAS"
   ],
   "son": {
@@ -641,7 +644,10 @@
   },
   "gunici": {
     "tarih": "2026-11-05",
-    "g": []
+    "g": [
+      "0c3b261af5c66c35",
+      "bedfb5fa43daa6b9"
+    ]
   },
   "sabah_tarih": "2026-11-05"
 }
