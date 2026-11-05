@@ -5,8 +5,8 @@
     "ENJSA",
     "ENTRA",
     "GARAN",
-    "GRSEL",
     "HKTM",
+    "METRO",
     "OZSUB",
     "RYGYO",
     "RYSAS"
@@ -648,6 +648,7 @@
     "tarih": "2026-11-05",
     "g": [
       "0c3b261af5c66c35",
+      "53161b9bf7c3faed",
       "bedfb5fa43daa6b9"
     ]
   },
