@@ -90,8 +90,8 @@
       "giris_fiyat": 44.34,
       "stop": 39.2,
       "durum": "açık",
-      "guncel": 46.54,
-      "anlik": 5.0,
+      "guncel": 46.72,
+      "anlik": 5.4,
       "tepe": 49.0
     },
     {
@@ -152,7 +152,7 @@
       "giris_fiyat": 429.0,
       "stop": 343.2,
       "durum": "açık",
-      "guncel": 367.75,
+      "guncel": 367.5,
       "anlik": -14.3,
       "tepe": 429.0
     }
