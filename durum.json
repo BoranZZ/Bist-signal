@@ -4,6 +4,7 @@
     "ENTRA",
     "GARAN",
     "GRSEL",
+    "METRO",
     "RYSAS",
     "TAVHL"
   ],
@@ -67,7 +68,7 @@
     "BOBET": "SAT",
     "BORLS": "SAT",
     "BRLSM": "SAT",
-    "BRSAN": "AL",
+    "BRSAN": "SAT",
     "BRYAT": "SAT",
     "BSOKE": "SAT",
     "BTCIM": "SAT",
@@ -315,14 +316,14 @@
     "ULUUN": "SAT",
     "USAK": "SAT",
     "VAKBN": "SAT",
-    "VAKFA": "AL",
+    "VAKFA": "SAT",
     "VBTYZ": "SAT",
     "VESBE": "SAT",
     "VESTL": "SAT",
     "VSNMD": "SAT",
     "YEOTK": "SAT",
     "YIGIT": "SAT",
-    "YKBNK": "AL",
+    "YKBNK": "SAT",
     "ZERGY": "SAT",
     "ZGYO": "SAT",
     "ZOREN": "SAT"
@@ -338,32 +339,11 @@
     "ed52d36b8529c244",
     "fc9a269fa7f1b36a"
   ],
-  "ozet_tarih": "2026-11-05",
-  "hafta_tarih": "2026-10-30",
+  "ozet_tarih": "2026-11-06",
+  "hafta_tarih": "2026-11-06",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {
-    "BRSAN": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-11-06"
-    },
-    "TAVHL": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-11-06"
-    },
-    "VAKFA": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-11-06"
-    },
-    "YKBNK": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-11-06"
-    }
-  },
+  "on_sinyal": {},
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
@@ -432,7 +412,7 @@
     "CIMSA": "SAT",
     "CRDFA": "SAT",
     "CRFSA": "SAT",
-    "CVKMD": "SAT",
+    "CVKMD": "AL",
     "CWENE": "SAT",
     "DAGI": "SAT",
     "DAPGM": "SAT",
@@ -569,7 +549,7 @@
     "OTKAR": "SAT",
     "OYAKC": "SAT",
     "OZATD": "SAT",
-    "OZSUB": "SAT",
+    "OZSUB": "AL",
     "PAPIL": "SAT",
     "PASEU": "SAT",
     "PATEK": "SAT",
@@ -609,7 +589,7 @@
     "TATEN": "SAT",
     "TAVHL": "SAT",
     "TCELL": "SAT",
-    "TCKRC": "SAT",
+    "TCKRC": "AL",
     "TEHOL": "SAT",
     "TERA": "SAT",
     "TGSAS": "SAT",
@@ -643,7 +623,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1694241,
+  "kap_son": 1694286,
   "tk_gonderilen": {
     "tarih": "2026-11-06",
     "kodlar": []
