@@ -4,6 +4,7 @@
     "ENTRA",
     "GARAN",
     "METRO",
+    "MPARK",
     "OZSUB",
     "RYSAS",
     "TAVHL"
@@ -644,12 +645,15 @@
   "gunici": {
     "tarih": "2026-11-06",
     "g": [
+      "00af5b4e228f0d6b",
       "4bc46d6761f95544",
       "5e11d1fe27460169",
       "83b627ea5e8dd640",
+      "a6f26a5544cb5acf",
       "aeb26537eed717ba",
       "d5ed1ecab6abec01",
-      "dc56b1bbdf16e6a4"
+      "dc56b1bbdf16e6a4",
+      "e6edd25e1ec91429"
     ]
   },
   "sabah_tarih": "2026-11-06"
