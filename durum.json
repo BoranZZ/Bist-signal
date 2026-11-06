@@ -69,7 +69,7 @@
     "BOBET": "SAT",
     "BORLS": "SAT",
     "BRLSM": "SAT",
-    "BRSAN": "SAT",
+    "BRSAN": "AL",
     "BRYAT": "SAT",
     "BSOKE": "SAT",
     "BTCIM": "SAT",
@@ -287,7 +287,7 @@
     "TABGD": "SAT",
     "TARKM": "SAT",
     "TATEN": "SAT",
-    "TAVHL": "SAT",
+    "TAVHL": "AL",
     "TCELL": "SAT",
     "TCKRC": "SAT",
     "TEHOL": "SAT",
@@ -344,7 +344,18 @@
   "hafta_tarih": "2026-10-30",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {},
+  "on_sinyal": {
+    "BRSAN": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-06"
+    },
+    "TAVHL": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-06"
+    }
+  },
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
@@ -624,7 +635,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1693898,
+  "kap_son": 1693912,
   "tk_gonderilen": {
     "tarih": "2026-11-06",
     "kodlar": []
