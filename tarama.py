@@ -1797,6 +1797,16 @@ def main():
         if not tg_gonder(f"✅ BIST Sinyal: Telegram bağlantısı çalışıyor ({zaman})."):
             raise SystemExit("Telegram test mesajı gönderilemedi — yukarıdaki hataya bak.")
 
+    # Portföy ve alarmlar anahtarla API'den okunur: env'de verilirse herkese açık loga düşer (anahtar yoksa eski yol)
+    try:
+        import kopru
+        _degisken_ok = kopru.degiskenleri_yukle()
+    except Exception as e:
+        print(f"Portföy değişkenleri okunamadı ({type(e).__name__}).")
+        _degisken_ok = False
+    if _degisken_ok is False:
+        print("Portföy anahtarı çalışmıyor: portföy ve alarmlar bu taramada okunamadı.")
+
     pf = portfoy_yukle()
     disarida = [k for k in pf if k not in KODLAR]
     if disarida:   # kodları yazma: log herkese açık
@@ -1932,6 +1942,11 @@ def main():
     on_kapanis = SADECE_KAPANIS_MESAJI and SINYAL_DAKIKA <= dakika < KAPANIS_DAKIKA
     bugun_iso = simdi.strftime("%Y-%m-%d")
     durum = durum_oku()
+    anahtar_uyari = durum.get("anahtar_uyari")
+    if _degisken_ok is False and anahtar_uyari != bugun_iso and tg_gonder(
+            "⚠️ <b>Portföy anahtarı çalışmıyor.</b> Tarama portföyünü ve alarmlarını okuyamıyor, SAT ve alarm mesajları gelmez. "
+            "GitHub'da yeni anahtar üretip KUMBARA_DEFTER_ANAHTAR secret'ını güncelle."):
+        anahtar_uyari = bugun_iso
     son = dict(durum.get("son", {}))
     by_kod = {s["kod"]: s for s in sonuclar}
     # kapanıştan önce verilen sinyaller: kapanışta tutmayanlar iptal edilir, durum geri alınır
@@ -2234,7 +2249,8 @@ def main():
                    "uv_son": dict(sorted(uv_son.items())), "kap_son": kap_son,
                    "tk_gonderilen": {"tarih": bugun_iso, "kodlar": sorted(tk_gonderilen)}, "mom_ay": mom,
                    "gunici": {"tarih": bugun_iso, "g": sorted(gi_gonderilen)},
-                   "sabah_tarih": sabah_tarih, **({"tg_ofset": int(tg_ofset)} if tg_ofset else {})},
+                   "sabah_tarih": sabah_tarih, **({"tg_ofset": int(tg_ofset)} if tg_ofset else {}),
+                   **({"anahtar_uyari": anahtar_uyari} if anahtar_uyari else {})},
                   f, ensure_ascii=False, indent=2)
 
 

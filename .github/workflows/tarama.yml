@@ -47,10 +47,11 @@ jobs:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           TELEGRAM_TEST: ${{ inputs.telegram_test }}
-          PORTFOY: ${{ vars.PORTFOY }}   # panodan otomatik yazılır (kullanıcı onayıyla variable)
-          ALARMLAR: ${{ vars.ALARMLAR }}   # panodan kurulan fiyat alarmları
+          # Anahtar varsa boş kalır, tarama API'den okur (env değerleri herkese açık logun adım başlığında görünür). Anahtarsız kopyalarda eski yol.
+          PORTFOY: ${{ secrets.KUMBARA_DEFTER_ANAHTAR == '' && vars.PORTFOY || '' }}
+          ALARMLAR: ${{ secrets.KUMBARA_DEFTER_ANAHTAR == '' && vars.ALARMLAR || '' }}
           KUMBARA_KOPRU_URL: ${{ secrets.KUMBARA_KOPRU_URL }}   # yoksa Kumbara köprüsü atlanır
-          KUMBARA_DEFTER_ANAHTAR: ${{ secrets.KUMBARA_DEFTER_ANAHTAR }}   # yalnız DEFTER'i API ile okumak için (DEFTER'in kendisi env'e KONMAZ); yoksa satışlar gitmez
+          KUMBARA_DEFTER_ANAHTAR: ${{ secrets.KUMBARA_DEFTER_ANAHTAR }}   # PORTFOY, ALARMLAR ve DEFTER'i API ile okumak için (yalnız Variables okuma izni); yoksa satışlar gitmez, portföy env'den gelir
         run: python tarama.py
       - name: Panoyu kaydet
         run: |

@@ -58,21 +58,50 @@ def satis_temizle(kayitlar):
     return cikti[-SATIS_SINIR:]
 
 
-def satislar_al():
-    """DEFTER variable'ını API ile okur: workflow env'ine KONMAZ, çünkü env değerleri herkese açık loga düşer.
-    Anahtar secret'ı yoksa ya da okunamazsa None: Kumbara son bildiği satışları korur."""
+def _degisken_oku(ad):
+    """Actions variable'ını API ile okur; workflow env'ine KONMAZ, çünkü env değerleri herkese açık loga düşer.
+    Metni döner; variable hiç yoksa "" (404); anahtar yoksa ya da okunamazsa None. Hata metni bilerek yazılmaz."""
     anahtar = os.environ.get("KUMBARA_DEFTER_ANAHTAR", "").strip()
     depo = os.environ.get("GITHUB_REPOSITORY", "").strip()
     if not anahtar or not depo:
         return None
-    ist = urllib.request.Request(f"{GITHUB_API}/repos/{depo}/actions/variables/DEFTER", headers={
+    ist = urllib.request.Request(f"{GITHUB_API}/repos/{depo}/actions/variables/{ad}", headers={
         "Authorization": f"Bearer {anahtar}", "Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28"})
     try:
         with urllib.request.urlopen(ist, timeout=20) as r:
-            govde = json.loads(r.read().decode("utf-8", "replace"))
-        return satis_temizle(json.loads(govde["value"]).get("k"))
+            return json.loads(r.read().decode("utf-8", "replace"))["value"]
     except urllib.error.HTTPError as e:
-        return [] if e.code == 404 else None   # 404: defter henüz hiç kaydedilmemiş
+        return "" if e.code == 404 else None
+    except Exception:
+        return None
+
+
+def degiskenleri_yukle():
+    """Portföy ve alarmları loga düşmeden okuyup yalnız bu işlemin ortamına koyar.
+    Env zaten doluysa (anahtarsız kopyalar) dokunmaz. Dönüş: True tamam, None anahtar yok, False okunamadı."""
+    if not os.environ.get("KUMBARA_DEFTER_ANAHTAR", "").strip() or not os.environ.get("GITHUB_REPOSITORY", "").strip():
+        return None
+    tamam = True
+    for ad in ("PORTFOY", "ALARMLAR"):
+        if os.environ.get(ad, "").strip():
+            continue
+        deger = _degisken_oku(ad)
+        if deger is None:
+            tamam = False
+        else:
+            os.environ[ad] = deger
+    return tamam
+
+
+def satislar_al():
+    """Anahtar yoksa ya da okunamazsa None: Kumbara son bildiği satışları korur."""
+    ham = _degisken_oku("DEFTER")
+    if ham is None:
+        return None
+    if not ham:
+        return []   # defter henüz hiç kaydedilmemiş
+    try:
+        return satis_temizle(json.loads(ham).get("k"))
     except Exception:
         return None
 
