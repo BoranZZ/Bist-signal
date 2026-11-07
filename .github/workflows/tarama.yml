@@ -50,6 +50,7 @@ jobs:
           PORTFOY: ${{ vars.PORTFOY }}   # panodan otomatik yazılır (kullanıcı onayıyla variable)
           ALARMLAR: ${{ vars.ALARMLAR }}   # panodan kurulan fiyat alarmları
           KUMBARA_KOPRU_URL: ${{ secrets.KUMBARA_KOPRU_URL }}   # yoksa Kumbara köprüsü atlanır
+          KUMBARA_DEFTER_ANAHTAR: ${{ secrets.KUMBARA_DEFTER_ANAHTAR }}   # yalnız DEFTER'i API ile okumak için (DEFTER'in kendisi env'e KONMAZ); yoksa satışlar gitmez
         run: python tarama.py
       - name: Panoyu kaydet
         run: |
