@@ -2217,6 +2217,15 @@ def main():
     except Exception as e:
         print(f"Telegram komutları işlenemedi ({type(e).__name__}).")
 
+    # 🐷 Kumbara köprüsü: portföy + fiyatlar kullanıcının özel Drive dosyasına (secret yoksa atlanır; hata taramayı bozmaz)
+    try:
+        import kopru
+        _kd = kopru.gonder(pf, {k: s.get("fiyat") for k, s in by_kod.items() if k in pf})
+        if _kd:
+            print(_kd)
+    except Exception as e:
+        print(f"Kumbara köprüsü çalışmadı ({type(e).__name__}).")
+
     with open(DURUM, "w", encoding="utf-8") as f:
         json.dump({"al": sorted(s["kod"] for s in bugun_al), "son": dict(sorted(son.items())),
                    "iz_kirilim_g": sorted(iz_kayit), "ozet_tarih": ozet_tarih, "hafta_tarih": hafta_tarih,

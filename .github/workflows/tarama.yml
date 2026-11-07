@@ -49,6 +49,7 @@ jobs:
           TELEGRAM_TEST: ${{ inputs.telegram_test }}
           PORTFOY: ${{ vars.PORTFOY }}   # panodan otomatik yazılır (kullanıcı onayıyla variable)
           ALARMLAR: ${{ vars.ALARMLAR }}   # panodan kurulan fiyat alarmları
+          KUMBARA_KOPRU_URL: ${{ secrets.KUMBARA_KOPRU_URL }}   # yoksa Kumbara köprüsü atlanır
         run: python tarama.py
       - name: Panoyu kaydet
         run: |
