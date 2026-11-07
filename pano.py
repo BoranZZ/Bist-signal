@@ -529,7 +529,8 @@ tbody tr:hover,tbody tr:hover td{background:#F2F5F3}
 td.vd{white-space:nowrap;font-size:12px}.vu,.va,.vy{font-style:normal;font-weight:700}.vu{color:#1B7F4B}.va{color:#B4362E}.vy{color:var(--muted);font-weight:400}
 .uvkutu{margin:0 0 14px;border:1px solid #CFE3D6;background:#F4FAF6;border-radius:10px;padding:10px 14px;font-size:13px;line-height:1.55}
 .pfbulut{font-size:12px;color:var(--muted);margin:-2px 0 8px}.pfbulut a{color:var(--accent);font-weight:600}
-.pfbulut.ok{color:var(--pos)}.pfbulut.hata{color:var(--neg)}.pfduz{color:var(--accent)!important}
+.pfbulut.ok{color:var(--pos)}.pfbulut.hata,.pfbulut.fark{color:var(--neg)}.pfduz{color:var(--accent)!important}
+.qrkutu{width:min(300px,100%);margin:10px 0;background:#fff}.qrkutu svg{display:block;width:100%;height:auto}
 .kurlist{margin:8px 0;padding-left:20px;font-size:12.5px}.kurlist li{margin:3px 0}.pfform input:disabled{background:#F1F1EE}
 .pfekle{border:1px solid var(--accent);background:var(--accent);color:#fff;font-weight:600;font-size:12.5px;padding:6px 12px;border-radius:8px;cursor:pointer}
 .pfform{display:none;flex-wrap:wrap;gap:8px;margin-bottom:10px}
@@ -650,6 +651,7 @@ __BANNER__
 <div class="pfbox">
   <div class="pfbas"><h2>Portföyüm</h2><div class="pfsag"><span id="pftop" class="pftop"></span><button class="pfekle" onclick="pfFormAc()">+ Ekle</button></div></div>
   <div id="pfbulut" class="pfbulut"></div>
+  <div id="pffark" class="zaman" hidden></div>
   <div id="pfkur" class="zaman" hidden></div>
   <div id="pfnot" class="zaman" hidden></div>
   <div id="pfform" class="pfform">
@@ -785,20 +787,9 @@ t._sirali=true;rows.forEach(r=>tb.appendChild(r));tabloDuzen();});});
 // kendi içinde sunucunun sırasıyla (AL → NÖTR → SAT); sütuna göre sıralayınca da üstte kalır.
 var FAV_KEY='favoriler_v1';
 function favOku(){try{return JSON.parse(localStorage.getItem(FAV_KEY))||[]}catch(e){return[]}}
-function favYaz(a){try{localStorage.setItem(FAV_KEY,JSON.stringify(a))}catch(e){}
- if(!ghAnahtar())return;
- var v={name:'FAVORILER',value:JSON.stringify(a)};
- ghIstek('PATCH','/actions/variables/FAVORILER',v).then(function(r){return r.status===404?ghIstek('POST','/actions/variables',v):r;}).catch(function(){});
-}
-function favBulutOku(){
- if(!ghAnahtar())return;
- ghIstek('GET','/actions/variables/FAVORILER').then(function(r){
-  if(r.status===404){if(favOku().length)favYaz(favOku());return;}
-  if(!r.ok)return;
-  return r.json().then(function(j){var a=[];try{a=JSON.parse(j.value);}catch(e){}
-   if(Array.isArray(a)&&a.length){try{localStorage.setItem(FAV_KEY,JSON.stringify(a))}catch(e){}tabloDuzen();}});
- }).catch(function(){});
-}
+function favYazYerel(a){try{localStorage.setItem(FAV_KEY,JSON.stringify(a))}catch(e){}}
+function favYaz(a){favYazYerel(a);return esitle(ES_FAV);}
+function favBulutOku(){return esitle(ES_FAV);}
 function favDegis(k){var a=favOku(),i=a.indexOf(k);if(i>=0)a.splice(i,1);else a.push(k);favYaz(a);tabloDuzen();bugunRender();
  var d=document.getElementById('mfav');if(d)d.textContent=a.indexOf(k)>=0?'⭐ Favorilerde':'☆ Favorilere ekle';}
 var _SIRA=null;  // sunucunun ilk sırası (AL → NÖTR → SAT)
@@ -1721,51 +1712,98 @@ function ghIstek(yontem,yol,govde){
  return fetch('https://api.github.com/repos/'+GH_REPO+yol,{method:yontem,headers:{'Authorization':'Bearer '+ghAnahtar(),
   'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'},body:govde?JSON.stringify(govde):undefined});
 }
-function pfBulutDurum(d,kod){
- var el=document.getElementById('pfbulut'),bag=' · <a href="#" onclick="ghKurulum();return false">Telegram\'a bağla</a>';
- var yetki=(kod===401||kod===403||kod===404);
- var t={yerel:'Bu cihazda saklanıyor; Telegram görmüyor'+bag,kaydediliyor:'☁ Kaydediliyor…',
-  ok:'☁ Telegram ile eşit',
-  hata:'⚠ GitHub\'a kaydedilemedi'+(kod?' ('+kod+')':'')+(yetki?' — anahtar geçersiz ya da yetkisi eksik'+bag:' — sonra tekrar dene')}[d];
- el.innerHTML=t;el.className='pfbulut '+d;
+// --- Cihazlar arası güvenli eşitleme (PORTFOY, ALARMLAR, FAVORILER). Her cihaz 'taban'ı, yani GitHub'la son eşit olduğu kopyayı tutar:
+// yalnız GitHub değiştiyse GitHub alınır; yalnız bu cihaz değiştiyse GitHub'a yazılır; ikisi de değiştiyse hiçbiri sessizce ezilmez
+// (portföyde kullanıcıya sorulur, alarm/favoride birleştirilir). Bu cihazdaki değişiklik de önce GitHub okunup yazılır.
+var TABAN_ON='gh_taban_v1_';
+function esKanon(v){
+ if(Array.isArray(v))return '['+v.map(esKanon).join(',')+']';
+ if(v&&typeof v==='object')return '{'+Object.keys(v).sort().map(function(k){return JSON.stringify(k)+':'+esKanon(v[k]);}).join(',')+'}';
+ return JSON.stringify(v===undefined?null:v);
 }
-function pfBulutYaz(a){
- if(!ghAnahtar()){pfBulutDurum('yerel');return Promise.resolve(false);}
- var v={name:'PORTFOY',value:JSON.stringify(a)};pfBulutDurum('kaydediliyor');
- return ghIstek('PATCH','/actions/variables/PORTFOY',v)
-  .then(function(r){return r.status===404?ghIstek('POST','/actions/variables',v):r;})
-  .then(function(r){pfBulutDurum(r.ok?'ok':'hata',r.ok?0:r.status);return r.ok;})
-  .catch(function(){pfBulutDurum('hata');return false;});
+function esTaban(ad){try{return localStorage.getItem(TABAN_ON+ad);}catch(e){return null;}}
+function esTabanYaz(ad,s){try{localStorage.setItem(TABAN_ON+ad,s);}catch(e){}}
+function esYazBulut(l,a){
+ var v={name:l.ad,value:JSON.stringify(a)},k=esKanon(a);
+ return ghIstek('PATCH','/actions/variables/'+l.ad,v).then(function(r){return r.status===404?ghIstek('POST','/actions/variables',v):r;})
+  .then(function(r){if(r.ok)esTabanYaz(l.ad,k);l.durum(r.ok?'ok':'hata',r.ok?0:r.status);return r.ok;});
 }
-function pfBulutOku(){  // GitHub'daki portföy doluysa o esas alınır (başka cihazda yapılan değişiklikler gelsin)
- if(!ghAnahtar()){pfBulutDurum('yerel');return Promise.resolve(false);}
- pfBulutDurum('kaydediliyor');
- return ghIstek('GET','/actions/variables/PORTFOY').then(function(r){
-  if(r.status===404){return pfBulutYaz(pfOku());}
-  if(!r.ok){pfBulutDurum('hata',r.status);return false;}
+function esitle(l){
+ if(!ghAnahtar()){l.durum('yerel');return Promise.resolve(false);}
+ if(l.is){l.tekrar=true;return l.is;}  // sürüyorsa bitince bir kez daha (arada yapılan değişiklik kaçmasın)
+ l.durum('kaydediliyor');
+ l.is=ghIstek('GET','/actions/variables/'+l.ad).then(function(r){
+  if(r.status===404)return esYazBulut(l,l.oku());
+  if(!r.ok){l.durum('hata',r.status);return false;}
   return r.json().then(function(j){
-   var a=[];try{a=JSON.parse(j.value);}catch(e){}
-   if(Array.isArray(a)&&a.length){pfYazYerel(a);pfRender();pfBulutDurum('ok');return true;}
-   return pfBulutYaz(pfOku());
+   var b=null;try{b=JSON.parse(j.value);}catch(e){}
+   var y=l.oku();
+   if(!Array.isArray(b))return esYazBulut(l,y);
+   var ky=esKanon(y),kb=esKanon(b),t=esTaban(l.ad);
+   if(kb===ky){esTabanYaz(l.ad,kb);l.durum('ok');return true;}
+   if(t===null?!y.length:t===ky){l.yaz(b);esTabanYaz(l.ad,kb);l.durum('ok');return true;}  // yalnız GitHub değişmiş
+   if(t===null?!b.length:t===kb)return esYazBulut(l,y);  // yalnız bu cihaz değişmiş
+   return l.cakisma(y,b);
   });
- }).catch(function(){pfBulutDurum('hata');return false;});
+ }).catch(function(){l.durum('hata');return false;}).then(function(s){
+  l.is=null;if(l.tekrar){l.tekrar=false;return esitle(l);}return s;
+ });
+ return l.is;
+}
+function esBirlesim(l,y,b,anahtar){  // alarm/favori: iki cihazın eklediği de kalır; ortak taban GitHub'dakiyle güncellenip birleşim yazılır
+ var gor={},m=[];b.concat(y).forEach(function(x){var k=anahtar(x);if(!gor[k]){gor[k]=1;m.push(x);}});
+ l.yaz(m);esTabanYaz(l.ad,esKanon(b));return esYazBulut(l,m);
+}
+var pfFarkB=null,pfSonDurum='';
+var ES_PF={ad:'PORTFOY',oku:pfOku,yaz:function(b){pfYazYerel(b);pfRender();bugunRender();},
+ durum:function(d,k){pfBulutDurum(d,k);},cakisma:function(y,b){return pfFarkSor(y,b);}};
+var ES_AL={ad:'ALARMLAR',oku:alOku,yaz:function(b){alYazYerel(b);},durum:function(){},
+ cakisma:function(y,b){return esBirlesim(ES_AL,y,b,function(x){return x.kod+'|'+x.yon+'|'+x.fiyat;});}};
+var ES_FAV={ad:'FAVORILER',oku:favOku,yaz:function(b){favYazYerel(b);tabloDuzen();bugunRender();},durum:function(){},
+ cakisma:function(y,b){return esBirlesim(ES_FAV,y,b,function(x){return x;});}};
+function pfBulutDurum(d,kod){
+ var el=document.getElementById('pfbulut'),bag=' · <a href="#" onclick="ghKurulum();return false">Telefona ve Telegram\'a bağla</a>';
+ var yetki=(kod===401||kod===403||kod===404);pfSonDurum=d;
+ var t={yerel:'Bu cihazda saklanıyor; telefon ve Telegram görmüyor'+bag,kaydediliyor:'☁ Eşitleniyor…',
+  ok:'☁ GitHub ile eşit: bağlı cihazlar ve Telegram aynı listeyi görür · <a href="#" onclick="ghKurulum();return false">Başka cihaz bağla</a>',
+  fark:'⚠ Bu cihazdaki liste GitHub\'dakinden farklı: aşağıdan birini seç',
+  hata:'⚠ GitHub\'a kaydedilemedi'+(kod?' ('+kod+')':'')+(yetki?' — anahtar geçersiz, süresi dolmuş ya da yetkisi eksik; listen bu cihazda duruyor'+bag:' — sonra tekrar dene')}[d];
+ el.innerHTML=t;el.className='pfbulut '+d;
+ if(d==='ok'||d==='yerel')pfFarkGizle();
+}
+function pfBulutYaz(a){return esitle(ES_PF);}
+function pfBulutOku(){return esitle(ES_PF);}
+function pfSatir(p){return '<b>'+hEsc(p.kod)+'</b> '+hEsc(p.adet)+' adet · maliyet '+hEsc(p.maliyet)+' TL'+(p.tarih?' · alış '+hEsc(p.tarih):'')+(p.uzun?' · uzun vade':'');}
+function pfFarkSor(y,b){
+ var my={},mb={},sy=[],sb=[],fa=[];
+ y.forEach(function(p){my[p.kod]=p;});b.forEach(function(p){mb[p.kod]=p;});
+ y.forEach(function(p){var q=mb[p.kod];if(!q)sy.push(p);else if(esKanon(p)!==esKanon(q))fa.push([p,q]);});
+ b.forEach(function(p){if(!my[p.kod])sb.push(p);});
+ if(!sy.length&&!sb.length&&!fa.length){ES_PF.yaz(b);esTabanYaz('PORTFOY',esKanon(b));pfBulutDurum('ok');return true;}  // yalnız sıra farkı
+ function liste(bas,a){return a.length?'<div class="cikis"><b>'+bas+'</b></div><ul class="kurlist">'+a.map(function(x){return '<li>'+x+'</li>';}).join('')+'</ul>':'';}
+ pfFarkB=b;
+ var el=document.getElementById('pffark');el.hidden=false;
+ el.innerHTML='<b>⚠ İki liste farklı, karar senin</b><div class="cikis">Sen seçene kadar hiçbir şey değişmez. Seçtiğin liste bağlı cihazlarda ve Telegram\'da geçerli olur, öteki silinir; emin değilsen önce ekran görüntüsü al.</div>'+
+  liste('Sadece bu cihazda',sy.map(pfSatir))+liste('Sadece GitHub\'da',sb.map(pfSatir))+
+  liste('İkisinde de var ama farklı',fa.map(function(c){return 'Bu cihazda: '+pfSatir(c[0])+'<br>GitHub\'da: '+pfSatir(c[1]);}))+
+  '<div class="pfform" style="display:flex"><button class="pfkaydet" onclick="pfSec(\'y\')">Bu cihazdakini kullan ('+y.length+' hisse)</button><button class="pfkaydet" onclick="pfSec(\'b\')">GitHub\'dakini kullan ('+b.length+' hisse)</button></div>';
+ pfBulutDurum('fark');
+ return true;
+}
+function pfFarkGizle(){var el=document.getElementById('pffark');if(el){el.hidden=true;el.innerHTML='';}pfFarkB=null;}
+function pfSec(h){
+ var b=pfFarkB;if(!b)return;
+ esTabanYaz('PORTFOY',esKanon(b));  // ikisinde de GitHub'daki kopya artık 'bilinen' (y: bu cihazdaki GitHub'a yazılır)
+ if(h==='b')ES_PF.yaz(b);
+ pfFarkGizle();
+ esitle(ES_PF).then(function(ok){if(ok)pfNot(h==='b'?'✓ GitHub\'daki liste alındı.':'✓ Bu cihazdaki liste GitHub\'a yazıldı.');});
 }
 // --- Fiyat alarmı: cihazda + GitHub'daki ALARMLAR variable'ında (portföyle aynı anahtar); tarama tetikleyince Telegram ---
 var AL_KEY='alarmlar_v1';
 function alOku(){try{return JSON.parse(localStorage.getItem(AL_KEY))||[]}catch(e){return[]}}
-function alYaz(a){try{localStorage.setItem(AL_KEY,JSON.stringify(a))}catch(e){}
- if(!ghAnahtar())return Promise.resolve(false);
- var v={name:'ALARMLAR',value:JSON.stringify(a)};
- return ghIstek('PATCH','/actions/variables/ALARMLAR',v).then(function(r){return r.status===404?ghIstek('POST','/actions/variables',v):r;})
-  .then(function(r){return r.ok;}).catch(function(){return false;});
-}
-function alBulutOku(){
- if(!ghAnahtar())return Promise.resolve(false);
- return ghIstek('GET','/actions/variables/ALARMLAR').then(function(r){return r.ok?r.json():null;}).then(function(j){
-  if(!j)return false;var a=[];try{a=JSON.parse(j.value);}catch(e){}
-  if(Array.isArray(a)){try{localStorage.setItem(AL_KEY,JSON.stringify(a))}catch(e){}return true;}return false;
- }).catch(function(){return false;});
-}
+function alYazYerel(a){try{localStorage.setItem(AL_KEY,JSON.stringify(a))}catch(e){}}
+function alYaz(a){alYazYerel(a);return esitle(ES_AL);}
+function alBulutOku(){return esitle(ES_AL);}
 function alarmHtml(k,d){
  var liste='';alOku().forEach(function(x,i){if(x.kod!==k)return;
   var es=alEski(k,d,x);
@@ -1782,7 +1820,7 @@ function alarmHtml(k,d){
   '<div class="pfform" style="display:flex;margin:6px 0 0"><input id="alfiyat" type="number" step="any" min="0" placeholder="Fiyat (TL)" style="width:120px">'+
   '<button class="pfipt" onclick="alEkle(\''+k+'\',\'ust\')">Üstüne çıkınca</button><button class="pfipt" onclick="alEkle(\''+k+'\',\'alt\')">Altına inince</button></div>'+
   '<div class="cikis" id="alnot">'+(ghAnahtar()?'Alarm tetiklenince Telegram\'a bir kez mesaj gelir (her 15 dakikalık taramada kontrol edilir).'
-   :'Bu cihaz Telegram\'a bağlı değil: alarm sadece burada kayıtlı, bildirim gelmez. Portföyüm → <b>Telegram\'a bağla</b>.')+'</div></div>';
+   :'Bu cihaz Telegram\'a bağlı değil: alarm sadece burada kayıtlı, bildirim gelmez. Portföyüm → <b>Telefona ve Telegram\'a bağla</b>.')+'</div></div>';
 }
 function alEkle(k,yon){
  var f=parseFloat(document.getElementById('alfiyat').value);
@@ -1793,9 +1831,11 @@ function alEkle(k,yon){
 function alSil(i,k){var a=alOku();a.splice(i,1);alYaz(a);ac(k);}
 function ghKurulum(){
  var k=document.getElementById('pfkur');k.hidden=false;
- k.innerHTML='<b>Portföyünü Telegram\'a bağla</b> (her cihazda bir kez)'+
+ var qr=(ghAnahtar()&&pfSonDurum==='ok')?'<div class="cikis"><b>📱 Telefonu bağla</b>: aşağıdaki düğmeye bas, çıkan kareyi telefonun kamerasıyla okut, açılan sayfada <b>Bu cihazı bağla</b> de.</div>'+
+  '<button class="pfkaydet" onclick="ghQrGoster()">Telefon için kare kodu göster</button><div id="ghqr"></div><hr style="border:0;border-top:1px solid var(--line);margin:10px 0">':'';
+ k.innerHTML=qr+'<b>Portföyünü telefona ve Telegram\'a bağla</b> (anahtar bir kez alınır, diğer cihaza kare kodla geçer)'+
   '<ol class="kurlist"><li>GitHub → profil resmi → <b>Settings</b> → <b>Developer settings</b> → <b>Personal access tokens</b> → <b>Fine-grained tokens</b> → <b>Generate new token</b></li>'+
-  '<li>Token name: <code>portfoy</code> · Repository access: <b>Only select repositories</b> → <b>Bist-signal</b></li>'+
+  '<li>Token name: <code>portfoy</code> · Expiration: <b>en uzun süreyi seç</b> · Repository access: <b>Only select repositories</b> → <b>Bist-signal</b></li>'+
   '<li>Permissions → <b>Add permissions</b> → <b>Variables</b> → <b>Read and write</b> → <b>Generate token</b></li>'+
   '<li>Çıkan anahtarı aşağıya yapıştır. Anahtar sadece bu cihazda saklanır.</li></ol>'+
   '<div class="pfform" style="display:flex"><input id="ghgir" type="password" placeholder="github_pat_..." autocomplete="off" style="flex:1;min-width:200px">'+
@@ -1808,11 +1848,91 @@ function ghKaydet(){
  try{localStorage.setItem(GH_KEY,t);}catch(e){s.textContent='Tarayıcı anahtarı kaydetmeye izin vermedi.';return;}
  s.textContent='Deneniyor…';
  pfBulutOku().then(function(ok){
-  if(ok){alBulutOku().then(function(v){if(!v)alYaz(alOku());});dfBulutOku();document.getElementById('pfkur').hidden=true;pfNot('✓ Bağlandı. Portföyündeki değişiklikler artık otomatik olarak Telegram mesajlarına yansıyacak.');}
+  if(ok){alBulutOku();favBulutOku();dfBulutOku();document.getElementById('pfkur').hidden=true;pfNot(pfFarkB?'✓ Bağlandı. Şimdi yukarıdan hangi listenin geçerli olacağını seç.':'✓ Bağlandı. Bu cihaz artık GitHub\'la eşit; değişiklikler öteki cihaza ve Telegram mesajlarına yansır.');}
   else{try{localStorage.removeItem(GH_KEY);}catch(e){}s.textContent='Olmadı: anahtar yanlış ya da "Variables: Read and write" yetkisi yok. Adımları kontrol edip tekrar dene.';pfBulutDurum('yerel');}
  });
 }
 function ghKaldir(){try{localStorage.removeItem(GH_KEY);}catch(e){}document.getElementById('pfkur').hidden=true;pfBulutDurum('yerel');dfBulutDurum('yerel');}
+// --- Telefona kare kodla aktarma. Anahtar adresin # kısmında gider: # sonrası sunucuya gönderilmez, açılınca adres çubuğundan hemen silinir, bağlamadan önce sorulur.
+var ghQrSaat=null;
+function ghQrGoster(){
+ var el=document.getElementById('ghqr');if(!el)return;
+ var url=location.origin+location.pathname+'#baglan='+ghAnahtar(),q=qrUret(url);
+ if(!q){el.textContent='Kare kod üretilemedi.';return;}
+ el.innerHTML='<div class="qrkutu">'+qrSvg(q)+'</div><div class="cikis pfuy">Bu kare senin anahtarın: kimseye gösterme, fotoğrafını paylaşma. 2 dakika sonra kendiliğinden kapanır.</div>';
+ clearTimeout(ghQrSaat);ghQrSaat=setTimeout(function(){var e=document.getElementById('ghqr');if(e)e.innerHTML='';},120000);
+}
+function ghBaglantiBak(){
+ var m=/^#baglan=([A-Za-z0-9_]{20,300})$/.exec(location.hash);
+ if(!/^#baglan=/.test(location.hash))return;
+ try{history.replaceState(null,'',location.pathname+location.search);}catch(e){location.hash='';}
+ if(!m||m[1]===ghAnahtar())return;
+ var k=document.getElementById('pfkur');k.hidden=false;
+ k.innerHTML='<b>📱 Bu cihazı portföyüne bağla?</b><div class="cikis">Bu sayfayı kendi bilgisayarındaki panodan kare kodla açtıysan bağla. Başkasından geldiyse <b>Kapat</b>\'a bas.</div>'+
+  '<input id="ghgir" type="hidden" value="'+m[1]+'"><div class="pfform" style="display:flex"><button class="pfkaydet" onclick="ghKaydet()">Bu cihazı bağla</button><button class="pfipt" onclick="document.getElementById(\'pfkur\').hidden=true">Kapat</button></div><div id="ghsonuc" class="cikis"></div>';
+ k.scrollIntoView({block:'center'});
+}
+// QR üreteci (bayt kipi, M düzeltme, sürüm 1-15). Üçüncü taraf script yok: bu sayfada anahtar duruyor.
+function qrUret(metin){
+ var veri=Array.from(new TextEncoder().encode(metin));
+ var EC=[0,10,16,26,18,24,16,18,22,22,26,30,22,22,24,24],BL=[0,1,1,1,2,2,4,4,4,5,5,5,8,9,9,10],TOP=[0,26,44,70,100,134,172,196,242,292,346,404,466,532,581,655];
+ var v=0,D=0;for(var i=1;i<=15;i++){D=TOP[i]-EC[i]*BL[i];if(4+(i<10?8:16)+8*veri.length<=8*D){v=i;break;}}
+ if(!v)return null;
+ var bit=[];function ek(x,n){for(var j=n-1;j>=0;j--)bit.push((x>>>j)&1);}
+ ek(4,4);ek(veri.length,v<10?8:16);veri.forEach(function(b){ek(b,8);});
+ ek(0,Math.min(4,8*D-bit.length));while(bit.length%8)bit.push(0);
+ var kod=[];for(i=0;i<bit.length;i+=8){var o=0;for(var j=0;j<8;j++)o=(o<<1)|bit[i+j];kod.push(o);}
+ for(var pd=0xEC;kod.length<D;pd^=0xEC^0x11)kod.push(pd);
+ var EX=[],LG=[],x=1;for(i=0;i<255;i++){EX[i]=x;LG[x]=i;x<<=1;if(x&256)x^=0x11D;}
+ function car(a,b){return a&&b?EX[(LG[a]+LG[b])%255]:0;}
+ var ec=EC[v],gen=[1];for(i=0;i<ec;i++){var g=gen.concat([0]);for(j=0;j<gen.length;j++)g[j+1]^=car(gen[j],EX[i]);gen=g;}
+ var nb=BL[v],kisa=Math.floor(D/nb),uzun=D%nb,bl=[],ecb=[],pos=0;
+ for(i=0;i<nb;i++){var n=kisa+(i>=nb-uzun?1:0),d=kod.slice(pos,pos+n);pos+=n;
+  var r=d.concat(new Array(ec).fill(0));
+  for(j=0;j<n;j++){var c=r[j];if(c)for(var q=0;q<gen.length;q++)r[j+q]^=car(gen[q],c);}
+  bl.push(d);ecb.push(r.slice(n));}
+ var son=[];for(i=0;i<=kisa;i++)for(j=0;j<nb;j++)if(i<bl[j].length)son.push(bl[j][i]);
+ for(i=0;i<ec;i++)for(j=0;j<nb;j++)son.push(ecb[j][i]);
+ var S=17+4*v,M=[],F=[];for(i=0;i<S;i++){M.push(new Array(S).fill(false));F.push(new Array(S).fill(false));}
+ function kur(px,py,k){M[py][px]=k;F[py][px]=true;}
+ function bul(cx,cy){for(var dy=-4;dy<=4;dy++)for(var dx=-4;dx<=4;dx++){var X=cx+dx,Y=cy+dy,u=Math.max(Math.abs(dx),Math.abs(dy));if(X>=0&&X<S&&Y>=0&&Y<S)kur(X,Y,u!==2&&u!==4);}}
+ bul(3,3);bul(S-4,3);bul(3,S-4);
+ for(i=0;i<S;i++){if(!F[6][i])kur(i,6,i%2===0);if(!F[i][6])kur(6,i,i%2===0);}
+ if(v>1){var na=Math.floor(v/7)+2,ad=Math.floor((v*8+na*3+5)/(na*4-4))*2,al=[6];for(i=na-1,pos=S-7;i>=1;i--,pos-=ad)al.splice(1,0,pos);
+  al.forEach(function(ay,ia){al.forEach(function(ax,ib2){if((ia===0&&ib2===0)||(ia===0&&ib2===na-1)||(ia===na-1&&ib2===0))return;  // köşeler: bulucu desenler
+   for(var dy=-2;dy<=2;dy++)for(var dx=-2;dx<=2;dx++)kur(ax+dx,ay+dy,Math.max(Math.abs(dx),Math.abs(dy))!==1);});});}
+ function bicim(mk){var da=mk,rem=da;for(var t=0;t<10;t++)rem=(rem<<1)^((rem>>>9)*0x537);var b=((da<<10)|rem)^0x5412;  // M düzeyi = 00
+  function B(t){return ((b>>>t)&1)===1;}
+  for(var t2=0;t2<=5;t2++)kur(8,t2,B(t2));kur(8,7,B(6));kur(8,8,B(7));kur(7,8,B(8));for(t2=9;t2<15;t2++)kur(14-t2,8,B(t2));
+  for(t2=0;t2<8;t2++)kur(S-1-t2,8,B(t2));for(t2=8;t2<15;t2++)kur(8,S-15+t2,B(t2));kur(8,S-8,true);}
+ bicim(0);
+ if(v>=7){var rv=v;for(i=0;i<12;i++)rv=(rv<<1)^((rv>>>11)*0x1F25);var bv=(v<<12)|rv;for(i=0;i<18;i++){var B2=((bv>>>i)&1)===1,a2=S-11+i%3,b2=Math.floor(i/3);kur(a2,b2,B2);kur(b2,a2,B2);}}
+ var ib=0;for(var sag=S-1;sag>=1;sag-=2){if(sag===6)sag=5;for(var dik=0;dik<S;dik++)for(j=0;j<2;j++){var X=sag-j,Y=((sag+1)&2)===0?S-1-dik:dik;
+   if(!F[Y][X]&&ib<son.length*8){M[Y][X]=((son[ib>>>3]>>>(7-(ib&7)))&1)===1;ib++;}}}
+ function ters(mk){var f=[function(a,b){return (a+b)%2;},function(a,b){return b%2;},function(a){return a%3;},function(a,b){return (a+b)%3;},function(a,b){return (Math.floor(a/3)+Math.floor(b/2))%2;},function(a,b){return a*b%2+a*b%3;},function(a,b){return (a*b%2+a*b%3)%2;},function(a,b){return ((a+b)%2+a*b%3)%2;}][mk];
+  for(var y=0;y<S;y++)for(var a=0;a<S;a++)if(!F[y][a]&&f(a,y)===0)M[y][a]=!M[y][a];}
+ function ceza(){var p=0,top=0,y,a;
+  function dizi(g){var s=0,bu=null,k='';for(var t=0;t<g.length;t++){if(g[t]===bu)s++;else{if(s>=5)p+=s-2;bu=g[t];s=1;}k+=g[t]?'1':'0';}if(s>=5)p+=s-2;
+   var pt=/(?=10111010000|00001011101)/g,mt;while((mt=pt.exec(k))){p+=40;pt.lastIndex++;}}
+  for(y=0;y<S;y++){dizi(M[y]);dizi(M.map(function(r){return r[y];}));}
+  for(y=0;y<S;y++)for(a=0;a<S;a++){if(M[y][a])top++;if(y<S-1&&a<S-1&&M[y][a]===M[y][a+1]&&M[y][a]===M[y+1][a]&&M[y][a]===M[y+1][a+1])p+=3;}
+  return p+Math.floor(Math.abs(top*20/(S*S)-10))*10;}
+ var en=0,enc=Infinity;for(i=0;i<8;i++){ters(i);bicim(i);var cz=ceza();if(cz<enc){enc=cz;en=i;}ters(i);}
+ ters(en);bicim(en);
+ return M;
+}
+function qrSvg(M){
+ var S=M.length,y=4,d='';for(var a=0;a<S;a++)for(var b=0;b<S;b++)if(M[a][b])d+='M'+(b+y)+' '+(a+y)+'h1v1h-1z';
+ return '<svg role="img" aria-label="Telefon için kare kod" viewBox="0 0 '+(S+8)+' '+(S+8)+'" shape-rendering="crispEdges"><rect width="100%" height="100%" fill="#fff"/><path d="'+d+'" fill="#000"/></svg>';
+}
+// Sayfaya dönünce öteki cihazdaki değişiklikleri al (en çok 30 sn'de bir; form ya da pencere açıkken dokunma: satır sırası kayabilir)
+var esSon=Date.now();
+function esAcikForm(){var f=document.getElementById('pfform'),u=document.getElementById('ust'),d=document.getElementById('dfust');
+ return (f&&f.style.display==='flex')||(u&&u.classList.contains('acik'))||(d&&d.classList.contains('acik'));}
+document.addEventListener('visibilitychange',function(){
+ if(document.visibilityState!=='visible'||!ghAnahtar()||Date.now()-esSon<30000||esAcikForm())return;
+ esSon=Date.now();pfBulutOku();alBulutOku();favBulutOku();dfBulutOku();
+});
 
 // tarama.py sektor_dagilimi() ile aynı: güncel değere göre endüstri payları
 function xuDeger(t){  // t tarihindeki (ya da önceki son) BIST 100 kapanışı
@@ -1981,7 +2101,7 @@ function dfIsaretle(o,h){  // yerel bayraklar (sadece bilgi; u değişmez)
 function dfBulutDurum(d,kod){
  var el=document.getElementById('dfbulut');if(!el)return;
  var yetki=(kod===401||kod===403||kod===404);
- var t={yerel:'Bu cihazda saklanıyor. Başka cihazda da görmek için Portföyüm → <a href="#" onclick="ghKurulum();return false">Telegram\'a bağla</a> (aynı anahtar; defter Telegram\'a gönderilmez).',
+ var t={yerel:'Bu cihazda saklanıyor. Başka cihazda da görmek için Portföyüm → <a href="#" onclick="ghKurulum();return false">Telefona ve Telegram\'a bağla</a> (aynı anahtar; defter Telegram\'a gönderilmez).',
   kaydediliyor:'☁ Kaydediliyor…',ok:'☁ GitHub\'daki gizli DEFTER kaydıyla eşit (Telegram\'a ve herkese açık dosyalara gitmez)',
   hata:'⚠ GitHub\'a kaydedilemedi'+(kod?' ('+kod+')':'')+(yetki?' — anahtar geçersiz ya da yetkisi eksik':' — sonra tekrar dene')+'. Kayıtlar bu cihazda duruyor.'}[d];
  if(d==='ok'&&dfKesik)t+=' <span class="pfuy">· defter büyüdü: '+(dfKesik.kn?'en eski '+dfKesik.kn+' işlemin notları':'')+(dfKesik.ky?(dfKesik.kn?', ':'')+dfKesik.ky+' işlemin tamamı':'')+(dfKesik.pk?(dfKesik.kn||dfKesik.ky?', ':'')+'"neden aldım" notları':'')+' GitHub sınırına (48 KB) sığmadı, sadece bu cihazda. CSV yedeği al.</span>';
@@ -2327,7 +2447,7 @@ function dfCsvIceAl(t){
  dfNot('⬆ İçe aktarma: <b>'+ekle+'</b> işlem eklendi'+(atla?', '+atla+' işlem zaten defterde vardı (atlandı)':'')+(hata?', '+hata+' satır eksik/hatalı olduğu için alınmadı':'')+'.');
  return ekle;
 }
-(function(){var dl=document.getElementById('pfkodlar');if(dl){dl.innerHTML=Object.keys(DATA).sort().map(function(k){return '<option value="'+k+'"></option>';}).join('');}pfRender();pfBulutOku();alBulutOku();tabloDuzen();favBulutOku();bugunRender();dfBaslat();})();
+(function(){var dl=document.getElementById('pfkodlar');if(dl){dl.innerHTML=Object.keys(DATA).sort().map(function(k){return '<option value="'+k+'"></option>';}).join('');}ghBaglantiBak();pfRender();pfBulutOku();alBulutOku();tabloDuzen();favBulutOku();bugunRender();dfBaslat();})();
 </script></body></html>"""
 
 

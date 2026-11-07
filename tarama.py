@@ -683,7 +683,7 @@ def portfoy_yukle():
     DİKKAT: Actions logları herkese açık — portföy içeriğini asla print etme."""
     ham = os.environ.get("PORTFOY", "").strip()
     if not ham:
-        print("Portföy tanımlı değil (panoda 'Telegram'a bağla' yapılmamış).")
+        print("Portföy tanımlı değil (panoda 'Telefona ve Telegram'a bağla' yapılmamış).")
         return {}
     try:
         liste = json.loads(ham)
@@ -1739,7 +1739,7 @@ def komut_cevap(metin, by_kod, pf, piyasa, genislik, sonuclar, endeks):
         return piyasa_metni(piyasa, genislik, sonuclar)
     if k == "/portfoy":
         if not pf:
-            return "Portföy tanımlı değil: panoda Portföyüm → <b>Telegram'a bağla</b>."
+            return "Portföy tanımlı değil: panoda Portföyüm → <b>Telefona ve Telegram'a bağla</b>."
         return portfoy_ozeti(sonuclar, pf, piyasa, endeks)
     return "Bu komutu tanımıyorum.\n\n" + TG_YARDIM
 

@@ -83,7 +83,7 @@ Mesaj şu durumlarda gelir:
 
 AL ile NÖTR arasında gidip gelen hisse tekrar mesaj atmaz. Sinyalin önce SAT'a, sonra tekrar AL'e dönmesi gerekir. Listeye yeni eklenen hisse, ilk tarandığı turda mesaj atmaz.
 
-**Portföyü Telegram'a bağlamak (her cihazda bir kez):** Panoda Portföyüm'ün altındaki **Telegram'a bağla**'ya bas, ekrandaki adımlarla bir GitHub anahtarı oluştur ("Variables: Read and write" yetkili) ve yapıştır. Sonrasında:
+**Portföyü telefona ve Telegram'a bağlamak (anahtar bir kez alınır, öteki cihaz kare kodla bağlanır):** Panoda Portföyüm'ün altındaki **Telefona ve Telegram'a bağla**'ya bas, ekrandaki adımlarla bir GitHub anahtarı oluştur ("Variables: Read and write" yetkili) ve yapıştır. Sonrasında:
 - **+ Ekle / ✎ / ✕** ile yaptığın her değişiklik GitHub'daki `PORTFOY` variable'ına otomatik kaydedilir, sonraki taramanın Telegram mesajları buna göre çıkar.
 - **Aynı hisseyi tekrar eklersen** adetler toplanır, maliyet ağırlıklı ortalama olur.
 - **Sattım** → satış 📒 **İşlem Defterim**'e yazılır (kısmi satış da olur; ✕ ise kayıt tutmadan siler). Defter aynı anahtarla GitHub'daki ayrı, gizli `DEFTER` variable'ında eşitlenir; Telegram'a ve herkese açık dosyalara gitmez. **⬇ CSV yedeği** ile Excel'e alabilirsin.
