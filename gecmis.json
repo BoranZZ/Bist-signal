@@ -90,8 +90,8 @@
       "giris_fiyat": 44.34,
       "stop": 39.2,
       "durum": "açık",
-      "guncel": 46.86,
-      "anlik": 5.7,
+      "guncel": 46.82,
+      "anlik": 5.6,
       "tepe": 49.0
     },
     {
@@ -127,10 +127,14 @@
       "giris_tarih": "2026-09-25",
       "giris_fiyat": 58.2,
       "stop": 47.92,
-      "durum": "açık",
-      "guncel": 48.08,
-      "anlik": -17.4,
-      "tepe": 59.9
+      "durum": "kapalı",
+      "guncel": 46.22,
+      "anlik": -20.6,
+      "tepe": 59.9,
+      "cikis_tarih": "2026-11-09",
+      "cikis_fiyat": 46.22,
+      "sonuc": -20.6,
+      "sebep": "iz stop"
     },
     {
       "kod": "TOASO",
@@ -152,8 +156,8 @@
       "giris_fiyat": 429.0,
       "stop": 343.2,
       "durum": "açık",
-      "guncel": 376.5,
-      "anlik": -12.2,
+      "guncel": 375.5,
+      "anlik": -12.5,
       "tepe": 429.0
     }
   ]
