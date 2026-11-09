@@ -4,7 +4,6 @@
     "ENTRA",
     "GARAN",
     "GRSEL",
-    "METRO",
     "RYSAS",
     "TAVHL"
   ],
@@ -623,9 +622,9 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1694514,
+  "kap_son": 1694606,
   "tk_gonderilen": {
-    "tarih": "2026-11-07",
+    "tarih": "2026-11-09",
     "kodlar": []
   },
   "mom_ay": {
@@ -642,8 +641,8 @@
     ]
   },
   "gunici": {
-    "tarih": "2026-11-07",
+    "tarih": "2026-11-09",
     "g": []
   },
-  "sabah_tarih": "2026-11-06"
+  "sabah_tarih": "2026-11-09"
 }
