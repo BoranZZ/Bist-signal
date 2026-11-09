@@ -1,10 +1,9 @@
 {
   "al": [
-    "CELHA",
+    "BRSAN",
     "ENJSA",
     "ENTRA",
     "GARAN",
-    "METRO",
     "RYSAS",
     "TAVHL",
     "YKBNK"
@@ -69,7 +68,7 @@
     "BOBET": "SAT",
     "BORLS": "SAT",
     "BRLSM": "SAT",
-    "BRSAN": "SAT",
+    "BRSAN": "AL",
     "BRYAT": "SAT",
     "BSOKE": "SAT",
     "BTCIM": "SAT",
@@ -345,6 +344,11 @@
   "karar_kirilim_g": [],
   "alarm_tetik": [],
   "on_sinyal": {
+    "BRSAN": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-09"
+    },
     "CELHA": {
       "sinyal": "AL",
       "onceki": "SAT",
@@ -635,7 +639,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1695180,
+  "kap_son": 1695182,
   "tk_gonderilen": {
     "tarih": "2026-11-09",
     "kodlar": []
