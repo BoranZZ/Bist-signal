@@ -3,7 +3,9 @@
     "BRSAN",
     "ENJSA",
     "ENTRA",
+    "FRIGO",
     "GARAN",
+    "METRO",
     "RYSAS",
     "TAVHL",
     "YKBNK"
@@ -125,7 +127,7 @@
     "FENER": "SAT",
     "FONET": "SAT",
     "FORTE": "SAT",
-    "FRIGO": "SAT",
+    "FRIGO": "AL",
     "FRMPL": "SAT",
     "FROTO": "SAT",
     "FZLGY": "SAT",
@@ -350,6 +352,11 @@
       "tarih": "2026-11-09"
     },
     "CELHA": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-09"
+    },
+    "FRIGO": {
       "sinyal": "AL",
       "onceki": "SAT",
       "tarih": "2026-11-09"
