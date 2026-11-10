@@ -6,6 +6,7 @@
     "GARAN",
     "HRKET",
     "METEN",
+    "RYSAS",
     "TAVHL",
     "YKBNK"
   ],
@@ -624,7 +625,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1696224,
+  "kap_son": 1696368,
   "tk_gonderilen": {
     "tarih": "2026-11-10",
     "kodlar": []
