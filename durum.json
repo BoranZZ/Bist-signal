@@ -1,6 +1,5 @@
 {
   "al": [
-    "AKSA",
     "BRSAN",
     "ENJSA",
     "ENTRA",
@@ -625,9 +624,9 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1695875,
+  "kap_son": 1696187,
   "tk_gonderilen": {
-    "tarih": "2026-11-09",
+    "tarih": "2026-11-10",
     "kodlar": []
   },
   "mom_ay": {
@@ -644,14 +643,8 @@
     ]
   },
   "gunici": {
-    "tarih": "2026-11-09",
-    "g": [
-      "0a91fa623dd2cf2c",
-      "0dca56fda8c4cfd1",
-      "1bff897681512a10",
-      "5706506e89c675b0",
-      "5d5a9795aacf4ebf"
-    ]
+    "tarih": "2026-11-10",
+    "g": []
   },
-  "sabah_tarih": "2026-11-09"
+  "sabah_tarih": "2026-11-10"
 }
