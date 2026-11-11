@@ -5,7 +5,6 @@
     "ENJSA",
     "ENTRA",
     "GARAN",
-    "HKTM",
     "HRKET",
     "ISCTR",
     "METEN",
@@ -630,7 +629,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1696933,
+  "kap_son": 1696949,
   "tk_gonderilen": {
     "tarih": "2026-11-11",
     "kodlar": []
