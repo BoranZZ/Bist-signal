@@ -1,7 +1,6 @@
 {
   "al": [
     "AKSA",
-    "CELHA",
     "ENJSA",
     "ENTRA",
     "GARAN",
@@ -83,7 +82,7 @@
     "CANTE": "SAT",
     "CATES": "SAT",
     "CCOLA": "SAT",
-    "CELHA": "AL",
+    "CELHA": "SAT",
     "CEMZY": "SAT",
     "CGCAM": "SAT",
     "CIMSA": "SAT",
@@ -267,7 +266,7 @@
     "RUBNS": "SAT",
     "RYGYO": "AL",
     "RYSAS": "AL",
-    "SAFKR": "AL",
+    "SAFKR": "SAT",
     "SAHOL": "SAT",
     "SANFM": "SAT",
     "SARAE": "SAT",
@@ -344,37 +343,11 @@
     "ed52d36b8529c244",
     "fc9a269fa7f1b36a"
   ],
-  "ozet_tarih": "2026-11-10",
+  "ozet_tarih": "2026-11-11",
   "hafta_tarih": "2026-11-06",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {
-    "CELHA": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-11-11"
-    },
-    "HRKET": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-11-11"
-    },
-    "ISCTR": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-11-11"
-    },
-    "SAFKR": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-11-11"
-    },
-    "VAKFA": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-11-11"
-    }
-  },
+  "on_sinyal": {},
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
@@ -443,7 +416,7 @@
     "CIMSA": "SAT",
     "CRDFA": "SAT",
     "CRFSA": "SAT",
-    "CVKMD": "AL",
+    "CVKMD": "SAT",
     "CWENE": "SAT",
     "DAGI": "SAT",
     "DAPGM": "SAT",
@@ -631,7 +604,7 @@
     "TOASO": "SAT",
     "TRALT": "SAT",
     "TRENJ": "SAT",
-    "TRGYO": "AL",
+    "TRGYO": "SAT",
     "TRHOL": "SAT",
     "TRMET": "SAT",
     "TSKB": "SAT",
@@ -654,7 +627,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1697278,
+  "kap_son": 1697309,
   "tk_gonderilen": {
     "tarih": "2026-11-11",
     "kodlar": []
