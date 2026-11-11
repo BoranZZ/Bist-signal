@@ -8,6 +8,7 @@
     "HRKET",
     "ISCTR",
     "METEN",
+    "SAFKR",
     "TAVHL",
     "VAKFA",
     "YKBNK"
@@ -267,7 +268,7 @@
     "RUBNS": "SAT",
     "RYGYO": "AL",
     "RYSAS": "AL",
-    "SAFKR": "SAT",
+    "SAFKR": "AL",
     "SAHOL": "SAT",
     "SANFM": "SAT",
     "SARAE": "SAT",
@@ -360,6 +361,11 @@
       "tarih": "2026-11-11"
     },
     "ISCTR": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-11"
+    },
+    "SAFKR": {
       "sinyal": "AL",
       "onceki": "SAT",
       "tarih": "2026-11-11"
@@ -649,7 +655,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1697214,
+  "kap_son": 1697250,
   "tk_gonderilen": {
     "tarih": "2026-11-11",
     "kodlar": []
