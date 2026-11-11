@@ -8,7 +8,7 @@
     "HRKET",
     "ISCTR",
     "METEN",
-    "METRO",
+    "SAFKR",
     "TAVHL",
     "YKBNK"
   ],
@@ -628,7 +628,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1696917,
+  "kap_son": 1696930,
   "tk_gonderilen": {
     "tarih": "2026-11-11",
     "kodlar": []
