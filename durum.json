@@ -1,6 +1,7 @@
 {
   "al": [
     "AKSA",
+    "CELHA",
     "ENJSA",
     "ENTRA",
     "GARAN",
@@ -8,7 +9,7 @@
     "HRKET",
     "ISCTR",
     "METEN",
-    "METRO",
+    "SAFKR",
     "TAVHL",
     "VAKFA",
     "YKBNK"
@@ -629,7 +630,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1696876,
+  "kap_son": 1696917,
   "tk_gonderilen": {
     "tarih": "2026-11-11",
     "kodlar": []
