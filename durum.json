@@ -22,7 +22,7 @@
     "ADEL": "SAT",
     "ADESE": "SAT",
     "AEFES": "SAT",
-    "AFYON": "SAT",
+    "AFYON": "AL",
     "AGHOL": "SAT",
     "AGROT": "SAT",
     "AHGAZ": "SAT",
@@ -87,7 +87,7 @@
     "CANTE": "SAT",
     "CATES": "SAT",
     "CCOLA": "SAT",
-    "CELHA": "SAT",
+    "CELHA": "AL",
     "CEMZY": "SAT",
     "CGCAM": "SAT",
     "CIMSA": "SAT",
@@ -119,7 +119,7 @@
     "EMKEL": "SAT",
     "EMPAE": "SAT",
     "ENDAE": "SAT",
-    "ENERY": "SAT",
+    "ENERY": "AL",
     "ENJSA": "AL",
     "ENKAI": "SAT",
     "ENPRA": "SAT",
@@ -163,7 +163,7 @@
     "HDFGS": "SAT",
     "HEDEF": "SAT",
     "HEKTS": "SAT",
-    "HKTM": "SAT",
+    "HKTM": "AL",
     "HLGYO": "SAT",
     "HOROZ": "SAT",
     "HRKET": "AL",
@@ -301,8 +301,9 @@
     "TEHOL": "SAT",
     "TERA": "SAT",
     "TGSAS": "SAT",
-    "THYAO": "SAT",
+    "THYAO": "AL",
     "TKFEN": "SAT",
+    "TKNKA": "SAT",
     "TMPOL": "SAT",
     "TNZTP": "SAT",
     "TOASO": "SAT",
@@ -329,6 +330,7 @@
     "VBTYZ": "SAT",
     "VESBE": "SAT",
     "VESTL": "SAT",
+    "VEYAS": "NÖTR",
     "VSNMD": "SAT",
     "YEOTK": "SAT",
     "YIGIT": "SAT",
@@ -352,7 +354,33 @@
   "hafta_tarih": "2026-11-06",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {},
+  "on_sinyal": {
+    "AFYON": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-12"
+    },
+    "CELHA": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-12"
+    },
+    "ENERY": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-12"
+    },
+    "HKTM": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-12"
+    },
+    "THYAO": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-12"
+    }
+  },
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
