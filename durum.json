@@ -12,7 +12,6 @@
     "METEN",
     "METRO",
     "NETCD",
-    "SNGYO",
     "TAVHL",
     "THYAO",
     "VAKFA",
@@ -634,7 +633,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1697524,
+  "kap_son": 1697665,
   "tk_gonderilen": {
     "tarih": "2026-11-12",
     "kodlar": []
