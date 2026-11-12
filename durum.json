@@ -6,7 +6,7 @@
     "ENERY",
     "ENJSA",
     "ENTRA",
-    "FRIGO",
+    "FONET",
     "GARAN",
     "HKTM",
     "ISCTR",
@@ -133,7 +133,7 @@
     "EUPWR": "SAT",
     "EUREN": "SAT",
     "FENER": "SAT",
-    "FONET": "SAT",
+    "FONET": "AL",
     "FORTE": "SAT",
     "FRIGO": "AL",
     "FRMPL": "SAT",
@@ -367,6 +367,11 @@
       "tarih": "2026-11-12"
     },
     "ENERY": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-12"
+    },
+    "FONET": {
       "sinyal": "AL",
       "onceki": "SAT",
       "tarih": "2026-11-12"
@@ -661,7 +666,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1697713,
+  "kap_son": 1697735,
   "tk_gonderilen": {
     "tarih": "2026-11-12",
     "kodlar": []
