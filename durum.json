@@ -14,7 +14,6 @@
     "METRO",
     "TAVHL",
     "THYAO",
-    "VAKFA",
     "YKBNK"
   ],
   "son": {
@@ -666,7 +665,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1697735,
+  "kap_son": 1697756,
   "tk_gonderilen": {
     "tarih": "2026-11-12",
     "kodlar": []
