@@ -2,11 +2,11 @@
   "al": [
     "AFYON",
     "AKSA",
-    "ARSAN",
     "CELHA",
     "ENERY",
     "ENJSA",
     "ENTRA",
+    "FONET",
     "GARAN",
     "HKTM",
     "ISCTR",
@@ -634,9 +634,9 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1697771,
+  "kap_son": 1697824,
   "tk_gonderilen": {
-    "tarih": "2026-11-12",
+    "tarih": "2026-11-13",
     "kodlar": []
   },
   "mom_ay": {
@@ -653,10 +653,8 @@
     ]
   },
   "gunici": {
-    "tarih": "2026-11-12",
-    "g": [
-      "d26062bb53c412c3"
-    ]
+    "tarih": "2026-11-13",
+    "g": []
   },
-  "sabah_tarih": "2026-11-12"
+  "sabah_tarih": "2026-11-13"
 }
