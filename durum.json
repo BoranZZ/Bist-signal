@@ -1,11 +1,13 @@
 {
   "al": [
+    "AFYON",
     "AKSA",
     "CELHA",
     "ENERY",
     "ENJSA",
     "ENTRA",
     "GARAN",
+    "HKTM",
     "ISCTR",
     "METEN",
     "METRO",
@@ -652,7 +654,9 @@
   },
   "gunici": {
     "tarih": "2026-11-12",
-    "g": []
+    "g": [
+      "d26062bb53c412c3"
+    ]
   },
   "sabah_tarih": "2026-11-12"
 }
