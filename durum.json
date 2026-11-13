@@ -6,8 +6,6 @@
     "ENERY",
     "ENJSA",
     "ENTRA",
-    "FONET",
-    "FROTO",
     "GARAN",
     "HKTM",
     "ISCTR",
@@ -134,11 +132,11 @@
     "EUPWR": "SAT",
     "EUREN": "SAT",
     "FENER": "SAT",
-    "FONET": "AL",
+    "FONET": "SAT",
     "FORTE": "SAT",
     "FRIGO": "AL",
     "FRMPL": "SAT",
-    "FROTO": "AL",
+    "FROTO": "SAT",
     "FZLGY": "SAT",
     "GARAN": "AL",
     "GENIL": "SAT",
@@ -353,42 +351,11 @@
     "ed52d36b8529c244",
     "fc9a269fa7f1b36a"
   ],
-  "ozet_tarih": "2026-11-12",
-  "hafta_tarih": "2026-11-06",
+  "ozet_tarih": "2026-11-13",
+  "hafta_tarih": "2026-11-13",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {
-    "BRSAN": {
-      "sinyal": "SAT",
-      "onceki": "AL",
-      "tarih": "2026-11-13"
-    },
-    "EGEEN": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-11-13"
-    },
-    "FONET": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-11-13"
-    },
-    "FROTO": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-11-13"
-    },
-    "HRKET": {
-      "sinyal": "SAT",
-      "onceki": "AL",
-      "tarih": "2026-11-13"
-    },
-    "MPARK": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-11-13"
-    }
-  },
+  "on_sinyal": {},
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
@@ -403,7 +370,7 @@
     "AKFIS": "AL",
     "AKFYE": "SAT",
     "AKGRT": "SAT",
-    "AKSA": "SAT",
+    "AKSA": "AL",
     "AKSEN": "SAT",
     "AKSUE": "SAT",
     "ALARK": "AL",
@@ -450,7 +417,7 @@
     "BVSAN": "SAT",
     "CANTE": "SAT",
     "CATES": "SAT",
-    "CCOLA": "SAT",
+    "CCOLA": "AL",
     "CELHA": "AL",
     "CEMZY": "SAT",
     "CGCAM": "SAT",
@@ -598,7 +565,7 @@
     "PAPIL": "SAT",
     "PASEU": "SAT",
     "PATEK": "SAT",
-    "PCILT": "AL",
+    "PCILT": "SAT",
     "PEKGY": "SAT",
     "PENTA": "SAT",
     "PETKM": "SAT",
@@ -668,7 +635,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1698130,
+  "kap_son": 1698146,
   "tk_gonderilen": {
     "tarih": "2026-11-13",
     "kodlar": []
