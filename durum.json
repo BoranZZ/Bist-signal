@@ -1,7 +1,7 @@
 {
   "al": [
+    "AFYON",
     "CELHA",
-    "CVKMD",
     "ENERY",
     "ENJSA",
     "ENTRA",
@@ -635,7 +635,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1697990,
+  "kap_son": 1697996,
   "tk_gonderilen": {
     "tarih": "2026-11-13",
     "kodlar": []
