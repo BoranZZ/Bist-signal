@@ -2,11 +2,11 @@
   "al": [
     "AFYON",
     "CELHA",
-    "CVKMD",
     "EGEEN",
     "ENERY",
     "ENJSA",
     "ENTRA",
+    "FONET",
     "FROTO",
     "GARAN",
     "HKTM",
@@ -78,7 +78,7 @@
     "BOBET": "SAT",
     "BORLS": "SAT",
     "BRLSM": "SAT",
-    "BRSAN": "AL",
+    "BRSAN": "SAT",
     "BRYAT": "SAT",
     "BSOKE": "SAT",
     "BTCIM": "SAT",
@@ -111,7 +111,7 @@
     "ECZYT": "SAT",
     "EDATA": "SAT",
     "EFOR": "SAT",
-    "EGEEN": "SAT",
+    "EGEEN": "AL",
     "EGEGY": "SAT",
     "EGEPO": "SAT",
     "EGGUB": "SAT",
@@ -134,11 +134,11 @@
     "EUPWR": "SAT",
     "EUREN": "SAT",
     "FENER": "SAT",
-    "FONET": "SAT",
+    "FONET": "AL",
     "FORTE": "SAT",
     "FRIGO": "AL",
     "FRMPL": "SAT",
-    "FROTO": "SAT",
+    "FROTO": "AL",
     "FZLGY": "SAT",
     "GARAN": "AL",
     "GENIL": "SAT",
@@ -168,7 +168,7 @@
     "HKTM": "AL",
     "HLGYO": "SAT",
     "HOROZ": "SAT",
-    "HRKET": "AL",
+    "HRKET": "SAT",
     "HUNER": "SAT",
     "HURGZ": "SAT",
     "ICUGS": "SAT",
@@ -206,6 +206,7 @@
     "KONYA": "SAT",
     "KOPOL": "SAT",
     "KORDS": "SAT",
+    "KPEKS": "NÖTR",
     "KRDMA": "SAT",
     "KRDMB": "SAT",
     "KRDMD": "SAT",
@@ -235,7 +236,7 @@
     "MOBTL": "SAT",
     "MOGAN": "SAT",
     "MOPAS": "SAT",
-    "MPARK": "SAT",
+    "MPARK": "AL",
     "MRGYO": "SAT",
     "MRSHL": "SAT",
     "NETCD": "SAT",
@@ -356,7 +357,38 @@
   "hafta_tarih": "2026-11-06",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {},
+  "on_sinyal": {
+    "BRSAN": {
+      "sinyal": "SAT",
+      "onceki": "AL",
+      "tarih": "2026-11-13"
+    },
+    "EGEEN": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-13"
+    },
+    "FONET": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-13"
+    },
+    "FROTO": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-13"
+    },
+    "HRKET": {
+      "sinyal": "SAT",
+      "onceki": "AL",
+      "tarih": "2026-11-13"
+    },
+    "MPARK": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-13"
+    }
+  },
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
