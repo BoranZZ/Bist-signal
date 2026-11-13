@@ -7,6 +7,7 @@
     "ENJSA",
     "ENTRA",
     "FONET",
+    "FROTO",
     "GARAN",
     "HKTM",
     "ISCTR",
@@ -667,7 +668,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1698120,
+  "kap_son": 1698130,
   "tk_gonderilen": {
     "tarih": "2026-11-13",
     "kodlar": []
