@@ -1100,7 +1100,7 @@ def gunici_olaylar(s, df, pozisyon, fiyat=None):
     elif ch >= TAVAN_ESIK:
         out.append(("tavan", 0, (), f"🟩 tavanda / tavana yakın: bugün {_yz(ch * 100)}"))
     elif ch <= SERT_DUSUS:
-        out.append(("sert", 0, (), f"📉 sert düşüş: bugün {_yz(ch * 100)}"))
+        out.append(("sert", 0, (), f"🔴▼ sert düşüş: bugün {_yz(ch * 100)}"))
     th = s.get("tahta") or {}
     dun_th = (tahta_riski(d.iloc[:-1]) or {}) if th.get("seviye") else {}
     if th.get("seviye") == dun_th.get("seviye"):   # dün de aynıydı: günlük özette yazıyor, gün içi tekrar etme
@@ -1124,10 +1124,10 @@ def gunici_olaylar(s, df, pozisyon, fiyat=None):
         karar = round(S * (1 - tol), 2)
         tanim = f"destek {S} TL ({tarih_tr(ds['tarih'])} dibi" + (f", {ds['test']} kez test edildi)" if ds["test"] >= 2 else ")")
         if f < karar:
-            out.append(("d_kirildi", S, ("d_sarkti", "d_yakin"), f"🔻 <b>desteği kırdı</b> (gün içi): {tanim}, karar çizgisi {karar} TL. "
+            out.append(("d_kirildi", S, ("d_sarkti", "d_yakin"), f"🔴▼ <b>desteği kırdı</b> (gün içi): {tanim}, karar çizgisi {karar} TL. "
                                                                  f"Kapanış {karar} TL altında kalırsa kırılım teyit olur."))
         elif f < S:
-            out.append(("d_sarkti", S, ("d_yakin",), f"↘️ desteğin altına sarktı (gün içi): {tanim}. Karar çizgisi {karar} TL; kapanış belirleyici."))
+            out.append(("d_sarkti", S, ("d_yakin",), f"🔴▼ desteğin altına sarktı (gün içi): {tanim}. Karar çizgisi {karar} TL; kapanış belirleyici."))
         elif f <= S * (1 + tol) and dun > S * (1 + tol):
             out.append(("d_yakin", S, (), f"🔹 desteğe geldi: {tanim}, {_yz((S / f - 1) * 100)} aşağıda."))
     if sd and sd.get("direnc"):
@@ -1135,7 +1135,7 @@ def gunici_olaylar(s, df, pozisyon, fiyat=None):
         R = dr["fiyat"]
         tanim = f"direnç {R} TL ({tarih_tr(dr['tarih'])} tepesi)"
         if f > R * (1 + tol):
-            out.append(("r_kirdi", R, ("r_dondu",), f"🔺 <b>direnci aştı</b> (gün içi): {tanim}. Kapanışta da üstünde kalırsa kırılım teyit olur."))
+            out.append(("r_kirdi", R, ("r_dondu",), f"🟢▲ <b>direnci aştı</b> (gün içi): {tanim}. Kapanışta da üstünde kalırsa kırılım teyit olur."))
         elif hi >= R and f < R * (1 - tol) and dun < R * (1 - tol):   # gerçekten dirence değdi (bölge kenarı yetmez)
             out.append(("r_dondu", R, (), f"↩️ dirence dayanıp geri döndü: {tanim}, bugünkü tepe {round(hi, 2)} TL."))
     return out
@@ -1204,12 +1204,12 @@ def kapanis_sd(s, df, pozisyon):
         elif c >= karar:
             out.append(f"↔️ desteğin ({S} TL) hafif altında kapadı ama karar çizgisinin ({karar} TL) üstünde: kırılım sayılmaz, yarın izle.")
         elif not pozisyon.get("uzun"):   # uzun vadede bu durum karar çizgisi mesajıyla ayrıca bildirilir
-            out.append(f"🔻 <b>destek ({S} TL) kapanışta kırıldı</b> (karar çizgisi {karar} TL). Sistemin çıkış kuralı iz stop; "
+            out.append(f"🔴▼ <b>destek ({S} TL) kapanışta kırıldı</b> (karar çizgisi {karar} TL). Sistemin çıkış kuralı iz stop; "
                        f"kırılım tek başına sat sinyali değil ama pozisyonu gözden geçirme noktası.")
     if sd.get("direnc") and hi >= sd["direnc"]["fiyat"]:
         R = sd["direnc"]["fiyat"]
         if c > R * (1 + tol):
-            out.append(f"🔺 <b>direnç ({R} TL) kapanışta aşıldı</b>: eski tepe artık destek olabilir.")
+            out.append(f"🟢▲ <b>direnç ({R} TL) kapanışta aşıldı</b>: eski tepe artık destek olabilir.")
         elif c < R * (1 - tol):
             out.append(f"↩️ dirençten ({R} TL) döndü: gün içi {round(hi, 2)} TL'yi gördü, {c:g} TL'den kapadı.")
         else:
@@ -1225,7 +1225,7 @@ def _al_satiri(s, pf):
     y = " ★AL+" if s["guclu"] else ""
     if s["kod"] in KUCUK_HISSELER:
         y += " 🔹küçük hisse (tahta sığ, sert oynar — lotu küçük tut)"
-    h = f" 📈hacim {s['hacim_kat']}x" if s.get("hacim_teyit") else ""
+    h = f" 🟢▲hacim {s['hacim_kat']}x" if s.get("hacim_teyit") else ""
     if s.get("bayrak"):
         h += f" 🚩bayrak (direk %{s['bayrak']['direk']})"
     if (s.get("uv") or {}).get("durum") == "AL":
@@ -1265,8 +1265,8 @@ def momentum_mesaji(kodlar, by, ay, piyasa=None, onceki=None):
     onceki = set(onceki or [])
     satir = [f"{i}. <b>{k}</b> (6 ayda {_yz(by[k]['mom6'])})" + (" 🆕" if onceki and k not in onceki else "")
              for i, k in enumerate(kodlar[:25], 1) if k in by]
-    parca = [f"📈 <b>Ayın güçlüleri — {ay}</b> (son 6 ayın en güçlü %{int(MOMENTUM_PAY * 100)}'si, {len(kodlar)} hisse)",
-             "\n".join(satir) + (f"\n…ve {len(kodlar) - 25} hisse daha (panoda 📈)" if len(kodlar) > 25 else "")]
+    parca = [f"🟢▲ <b>Ayın güçlüleri — {ay}</b> (son 6 ayın en güçlü %{int(MOMENTUM_PAY * 100)}'si, {len(kodlar)} hisse)",
+             "\n".join(satir) + (f"\n…ve {len(kodlar) - 25} hisse daha (panoda ▲ ayın güçlüsü)" if len(kodlar) > 25 else "")]
     cikan = sorted(onceki - set(kodlar))
     if cikan:
         parca.append("Listeden çıkanlar: " + ", ".join(cikan[:30]))
@@ -1328,11 +1328,11 @@ def telegram_mesaji(yeni_al, yeni_sat, sat_teyit, pf, uyari, piyasa=None, karar_
             satir.append(f"❗ <b>{s['kod']}</b>  {s['fiyat']} TL  (RSI {s['rsi']})\n     " + plan_metni(s, pf[s["kod"]]))
         parca.append("🔴 <b>Portföyünde SAT'a dönenler</b> <i>(bilgi — çıkış kuralı iz stop)</i>\n" + "\n".join(satir))
     if sat_teyit:   # v2: iz stop kırılanlar (çıkış zamanı)
-        satir = [f"📉 <b>{s['kod']}</b>  {s['fiyat']} TL — kapanış "
+        satir = [f"🔴▼ <b>{s['kod']}</b>  {s['fiyat']} TL — kapanış "
                  + (f"🔐 kâr kilidi seviyesinin ({(s.get('iz') or {}).get('stop')} TL, alış +%{_pct(kar_kilit_ayar()[1])}) altında"
                     if ((s.get("iz") or {}).get("kilit_cik") and kar_kilit_ayar()) else "iz stop'un altında")
                  + ": <b>kurala göre çıkış zamanı.</b>\n     " + plan_metni(s, pf[s["kod"]]) for s in sat_teyit]
-        parca.append("📉 <b>İz stop kırıldı</b>\n" + "\n".join(satir))
+        parca.append("🔴▼ <b>İz stop kırıldı</b>\n" + "\n".join(satir))
     if diger_al:
         parca.append(f"<i>Trend dışı AL ({len(diger_al)}, v2 filtresine takıldı — bilgi):</i> "
                      + ", ".join(f"{s['kod']} {s['fiyat']}" for s in diger_al[:25]) + (" …" if len(diger_al) > 25 else ""))
@@ -1443,7 +1443,7 @@ def portfoy_ozeti(sonuclar, pf, piyasa=None, endeks=None, sd_satir=None):
         if sn == "NÖTR":
             sn = "NÖTR (AL'den)" if s.get("notr_kaynak") == "AL" else ("NÖTR (SAT'tan)" if s.get("notr_kaynak") == "SAT" else "NÖTR")
         if (s.get("iz") or {}).get("cikti") and not p.get("uzun"):
-            sn += " · 📉 iz stop kırıldı"
+            sn += " · 🔴▼ iz stop kırıldı"
         notlar = []
         pl = pozisyon_plani(s, p)
         if pl.get("stop") and not pl.get("stop_asildi") and pl["stop_uzak"] > -3:
@@ -1455,7 +1455,7 @@ def portfoy_ozeti(sonuclar, pf, piyasa=None, endeks=None, sd_satir=None):
         if s.get("direnc_yakin"):
             notlar.append("⚠️ dirence yaklaşıyor")
         if s.get("trend_asagi"):
-            notlar.append("📉 trend aşağı (fiyat düşen 200 günlük ortalamanın altında): geçmişte bu durumdakiler sonraki 3 ayda "
+            notlar.append("🔴▼ trend aşağı (fiyat düşen 200 günlük ortalamanın altında): geçmişte bu durumdakiler sonraki 3 ayda "
                           "çoğunlukla endeksin gerisinde kaldı (özellikle düşük faiz döneminde)")
         if s.get("patlak"):
             notlar.append(f"⚠️ taban serisi ({s['taban15']} kez/15 gün)")
@@ -1481,7 +1481,7 @@ def portfoy_ozeti(sonuclar, pf, piyasa=None, endeks=None, sd_satir=None):
             notlar.append(f"✂️ {tarih_tr(s['bolunme'])} bedelsiz/bölünme görünüyor — maliyetini aracı kurumdaki yeni maliyetle güncelle")
         od = s.get("od")
         if od:
-            notlar.append(f"🔻 son {od['u']} günde hisseye özel hacimli düşüş ({_yzd(od['r'])}, BIST 100 {_yzd(od['xu'])}) — geçmişte "
+            notlar.append(f"🔴▼ son {od['u']} günde hisseye özel hacimli düşüş ({_yzd(od['r'])}, BIST 100 {_yzd(od['xu'])}) — geçmişte "
                           "bu durumdakilerin sonraki 20 günde ancak ~%38'i endeksi geçti (normalde ~%46; 2022-23 düşük faizde fark yoktu); kesin değil")
         tm = s.get("temettu")
         if tm and tm.get("ex_kalan") is not None and tm["ex_kalan"] <= 7:
@@ -1512,7 +1512,7 @@ def portfoy_ozeti(sonuclar, pf, piyasa=None, endeks=None, sd_satir=None):
     if kiyas:
         kapsam = "" if kiyas["n"] == kiyas["toplam_n"] else f" (alış tarihi girilen {kiyas['n']}/{kiyas['toplam_n']} hisse)"
         yon = "önünde" if kiyas["fark"] >= 0 else "gerisinde"
-        parca.insert(2, f"📈 Endeksle kıyas{kapsam}: portföy {_yzd(kiyas['pf_yuzde'])} · aynı parayla aynı günlerde BIST 100 "
+        parca.insert(2, f"{'🟢▲' if kiyas['fark'] >= 0 else '🔴▼'} Endeksle kıyas{kapsam}: portföy {_yzd(kiyas['pf_yuzde'])} · aynı parayla aynı günlerde BIST 100 "
                         f"{_yzd(kiyas['xu_yuzde'])} → endeksin <b>{abs(kiyas['fark']):.1f} puan {yon}</b>")
     dag = sektor_dagilimi(pf, by)
     if dag:
@@ -1652,9 +1652,9 @@ def _tg_rozetler(s):
     if s.get("tuzak"):
         u.append(f"🪤 düşen trend kırılımı tuzağı riski ({s['tuzak'].get('tarih')})")
     if s.get("od"):
-        u.append(f"🔻 son {s['od']['u']} günde hisseye özel hacimli düşüş ({_yzd(s['od']['r'])})")
+        u.append(f"🔴▼ son {s['od']['u']} günde hisseye özel hacimli düşüş ({_yzd(s['od']['r'])})")
     if s.get("trend_asagi"):
-        u.append("📉 trend aşağı (fiyat düşen 200 günlük ortalamanın altında)")
+        u.append("🔴▼ trend aşağı (fiyat düşen 200 günlük ortalamanın altında)")
     b = s.get("bilanco")
     if bilanco_yakin(b, 7):
         u.append(f"📅 bilanço {tarih_tr(b['sonraki']['tarih'])} ({b['kalan_gun']} gün)")
@@ -2166,7 +2166,7 @@ def main():
                 except Exception:
                     pass
             if onceki:
-                piyasa_satir = (f"{'📈' if yon == 'yukari' else '📉'} <b>BIST 100 bugün {_yz(xu_ch * 100)}</b> · portföyün bugün "
+                piyasa_satir = (f"{'🟢▲' if yon == 'yukari' else '🔴▼'} <b>BIST 100 bugün {_yz(xu_ch * 100)}</b> · portföyün bugün "
                                 f"<b>{_tl(gun_kz)}</b> ({_yz(gun_kz / onceki * 100)})")
                 yeni_anahtar.add(_gizli(f"gi|piyasa|{yon}"))
         if satirlar or piyasa_satir:

@@ -968,3 +968,9 @@ Tamamı istemci JS (`pano.py` şablonunda `df*` fonksiyonları), portföyün alt
 - **Workflow değişti** (`tarama.yml` env'ine bir satır). Fork'ların güncellemesi gerekmez: satır yoksa köprü atlanır.
 - **Satışlar (2026-11-07, dal `kumbara-satis`):** `kopru.satislar_al` DEFTER'i API ile okur (`KUMBARA_DEFTER_ANAHTAR` secret'ı, yalnız Variables okuma; DEFTER'in kendisi env'e KONMAZ, 📒 bölümündeki gizlilik kuralı geçerli). Pakete yalnız i, h, a, s, n, m, f, k gider (not, plan, duygu gitmez), en çok 300 kayıt (`SATIS_SINIR`, Apps Script 50.000 karakter sınırı). Anahtar yoksa ya da okunamazsa `satislar` alanı hiç gönderilmez, Kumbara son bildiği listeyi korur; 404 = boş liste.
 - **Portföy log gizliliği (2026-11-07):** anahtar varsa `tarama.yml` PORTFOY ve ALARMLAR env'ini boş geçirir, `kopru.degiskenleri_yukle` main'in başında API'den okuyup yalnız işlemin ortamına koyar; kalan kod aynı. Anahtarsız kopyalar eski yolla çalışır (logda görünür). Anahtar reddedilirse portföy o taramada boş sayılır: log'a sabit metin + günde bir Telegram uyarısı (`durum.json` → `anahtar_uyari`, yalnız tarih), Kumbara son kaydı korur. Eski logların içeriği kendiliğinden silinmez (Actions saklama süresi).
+
+## Ok/renk kuralı (14.11.2026)
+İyi/kötü anlamı taşıyan işaretler tek kurala bağlı: **iyi = yeşil ▲, kötü = kırmızı ▼, sadece başlık = 📊**. Telegram'da yazı
+renklenemediği için `🟢▲` / `🔴▼`; panoda `<span class=oky>▲</span>` / `<span class=okk>▼</span>` (CSS `.oky`/`.okk`, --pos/--neg).
+🔺 (kırmızı ama "direnç aşıldı" = iyi) ve 📈 (çoğu cihazda kırmızı çizgi) kafa karıştırdığı için iyi/kötü anlamında KULLANILMAZ.
+Endeksle kıyas ve BIST 100 bugün satırı sonuca göre ▲/▼ alır. Robot adlarındaki 📈/📉 (Momentumcu, Daralan iz) isimdir, dokunulmadı.
