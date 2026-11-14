@@ -33,8 +33,8 @@ jobs:
           git config user.name "bist-bot"
           git config user.email "bot@users.noreply.github.com"
           git fetch --depth=1 https://github.com/BoranZZ/Bist-signal.git main
-          git checkout FETCH_HEAD -- '*.py' requirements.txt '*.md'
-          git add -A '*.py' requirements.txt '*.md'
+          git checkout FETCH_HEAD -- '*.py' requirements.txt '*.md' takvim.json
+          git add -A '*.py' requirements.txt '*.md' takvim.json
           git commit -m "Ana projeden kod guncellendi" || echo "kod zaten guncel"
       - name: Python kur
         uses: actions/setup-python@v5
@@ -57,7 +57,7 @@ jobs:
         run: |
           git config user.name "bist-bot"
           git config user.email "bot@users.noreply.github.com"
-          git add index.html durum.json gecmis.json gecmis.html oranlar.json bilanco.json kap.json oda.json oda.html
+          git add index.html durum.json gecmis.json gecmis.html oranlar.json bilanco.json kap.json oda.json oda.html makro.json
           git commit -m "Pano guncellendi" || echo "degisiklik yok"
           # bu arada repoya başka commit geldiyse üstüne ekle; çakışmada yeni üretilen dosyalar kazanır
           git pull --rebase -X theirs

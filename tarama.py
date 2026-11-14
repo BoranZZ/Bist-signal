@@ -20,6 +20,16 @@ try:
 except Exception as _e:
     oda = None
     print(f"İşlem odası yüklenemedi ({type(_e).__name__}).")
+try:   # 🌍 dünya/makro + 📅 ekonomik takvim (BİLGİ; yoksa/bozuksa tarama etkilenmez)
+    import makro
+except Exception as _e:
+    makro = None
+    print(f"Makro modülü yüklenemedi ({type(_e).__name__}).")
+try:
+    import takvim
+except Exception as _e:
+    takvim = None
+    print(f"Takvim modülü yüklenemedi ({type(_e).__name__}).")
 
 # ================== AYARLAR ==================
 # BIST 100 bileşimi, 1 Ekim - 31 Aralık 2026 dönemi (Borsa İstanbul 3 ayda bir günceller)
@@ -1297,7 +1307,7 @@ def uv_mesaji(uv_al, uv_sat, pf):
 
 
 def telegram_mesaji(yeni_al, yeni_sat, sat_teyit, pf, uyari, piyasa=None, karar_kirilan=None, on_kapanis=False, iptal=None,
-                    diger_al=None):
+                    diger_al=None, takvim_notu=None):
     tarih = pd.Timestamp.now(tz="Europe/Istanbul").strftime("%d.%m.%Y %H:%M")
     parca = [f"📊 <b>BIST Sinyal</b> — {tarih}"]
     if yeni_al:
@@ -1314,6 +1324,8 @@ def telegram_mesaji(yeni_al, yeni_sat, sat_teyit, pf, uyari, piyasa=None, karar_
             bas += (f"\n⏰ <i>Kapanıştan önce (~{(_s - pd.Timedelta(minutes=gunici.GECIKME)).strftime('%H:%M')} fiyatlarıyla). "
                     f"{gk_metni(gk_oran(_s))} Tutmazsa 18:30'dan sonra iptal mesajı gelir.</i>")
         bas += f"\n💡 <i>{GK_NOT}</i>"
+        if takvim_notu:   # 📅 0-1 gün içinde önemli olay (bilgi; AL'i değiştirmez)
+            bas += f"\n<i>{takvim_notu}</i>"
         if piyasa and piyasa.get("zayif"):
             bas += ("\n⚠️ <i>Piyasa zayıf: BIST 100 50 günlük ortalamasının altında. Backtest'te bu dönemlerde "
                     "gelen AL'ler belirgin şekilde daha kötü sonuç verdi — temkinli ol.</i>")
@@ -1382,10 +1394,17 @@ def bakim_notu(simdi):
         notlar.append("BIST 100 listesinin dönemi bitti (endeks bileşimi değişti)")
     if (pd.Timestamp(bugun) - pd.Timestamp(HALKA_ARZ_GUNCEL)).days > 35:
         notlar.append("halka arz listesi bir aydır kontrol edilmedi")
-    if not notlar:
-        return None
-    return ("🔧 <b>Bakım zamanı:</b> " + "; ".join(notlar) + ". Claude'a \"BIST 100 ve halka arz listelerini güncelle\" "
-            "demen yeterli.")
+    out = []
+    if notlar:
+        out.append("🔧 <b>Bakım zamanı:</b> " + "; ".join(notlar) + ". Claude'a \"BIST 100 ve halka arz listelerini güncelle\" "
+                   "demen yeterli.")
+    try:   # 📅 ekonomik takvim yenileme hatırlatması (takvim.json)
+        tn = takvim.bakim_notu(takvim.yukle(), simdi.date()) if takvim else None
+        if tn:
+            out.append(tn)
+    except Exception:
+        pass
+    return "\n".join(out) if out else None
 
 
 def haftalik_ozet(sonuclar, pf, acik, kapali, simdi):
@@ -1426,7 +1445,7 @@ def haftalik_ozet(sonuclar, pf, acik, kapali, simdi):
     return "\n\n".join(parca)
 
 
-def portfoy_ozeti(sonuclar, pf, piyasa=None, endeks=None, sd_satir=None):
+def portfoy_ozeti(sonuclar, pf, piyasa=None, endeks=None, sd_satir=None, ek_satir=None):
     """Günde bir kez (kapanıştan sonra) portföyün tamamı: sinyal, K/Z, çıkış ve hedefler, dikkat notları.
     sd_satir: bugün destek/direnç seviyesine değen hisselerin kapanış sonucu (kapanis_sd) — özetin başında."""
     by = {s["kod"]: s for s in sonuclar}
@@ -1528,6 +1547,8 @@ def portfoy_ozeti(sonuclar, pf, piyasa=None, endeks=None, sd_satir=None):
         parca.insert(1, "📍 <b>Bugün destek/direnç (kapanış)</b>\n" + "\n".join(sd_satir) + f"\n<i>{SD_NOT}</i>")
     if piyasa and piyasa.get("zayif"):
         parca.append("⚠️ Piyasa zayıf (BIST 100 50 günlük ortalamasının altında).")
+    if ek_satir:   # 🌍 bugün dünya (portföydeki duyarlı hisseler) · 📊 olay sonrası (takvim) — bilgi
+        parca.append("\n".join(ek_satir))
     parca.append(f"<a href=\"{PANO_URL}\">Panoyu aç</a>\n<i>Hedefler satış emri değil, izleme noktası (backtest: hedefte satmak, SAT/stop'a kadar tutmaktan kötüydü). Yatırım tavsiyesi değildir.</i>")
     return "\n\n".join(parca)
 
@@ -1851,6 +1872,25 @@ def main():
         xu_ust = _xu > _xu.rolling(50).mean()
     except Exception:
         _xu = xu_ust = None
+    # 🌍 makro (önbellek 30 dk; hata/zaman aşımında son veri — tarama ASLA bu yüzden düşmez) + 📅 takvim (yalnız takvim.json)
+    mk, tkv, olagan, xu_gun = None, {"olaylar": []}, None, None
+    try:
+        if makro:
+            _t0 = time.time()
+            mk = makro.indir()
+            print(f"Makro: {'taze' if mk.get('taze') else 'alınamadı, son veri'} ({time.time() - _t0:.1f} sn).")
+    except Exception as e:
+        print(f"Makro verisi alınamadı ({type(e).__name__}).")
+    try:
+        tkv = takvim.yukle() if takvim else tkv
+    except Exception:
+        pass
+    try:   # olağan gün: son 60 günün ortalama mutlak BIST 100 hareketi (%) · bugünkü BIST 100 değişimi
+        olagan = float(_xu.pct_change().abs().iloc[-60:].mean() * 100)
+        if _xu.index[-1].date() == _sim.date():
+            xu_gun = float((_xu.iloc[-1] / _xu.iloc[-2] - 1) * 100)
+    except Exception:
+        pass
     # 🔒 kilitli taban: seans içinde Yahoo'nun gün içi Yüksek/Düşük'ü o ana kadarki işlemler → 'şu ana kadar kilitli';
     # kesin kapanıştan sonra (18:30+) ya da son bar bugünün değilse kesin
     _kesin = _sim.hour * 60 + _sim.minute >= KAPANIS_DAKIKA or _sim.weekday() >= 5
@@ -2049,9 +2089,18 @@ def main():
     with open("gecmis.html", "w", encoding="utf-8") as f:
         f.write(gecmis_uret(acik, kapali, karne))
 
+    _mk_pano = _tk_pano = None
+    try:
+        _mk_pano = makro.pano_veri(mk) if makro else None
+    except Exception as e:
+        print(f"Makro kartı hazırlanamadı ({type(e).__name__}).")
+    try:
+        _tk_pano = takvim.pano_veri(tkv, _sim.date(), olagan) if takvim else None
+    except Exception as e:
+        print(f"Takvim kartı hazırlanamadı ({type(e).__name__}).")
     with open("index.html", "w", encoding="utf-8") as f:
         f.write(pano_uret(sonuclar, ornek=False, uyari=uyari, piyasa=piyasa, yeni_arzlar=yeni_arzlar, endeks=endeks,
-                          gunici=gi, genislik=genislik, kapali=kapali))
+                          gunici=gi, genislik=genislik, kapali=kapali, makro=_mk_pano, takvim=_tk_pano))
     print(f"index.html: {len(sonuclar)} hisse (+{len(yeni_arzlar)} yeni arz), {len(bugun_al)} AL, {len(yeni)} yeni | "
           f"taban serisi: {sum(1 for s in sonuclar if s.get('patlak'))} | ⚠️ manipülasyon işareti: {sum(1 for s in sonuclar if s.get('mn'))} | "
           f"piyasa: {'zayıf' if piyasa and piyasa['zayif'] else 'normal'} | "
@@ -2062,7 +2111,12 @@ def main():
     if yeni or yeni_sat or sat_teyit or karar_kirilan or iptal or diger_al:
         print(f"Telegram: {len(yeni)} yeni AL (+{len(diger_al)} trend dışı), {len(yeni_sat)} portföy SAT, {len(sat_teyit)} iz stop kırılımı, "
               f"{len(karar_kirilan)} karar çizgisi kırılımı, {len(iptal)} iptal.")
-        tg_gonder(telegram_mesaji(yeni, yeni_sat, sat_teyit, pf, uyari, piyasa, karar_kirilan, on_kapanis, iptal, diger_al))
+        _tn = None
+        try:
+            _tn = takvim.al_notu(tkv, simdi.date()) if (takvim and yeni) else None
+        except Exception:
+            pass
+        tg_gonder(telegram_mesaji(yeni, yeni_sat, sat_teyit, pf, uyari, piyasa, karar_kirilan, on_kapanis, iptal, diger_al, _tn))
     else:
         print("Yeni AL / portföyde SAT yok, Telegram sessiz." if kapanis_sonrasi
               else "Gün içi tarama: AL/SAT mesajları kapanış sonrası taramada gönderilir.")
@@ -2113,6 +2167,23 @@ def main():
             sabah_tarih = bugun_iso
             if satirlar:
                 print("Telegram: sabah seviyeleri.")
+    # 📊 ☀️ Gece dünyada + 📅 bugün takvimde: günün ilk taraması (<12:00), günde bir kez; sadece büyük gece hareketi ya da
+    # önemli olay varsa. Makro verisi bayatsa makro kısmı yazılmaz (eski veriyle mesaj yanlış yönlendirir); 11:30'a kadar yeniden denenir.
+    makro_sabah = durum.get("makro_sabah")
+    if simdi.weekday() < 5 and dakika < 12 * 60 and makro_sabah != bugun_iso:
+        _m, _hazir = None, True
+        try:
+            _gc = makro.gece(mk) if (makro and mk and mk.get("taze")) else None
+            _hazir = _gc is not None or not makro
+            _ts = takvim.sabah_satirlari(tkv, simdi.date(), olagan) if takvim else []
+            _m = makro.sabah_mesaji(_gc, _ts, tarih=simdi.strftime("%d.%m")) if makro else None
+        except Exception as e:
+            print(f"Sabah dünya mesajı hazırlanamadı ({type(e).__name__}).")
+        if _hazir or dakika >= 11 * 60 + 30:   # makro hiç gelmediyse son deneme 11:30'da (takvim satırı yine gider)
+            if _m is None or tg_gonder(_m) or not os.environ.get("TELEGRAM_TOKEN"):
+                makro_sabah = bugun_iso
+                if _m:
+                    print("Telegram: sabah dünya/takvim mesajı.")
     # 📍 Portföy gün içi: destek/direnç, iz stop, taban/tavan (hafta içi 10:15-18:10). Her olay günde bir kez; anahtarlar
     # gizli özetle (durum.json herkese açık). Veri koruması: olay Yahoo'nun anlık fiyatıyla da tutmalı (tek kaynaktaki
     # hatalı fiyat yanlış "destek kırıldı" demesin); iki fiyat %1'den fazla farklıysa o hisse bu taramada atlanır.
@@ -2197,10 +2268,27 @@ def main():
                 en_buyuk = kap_son   # gönderilemediyse sonraki taramada yeniden dene
     kap_son = en_buyuk
 
+    # 🌍 / 📊 akşam ekleri (bilgi): portföyde makroya duyarlı hisse + büyük makro hareketi; etkisi bugün olan takvim olayı
+    aksam_ek, olay_sat = [], []
+    if simdi.weekday() < 5 and kapanis_zamani:
+        try:
+            _l = makro.aksam_satiri(mk, list(pf), by_kod, xu_gun) if (makro and pf) else None
+            if _l:
+                aksam_ek.append(_l)
+        except Exception as e:
+            print(f"Akşam makro satırı hazırlanamadı ({type(e).__name__}).")
+        try:
+            olay_sat = takvim.olay_sonrasi(tkv, simdi.date(), xu_gun, olagan) if takvim else []
+        except Exception:
+            olay_sat = []
+    olay_tarih = durum.get("olay_tarih")
+    if olay_sat and not pf and olay_tarih != bugun_iso:   # portföy yoksa ayrı kısa mesaj (günde bir kez)
+        if tg_gonder("\n".join(olay_sat) + "\n<i>Takvim bilgidir; planlı olaylar geçmişte piyasanın yönünü rastgeleden sık çevirmedi.</i>"):
+            olay_tarih = bugun_iso
     # Günlük portföy özeti: hafta içi, kapanıştan sonraki ilk taramada bir kez
     ozet_tarih = durum.get("ozet_tarih")
     if pf and simdi.weekday() < 5 and kapanis_zamani and ozet_tarih != bugun_iso:
-        if tg_gonder(portfoy_ozeti(sonuclar, pf, piyasa, endeks, sd_kap_satir)):
+        if tg_gonder(portfoy_ozeti(sonuclar, pf, piyasa, endeks, sd_kap_satir, aksam_ek + olay_sat)):
             ozet_tarih = bugun_iso
             print("Günlük portföy özeti gönderildi.")
 
@@ -2249,7 +2337,7 @@ def main():
                    "uv_son": dict(sorted(uv_son.items())), "kap_son": kap_son,
                    "tk_gonderilen": {"tarih": bugun_iso, "kodlar": sorted(tk_gonderilen)}, "mom_ay": mom,
                    "gunici": {"tarih": bugun_iso, "g": sorted(gi_gonderilen)},
-                   "sabah_tarih": sabah_tarih, **({"tg_ofset": int(tg_ofset)} if tg_ofset else {}),
+                   "sabah_tarih": sabah_tarih, "makro_sabah": makro_sabah, **({"olay_tarih": olay_tarih} if olay_tarih else {}), **({"tg_ofset": int(tg_ofset)} if tg_ofset else {}),
                    **({"anahtar_uyari": anahtar_uyari} if anahtar_uyari else {})},
                   f, ensure_ascii=False, indent=2)
 

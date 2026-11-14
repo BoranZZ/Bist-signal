@@ -974,3 +974,45 @@ Tamamı istemci JS (`pano.py` şablonunda `df*` fonksiyonları), portföyün alt
 renklenemediği için `🟢▲` / `🔴▼`; panoda `<span class=oky>▲</span>` / `<span class=okk>▼</span>` (CSS `.oky`/`.okk`, --pos/--neg).
 🔺 (kırmızı ama "direnç aşıldı" = iyi) ve 📈 (çoğu cihazda kırmızı çizgi) kafa karıştırdığı için iyi/kötü anlamında KULLANILMAZ.
 Endeksle kıyas ve BIST 100 bugün satırı sonuca göre ▲/▼ alır. Robot adlarındaki 📈/📉 (Momentumcu, Daralan iz) isimdir, dokunulmadı.
+
+## 🌍 Dünya ve makro · 📅 Ekonomik takvim (2026-11-14, dal `makro-takvim`; SADECE BİLGİ — AL/SAT, iz stop, 🔐, piyasa filtresi, backtest, İşlem Odası DEĞİŞMEZ)
+Araştırmalar: `Documents/Bist-arastirma/2026-11-14/makro/RAPOR.md` ve `.../takvim/RAPOR.md`. **İkisi de AL/SAT filtresi olarak GEÇMEDİ** (makro rejim
+filtresi iki dönemde tutarsız; 'olay öncesi AL'i atla/bekle' v3'ü yılların çoğunda geçemedi; büyük makro hareketten SONRA almak kazandırmadı) →
+yeniden filtre önerilirse **tekrar araştırma**, bu sonucu anlat.
+- **`makro.py`:** tek `yf.download` (16 kod: BZ=F, CL=F (Brent çapraz kontrolü), GC=F, SLX, HG=F, NG=F, TRY=X, EURTRY=X (TL çapraz kontrolü), DX-Y.NYB,
+  ^TNX (bp), ^VIX, ^GSPC, ES=F, ^GDAXI, EEM, TUR), günlük + 5 günlük değişim, önbellek **`makro.json` 30 dk** (workflow `git add` satırında; ~6 sn indirme,
+  iki saatte bir değil 30 dk'da bir ⇒ taramaların ~yarısında +6 sn). Daemon iş parçacığında **40 sn zaman aşımı**; hata/zaman aşımında son veri `taze: False`
+  ile döner, istisna fırlatmaz (tarama `try/except`; modül yüklenemezse `makro = None`). Çapraz kontrol: Brent ≥%3 oynayıp WTI <%1 → 'kontrat değişimi
+  olabilir' (büyük sayılmaz, yorum yok); dolar/TL >%5 ve Euro/TL aynı yönde değil → şüpheli. 'Büyük hareket' eşikleri (2017-21 günlerinin en büyük %10'u)
+  `SERILER`'de: Brent 3,4 · altın 1,4 · SLX 3,2 · dolar/TL 1,7 · dolar endeksi 0,6 · ABD 10y 6 bp · VIX 12,5 · S&P 1,6 · TUR 3,3 · (sabah) ES 1.
+- **Beyaz liste `makro.DUYARLI`** ('son 2 yıl' etkisi, makro %10 (TUR %5) hareket edince endeksten fark, puan): katman 1 (10 yılın iki yarısında aynı yön)
+  TRALT/TRMET/TRENJ ↔ altın +7,8/+7,7/+7,2 · TUPRS/AYGAZ ↔ Brent +3,6/+2,4 · EREGL/KRDMD/KRDMA ↔ SLX +2,3/+3,2/+3,4 · ENKAI ↔ TUR −1,7 (son 2 yılda zayıf);
+  katman 2 ('son yıllarda', 2017-21'de yoktu) THYAO/PGSUS/TAVHL ↔ Brent −2,0/−2,5/−2,4 · ISDMR ↔ SLX +1,8. KRDMB (ölçümde sağlam değil) ve dolar/TL çiftleri
+  (yönetilen kur → ölçüm oynak) yok; bankalar ↔ TUR gösterilmez (TUR'un çoğu banka). Beklenen etki < 0,3 puan yazılmaz. **Yılda bir yenile** (Periyodik
+  bakım; araştırmanın `a1_beta.py` + `a2_saglam.py` + `a10_pano_tablo.py`); havayolu-petrol işareti dönerse listeden çıkar.
+- **`takvim.json` + `takvim.py`** (ağ YOK): 62 olay (Fed 9, TCMB 5 — 2027 2. yarı yok, ECB 9, NFP 13, ABD TÜFE 13 resmî ✅; TÜİK 1 ✅ + 12 tahmini
+  `dogrulandi: false` → panoda '(tarih kesinleşmedi)'). `seans: 'sonra'` → etkisi sonraki iş günü (`etki_gunu`; resmî tatiller bilinmiyor). Önem ★★★ Fed/TCMB/
+  seçim, ★★ TÜİK, ★ ABD verileri/ECB. Tipik hareket = son 60 günün ort. mutlak BIST 100 hareketi × kat, SADECE `tipik_goster` (Fed 1,31 · seçim 1,54 · TÜİK 1,35);
+  TCMB için 'ortalamada olağan; sürprizde ±%3-5'; diğerleri 'belirgin oynatmadı'. Metinler YÖN SÖYLEMEZ ('oynak olabilir').
+  **Bakım:** `takvim_kontrol.py` (ARAÇ, taramada çalışmaz; requests + bs4 + lxml; Fed/BLS/ECB/TCMB/TÜİK resmî sayfalarını takvim.json'la karşılaştırır,
+  dosyaya dokunmaz). Haftalık özetin `bakim_notu`'na '📅 Takvimi yenile … Claude'a "takvimi yenile" de' satırı: `yenile_hatirlat` (şimdi 2026-12-15: TÜİK
+  2027 + kredi notu; sonra 2027-06-15 TCMB 2. yarı, 2027-11-15 yeni yıl) geldiyse ya da son kesin tarihe ≤45 gün kaldıysa. Kullanıcı 'takvimi yenile' derse:
+  takvim_kontrol.py çalıştır, eksikleri resmî sayfadan ekle, tahminileri doğrula, `yenile_hatirlat`'ı bir sonrakine çek. Fork'lar takvim.json'u ana projeden
+  alır (workflow'daki checkout satırına eklendi; eski workflow'lu fork'ta dosya yoksa kart görünmez).
+- **Pano:** 📋 kartının altında `#dunya` kartı (`dunyaRender`): '🌍 Dünya ve makro' (seriler, oklar NÖTR gri `.okn` — fiyatın yönü; kalın = büyük hareket;
+  Yahoo düşükse '⚠️ alınamadı — son veri'), bugünkü büyük hareketten etkilenebilecek beyaz liste hisseleri (renk sadece burada: `<span class=oky>▲</span>`
+  lehine / `okk ▼` aleyhine), dürüstlük notu; '📅 Önümüzdeki 7 gün' (istemci kendi tarihine göre süzer; boşsa sıradaki olay). Hisse penceresinde yalnız
+  beyaz listedekilerde '🌍 Neye duyarlı' kutusu (`makroHisseHtml`, neden kutusunun altında; son gün katkısı ≥0,3 puansa). Sözlükte iki madde. `MAKRO`/`TAKVIM`
+  JS sabitleri (~3 KB).
+- **Telegram:** (1) **☀️ Gece dünyada** — hafta içi günün ilk taraması (<12:00), günde bir kez (`durum.json` → `makro_sabah`, yalnız tarih): dünkü BIST kapanışından
+  (18:00) beri vadeliler saatlik (`makro.gece`, ayrı küçük indirme ~6 sn, sadece bu blokta), gece işlem görmeyenler (VIX, 10y, SLX, TUR, DXY, S&P) dünkü seanstan;
+  sadece büyük hareket ya da |ES| ≥ %1 varsa; aynı mesaja bugünkü/dün akşamki ★★+ takvim olayları (makro yoksa '📅 Bugün takvimde'). Makro bayatsa makro kısmı
+  yazılmaz, 11:30'a kadar yeniden denenir. (2) **Akşam portföy özeti** sonuna: portföydeki beyaz liste hissesinin makrosu bugün büyük oynadıysa '🌍 Bugün dünya'
+  satırı + etkisi bugün olan ★★+ olay için '📊 Olay sonrası: … BIST 100 🟢▲/🔴▼ %x (olağanın ~k katı)' (portföy yoksa olay satırı ayrı mesaj, `olay_tarih`).
+  (3) 🚀 AL bölüm başlığına (her satıra değil, tek not) ★★★ olay bu akşam ya da sonraki iş günüyse '📅 Yarın … var: o gün fiyat sert oynayabilir …'.
+  Log'a portföy kodu yazılmaz (sadece 'Makro: taze (x sn)').
+- **Testler** (scratchpad `12864d42…/scratchpad/haber/uygulama/`): `t_mesaj.py` 23/23 (metinler, sessiz gün, bayat veri, kontrat değişimi, Yahoo istisnası,
+  40 sn yerine 2 sn zaman aşımı, önbelleksiz çöküş, takvim dosyası yok); `entg.py` gerçek `main()` sahte saat (Cuma 10:05 / 18:40) + sahte portföy
+  (Telegram yerine yazdırma): ☀️ mesajı, akşam 🌍 + 📊 olay satırları, Yahoo çöktü (önbelleksiz) → tarama tamam, ☀️ gitmedi/yeniden denenecek, makro/takvim
+  modülü yüklenemedi → tarama tamam. Telegram'sız tam tarama: main 45,9/46,2 sn ↔ yeni 47,0/46,5 (önbellekten) ve 53,7/51,1 (indirmeli; makro 2,6 sn) →
+  fark gürültü düzeyinde; index.html +~11 KB. `node --check` tamam; Chrome headless 1280 px + 390 px (iframe): JS hatası yok, taşma yok (`sayfa_hazirla.py`, `ekran/`).

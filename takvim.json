@@ -1,0 +1,742 @@
+{
+ "surum": 1,
+ "olusturma": "2026-11-14",
+ "gecerli_son": "2027-12-31",
+ "yenile_hatirlat": "2026-12-15",
+ "aciklama": "Önceden tarihi bilinen olaylar. saat = Türkiye saati. seans: 'içinde' = BIST açıkken (etkisi aynı gün), 'sonra' = BIST kapandıktan sonra (etkisi ertesi işlem günü). dogrulandi=false → resmî takvim henüz yok, kurala göre tahmin.",
+ "eksik": [
+  "TCMB PPK 2027 ikinci yarı (Temmuz-Aralık): TCMB sayfasında henüz yok",
+  "TÜİK 2027 takvimi henüz yayımlanmadı (tahmini tarihler)",
+  "Kredi notu (S&P/Moody's/Fitch) 2027 takvimi: kuruluşlar genelde Aralık'ta açıklar",
+  "2027'de Türkiye ya da ABD'de planlı seçim yok"
+ ],
+ "tipik": {
+  "TCMB": {
+   "carpan": 1.07,
+   "q": 0.533
+  },
+  "FED": {
+   "carpan": 1.31,
+   "q": 0.026
+  },
+  "TUIK_TUFE": {
+   "carpan": 1.14,
+   "q": 0.198
+  },
+  "ABD_TUFE": {
+   "carpan": 0.93,
+   "q": 0.965
+  },
+  "NFP": {
+   "carpan": 0.92,
+   "q": 0.965
+  },
+  "ECB": {
+   "carpan": 1.06,
+   "q": 0.579
+  }
+ },
+ "olaylar": [
+  {
+   "t": "2026-12-03",
+   "saat": "10:00",
+   "ulke": "TR",
+   "tur": "TUIK_TUFE",
+   "ad": "TÜİK enflasyon (TÜFE) Kasım 2026",
+   "onem": 2,
+   "seans": "içinde",
+   "dogrulandi": true,
+   "kaynak": "https://www.tuik.gov.tr/Kurumsal/Veri_Takvimi"
+  },
+  {
+   "t": "2026-12-04",
+   "saat": "16:30",
+   "ulke": "ABD",
+   "tur": "NFP",
+   "ad": "ABD istihdam (tarım dışı)",
+   "onem": 1,
+   "seans": "içinde",
+   "dogrulandi": true,
+   "kaynak": "https://www.bls.gov/schedule/news_release/bls.ics"
+  },
+  {
+   "t": "2026-12-09",
+   "saat": "22:00",
+   "ulke": "ABD",
+   "tur": "FED",
+   "ad": "Fed faiz kararı + tahminler",
+   "onem": 3,
+   "seans": "sonra",
+   "dogrulandi": true,
+   "kaynak": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "t": "2026-12-10",
+   "saat": "14:00",
+   "ulke": "TR",
+   "tur": "TCMB",
+   "ad": "TCMB faiz kararı (PPK)",
+   "onem": 3,
+   "seans": "içinde",
+   "dogrulandi": true,
+   "kaynak": "https://www.tcmb.gov.tr/wps/wcm/connect/TR/TCMB+TR/Main+Menu/Temel+Faaliyetler/Para+Politikasi/PPK/2026"
+  },
+  {
+   "t": "2026-12-10",
+   "saat": "16:30",
+   "ulke": "ABD",
+   "tur": "ABD_TUFE",
+   "ad": "ABD enflasyon (TÜFE)",
+   "onem": 1,
+   "seans": "içinde",
+   "dogrulandi": true,
+   "kaynak": "https://www.bls.gov/schedule/news_release/bls.ics"
+  },
+  {
+   "t": "2026-12-17",
+   "saat": "16:15",
+   "ulke": "AB",
+   "tur": "ECB",
+   "ad": "ECB faiz kararı",
+   "onem": 1,
+   "seans": "içinde",
+   "dogrulandi": true,
+   "kaynak": "https://www.ecb.europa.eu/press/calendars/mgcgc/html/index.en.html"
+  },
+  {
+   "t": "2027-01-04",
+   "saat": "10:00",
+   "ulke": "TR",
+   "tur": "TUIK_TUFE",
+   "ad": "TÜİK enflasyon (TÜFE) Aralık 2026",
+   "onem": 2,
+   "seans": "içinde",
+   "dogrulandi": false,
+   "kaynak": "kural: her ayın 3'ü (hafta sonu/tatilse sonraki iş günü); TÜİK 2027 takvimi yayımlanınca kontrol et",
+   "not": "dini bayram tarihleri (Ramazan ~Mart, Kurban ~Mayıs 2027) hesaba katılmadı"
+  },
+  {
+   "t": "2027-01-08",
+   "saat": "16:30",
+   "ulke": "ABD",
+   "tur": "NFP",
+   "ad": "ABD istihdam (tarım dışı)",
+   "onem": 1,
+   "seans": "içinde",
+   "dogrulandi": true,
+   "kaynak": "https://www.bls.gov/schedule/news_release/empsit.htm"
+  },
+  {
+   "t": "2027-01-13",
+   "saat": "16:30",
+   "ulke": "ABD",
+   "tur": "ABD_TUFE",
+   "ad": "ABD enflasyon (TÜFE)",
+   "onem": 1,
+   "seans": "içinde",
+   "dogrulandi": true,
+   "kaynak": "https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "t": "2027-01-21",
+   "saat": "14:00",
+   "ulke": "TR",
+   "tur": "TCMB",
+   "ad": "TCMB faiz kararı (PPK)",
+   "onem": 3,
+   "seans": "içinde",
+   "dogrulandi": true,
+   "kaynak": "https://www.tcmb.gov.tr/wps/wcm/connect/TR/TCMB+TR/Main+Menu/Temel+Faaliyetler/Para+Politikasi/PPK/2027"
+  },
+  {
+   "t": "2027-01-27",
+   "saat": "22:00",
+   "ulke": "ABD",
+   "tur": "FED",
+   "ad": "Fed faiz kararı",
+   "onem": 3,
+   "seans": "sonra",
+   "dogrulandi": true,
+   "kaynak": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "t": "2027-02-03",
+   "saat": "10:00",
+   "ulke": "TR",
+   "tur": "TUIK_TUFE",
+   "ad": "TÜİK enflasyon (TÜFE) Ocak 2027",
+   "onem": 2,
+   "seans": "içinde",
+   "dogrulandi": false,
+   "kaynak": "kural: her ayın 3'ü (hafta sonu/tatilse sonraki iş günü); TÜİK 2027 takvimi yayımlanınca kontrol et",
+   "not": "dini bayram tarihleri (Ramazan ~Mart, Kurban ~Mayıs 2027) hesaba katılmadı"
+  },
+  {
+   "t": "2027-02-04",
+   "saat": "16:15",
+   "ulke": "AB",
+   "tur": "ECB",
+   "ad": "ECB faiz kararı",
+   "onem": 1,
+   "seans": "içinde",
+   "dogrulandi": true,
+   "kaynak": "https://www.ecb.europa.eu/press/calendars/mgcgc/html/index.en.html"
+  },
+  {
+   "t": "2027-02-05",
+   "saat": "16:30",
+   "ulke": "ABD",
+   "tur": "NFP",
+   "ad": "ABD istihdam (tarım dışı)",
+   "onem": 1,
+   "seans": "içinde",
+   "dogrulandi": true,
+   "kaynak": "https://www.bls.gov/schedule/news_release/empsit.htm"
+  },
+  {
+   "t": "2027-02-11",
+   "saat": "16:30",
+   "ulke": "ABD",
+   "tur": "ABD_TUFE",
+   "ad": "ABD enflasyon (TÜFE)",
+   "onem": 1,
+   "seans": "içinde",
+   "dogrulandi": true,
+   "kaynak": "https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "t": "2027-03-03",
+   "saat": "10:00",
+   "ulke": "TR",
+   "tur": "TUIK_TUFE",
+   "ad": "TÜİK enflasyon (TÜFE) Şubat 2027",
+   "onem": 2,
+   "seans": "içinde",
+   "dogrulandi": false,
+   "kaynak": "kural: her ayın 3'ü (hafta sonu/tatilse sonraki iş günü); TÜİK 2027 takvimi yayımlanınca kontrol et",
+   "not": "dini bayram tarihleri (Ramazan ~Mart, Kurban ~Mayıs 2027) hesaba katılmadı"
+  },
+  {
+   "t": "2027-03-05",
+   "saat": "16:30",
+   "ulke": "ABD",
+   "tur": "NFP",
+   "ad": "ABD istihdam (tarım dışı)",
+   "onem": 1,
+   "seans": "içinde",
+   "dogrulandi": true,
+   "kaynak": "https://www.bls.gov/schedule/news_release/empsit.htm"
+  },
+  {
+   "t": "2027-03-10",
+   "saat": "16:30",
+   "ulke": "ABD",
+   "tur": "ABD_TUFE",
+   "ad": "ABD enflasyon (TÜFE)",
+   "onem": 1,
+   "seans": "içinde",
+   "dogrulandi": true,
+   "kaynak": "https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "t": "2027-03-17",
+   "saat": "21:00",
+   "ulke": "ABD",
+   "tur": "FED",
+   "ad": "Fed faiz kararı",
+   "onem": 3,
+   "seans": "sonra",
+   "dogrulandi": true,
+   "kaynak": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "t": "2027-03-18",
+   "saat": "14:00",
+   "ulke": "TR",
+   "tur": "TCMB",
+   "ad": "TCMB faiz kararı (PPK)",
+   "onem": 3,
+   "seans": "içinde",
+   "dogrulandi": true,
+   "kaynak": "https://www.tcmb.gov.tr/wps/wcm/connect/TR/TCMB+TR/Main+Menu/Temel+Faaliyetler/Para+Politikasi/PPK/2027"
+  },
+  {
+   "t": "2027-03-18",
+   "saat": "16:15",
+   "ulke": "AB",
+   "tur": "ECB",
+   "ad": "ECB faiz kararı",
+   "onem": 1,
+   "seans": "içinde",
+   "dogrulandi": true,
+   "kaynak": "https://www.ecb.europa.eu/press/calendars/mgcgc/html/index.en.html"
+  },
+  {
+   "t": "2027-04-02",
+   "saat": "15:30",
+   "ulke": "ABD",
+   "tur": "NFP",
+   "ad": "ABD istihdam (tarım dışı)",
+   "onem": 1,
+   "seans": "içinde",
+   "dogrulandi": true,
+   "kaynak": "https://www.bls.gov/schedule/news_release/empsit.htm"
+  },
+  {
+   "t": "2027-04-05",
+   "saat": "10:00",
+   "ulke": "TR",
+   "tur": "TUIK_TUFE",
+   "ad": "TÜİK enflasyon (TÜFE) Mart 2027",
+   "onem": 2,
+   "seans": "içinde",
+   "dogrulandi": false,
+   "kaynak": "kural: her ayın 3'ü (hafta sonu/tatilse sonraki iş günü); TÜİK 2027 takvimi yayımlanınca kontrol et",
+   "not": "dini bayram tarihleri (Ramazan ~Mart, Kurban ~Mayıs 2027) hesaba katılmadı"
+  },
+  {
+   "t": "2027-04-13",
+   "saat": "15:30",
+   "ulke": "ABD",
+   "tur": "ABD_TUFE",
+   "ad": "ABD enflasyon (TÜFE)",
+   "onem": 1,
+   "seans": "içinde",
+   "dogrulandi": true,
+   "kaynak": "https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "t": "2027-04-22",
+   "saat": "14:00",
+   "ulke": "TR",
+   "tur": "TCMB",
+   "ad": "TCMB faiz kararı (PPK)",
+   "onem": 3,
+   "seans": "içinde",
+   "dogrulandi": true,
+   "kaynak": "https://www.tcmb.gov.tr/wps/wcm/connect/TR/TCMB+TR/Main+Menu/Temel+Faaliyetler/Para+Politikasi/PPK/2027"
+  },
+  {
+   "t": "2027-04-28",
+   "saat": "21:00",
+   "ulke": "ABD",
+   "tur": "FED",
+   "ad": "Fed faiz kararı",
+   "onem": 3,
+   "seans": "sonra",
+   "dogrulandi": true,
+   "kaynak": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "t": "2027-04-29",
+   "saat": "15:15",
+   "ulke": "AB",
+   "tur": "ECB",
+   "ad": "ECB faiz kararı",
+   "onem": 1,
+   "seans": "içinde",
+   "dogrulandi": true,
+   "kaynak": "https://www.ecb.europa.eu/press/calendars/mgcgc/html/index.en.html"
+  },
+  {
+   "t": "2027-05-03",
+   "saat": "10:00",
+   "ulke": "TR",
+   "tur": "TUIK_TUFE",
+   "ad": "TÜİK enflasyon (TÜFE) Nisan 2027",
+   "onem": 2,
+   "seans": "içinde",
+   "dogrulandi": false,
+   "kaynak": "kural: her ayın 3'ü (hafta sonu/tatilse sonraki iş günü); TÜİK 2027 takvimi yayımlanınca kontrol et",
+   "not": "dini bayram tarihleri (Ramazan ~Mart, Kurban ~Mayıs 2027) hesaba katılmadı"
+  },
+  {
+   "t": "2027-05-07",
+   "saat": "15:30",
+   "ulke": "ABD",
+   "tur": "NFP",
+   "ad": "ABD istihdam (tarım dışı)",
+   "onem": 1,
+   "seans": "içinde",
+   "dogrulandi": true,
+   "kaynak": "https://www.bls.gov/schedule/news_release/empsit.htm"
+  },
+  {
+   "t": "2027-05-12",
+   "saat": "15:30",
+   "ulke": "ABD",
+   "tur": "ABD_TUFE",
+   "ad": "ABD enflasyon (TÜFE)",
+   "onem": 1,
+   "seans": "içinde",
+   "dogrulandi": true,
+   "kaynak": "https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "t": "2027-06-03",
+   "saat": "10:00",
+   "ulke": "TR",
+   "tur": "TUIK_TUFE",
+   "ad": "TÜİK enflasyon (TÜFE) Mayıs 2027",
+   "onem": 2,
+   "seans": "içinde",
+   "dogrulandi": false,
+   "kaynak": "kural: her ayın 3'ü (hafta sonu/tatilse sonraki iş günü); TÜİK 2027 takvimi yayımlanınca kontrol et",
+   "not": "dini bayram tarihleri (Ramazan ~Mart, Kurban ~Mayıs 2027) hesaba katılmadı"
+  },
+  {
+   "t": "2027-06-04",
+   "saat": "15:30",
+   "ulke": "ABD",
+   "tur": "NFP",
+   "ad": "ABD istihdam (tarım dışı)",
+   "onem": 1,
+   "seans": "içinde",
+   "dogrulandi": true,
+   "kaynak": "https://www.bls.gov/schedule/news_release/empsit.htm"
+  },
+  {
+   "t": "2027-06-09",
+   "saat": "21:00",
+   "ulke": "ABD",
+   "tur": "FED",
+   "ad": "Fed faiz kararı",
+   "onem": 3,
+   "seans": "sonra",
+   "dogrulandi": true,
+   "kaynak": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "t": "2027-06-10",
+   "saat": "14:00",
+   "ulke": "TR",
+   "tur": "TCMB",
+   "ad": "TCMB faiz kararı (PPK)",
+   "onem": 3,
+   "seans": "içinde",
+   "dogrulandi": true,
+   "kaynak": "https://www.tcmb.gov.tr/wps/wcm/connect/TR/TCMB+TR/Main+Menu/Temel+Faaliyetler/Para+Politikasi/PPK/2027"
+  },
+  {
+   "t": "2027-06-10",
+   "saat": "15:15",
+   "ulke": "AB",
+   "tur": "ECB",
+   "ad": "ECB faiz kararı",
+   "onem": 1,
+   "seans": "içinde",
+   "dogrulandi": true,
+   "kaynak": "https://www.ecb.europa.eu/press/calendars/mgcgc/html/index.en.html"
+  },
+  {
+   "t": "2027-06-10",
+   "saat": "15:30",
+   "ulke": "ABD",
+   "tur": "ABD_TUFE",
+   "ad": "ABD enflasyon (TÜFE)",
+   "onem": 1,
+   "seans": "içinde",
+   "dogrulandi": true,
+   "kaynak": "https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "t": "2027-07-02",
+   "saat": "15:30",
+   "ulke": "ABD",
+   "tur": "NFP",
+   "ad": "ABD istihdam (tarım dışı)",
+   "onem": 1,
+   "seans": "içinde",
+   "dogrulandi": true,
+   "kaynak": "https://www.bls.gov/schedule/news_release/empsit.htm"
+  },
+  {
+   "t": "2027-07-05",
+   "saat": "10:00",
+   "ulke": "TR",
+   "tur": "TUIK_TUFE",
+   "ad": "TÜİK enflasyon (TÜFE) Haziran 2027",
+   "onem": 2,
+   "seans": "içinde",
+   "dogrulandi": false,
+   "kaynak": "kural: her ayın 3'ü (hafta sonu/tatilse sonraki iş günü); TÜİK 2027 takvimi yayımlanınca kontrol et",
+   "not": "dini bayram tarihleri (Ramazan ~Mart, Kurban ~Mayıs 2027) hesaba katılmadı"
+  },
+  {
+   "t": "2027-07-14",
+   "saat": "15:30",
+   "ulke": "ABD",
+   "tur": "ABD_TUFE",
+   "ad": "ABD enflasyon (TÜFE)",
+   "onem": 1,
+   "seans": "içinde",
+   "dogrulandi": true,
+   "kaynak": "https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "t": "2027-07-22",
+   "saat": "15:15",
+   "ulke": "AB",
+   "tur": "ECB",
+   "ad": "ECB faiz kararı",
+   "onem": 1,
+   "seans": "içinde",
+   "dogrulandi": true,
+   "kaynak": "https://www.ecb.europa.eu/press/calendars/mgcgc/html/index.en.html"
+  },
+  {
+   "t": "2027-07-28",
+   "saat": "21:00",
+   "ulke": "ABD",
+   "tur": "FED",
+   "ad": "Fed faiz kararı",
+   "onem": 3,
+   "seans": "sonra",
+   "dogrulandi": true,
+   "kaynak": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "t": "2027-08-03",
+   "saat": "10:00",
+   "ulke": "TR",
+   "tur": "TUIK_TUFE",
+   "ad": "TÜİK enflasyon (TÜFE) Temmuz 2027",
+   "onem": 2,
+   "seans": "içinde",
+   "dogrulandi": false,
+   "kaynak": "kural: her ayın 3'ü (hafta sonu/tatilse sonraki iş günü); TÜİK 2027 takvimi yayımlanınca kontrol et",
+   "not": "dini bayram tarihleri (Ramazan ~Mart, Kurban ~Mayıs 2027) hesaba katılmadı"
+  },
+  {
+   "t": "2027-08-06",
+   "saat": "15:30",
+   "ulke": "ABD",
+   "tur": "NFP",
+   "ad": "ABD istihdam (tarım dışı)",
+   "onem": 1,
+   "seans": "içinde",
+   "dogrulandi": true,
+   "kaynak": "https://www.bls.gov/schedule/news_release/empsit.htm"
+  },
+  {
+   "t": "2027-08-11",
+   "saat": "15:30",
+   "ulke": "ABD",
+   "tur": "ABD_TUFE",
+   "ad": "ABD enflasyon (TÜFE)",
+   "onem": 1,
+   "seans": "içinde",
+   "dogrulandi": true,
+   "kaynak": "https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "t": "2027-09-03",
+   "saat": "10:00",
+   "ulke": "TR",
+   "tur": "TUIK_TUFE",
+   "ad": "TÜİK enflasyon (TÜFE) Ağustos 2027",
+   "onem": 2,
+   "seans": "içinde",
+   "dogrulandi": false,
+   "kaynak": "kural: her ayın 3'ü (hafta sonu/tatilse sonraki iş günü); TÜİK 2027 takvimi yayımlanınca kontrol et",
+   "not": "dini bayram tarihleri (Ramazan ~Mart, Kurban ~Mayıs 2027) hesaba katılmadı"
+  },
+  {
+   "t": "2027-09-03",
+   "saat": "15:30",
+   "ulke": "ABD",
+   "tur": "NFP",
+   "ad": "ABD istihdam (tarım dışı)",
+   "onem": 1,
+   "seans": "içinde",
+   "dogrulandi": true,
+   "kaynak": "https://www.bls.gov/schedule/news_release/empsit.htm"
+  },
+  {
+   "t": "2027-09-09",
+   "saat": "15:15",
+   "ulke": "AB",
+   "tur": "ECB",
+   "ad": "ECB faiz kararı",
+   "onem": 1,
+   "seans": "içinde",
+   "dogrulandi": true,
+   "kaynak": "https://www.ecb.europa.eu/press/calendars/mgcgc/html/index.en.html"
+  },
+  {
+   "t": "2027-09-14",
+   "saat": "15:30",
+   "ulke": "ABD",
+   "tur": "ABD_TUFE",
+   "ad": "ABD enflasyon (TÜFE)",
+   "onem": 1,
+   "seans": "içinde",
+   "dogrulandi": true,
+   "kaynak": "https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "t": "2027-09-15",
+   "saat": "21:00",
+   "ulke": "ABD",
+   "tur": "FED",
+   "ad": "Fed faiz kararı",
+   "onem": 3,
+   "seans": "sonra",
+   "dogrulandi": true,
+   "kaynak": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "t": "2027-10-04",
+   "saat": "10:00",
+   "ulke": "TR",
+   "tur": "TUIK_TUFE",
+   "ad": "TÜİK enflasyon (TÜFE) Eylül 2027",
+   "onem": 2,
+   "seans": "içinde",
+   "dogrulandi": false,
+   "kaynak": "kural: her ayın 3'ü (hafta sonu/tatilse sonraki iş günü); TÜİK 2027 takvimi yayımlanınca kontrol et",
+   "not": "dini bayram tarihleri (Ramazan ~Mart, Kurban ~Mayıs 2027) hesaba katılmadı"
+  },
+  {
+   "t": "2027-10-08",
+   "saat": "15:30",
+   "ulke": "ABD",
+   "tur": "NFP",
+   "ad": "ABD istihdam (tarım dışı)",
+   "onem": 1,
+   "seans": "içinde",
+   "dogrulandi": true,
+   "kaynak": "https://www.bls.gov/schedule/news_release/empsit.htm"
+  },
+  {
+   "t": "2027-10-14",
+   "saat": "15:30",
+   "ulke": "ABD",
+   "tur": "ABD_TUFE",
+   "ad": "ABD enflasyon (TÜFE)",
+   "onem": 1,
+   "seans": "içinde",
+   "dogrulandi": true,
+   "kaynak": "https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "t": "2027-10-27",
+   "saat": "21:00",
+   "ulke": "ABD",
+   "tur": "FED",
+   "ad": "Fed faiz kararı",
+   "onem": 3,
+   "seans": "sonra",
+   "dogrulandi": true,
+   "kaynak": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "t": "2027-10-28",
+   "saat": "15:15",
+   "ulke": "AB",
+   "tur": "ECB",
+   "ad": "ECB faiz kararı",
+   "onem": 1,
+   "seans": "içinde",
+   "dogrulandi": true,
+   "kaynak": "https://www.ecb.europa.eu/press/calendars/mgcgc/html/index.en.html"
+  },
+  {
+   "t": "2027-11-03",
+   "saat": "10:00",
+   "ulke": "TR",
+   "tur": "TUIK_TUFE",
+   "ad": "TÜİK enflasyon (TÜFE) Ekim 2027",
+   "onem": 2,
+   "seans": "içinde",
+   "dogrulandi": false,
+   "kaynak": "kural: her ayın 3'ü (hafta sonu/tatilse sonraki iş günü); TÜİK 2027 takvimi yayımlanınca kontrol et",
+   "not": "dini bayram tarihleri (Ramazan ~Mart, Kurban ~Mayıs 2027) hesaba katılmadı"
+  },
+  {
+   "t": "2027-11-05",
+   "saat": "15:30",
+   "ulke": "ABD",
+   "tur": "NFP",
+   "ad": "ABD istihdam (tarım dışı)",
+   "onem": 1,
+   "seans": "içinde",
+   "dogrulandi": true,
+   "kaynak": "https://www.bls.gov/schedule/news_release/empsit.htm"
+  },
+  {
+   "t": "2027-11-10",
+   "saat": "16:30",
+   "ulke": "ABD",
+   "tur": "ABD_TUFE",
+   "ad": "ABD enflasyon (TÜFE)",
+   "onem": 1,
+   "seans": "içinde",
+   "dogrulandi": true,
+   "kaynak": "https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "t": "2027-11-17",
+   "saat": "22:00",
+   "ulke": "ABD",
+   "tur": "FED",
+   "ad": "Fed faiz kararı",
+   "onem": 3,
+   "seans": "sonra",
+   "dogrulandi": true,
+   "kaynak": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "t": "2027-12-03",
+   "saat": "10:00",
+   "ulke": "TR",
+   "tur": "TUIK_TUFE",
+   "ad": "TÜİK enflasyon (TÜFE) Kasım 2027",
+   "onem": 2,
+   "seans": "içinde",
+   "dogrulandi": false,
+   "kaynak": "kural: her ayın 3'ü (hafta sonu/tatilse sonraki iş günü); TÜİK 2027 takvimi yayımlanınca kontrol et",
+   "not": "dini bayram tarihleri (Ramazan ~Mart, Kurban ~Mayıs 2027) hesaba katılmadı"
+  },
+  {
+   "t": "2027-12-03",
+   "saat": "16:30",
+   "ulke": "ABD",
+   "tur": "NFP",
+   "ad": "ABD istihdam (tarım dışı)",
+   "onem": 1,
+   "seans": "içinde",
+   "dogrulandi": true,
+   "kaynak": "https://www.bls.gov/schedule/news_release/empsit.htm"
+  },
+  {
+   "t": "2027-12-10",
+   "saat": "16:30",
+   "ulke": "ABD",
+   "tur": "ABD_TUFE",
+   "ad": "ABD enflasyon (TÜFE)",
+   "onem": 1,
+   "seans": "içinde",
+   "dogrulandi": true,
+   "kaynak": "https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "t": "2027-12-16",
+   "saat": "16:15",
+   "ulke": "AB",
+   "tur": "ECB",
+   "ad": "ECB faiz kararı",
+   "onem": 1,
+   "seans": "içinde",
+   "dogrulandi": true,
+   "kaynak": "https://www.ecb.europa.eu/press/calendars/mgcgc/html/index.en.html"
+  }
+ ],
+ "yenile_not": "15 Aralık: TÜİK 2027 takvimi + kredi notu takvimleri; 15 Haziran 2027: TCMB ikinci yarı; 15 Kasım 2027: Fed/ECB/BLS 2028. Yenileyince bu tarihi bir sonrakine çek.",
+ "tipik_goster": {
+  "FED": 1.31,
+  "SECIM": 1.54,
+  "TUIK_TUFE": 1.35
+ },
+ "tipik_goster_not": "Gösterilen kat: Fed ertesi gün 1,31x (q 0,026), seçim ertesi gün 1,54x (az olay), TÜİK 1,35x (2022-26). Diğerleri olağan günden ayırt edilemedi."
+}

@@ -190,7 +190,8 @@ def manip_isaret(x):
     return f"SPK tedbir kararı ({_tarih_tam(t)})"
 
 
-def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None, endeks=None, gunici=None, genislik=None, kapali=None):
+def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None, endeks=None, gunici=None, genislik=None, kapali=None,
+              makro=None, takvim=None):
     tarih = _simdi()
     al = sum(1 for s in sonuclar if s["sinyal"] == "AL")
     guclu = sum(1 for s in sonuclar if s.get("guclu"))
@@ -380,6 +381,8 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None, 
                  ("__GI__", json.dumps(gunici, ensure_ascii=False, separators=(",", ":"))),
                  ("__GEN__", json.dumps(genislik, separators=(",", ":"))), ("__KGK__", json.dumps(kgk, ensure_ascii=False)),
                  ("__KOTUGUN__", kotu_gun_html(kgk)), ("__KS__", json.dumps(birikim_serisi(), separators=(",", ":"))),
+                 ("__MAKRO__", json.dumps(makro, ensure_ascii=False, separators=(",", ":"))),
+                 ("__TAKVIM__", json.dumps(takvim, ensure_ascii=False, separators=(",", ":"))),
                  ("__DATA__", json.dumps(veri, ensure_ascii=False))]:
         html = html.replace(a, b)
     return html
@@ -483,6 +486,13 @@ tbody tr:hover,tbody tr:hover td{background:#F2F5F3}
 .kod{font-weight:650}.num{text-align:right;font-variant-numeric:tabular-nums}
 .stop{color:var(--sat)}.lot{font-weight:650}.pos{color:var(--pos)}.neg{color:var(--neg)}
 .oky{color:var(--pos);font-weight:700}
+.okn{color:var(--muted);font-weight:700}
+.mkliste{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 18px;margin:4px 0 8px}
+.mks{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,.9fr) minmax(0,1fr) minmax(0,.9fr);gap:6px;font-size:12.8px;line-height:1.55;padding:2px 0;border-bottom:1px dashed var(--line)}
+.mks .mkv{text-align:right;font-variant-numeric:tabular-nums}.mks .mkd{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.mks.mkb{font-weight:700;background:#FFF8E6}.mkad{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bugun h2.h2b{margin-top:12px}.tkv{font-size:13.2px;line-height:1.5;margin:0 0 6px}.tkv .tkt{font-weight:700;font-variant-numeric:tabular-nums}.tkv .sgun{font-size:12.2px}
+@media(max-width:600px){.mkliste{grid-template-columns:1fr}.mks{font-size:12px;gap:4px;grid-template-columns:minmax(0,1.5fr) minmax(0,.9fr) minmax(0,.85fr) minmax(0,1fr)}}
 .okk{color:var(--neg);font-weight:700}
 
 .pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:650}
@@ -651,6 +661,7 @@ tr.dfdetay td{white-space:normal;background:#FAFAF8;font-size:12.5px;line-height
 <div class="ipucu">İncelemek için bir satıra tıkla → grafik, oranlar ve o hisseye özel yorum açılır. Sütun başlığına tıklayınca sıralanır. · <a class="glink" href="gecmis.html">Sinyal Geçmişi →</a></div>
 __BANNER__
 <div id="bugun" class="bugun"></div>
+<div id="dunya" class="bugun" hidden></div>
 <div class="pfbox">
   <div class="pfbas"><h2>Portföyüm</h2><div class="pfsag"><span id="pftop" class="pftop"></span><button class="pfekle" onclick="pfFormAc()">+ Ekle</button></div></div>
   <div id="pfbulut" class="pfbulut"></div>
@@ -701,6 +712,8 @@ __ARZ__
 <div class="sz"><span class="tkb izle">trendde · 25g</span><span>Eski AL hâlâ sürüyor ama <b>yeni alım sinyali değil</b>: 20+ gün sonra girmek testte belirgin kötüydü. Elindeyse iz stop'a kadar tut.</span></div>
 <div class="sz"><span class="tkb izle">🚀 Son roketler</span><span>Tablonun üstündeki filtre: son 5 / 20 / 60 işlem gününde 🚀 AL almış hisseler; sinyal günü, girişten beri getiri, BIST 100'e göre fark. İz stop ile kapananlar da listede (sadece iyi gidenleri göstermek yanıltıcı olur). Eski sinyaller yeni alım sinyali değil.</span></div>
 <div class="sz"><span class="tkb">⚠️ çok yükselmiş</span><span>Hisse penceresinde 🚀 AL notu: sinyal günü fiyat 52 hafta dibinin 5+ katı ya da 6 ayda 3+ kat. Geçmişte bu tür girişlerin ~%13'ü %30+ kayıpla kapandı (diğerlerinde ~%1), en büyük kazananların bir kısmı da bu grupta. AL engellenmez; pozisyon büyüklüğüne dikkat.</span></div>
+<div class="sz"><span class="tkb">🌍 dünya ve makro</span><span>Petrol, altın, çelik, dolar, ABD faizi, korku endeksi (VIX), S&amp;P 500 gibi dünya göstergelerinin bugünkü ve 5 günlük hareketi (Yahoo, ~30 dk'da bir). Oklar fiyatın yönüdür (gri), iyi/kötü değil. Renkli ok sadece hisseye etkisinde: <span class=oky>▲</span> lehine, <span class=okk>▼</span> aleyhine. 10 yıllık ölçümde yalnız ~13 hissede sağlam bir ilişki var (altın madencileri ↔ altın, TUPRS/AYGAZ ↔ petrol, Ereğli/Kardemir ↔ çelik; THY/Pegasus/TAV ↔ petrol 'son yıllarda'). Etki genelde aynı gün ya da ertesi sabah açılışta fiyatlanır; sonradan almak geçmişte ek kazanç getirmedi. Al-sat sinyali değildir.</span></div>
+<div class="sz"><span class="tkb">📅 önümüzdeki 7 gün</span><span>Önceden tarihi bilinen olaylar (Fed, TCMB, TÜİK enflasyonu, ABD istihdam/enflasyon, ECB), Türkiye saatiyle; ★★★ en önemli. 10 yılda BIST 100'ü ölçülebilir oynatan tek düzenli olay Fed kararı (ertesi gün olağanın ~1,3 katı). Hiçbir olay yönü söylemez; olay öncesi 🚀 AL'leri atlamak/bekletmek testte kazandırmadı. 'tarih kesinleşmedi' = resmî takvim henüz yok, kurala göre tahmin.</span></div>
 <div class="sz"><span class="tkb">📏 sıkı çizgi</span><span>Hisse penceresinde, açık 🚀 pozisyonda hisse girişten beri çok yükseldiyse (52 hafta dibinin 5+ katı ya da 6 ayda 3+ kat): son 26 günün en yüksek ve en düşük fiyatının ortası (Ichimoku 'kijun'; grafikte pembe kesikli). Altında kapanış geçmişte bazen çöküşün habercisi oldu (sonraki 20 günde ~%5 taban serisi, ~%11 %25+ düşüş), ama ~%20'sinde fiyat %25+ yükselmeye devam etti. Kural değil, bilgi; asıl çıkış iz stop. Portföydeyse altında kapanış 'Bugün ne var?' kartında ve akşam özetinde yazar.</span></div>
 <div class="sz"><span class="tkb izle">👀 kırılıma %2</span><span>Trend şablonunda, 20 günlük zirveye yakın: yakında AL gelebilir (bunların ~%76'sı 10 gün içinde kırıyor). Beklemeden almak ek fayda sağlamadı.</span></div>
 </div>
@@ -774,6 +787,8 @@ const GEN=__GEN__;  // 🌡️ piyasa genişliği, son 60 işlem günü (tarama.
 const KGK=__KGK__;  // 📉 canlı karne ↔ 'normal kötü günler' kıyası (pano.kotu_gun_kiyas)
 const KS=__KS__;  // 💵 altın / dolar / mevduat günlük endeksi + aylık TÜFE (pano.birikim_serisi; İşlem Odası birikim robotları), yoksa null
 const MN_NOT=__MNNOT__;  // ⚠️ manipülasyon rozeti açıklaması (pano.MN_NOT)
+const MAKRO=__MAKRO__;  // 🌍 makro.pano_veri: seriler (s), bugün büyük hareketten etkilenebilecekler (et), beyaz liste (duy) — bilgi
+const TAKVIM=__TAKVIM__;  // 📅 takvim.pano_veri: ~16 günlük olaylar (o), olağan gün (ol) — bilgi
 const KK=__KK__;  // 🔐 kâr kilidi [eşik %, seviye %] (sinyal.KAR_KILIT_*), kural kapalıysa null — çizgi değerleri Python'dan hazır gelir
 const t=document.getElementById('t');
 [...t.tBodies[0].rows].forEach(function(r){var c=r.querySelector('td.vd');if(c)c.innerHTML=vdHucre((DATA[r.dataset.kod]||{}).vd);});
@@ -958,6 +973,56 @@ function birikimHtml(a){
  return '<div class="pfkiyas">💵 <b>Paran ne kazandı?</b>'+(b.n<a.length?' (alış tarihi girilen '+b.n+'/'+a.length+' hisse)':'')+': portföy '+c(b.pf)+' · aynı parayla aynı günlerde 🥇 gram altın '+c(b.al)+' · 💵 dolar '+c(b.us)+' · 🏦 mevduat '+c(b.mv)+' · 🧾 TÜFE '+c(b.tu)+'.'+
   ' Enflasyondan arındırılmış (reel) portföy getirisi '+c(b.reel)+' → alım gücün <b>'+(b.reel>=0?'korundu':'azaldı')+'</b>'+(b.pf>=en[1]?'; üç birikim seçeneğinden de iyi.':'; en iyisi '+en[0]+' olurdu.')+
   '<span class="pfxu">Altın, dolar ve mevduat İşlem Odası\'nın 💰 birikim robotlarından (gram altın, USD/TRY, TCMB politika faiziyle 32 günlük mevduat, stopaj sonrası; gerçek banka faizi farklı olabilir; alım-satım makası yok sayıldı; veri '+trTarihY(b.veri)+'). TÜFE alış ayından '+(b.tuAy?'son açıklanan aya ('+ayYil(b.tuAy)+')':'bugüne')+' kadar (alış ayı tam sayılır)'+(b.tufeTam?'':'; bazı alışlar için henüz açıklanan ay yok')+'. Temettü dahil değil.'+(notu?' Kıyas dışı: '+notu+'.':'')+'</span></div>';
+}
+// --- 🌍 Dünya ve makro · 📅 Önümüzdeki 7 gün (makro.py / takvim.py; BİLGİ — AL/SAT'ı değiştirmez)
+function mkSayi(x){if(x==null)return '—';var a=Math.abs(x),nd=a>=1000?0:(a>=100?1:2);return x.toLocaleString('tr-TR',{minimumFractionDigits:nd,maximumFractionDigits:nd});}
+function mkDeg(x,bp){if(x==null)return '<span class="sgun">—</span>';var o='<span class=okn>'+(x>=0?'▲':'▼')+'</span> ';
+ return o+(bp?(x>=0?'+':'−')+Math.abs(x).toFixed(0)+' bp':'%'+Math.abs(x).toFixed(1).replace('.',','));}
+function mkPuan(p){return (p>=0?'+':'−')+Math.abs(p).toFixed(1).replace('.',',');}
+function mkKisa(m){return (MAKRO.kisa&&MAKRO.kisa[m])||m;}
+function mkEtkiHtml(){
+ var et=MAKRO.et||[],g={},sira=[];
+ et.forEach(function(e){var k=e.m+(e.p>=0?'+':'-');if(!g[k]){g[k]=[];sira.push(k);}g[k].push(e);});
+ if(!sira.length)return '<div class="bgs sgun">Bugün olağan dışı (büyük) bir dünya hareketi yok; duyarlı hisseler için beklenen etki küçük.</div>';
+ return '<div class="bgs"><b>Bugünkü büyük hareketlerden etkilenebilecekler</b> <span class="sgun">(geçmiş ortalama, endeksten fark)</span>:</div>'+
+  sira.map(function(k){var L=g[k],e=L[0],a=Math.min.apply(null,L.map(function(x){return x.p;})),b=Math.max.apply(null,L.map(function(x){return x.p;}));
+   var ar=Math.abs(a-b)<0.05?mkPuan(a):mkPuan(a)+'…'+mkPuan(b),son=L.every(function(x){return x.k===2;})?', son yıllarda':'';
+   return '<div class="bgs">'+(e.p>=0?'<span class=oky>▲</span> lehine':'<span class=okk>▼</span> aleyhine')+': '+L.map(function(x){return _kl(x.kod);}).join(', ')+
+    ' — '+mkKisa(e.m)+' %'+Math.abs(e.x).toFixed(1).replace('.',',')+' '+(e.x>=0?'yükseldi':'düştü')+' (≈ '+ar+' puan'+son+')</div>';}).join('');
+}
+function trGun(iso){var p=iso.split('-'),d=new Date(+p[0],+p[1]-1,+p[2]);return ['Paz','Pzt','Sal','Çar','Per','Cum','Cmt'][d.getDay()]+' '+p[2]+' '+AYLAR[+p[1]-1];}
+function isoGun(d){return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
+function takvimHtml(){
+ if(!TAKVIM||!TAKVIM.o||!TAKVIM.o.length)return '';
+ var b=new Date(),bugun=isoGun(b),s7=isoGun(new Date(b.getFullYear(),b.getMonth(),b.getDate()+7));
+ var L=TAKVIM.o.filter(function(o){return o.t>=bugun&&o.t<=s7;}),h='<h2 class="h2b">📅 Önümüzdeki 7 gün</h2>';
+ var sat=function(o){return '<div class="tkv"><span class="tkt">'+trGun(o.t)+' '+hEsc(o.s)+'</span> '+o.u+' <b>'+hEsc(o.a)+'</b> <span title="önem">'+'★★★'.slice(0,o.o)+'<span class="sgun">'+'☆☆☆'.slice(0,3-o.o)+'</span></span>'+
+  (o.d?'':' <span class="sgun">(tarih kesinleşmedi)</span>')+'<div class="sgun">'+(o.sn?'BIST kapandıktan sonra → etkisi '+trGun(o.e)+'. ':'Seans içinde. ')+hEsc(o.n.charAt(0).toUpperCase()+o.n.slice(1))+'.</div></div>';};
+ if(L.length)h+=L.map(sat).join('');
+ else{var n=TAKVIM.o.filter(function(o){return o.t>s7;})[0];h+='<div class="bgs sgun">Önümüzdeki 7 günde önemli olay yok.'+(n?' Sıradaki:':'')+'</div>'+(n?sat(n):'');}
+ return h+'<div class="bgs sgun">ⓘ Takvim bilgidir; yön söylemez, 🚀 AL/SAT kurallarını değiştirmez. Olay öncesi alımı "atla/bekle" testten geçmedi.</div>';
+}
+function dunyaRender(){
+ var el=document.getElementById('dunya');if(!el)return;var h='';
+ if(MAKRO&&!MAKRO.yok&&MAKRO.s&&MAKRO.s.length){
+  var t=MAKRO.t||'',ts=t?t.slice(8,10)+'.'+t.slice(5,7)+' '+t.slice(11,16):'',vt=MAKRO.s.map(function(r){return r.tr||'';}).sort().pop()||'';
+  h+='<h2>🌍 Dünya ve makro</h2><div class="bgs sgun">'+(MAKRO.taze?'':'⚠️ <b>Makro verisi şu an alınamadı (Yahoo)</b> — ')+'son veri '+ts+(vt?' · son kapanış '+vt.slice(8,10)+'.'+vt.slice(5,7):'')+
+   ' · oklar fiyatın yönü (iyi/kötü değil); kalın = olağan dışı büyük hareket</div><div class="mkliste">';
+  MAKRO.s.forEach(function(r){h+='<div class="mks'+(r.b?' mkb':'')+'"'+(r.sup?' title="'+hEsc(r.sup)+'"':'')+'><span class="mkad">'+hEsc(r.ad)+(r.sup?' ⚠️':'')+'</span><span class="mkv">'+(r.bp?'%':'')+mkSayi(r.son)+(r.fb?' '+r.fb:'')+'</span><span class="mkd">'+mkDeg(r.g,r.bp)+'</span><span class="mkd sgun">5g '+mkDeg(r.g5,r.bp)+'</span></div>';});
+  h+='</div>'+mkEtkiHtml()+'<div class="bgs sgun">ℹ️ 10 yıllık ölçümde yalnız ~13 hissede sağlam bir dünya ilişkisi var; çoğu hissenin yok. Etki genelde aynı gün ya da ertesi sabah açılışta fiyatlanır, sonrasında sürmez — haberi duyduktan sonra almak geçmişte ek kazanç getirmedi. AL/SAT sinyali değildir.</div>';
+ }else if(MAKRO&&MAKRO.yok)h+='<h2>🌍 Dünya ve makro</h2><div class="bgs sgun">Makro verisi şu an alınamadı (Yahoo).</div>';
+ h+=takvimHtml();
+ el.innerHTML=h;el.hidden=!h;
+}
+function makroHisseHtml(k){
+ var D=(MAKRO||{}).duy;if(!D||!D[k])return '';
+ var x=D[k],m=x[0],b=x[1],e=x[2],kat=x[3],ad=x[4],ae=Math.abs(e).toFixed(1).replace('.',',');
+ var iy='endeksten ortalama <span class=oky>▲</span> +'+ae+' puan iyi',ko='endeksten ortalama <span class=okk>▼</span> −'+ae+' puan kötü';
+ var h='🌍 <b>Neye duyarlı:</b> '+hEsc(ad)+' %'+b+' yükselince '+(e>=0?iy:ko)+', %'+b+' düşünce '+(e>=0?ko:iy)+
+  ' <span class="sgun">('+(kat===1?'son 2 yıl; 10 yılın iki yarısında da aynı yönde':'son 2 yıl; 2017-21\'de belirgin değildi — ortama bağlı, "son yıllarda"')+')</span>.';
+ var r=(MAKRO.s||[]).filter(function(z){return z.a===m;})[0];
+ if(r&&r.g!=null&&!r.sup){var p=e*r.g/b;if(Math.abs(p)>=0.3)h+=' Son günde '+mkKisa(m)+' %'+Math.abs(r.g).toFixed(1).replace('.',',')+' '+(r.g>=0?'yükseldi':'düştü')+' → geçmiş ortalamaya göre ≈ '+(p>=0?'<span class=oky>▲</span> ':'<span class=okk>▼</span> ')+mkPuan(p)+' puan.';}
+ return '<div class="bilkutu">'+h+'<div class="pk sgun">Etki genelde aynı gün ya da ertesi sabah açılışta fiyatlanır; sonraki günlerde sürmüyor. Tek günde hisseyi asıl oynatan çoğu zaman başka bir haberdir. AL/SAT sinyali değildir.</div></div>';
 }
 function bugunRender(){
  var el=document.getElementById('bugun');if(!el)return;
@@ -1648,7 +1713,7 @@ function ac(k){
    '<div id="grkutu">'+grafik(d.spark,d.sd,_grAralik,d.tkg)+'</div><div class="leg"><span class="c1">Fiyat</span><span class="c2">SMA20</span><span class="c3">SMA50</span><span class="c4">SuperTrend</span>'+
    (d.sd&&d.sd.destek?'<span class="c5">Destek</span>':'')+(d.sd&&d.sd.direnc?'<span class="c6">Direnç</span>':'')+
    '<span class="c7">İz stop</span><span class="lm" style="color:#1B7F4B">▲ AL (🚀)</span><span class="lm" style="color:#B4362E">▼ SAT (iz stop'+(KK?' / 🔐':'')+')</span></div></div>'+
- nedenHtml(k,d)+
+ nedenHtml(k,d)+makroHisseHtml(k)+
  zaman+vadeHtml(k,d)+
  pozHtml(k,d)+tkHtml(d)+lotHtml(k,d)+tkGecmisHtml(d)+gucHtml(d)+uvHtml(d)+
  sdHtml(d)+
@@ -2450,7 +2515,7 @@ function dfCsvIceAl(t){
  dfNot('⬆ İçe aktarma: <b>'+ekle+'</b> işlem eklendi'+(atla?', '+atla+' işlem zaten defterde vardı (atlandı)':'')+(hata?', '+hata+' satır eksik/hatalı olduğu için alınmadı':'')+'.');
  return ekle;
 }
-(function(){var dl=document.getElementById('pfkodlar');if(dl){dl.innerHTML=Object.keys(DATA).sort().map(function(k){return '<option value="'+k+'"></option>';}).join('');}ghBaglantiBak();pfRender();pfBulutOku();alBulutOku();tabloDuzen();favBulutOku();bugunRender();dfBaslat();})();
+(function(){var dl=document.getElementById('pfkodlar');if(dl){dl.innerHTML=Object.keys(DATA).sort().map(function(k){return '<option value="'+k+'"></option>';}).join('');}ghBaglantiBak();pfRender();pfBulutOku();alBulutOku();tabloDuzen();favBulutOku();bugunRender();try{dunyaRender();}catch(e){}dfBaslat();})();
 </script></body></html>"""
 
 
