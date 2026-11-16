@@ -1,16 +1,15 @@
 {
   "al": [
-    "AFYON",
     "CELHA",
     "ENERY",
     "ENJSA",
-    "ENTRA",
     "GARAN",
     "HKTM",
     "ISCTR",
     "METEN",
     "METRO",
     "MPARK",
+    "NETCD",
     "PGSUS",
     "TAVHL",
     "THYAO",
@@ -237,7 +236,7 @@
     "MPARK": "AL",
     "MRGYO": "SAT",
     "MRSHL": "SAT",
-    "NETCD": "SAT",
+    "NETCD": "AL",
     "NTHOL": "SAT",
     "OBAMS": "SAT",
     "ODAS": "SAT",
@@ -356,6 +355,11 @@
   "karar_kirilim_g": [],
   "alarm_tetik": [],
   "on_sinyal": {
+    "NETCD": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-16"
+    },
     "PGSUS": {
       "sinyal": "AL",
       "onceki": "SAT",
