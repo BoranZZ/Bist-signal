@@ -1,6 +1,5 @@
 {
   "al": [
-    "AFYON",
     "CELHA",
     "ENERY",
     "ENJSA",
@@ -9,11 +8,9 @@
     "HKTM",
     "ISCTR",
     "KOPOL",
-    "MCARD",
     "METEN",
     "METRO",
     "MPARK",
-    "NETCD",
     "PGSUS",
     "TAVHL",
     "THYAO",
@@ -639,7 +636,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1698269,
+  "kap_son": 1698328,
   "tk_gonderilen": {
     "tarih": "2026-11-16",
     "kodlar": []
