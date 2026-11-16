@@ -355,11 +355,6 @@
   "karar_kirilim_g": [],
   "alarm_tetik": [],
   "on_sinyal": {
-    "NETCD": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-11-16"
-    },
     "PGSUS": {
       "sinyal": "AL",
       "onceki": "SAT",
