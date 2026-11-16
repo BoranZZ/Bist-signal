@@ -284,7 +284,7 @@
     "SKBNK": "SAT",
     "SMRTG": "SAT",
     "SMRVA": "SAT",
-    "SNGYO": "AL",
+    "SNGYO": "SAT",
     "SOHOE": "SAT",
     "SOKM": "SAT",
     "SSAAT": "SAT",
@@ -349,22 +349,11 @@
     "ed52d36b8529c244",
     "fc9a269fa7f1b36a"
   ],
-  "ozet_tarih": "2026-11-13",
+  "ozet_tarih": "2026-11-16",
   "hafta_tarih": "2026-11-13",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {
-    "PGSUS": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-11-16"
-    },
-    "SNGYO": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-11-16"
-    }
-  },
+  "on_sinyal": {},
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
@@ -636,7 +625,7 @@
     "ULUSE": "SAT",
     "ULUUN": "SAT",
     "USAK": "SAT",
-    "VAKBN": "AL",
+    "VAKBN": "SAT",
     "VBTYZ": "SAT",
     "VESBE": "SAT",
     "VESTL": "SAT",
@@ -644,7 +633,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1698626,
+  "kap_son": 1698635,
   "tk_gonderilen": {
     "tarih": "2026-11-16",
     "kodlar": []
