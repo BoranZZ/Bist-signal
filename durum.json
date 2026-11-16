@@ -3,7 +3,6 @@
     "CELHA",
     "ENERY",
     "ENJSA",
-    "ENTRA",
     "GARAN",
     "HKTM",
     "ISCTR",
@@ -11,7 +10,6 @@
     "METRO",
     "MPARK",
     "PGSUS",
-    "SNGYO",
     "TAVHL",
     "THYAO",
     "YKBNK"
@@ -646,7 +644,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1698573,
+  "kap_son": 1698610,
   "tk_gonderilen": {
     "tarih": "2026-11-16",
     "kodlar": []
