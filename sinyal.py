@@ -604,6 +604,191 @@ def erken_kirilim(d, xu_ust=None):
     return {"bugun": bugun, "seviye": round(hh, 2) if hh else None}
 
 
+# --- 🧲 Bant süpürme dönüşü (2026-11-16; araştırma Documents/Bist-arastirma/2026-11-14/sinyal2/bant/RAPOR.md) -------------------
+# İKİNCİ TÜR AL (v3'ten ayrı; v3'ü susturmaz, v3'ün kuralını/filtresini değiştirmez). 60 işlem günlük yatay bant (bugün hariç son 60
+# günün en yüksek High / en düşük Low'u), bu sürede alt ↔ üst bölge (%25) arasında en az 2 gidiş-geliş, genişlik ≤ %30. Low bant altını
+# kırar (bant o gün dondurulur), en geç 3. günün kapanışında yeniden bant altının üstünde (süpürme dibi bant genişliğinin yarısından derine
+# inerse iptal); geri almadan sonra en çok 10 gün içinde kapanış bant ORTASININ üstü → AL (ertesi açılış; arada kapanış süpürme dibinin
+# altına inerse iptal). Çıkış canlı v3 ile aynı: %20 iz + 🔐 kâr kilidi (iz_yuru) + kilitli tabanda gercekci_cikis. Pozisyon açıkken yeni
+# 🧲 AL sayılmaz (araştırmanın 156 işlemlik zinciri gibi). Piyasa filtresi YOK (sinyallerin %45'i XU100 < SMA50 iken).
+BANT_GUN, BANT_DOKUNUS, BANT_GENISLIK, BANT_GERI_GUN, BANT_BOLGE, BANT_DERIN, BANT_ORTA_GUN = 60, 2, 0.30, 3, 0.25, 0.5, 10
+BANT_GOSTER_GUN = 60    # panoda son 🧲 işlemi: sinyali son 60 işlem gününde olan ya da açık olan (index.html şişmesin)
+# Araştırma sayıları (pano kartı + Telegram metni TEK kaynak; G2 + C2, ana liste + küçükler, 2017-11 → 2026-11, MANIPULE hariç):
+# 156 işlem, isabet %77 / %71 (~%73), işlem başı +%23,6 / +%18,9 (~+%20), aynı hissede rastgele güne aynı çıkışla girişten
+# +11,8 / +10,8 puan (~+10), son 1 yılda 39 işlem, işlem başı +%1,3 (isabet %56); sinyallerin %45'i piyasa zayıfken.
+BANT_NOT = {"n": 156, "isabet": 73, "ort": 20, "ikiz": 10, "son1y": "1,3", "zayif": 45,
+            "iyi": "Geçmişte (2017-2026, 156 işlem) bu kurgudan sonra v3 çıkışıyla ortalama +%20, isabet %73; aynı hissede rastgele güne göre +10 puan.",
+            "kotu": "Son 1 yılda kazanç küçük: işlem başı +%1,3 (isabet %56). Az sinyal; tek tek ayarlar istatistik düzeltmesinden geçmiyor — kanıt komşu ayarların tutarlılığından.",
+            "ek": "v3 (🚀) AL'i değil; ek sinyal. Piyasa filtresi yok (sinyallerin ~%45'i BIST 100 50 günlük ortalamasının altındayken geldi)."}
+
+
+def _bant_seri(H, L, N=BANT_GUN):
+    """Her gün j için bant (j−N … j−1): üst, alt, alt↔üst bölge değişim (segment) sayısı. Araştırma sinyal_bant._bant ile aynı."""
+    from numpy.lib.stride_tricks import sliding_window_view as swv
+    n = len(H)
+    top = np.full(n, np.nan); bot = np.full(n, np.nan); segs = np.zeros(n, int)
+    if n <= N:
+        return top, bot, segs
+    Hw = swv(H, N)[:-1]; Lw = swv(L, N)[:-1]
+    with np.errstate(invalid="ignore"):
+        t = np.nanmax(Hw, axis=1); b = np.nanmin(Lw, axis=1); z = BANT_BOLGE * (t - b)
+        lz = Lw <= (b + z)[:, None]; uz = Hw >= (t - z)[:, None]
+    lab = np.where(lz & ~uz, 1, np.where(uz & ~lz, 2, 0))
+    idx = np.maximum.accumulate(np.where(lab > 0, np.arange(N)[None, :], -1), axis=1)
+    ff = np.take_along_axis(lab, np.maximum(idx, 0), axis=1); ff[idx < 0] = 0
+    sg = ((ff[:, 1:] != ff[:, :-1]) & (ff[:, :-1] > 0)).sum(axis=1) + (ff[:, -1] > 0)
+    top[N:] = t; bot[N:] = b; segs[N:] = sg
+    return top, bot, segs
+
+
+def bant_olaylar(H, L, C, ilk=0):
+    """Alt süpürme + geri alma (+ orta dönüş) olayları; araştırma sinyal_bant.olaylar ile aynı (j süpürme, r geri alma, m orta
+    dönüşü (AL) günü ya da −1, bot/top bant, sl süpürme dibi). Ek alan (izleme için): 'ip' = orta dönüşü beklenirken kapanış süpürme
+    dibinin altına indi (iptal)."""
+    n = len(C)
+    top, bot, segs = _bant_seri(H, L)
+    w = top - bot
+    with np.errstate(invalid="ignore", divide="ignore"):
+        ok = (segs >= 2 * BANT_DOKUNUS) & np.isfinite(w) & (w > 0) & ((w / ((top + bot) / 2)) <= BANT_GENISLIK)
+        aday = np.where(ok & (L < bot))[0]
+    aday = aday[aday >= ilk]
+    ev, son = [], -1
+    for j in aday:
+        if j <= son:
+            continue
+        b, t = bot[j], top[j]; ww = t - b
+        sl, r = np.inf, -1
+        for dd in range(BANT_GERI_GUN):
+            q = j + dd
+            if q >= n:
+                break
+            sl = min(sl, L[q])
+            if sl < b - BANT_DERIN * ww:
+                break
+            if C[q] > b:
+                r = q
+                break
+        if r < 0:
+            son = j + BANT_GERI_GUN - 1
+            continue
+        mid, m, slm, ip = (t + b) / 2, -1, sl, False
+        for q in range(r, min(n, r + BANT_ORTA_GUN + 1)):
+            if q > r:
+                slm = min(slm, L[q])
+                if C[q] < slm:
+                    ip = True
+                    break
+            if C[q] > mid:
+                m = q
+                break
+        ev.append({"j": int(j), "r": int(r), "m": int(m), "bot": float(b), "top": float(t), "sl": float(sl), "ip": ip})
+        son = r
+    return ev
+
+
+def bant_zincir(d, kk=None, ilk=0):
+    """🧲 işlemleri (araştırmanın G2 + C2 zinciri): olay m'de AL, giriş m+1 açılışı, çıkış iz_yuru (%20 iz + kâr kilidi) +
+    gercekci_cikis; giriş günü bir önceki 🧲 işleminin çıkış gününden sonra olmalı. ilk: bu günden önceki süpürmeler sayılmaz
+    (araştırma 250). Döner (işlemler, olaylar). İşlem: {m, e (giriş günü | None: sinyal bugün), giris, cik (kapanışla tetik günü
+    | None), q (gerçekçi çıkış günü), cx (çıkış fiyatı), tepe, tepe_i, izs, kk_i, kk_cik, ev}. kk: kar_kilit_ayar() biçimi."""
+    H, L, C = (d[c].values.astype(float) for c in ("High", "Low", "Close"))
+    O = d["Open"].values.astype(float) if "Open" in d else C
+    n = len(C)
+    evs = bant_olaylar(H, L, C, ilk)
+    kil = None
+    out, son = [], -1
+    for e in evs:
+        m = e["m"]
+        if m < 0:
+            continue
+        g = m + 1
+        if g <= son:
+            continue
+        if g >= n:                       # sinyal bugün: giriş yarın açılışta (açık 🧲 pozisyon yoksa)
+            out.append({"m": m, "e": None, "giris": float(C[m]), "cik": None, "q": None, "cx": None, "tepe": float(C[m]),
+                        "tepe_i": m, "izs": [], "kk_i": None, "kk_cik": False, "ev": e})
+            break
+        y = iz_yuru(C, float(O[g]), g, kk)
+        x = {"m": m, "e": g, "giris": float(O[g]), "cik": y["cik"], "tepe": float(y["tepe"]), "tepe_i": max(y["tepe_i"], g),
+             "izs": y["izs"], "kk_i": y["kk_i"], "kk_cik": y["kk_cik"], "ev": e, "q": None, "cx": None}
+        if y["cik"] is None:
+            son = n                      # açık: sonraki sinyaller sayılmaz
+        else:
+            if kil is None:
+                kil = kilitli_gun(d).values
+            q, cx, tur = gercekci_cikis(d, y["cik"], kil=kil)
+            x["q"], x["cx"] = q, cx
+            son = n if tur == "kilitli" else q   # hâlâ kilitli tabanda: satılamadı, pozisyon sürüyor sayılır
+        out.append(x)
+    return out, evs
+
+
+def bant_supurme(d, ilk=0):
+    """🧲 Bant süpürme dönüşü — canlı pano/Telegram/oda (look-ahead yok; d: günlük OHLC, bölünme düzeltilmiş). Döner dict ya da
+    None. bugun = bugün AL (açık 🧲 pozisyon yokken); son = gösterilecek son 🧲 işlemi (sinyali son BANT_GOSTER_GUN işlem gününde
+    ya da açık): t (sinyal günü), gun (kaç işlem günü önce), alt/orta/ust (3 aylık bant), dip (süpürme dibi), sup_t, geri_t, durum
+    'AL'|'CIKTI', giriş (sinyal bugünse yok), tepe, stop, uzaklik, degisim, 🔐 alanları, cikis_tarih, cikis, sonuc %; izle =
+    süpürüldü + geri alındı, ortaya dönüş bekleniyor (alt/orta/ust/dip/geri_t, kalan gün, uzak %); g = son 4 işlem [sinyal günü,
+    giriş, çıkış günü|None, çıkış kapanışı|None]; poz = girilmiş SON 🧲 işlemi (gösterim süresinden bağımsız; analiz_et portföy
+    iz stop'u için — panoya gömülmez)."""
+    if not _hl_var(d):
+        return None
+    d = d[d["Close"] > 0]
+    n = len(d)
+    if n <= BANT_GUN + 2:
+        return None
+    kk = kar_kilit_ayar()
+    tum, evs = bant_zincir(d, kk, ilk)
+    idx, C = d.index, d["Close"].values.astype(float)
+    ts = lambda i: str(idx[i].date())
+
+    def _islem(x):
+        e = x["ev"]
+        o = {"t": ts(x["m"]), "gun": n - 1 - x["m"], "alt": round(e["bot"], 2), "ust": round(e["top"], 2),
+             "orta": round((e["bot"] + e["top"]) / 2, 2), "dip": round(e["sl"], 2), "sup_t": ts(e["j"]), "geri_t": ts(e["r"])}
+        if x["e"] is None:
+            o["durum"] = "AL"
+            return o
+        o["giris_tarih"], o["giris"] = ts(x["e"]), round(x["giris"], 2)
+        o["tepe"], o["tepe_tarih"] = round(x["tepe"], 2), ts(x["tepe_i"])
+        if x["cik"] is None:
+            stop, kilit = iz_seviye(x["giris"], x["tepe"], kk)
+            o.update({"durum": "AL", "stop": round(float(stop), 2), "uzaklik": round(float(stop / C[-1] - 1) * 100, 1),
+                      "degisim": round(float(C[-1] / x["giris"] - 1) * 100, 1)})
+            o.update(_kk_alanlar(x, kk, kilit, idx))
+        else:
+            o.update({"durum": "CIKTI", "cikis_tarih": ts(x["cik"]), "cikis": round(float(C[x["cik"]]), 2),
+                      "stop": round(x["izs"][-1], 2), "cikis_gun": n - 1 - x["cik"],
+                      "sonuc": round(float(C[x["cik"]] / x["giris"] - 1) * 100, 1)})
+            o.update(_kk_alanlar(x, kk, x["kk_i"] is not None, idx))
+        return o
+
+    out = {}
+    son = tum[-1] if tum else None
+    if son is not None and (son["cik"] is None or n - 1 - son["m"] <= BANT_GOSTER_GUN):
+        out["son"] = _islem(son)
+        out["bugun"] = son["e"] is None
+    gir = [x for x in tum if x["e"] is not None]
+    if gir:
+        out["poz"] = out["son"] if (son is gir[-1] and "son" in out) else _islem(gir[-1])
+    # izleme: son olay süpürülüp geri alındı, orta dönüşü henüz yok, süre dolmadı, iptal yok, açık 🧲 pozisyon yok
+    if evs:
+        e = evs[-1]
+        acik_poz = bool(gir) and gir[-1]["cik"] is None
+        if e["m"] < 0 and not e["ip"] and e["r"] + BANT_ORTA_GUN > n - 1 and not acik_poz:
+            orta = (e["bot"] + e["top"]) / 2
+            out["izle"] = {"alt": round(e["bot"], 2), "ust": round(e["top"], 2), "orta": round(orta, 2), "dip": round(e["sl"], 2),
+                           "sup_t": ts(e["j"]), "geri_t": ts(e["r"]), "kalan": int(e["r"] + BANT_ORTA_GUN - (n - 1)),
+                           "uzak": round(float(orta / C[-1] - 1) * 100, 1)}
+    if not out:
+        return None
+    if gir and ("son" in out or "izle" in out):
+        out["g"] = [[ts(x["m"]), round(x["giris"], 2), ts(x["cik"]) if x["cik"] is not None else None,
+                     round(float(C[x["cik"]]), 2) if x["cik"] is not None else None] for x in gir[-4:]]
+    out["bugun"] = bool(out.get("bugun"))
+    return out
+
+
 def tk_gecmis(d, tum, n=TK_GECMIS_N):
     """trend_kirilimi(..., ham=True) işlemlerinin kompakt hali (eskiden yeniye, en çok n): [kırılım (sinyal) günü, giriş
     fiyatı (ertesi açılış; sinyal bugünse bugünkü kapanış), çıkış günü ya da None (açık), çıkış kapanışı ya da None].
@@ -1190,9 +1375,10 @@ def hacim_oranlari(d):
     return [oran(1, 20), oran(5, 60), oran(20, 60)]
 
 
-def analiz_et(df, xu_ust=None, xu=None, bar_kesin=True, bugun=None):
+def analiz_et(df, xu_ust=None, xu=None, bar_kesin=True, bugun=None, bant=True):
     """xu_ust: v3 piyasa filtresi (XU100 > SMA50, günlük bool seri); xu: XU100 kapanış serisi (🔒 kilitli taban için).
-    bar_kesin: son günlük mum kesinleşti mi (seans içinde False: haftalık/aylık vade için bu hafta/ay tamamlanmış sayılmaz)."""
+    bar_kesin: son günlük mum kesinleşti mi (seans içinde False: haftalık/aylık vade için bu hafta/ay tamamlanmış sayılmaz).
+    bant: 🧲 bant süpürme dönüşü hesaplansın mı (evren: ana liste + küçükler; tarama yeni arzlarda False verir)."""
     df = bolunme_duzelt(df)
     c = df["Close"].dropna()
     if len(c) < 60:
@@ -1287,6 +1473,10 @@ def analiz_et(df, xu_ust=None, xu=None, bar_kesin=True, bugun=None):
     if tk_oda is not tk and isinstance(tk_oda.get("sc"), dict):
         tk_oda["sc"].pop("_j0", None)   # grafik iç alanı (_spark tk'ninkini siler; burada da aynısı)
     tq = erken_kirilim(d, xu_ust)   # 🏢 ⏩ Erken kırılımcı robotu (panoya gömülmez)
+    try:                            # 🧲 Bant süpürme dönüşü (ikinci tür AL; hata ya da eksik veri → o gün sinyal yok)
+        bs = bant_supurme(d) if bant else None
+    except Exception:
+        bs = None
     if tk.get("giris_tarih") and (al_tarih is None or tk["giris_tarih"] >= al_tarih):
         al_tarih = tk["giris_tarih"]
         if tk["durum"] == "AL":
@@ -1298,6 +1488,16 @@ def analiz_et(df, xu_ust=None, xu=None, bar_kesin=True, bugun=None):
         for a in ("iz20", "kk", "kilit", "kilit_seviye", "kilit_esik_fiyat", "kilit_tarih", "kilit_cik"):   # 🔐 kâr kilidi
             if a in tk:
                 iz[a] = tk[a]
+    # 🧲 portföy iz stop'u: en son sistem girişi 🧲 bant dönüşüyse (açık 🚀 pozisyon yokken, gösterge AL'inden de yeni) iz stop o
+    # girişten izlenir — çıkış kuralı v3 ile aynı (%20 iz + 🔐), Telegram 'iz stop kırıldı' ve pozisyon planı aynı yoldan çalışır.
+    _bs = (bs or {}).get("poz") or {}
+    if _bs.get("giris_tarih") and tk.get("durum") != "AL" and (al_tarih is None or _bs["t"] > al_tarih):
+        al_tarih = _bs["t"]
+        iz = {"tepe": _bs["tepe"], "tepe_tarih": _bs["tepe_tarih"], "stop": _bs["stop"], "cikti": _bs["durum"] != "AL",
+              "cikis_tarih": _bs.get("cikis_tarih"), "uzaklik": round((_bs["stop"] / fiyat - 1) * 100, 1), "kaynak": "bant"}
+        for a in ("iz20", "kk", "kilit", "kilit_seviye", "kilit_esik_fiyat", "kilit_tarih", "kilit_cik"):
+            if a in _bs:
+                iz[a] = _bs[a]
 
     return {
         "fiyat": round(fiyat, 2),
@@ -1334,6 +1534,7 @@ def analiz_et(df, xu_ust=None, xu=None, bar_kesin=True, bugun=None):
         "tk": tk,
         "tk_oda": tk_oda,
         "tq": tq,
+        "bs": bs,           # 🧲 Bant süpürme dönüşü (None = gösterilecek bir şey yok)
         "ak": akin_sinyal(d) if bar_kesin else None,   # 🏢 🧪 AKIN deneme robotları (sadece kesin kapanışta; panoya gömülmez)
         "vd": vade_durum(d, bar_kesin, bugun),
         "guc": _guc,

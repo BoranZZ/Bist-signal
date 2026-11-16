@@ -232,6 +232,17 @@ def ozellik(d, xu_ust, xu):
     for x in S.trend_kirilimi(d, xu_ust, ham=True, kar_kilit=False, erken=True):
         tq[x["i"]] = True
     F["tq_bugun"] = tq
+    if any(r["tur"] == "kirbant" for r in oda.ROBOTLAR.values()):   # 🧲 bant süpürme dönüşü (canlı sinyal.bant_supurme 'bugun' ile aynı zincir)
+        bs, bo = np.zeros(n, bool), np.full(n, np.nan)
+        try:
+            dd = d[d["Close"] > 0]
+            pos = d.index.get_indexer(dd.index)
+            for x in S.bant_zincir(dd, S.kar_kilit_ayar())[0]:
+                bs[pos[x["m"]]] = True
+                bo[pos[x["m"]]] = (x["ev"]["bot"] + x["ev"]["top"]) / 2
+        except Exception:
+            pass
+        F["bs_bugun"], F["bs_orta"] = bs, bo
     if any(r["tur"] == "akin" for r in oda.ROBOTLAR.values()):     # 🧪 AKIN 4 deneme robotları
         F["ak_rpd"] = S.akin_rpd(d)[0]
         F["ak_dk"] = S.akin_delta_kirilim(d)
@@ -322,6 +333,8 @@ def hazirla(g):
         M["aday"] |= M["tq_bugun"]      # ⏩ (eski robotların kararları aday kümesinin genişliğinden bağımsız — test edildi)
     if "ak_rpd" in M:
         M["aday"] |= M["ak_rpd"] | M["ak_dk"]
+    if "bs_bugun" in M:
+        M["aday"] |= M["bs_bugun"]      # 🧲 (eski robotlar aday kümesinin genişliğinden bağımsız)
     M["Cf"] = pd.DataFrame(M["C"].T).ffill().values.T
     buyuk = set(tarama.BIST100) | set(tarama.EK_HISSELER)
     return {"kod": tamam, "gun": gun, "A": M, "xu": xu, "xu_open": xd["Open"].astype(float).reindex(gun), "xu_ust": xu_ust,
@@ -375,7 +388,9 @@ def ozet(D, k, t):
             "kisa": bool(A["gecmis"][k, t] < 250), "g": guc_ozet(A, k, t),
             "tq": {"bugun": bool(A["tq_bugun"][k, t]),
                    "seviye": None if A["hh20"][k, t] != A["hh20"][k, t] else float(A["hh20"][k, t])},
-            "ak": {"rpd": bool(A["ak_rpd"][k, t]), "dk": bool(A["ak_dk"][k, t])} if "ak_rpd" in A else {}}
+            "ak": {"rpd": bool(A["ak_rpd"][k, t]), "dk": bool(A["ak_dk"][k, t])} if "ak_rpd" in A else {},
+            "bs": {"bugun": bool(A["bs_bugun"][k, t]), "orta": None if A["bs_orta"][k, t] != A["bs_orta"][k, t] else float(A["bs_orta"][k, t])}
+            if "bs_bugun" in A else {}}
 
 
 def guc_ozet(A, k, t):
@@ -594,7 +609,7 @@ def islem_listesi(kasa, ix):
             x = [g, "A", e["kod"], a, round(e["fiyat"], 2)]
             n = e.get("not")
             if n or "makas" in e:
-                x.append([_yuv(n[0], 2), n[1], n[2], n[3]] if n else 0)
+                x.append(([_yuv(n[0], 2), n[1], n[2], n[3]] + list(n[4:5])) if n else 0)   # 5. öğe: 'b' = 🧲 bant alımı
             if "makas" in e:
                 x.append([round(e["makas"]), round(e["bsmv"])])
         else:

@@ -115,6 +115,14 @@ ROBOTLAR = {
                                   "gevşek: 150 günlük ortalama şartları yerine fiyat > 50 günlük > 200 günlük ortalama yeter (sert "
                                   "düşüşten sonra toparlanan hisseye daha erken girer). Çıkış 🔐 Kırılımcı gibi: %20 iz stop + kâr "
                                   "kilidi (+%8 görülünce stop ≥ alış +%5)."},
+    # 2026-11-16: 🧲 Bant süpürme dönüşü (Documents/Bist-arastirma/2026-11-14/sinyal2/bant + birlesik/RAPOR.md): önce 🚀 v3, boş yuva
+    # kalırsa 🧲; evren ana liste (BIST100 + EK). DENEME / izleme robotu — panodaki 🧲 AL'in kağıt üstündeki karnesi.
+    "kirilim_bant": {"ad": "🔐🧲 Kırılımcı + bant dönüşü", "tur": "kirbant", "yuva": 10, "iz": 0.20, "kar_kilit": (0.08, 0.05),
+                     "filtre": True, "ana": True,
+                     "aciklama": "Önce 🔐 Kırılımcı gibi 🚀 v3 kırılımı gelen hisseyi alır; boş yuva kalırsa panodaki ikinci tür AL "
+                                 "'🧲 Bant süpürme dönüşü' gelen hisseyi alır (3 aylık yatay bandın altı süpürülüp geri alındı, kapanış "
+                                 "bant ortasının üstünde). Sadece ana liste (BIST 100 + ek liste). Hepsinde ertesi açılışta alım; çıkış "
+                                 "%20 iz stop + kâr kilidi (+%8 görülünce stop ≥ alış +%5)."},
     # 2026-10-31: kullanıcının bulduğu TradingView göstergesi 'AKIN 4' (scratchpad akin/RAPOR.md): DENEME robotları — 10 yıllık testte
     # v3+🔐'ü ve 🎲 rastgele girişi GEÇMEDİ; panoya girmez, karne için odada
     "akin_rpd": {"ad": "🔄 AKIN dip (RPD)", "tur": "akin", "sinyal": "rpd", "yuva": 10, "iz": 0.20, "kar_kilit": (0.08, 0.05),
@@ -236,6 +244,7 @@ def ozet_hazirla(s, d=None, buyuk=False):
          "uzama": False, "kijun": None,
          "kisa": bool(tk.get("kisa")), "g": guc_ozet(s.get("guc"), s.get("gh")),
          "tq": {"bugun": bool((s.get("tq") or {}).get("bugun")), "seviye": (s.get("tq") or {}).get("seviye")},
+         "bs": {"bugun": bool((s.get("bs") or {}).get("bugun")), "orta": ((s.get("bs") or {}).get("son") or {}).get("orta")},
          "ak": dict(s.get("ak") or {})}
     if d is not None and len(d) > 2:
         import sinyal as S
@@ -376,6 +385,11 @@ def _al_adaylari(robot, gv, kasa):
             aday.append((h["mom20"], kod))                       # az yükselmiş olan önce (proje 'AL önceliği')
         elif tur == "erkenkir" and (h.get("tq") or {}).get("bugun"):
             aday.append((h["mom20"], kod))                       # ⏩ erken şablonlu kırılım (sinyal.erken_kirilim)
+        elif tur == "kirbant" and (h.get("buyuk") or not robot.get("ana")):
+            if h["tk"]["bugun"]:
+                aday.append(((0, h["mom20"]), kod))              # önce 🚀 v3 (az yükselen önce)
+            elif (h.get("bs") or {}).get("bugun"):
+                aday.append(((1, h["mom20"]), kod))              # sonra 🧲 bant süpürme dönüşü (sinyal.bant_supurme)
         elif tur == "erken":
             u = h["tk"]["kirilima_uzak"]
             if (h["tk"]["sablon"] and u is not None and 0 < u <= robot.get("uzak", 3.0)          # = panodaki 👀 rozeti
@@ -422,6 +436,11 @@ def _al_notu(tur, h, n, bos, sira):
         o = _r(h["tk"].get("seviye"))
     elif tur == "erkenkir":
         o = _r((h.get("tq") or {}).get("seviye"))
+    elif tur == "kirbant":
+        if h["tk"]["bugun"]:
+            o = _r(h["tk"].get("seviye"))
+        else:      # 🧲: [bant ortası, aday, boş yuva, sıra, 'b']
+            return [_r((h.get("bs") or {}).get("orta")), n, bos, sira, "b"]
     elif tur == "erken":
         o = _r(h["tk"].get("kirilima_uzak"), 1)
     elif tur == "dip":
@@ -840,6 +859,11 @@ ROBOT_EK = {
                              "🚀 + kâr kilidinden iyi (10 yılda %3.372 → %4.245), küçüklerde 6'sında; en büyük düşüş aynı (~%28). "
                              "Fark kâr kilidinin katkısının ~1/8'i kadar — küçük. BRSAN'da 24.08 yerine 14.08'de alırdı. Panoya "
                              "almadan önce canlı karne için odada."},
+    "kirilim_bant": {"renk": "#86EFAC", "kisa": "Bant dönüşü",
+                     "not": "DENEME / izleme (2026-11-16): kanonik oda motoruyla 2017-26 ana listede 10 başlangıç gününün medyanı v3 tek başına "
+                            "+%105 / +%955 (2017-21 / 2022-26), v3 + 🧲 bant +%227 / +%1.145, en büyük düşüş aynı (−%27 / −%20); 🎲 aynı günlerde "
+                            "rastgele ek girişin %100 / %94'ünden iyi. Ama tüm evrende (küçükler dahil) 2022-26'da v3'ün gerisinde, son 1 yılda "
+                            "katkı ~0 ve 🧲 sinyali az (yılda ~17). Panodaki 🧲 AL'in kağıt üstündeki karnesi; 2-3 ay izlenecek."},
     "akin_rpd": {"renk": "#22D3EE", "kisa": "AKIN dip",
                  "not": "DENEME (testte GEÇMEDİ): 10 yıllık testte (2017-26, 257 hisse, 10 yuva) portföy kârı canlı 🚀 + kâr kilidinin "
                         "ana listede %64'ü, küçüklerde %40'ı; 🎲 aynı günlerde rastgele hisse almaktan iyi değil (ana %6, küçük %0 "
@@ -1550,7 +1574,7 @@ function kutu(g,x,y,z,w,d,h,ust,sol,sag,op){
 function zeminYazi(g,x,y,metin,renk,boy){var p=P(x,y,0);var t=el('text',{transform:'matrix(1,0.5,-1,0.5,'+p[0]+','+p[1]+')','font-size':boy||15,'font-weight':700,fill:renk,'letter-spacing':'3','font-family':'ui-monospace,Consolas,monospace'},g);t.textContent=metin;return t;}
 function bolge(g,x,y,w,d,renk,kesik){el('polygon',{points:pts([P(x,y),P(x+w,y),P(x+w,y+d),P(x,y+d)]),fill:renk+'10',stroke:renk,'stroke-opacity':.55,'stroke-width':1.4,'stroke-dasharray':kesik?'7 6':'none'},g);}
 var MASA={kirilimci:[1.0,2.0],siki:[3.7,2.0],erkenci:[6.4,2.0],momentumcu:[9.1,2.0],dipavcisi:[1.0,5.4],uzunvadeci:[3.7,5.4],rsi:[6.4,5.4],
- kirilimci20:[9.1,5.4],rastgele:[12.6,2.2],endeksci:[12.6,5.4],bekci:[14.6,9.5],ai1:[1.6,15.6],ai2:[4.6,15.6],
+ kirilimci20:[9.1,5.4],rastgele:[12.6,2.2],endeksci:[12.6,5.4],bekci:[14.6,9.5],ai1:[1.4,15.6],kirilim_bant:[5.4,15.6],
  guclu:[1.0,8.8],sablonci:[3.7,8.8],bulutcu:[6.4,8.8],zirveci:[9.1,8.8],paraci:[11.8,8.8],adxci:[1.0,12.2],emaci:[3.7,12.2],rsi50:[6.4,12.2],
  kilitli_kirilimci:[9.1,12.2],bulutcu_kilit:[11.8,12.2],sablon_kilit:[14.5,12.2],daralan:[9.1,15.6],weinstein:[11.8,15.6],erken_kirilim:[14.5,15.6],
  faizci:[1.0,19.0],altinci:[3.7,19.0],dolarci:[6.4,19.0],dengeci:[9.1,19.0],akin_rpd:[12.3,19.0],akin_delta:[14.8,19.0]};
@@ -1617,7 +1641,7 @@ function sahne(){
  bolge(g,0.6,11.4,7.8,3.0,'#F43F5E',false);zeminYazi(g,4.3,14.25,'💪 TEK BİLEŞEN','#F48BA0',11);
  bolge(g,14.1,8.1,2.6,3.0,'#FFC94D',false);zeminYazi(g,14.25,10.95,'RİSK','#FFC94D',12);
  bolge(g,8.6,11.4,8.1,6.0,'#FDE047',false);zeminYazi(g,8.75,17.25,'🔐 ÇIKIŞ DENEMESİ · KÂR KİLİDİ','#E9D66B',11);
- bolge(g,0.6,14.8,7.6,2.8,'#8E7BC9',true);zeminYazi(g,0.8,17.45,'YAPAY ZEKÂ EKİBİ · YAKINDA','#7A68B4',11);
+ bolge(g,0.6,14.8,3.6,2.8,'#8E7BC9',true);zeminYazi(g,0.75,17.45,'🧠 YAKINDA','#7A68B4',10);bolge(g,4.4,14.8,3.9,2.8,'#86EFAC',true);zeminYazi(g,4.55,17.45,'🧲 BANT · DENEME','#86EFAC',11);
  bolge(g,0.6,18.3,11.2,2.7,'#60A5FA',false);zeminYazi(g,0.8,20.85,'💰 BİRİKİM KÖŞESİ · KIYAS','#60A5FA',12);
  bolge(g,12.1,18.3,4.6,2.7,'#22D3EE',true);zeminYazi(g,12.25,20.85,'🧪 AKIN DENEME','#22D3EE',11);
  FIG.hat={};
@@ -1626,7 +1650,7 @@ function sahne(){
  FIG.bhat={};
  RID.forEach(function(id){if(!RB[id].bekci)return;var m=MASA[id],b=MASA.bekci,a=P(b[0]+0.95,b[1]+0.55),c=P(m[0]+1.6,m[1]+0.9);
   FIG.bhat[id]=el('line',{x1:a[0],y1:a[1],x2:c[0],y2:c[1],stroke:'#FFC94D','stroke-width':1.1,opacity:.25,'stroke-dasharray':'2 6'},g);});
- var liste=RID.map(function(id){return [id,RB[id]];}).concat([['bekci',{renk:'#FFC94D',ad:'Risk Bekçisi',em:'🛡️'}],['ai1',{h:1}],['ai2',{h:1}]]);
+ var liste=RID.map(function(id){return [id,RB[id]];}).concat([['bekci',{renk:'#FFC94D',ad:'Risk Bekçisi',em:'🛡️'}],['ai1',{h:1}]]);
  liste.sort(function(a,b){var p=MASA[a[0]],q=MASA[b[0]];return (p[0]+p[1])-(q[0]+q[1]);});
  var mg=el('g',{},g);liste.forEach(function(r){robotCiz(mg,r[0],r[1].renk||'#8E7BC9',r[1].kisa||r[1].ad||'',r[1].em||'',r[1].h,r[1].tahmini);});
  var ap=P(4.2,15.8,0),ag=el('g',{transform:'translate('+ap[0]+','+(ap[1]-92)+')'},g);
@@ -1826,7 +1850,8 @@ function akisCiz(v){var h='',bek=[];
  document.getElementById('akis').innerHTML=h||'<div class="ol"><span>Henüz olay yok.</span></div>';}
 function notMetin(x,id){var n=x[10],t=RB[id].tur;if(!n||!n.length)return '';
  if(x[2]==='A'){var o=n[0],s='';
-  if((t==='kirilim'||t==='erkenkir')&&o!=null)s='20 günlük zirve '+sy(o,2)+' kırıldı';else if(t==='erken'&&o!=null)s='zirveye %'+sy(o,1)+' kalmıştı';
+  if(t==='kirbant'&&n[4]==='b'&&o!=null)s='🧲 bant süpürme dönüşü (orta '+sy(o,2)+' geçildi)';
+  else if((t==='kirilim'||t==='erkenkir'||t==='kirbant')&&o!=null)s='20 günlük zirve '+sy(o,2)+' kırıldı';else if(t==='erken'&&o!=null)s='zirveye %'+sy(o,1)+' kalmıştı';
   else if(t==='dip'&&o!=null)s='destek '+sy(o,2)+' TL\'den tepki';else if(t==='rsi'&&o!=null)s='RSI '+sy(o,1);
   else if(t==='momentum'&&o!=null)s='6 ay getirisi '+yz(o,0);
   else if((t==='zirve'||t==='para')&&o!=null)s='para akışı (CMF) '+sy(o,2);else if((t==='guc'||t==='sablon'||t==='bulut'||t==='adx'||t==='ema'||t==='rsi50'||t==='weinstein')&&o!=null)s='güç puanı '+o+'/7';else if(t==='uzun')s='🌱 uzun vade AL';else if(t==='rastgele')s='rastgele seçim';

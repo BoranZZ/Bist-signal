@@ -12,7 +12,7 @@ from kap import kap_guncelle, kap_mesaji, fr_yayinlar, fr_son_donem, tedbir_gunc
 from bilanco import bilancolari_al, bilanco_ozet, bilanco_metni, bilanco_yakin, tarih_tr, temettu_ozet, zarar_guncelle
 from sinyal import analiz_et, destek_direnc, bolunme_duzelt, tahta_riski, TABAN_GETIRI, TABAN_GUN, IZ_STOP_ORAN, KILIT_ARALIK
 from sinyal import rs_puanlari, rs_tam, bilanco_tepkisi
-from sinyal import kar_kilit_ayar, iz_seviye, MANIP_ESIK
+from sinyal import kar_kilit_ayar, iz_seviye, MANIP_ESIK, BANT_NOT
 from pano import pano_uret, gecmis_uret, manip_isaret
 import gunici
 try:
@@ -110,6 +110,8 @@ MANIPULE = {
     "TERA", "TMPOL", "TRHOL", "GENIL", "GESAN", "A1CAP",
 }
 KODLAR = sorted(set(BIST100 + EK_HISSELER + KUCUK_HISSELER + list(HALKA_ARZ)) - MANIPULE)
+# 🧲 Bant süpürme dönüşü evreni: araştırmadaki gibi ana liste + küçükler (KAP'taki ek küçüklerde etki yok; yeni arzlar ölçülmedi)
+BANT_EVREN = set(BIST100 + EK_HISSELER + KUCUK_HISSELER) - MANIPULE
 DURUM = "durum.json"
 ORAN_CACHE = "oranlar.json"
 ENDEKS = "XU100"
@@ -1256,6 +1258,41 @@ def _al_satiri(s, pf):
     return t
 
 
+def _sayi(x, n=2):
+    """Türkçe sayı (1.234,56)."""
+    return f"{x:,.{n}f}".replace(",", " ").replace(".", ",").replace(" ", ".")
+
+
+def bant_satiri(s, pf):
+    """🧲 Bant süpürme dönüşü — Telegram AL satırı (v3 AL satırından ayrı; JS bsHtml ile aynı bilgiler)."""
+    b = (s.get("bs") or {}).get("son") or {}
+    isaret = "❗" if s["kod"] in pf else "🧲"
+    y = " 🔹küçük hisse (tahta sığ, sert oynar — lotu küçük tut)" if s["kod"] in KUCUK_HISSELER else ""
+    st = b.get("sup_t") or ""
+    t = (f"{isaret} <b>{s['kod']}</b>{y}  {_sayi(s['fiyat'])} TL — 3 aylık bandın altı süpürüldü ({st[8:10]}.{st[5:7]}, dip "
+         f"{_sayi(b['dip'])}), geri alındı, fiyat bant ortasının üstüne döndü.\n"
+         f"     Bant {_sayi(b['alt'])} – {_sayi(b['ust'])} (orta {_sayi(b['orta'])}). Stop fikri: {_sayi(b['dip'])} altı kapanış · "
+         f"ilk hedef {_sayi(b['ust'])} (bant üstü) · çıkış: tepe kapanışın %20 altı" + (f"; {kk_metni(True)}" if kk_metni() else "") + ".")
+    if s["kod"] in pf:
+        t += "\n     " + plan_metni(s, pf[s["kod"]])
+    return t
+
+
+def bant_bolumu(bant_al, pf, piyasa=None):
+    """🧲 bölümü: ayrı başlık, v3 AL'leriyle karışmaz. Sıra: portföydekiler, sonra son 20 günde az yükselen."""
+    sirali = sorted(bant_al, key=lambda x: (x["kod"] not in pf, x["mom20"] if x.get("mom20") is not None else 0))
+    gos = [s for s in sirali if s["kod"] in pf] + [s for s in sirali if s["kod"] not in pf][:MAX_AL_SATIR]
+    bas = (f"🟢▲ 🧲 <b>AL — Bant süpürme dönüşü ({len(bant_al)})</b>\n<i>{BANT_NOT['ek']}</i>\n"
+           f"🟢▲ <i>Geçmiş isabet %{BANT_NOT['isabet']} ({BANT_NOT['n']} işlem), rastgele güne göre +{BANT_NOT['ikiz']} puan.</i>\n"
+           f"🔴▼ <i>Son 1 yılda kazanç küçük (işlem başı +%{BANT_NOT['son1y']}). Giriş ertesi gün açılış.</i>")
+    if piyasa and piyasa.get("zayif"):
+        bas += "\n⚠️ <i>Piyasa zayıf (BIST 100 &lt; 50 günlük ortalama): 🚀 AL gelmez; bu sinyal yine verilir — temkinli ol.</i>"
+    satir = [bant_satiri(s, pf) for s in gos]
+    if len(sirali) > len(gos):
+        satir.append(f"…ve {len(sirali) - len(gos)} hisse daha (panoya bak)")
+    return bas + "\n" + "\n".join(satir)
+
+
 MOMENTUM_PAY = 0.20   # aylık momentum listesi: taranan hisselerin en güçlü %20'si
 
 
@@ -1307,7 +1344,7 @@ def uv_mesaji(uv_al, uv_sat, pf):
 
 
 def telegram_mesaji(yeni_al, yeni_sat, sat_teyit, pf, uyari, piyasa=None, karar_kirilan=None, on_kapanis=False, iptal=None,
-                    diger_al=None, takvim_notu=None):
+                    diger_al=None, takvim_notu=None, bant_al=None):
     tarih = pd.Timestamp.now(tz="Europe/Istanbul").strftime("%d.%m.%Y %H:%M")
     parca = [f"📊 <b>BIST Sinyal</b> — {tarih}"]
     if yeni_al:
@@ -1330,6 +1367,8 @@ def telegram_mesaji(yeni_al, yeni_sat, sat_teyit, pf, uyari, piyasa=None, karar_
             bas += ("\n⚠️ <i>Piyasa zayıf: BIST 100 50 günlük ortalamasının altında. Backtest'te bu dönemlerde "
                     "gelen AL'ler belirgin şekilde daha kötü sonuç verdi — temkinli ol.</i>")
         parca.append(bas + "\n" + "\n".join(satir))
+    if bant_al:   # 🧲 ikinci tür AL (kesin kapanıştan sonra; v3 AL'lerinden ayrı başlık)
+        parca.append(bant_bolumu(bant_al, pf, piyasa))
     if yeni_sat:
         satir = []
         for s in yeni_sat:
@@ -1710,6 +1749,16 @@ def hisse_metni(s, p=None):
         sat.append(f"🚀 Açık pozisyon yok · son işlem {_tt(tk['cikis_tarih'])} çıktı ({_yzd(tk.get('sonuc'))})")
     else:
         sat.append("🚀 Açık v3 pozisyonu yok")
+    bs = s.get("bs") or {}
+    bb, bz = bs.get("son") or {}, bs.get("izle")
+    if bs.get("bugun"):
+        sat.append(f"🟢▲ 🧲 <b>Bugün bant süpürme dönüşü AL</b> (ikinci tür) · bant {_sayi(bb['alt'])}–{_sayi(bb['ust'])}, "
+                   f"stop fikri {_sayi(bb['dip'])} altı kapanış")
+    elif bb.get("durum") == "AL" and bb.get("stop") is not None:
+        sat.append(f"🧲 bant dönüşü AL {bb['gun']} gün önce ({_tt(bb['t'])}), o günden beri {_yzd(bb.get('degisim'))} · "
+                   f"📍 iz stop <b>{bb['stop']} TL</b>")
+    elif bz:
+        sat.append(f"👀 🧲 bant altı süpürüldü + geri alındı; kapanış {_sayi(bz['orta'])} (bant ortası) üstüne çıkarsa 🧲 AL")
     g, rs = s.get("guc") or {}, s.get("rs")
     ek = ([f"💪 güç {g['puan']}/{g['toplam']}"] if g else []) + ([f"RS {rs}"] if rs is not None else []) \
         + ([f"RSI {s['rsi']}"] if s.get("rsi") is not None else [])
@@ -1904,7 +1953,7 @@ def main():
             _c = _kapanis[kod] = bolunme_duzelt(df)["Close"]
             arz = arz_bilgisi(kod, df)
             _bk = bool(_kesin or df.index[-1].date() != _sim.date())   # son günlük mum kesin mi (vadeler: hafta/ay tamam mı)
-            a = analiz_et(df, xu_ust, _xu, bar_kesin=_bk, bugun=_sim.date())
+            a = analiz_et(df, xu_ust, _xu, bar_kesin=_bk, bugun=_sim.date(), bant=kod in BANT_EVREN)
             if not a:
                 if arz:
                     yeni_arzlar.append(arz)   # sinyal için geçmiş henüz yetersiz
@@ -2027,6 +2076,13 @@ def main():
     tk_gonderilen |= {s["kod"] for s in yeni}
     diger_al = []
     yeni_sat = [s for s in yeni_sat if s["kod"] in pf]   # SAT mesajı sadece portföydekiler için
+    # 🧲 Bant süpürme dönüşü: sinyal kapanışla (bant ortasının üstünde kapanış) → sadece KESİN kapanıştan sonra, günde bir kez;
+    # taban serisi / 🔒 / 🎈 olan hisseden mesaj yok (v3 ile aynı). Kapanıştan önce gönderilmediği için iptal mesajı gerekmez.
+    bs_d = durum.get("bs_gonderilen") or {}
+    bs_gonderilen = set(bs_d.get("kodlar", [])) if bs_d.get("tarih") == bugun_iso else set()
+    bant_al = []
+    if kapanis_zamani:
+        bant_al = [s for s in sonuclar if (s.get("bs") or {}).get("bugun") and not _riskli(s) and s["kod"] not in bs_gonderilen]
 
     # v2: portföyde iz stop kırılımı (uzun vade hariç) — kesin kapanıştan sonra, her AL dalgası için bir kez.
     # durum.json herkese açık: anahtarlar gizli özetle (HMAC); ilk çalışmada sessiz başlangıç kaydı.
@@ -2108,15 +2164,17 @@ def main():
     if patlak_al:
         print(f"Taban serisi / kilitli taban / şişme {len(patlak_al)} hissenin AL mesajı gönderilmedi.")
 
-    if yeni or yeni_sat or sat_teyit or karar_kirilan or iptal or diger_al:
-        print(f"Telegram: {len(yeni)} yeni AL (+{len(diger_al)} trend dışı), {len(yeni_sat)} portföy SAT, {len(sat_teyit)} iz stop kırılımı, "
-              f"{len(karar_kirilan)} karar çizgisi kırılımı, {len(iptal)} iptal.")
+    if yeni or yeni_sat or sat_teyit or karar_kirilan or iptal or diger_al or bant_al:
+        print(f"Telegram: {len(yeni)} yeni AL (+{len(diger_al)} trend dışı), {len(bant_al)} 🧲 bant AL, {len(yeni_sat)} portföy SAT, "
+              f"{len(sat_teyit)} iz stop kırılımı, {len(karar_kirilan)} karar çizgisi kırılımı, {len(iptal)} iptal.")
         _tn = None
         try:
             _tn = takvim.al_notu(tkv, simdi.date()) if (takvim and yeni) else None
         except Exception:
             pass
-        tg_gonder(telegram_mesaji(yeni, yeni_sat, sat_teyit, pf, uyari, piyasa, karar_kirilan, on_kapanis, iptal, diger_al, _tn))
+        if tg_gonder(telegram_mesaji(yeni, yeni_sat, sat_teyit, pf, uyari, piyasa, karar_kirilan, on_kapanis, iptal, diger_al, _tn,
+                                     bant_al=bant_al)) or not os.environ.get("TELEGRAM_TOKEN"):
+            bs_gonderilen |= {s["kod"] for s in bant_al}   # gönderilemediyse sonraki taramada yeniden dener
     else:
         print("Yeni AL / portföyde SAT yok, Telegram sessiz." if kapanis_sonrasi
               else "Gün içi tarama: AL/SAT mesajları kapanış sonrası taramada gönderilir.")
@@ -2336,6 +2394,7 @@ def main():
                    "alarm_tetik": sorted(tetiklenen), "on_sinyal": dict(sorted(on_sinyal.items())),
                    "uv_son": dict(sorted(uv_son.items())), "kap_son": kap_son,
                    "tk_gonderilen": {"tarih": bugun_iso, "kodlar": sorted(tk_gonderilen)}, "mom_ay": mom,
+                   "bs_gonderilen": {"tarih": bugun_iso, "kodlar": sorted(bs_gonderilen)},
                    "gunici": {"tarih": bugun_iso, "g": sorted(gi_gonderilen)},
                    "sabah_tarih": sabah_tarih, "makro_sabah": makro_sabah, **({"olay_tarih": olay_tarih} if olay_tarih else {}), **({"tg_ofset": int(tg_ofset)} if tg_ofset else {}),
                    **({"anahtar_uyari": anahtar_uyari} if anahtar_uyari else {})},

@@ -1016,3 +1016,49 @@ yeniden filtre önerilirse **tekrar araştırma**, bu sonucu anlat.
   (Telegram yerine yazdırma): ☀️ mesajı, akşam 🌍 + 📊 olay satırları, Yahoo çöktü (önbelleksiz) → tarama tamam, ☀️ gitmedi/yeniden denenecek, makro/takvim
   modülü yüklenemedi → tarama tamam. Telegram'sız tam tarama: main 45,9/46,2 sn ↔ yeni 47,0/46,5 (önbellekten) ve 53,7/51,1 (indirmeli; makro 2,6 sn) →
   fark gürültü düzeyinde; index.html +~11 KB. `node --check` tamam; Chrome headless 1280 px + 390 px (iframe): JS hatası yok, taşma yok (`sayfa_hazirla.py`, `ekran/`).
+
+## 🧲 Bant süpürme dönüşü — ikinci tür AL + 🔐🧲 robot (2026-11-16, dal `bant-supurme`)
+Kaynak: dc_akademi 'Altın ne olur abi' likidite avı videosu + kullanıcının 'uzun süre zikzak yapan hissede süpürme tahmin edilebilir' (uzun bant)
+fikri. Araştırma arşivi `Documents/Bist-arastirma/2026-11-14/sinyal2/bant/RAPOR.md` (kural, 1 hafta/1 ay/3 ay kıyası) ve `.../sinyal2/birlesik/RAPOR.md`
+(kanonik oda motoruyla kıyas). **Tekrar araştırma.** 1 hafta / 1 aylık bant süpürmeleri rastgele günden KÖTÜ; bant üstü süpürmesi uyarı/çıkış olarak işe
+yaramıyor; bant içi al-sat komisyonu karşılamıyor → bunlar eklenmedi.
+- **Kural (`sinyal.bant_olaylar` / `bant_zincir` / `bant_supurme`, sabitler `BANT_*`):** bant = bugün hariç son 60 işlem gününün en yüksek High / en düşük
+  Low'u; alt/üst %25 bölge arasında en az 2 gidiş-geliş; genişlik ≤ %30 (ortaya göre). Low bant altını kırar (bant o gün dondurulur), en geç 3. günün
+  kapanışında kapanış yeniden bant altının üstünde (süpürme dibi bant genişliğinin yarısından derine inerse iptal); geri almadan sonra en çok 10 gün içinde
+  kapanış bant ortasının üstü → **🧲 AL** (giriş ertesi açılış; arada kapanış süpürme dibinin altına inerse iptal). Çıkış v3 ile aynı: %20 iz + 🔐 A4
+  (`iz_yuru`) + kilitli tabanda `gercekci_cikis`. Açık 🧲 pozisyon varken yeni 🧲 AL yok (araştırmanın 156 işlemlik zinciri; çıkış kilitli tabanda
+  bekliyorsa da açık sayılır). **Piyasa filtresi YOK** (sinyallerin ~%45'i XU100 < SMA50 iken). Evren `tarama.BANT_EVREN` = ana liste + küçükler, MANIPULE
+  hariç (yeni arzlarda `analiz_et(bant=False)`). Metin sayıları TEK yerde `sinyal.BANT_NOT` (Telegram + pano `BANT_NOT`).
+- **analiz_et → `bs`** (try/except: hata/eksik High-Low/kısa veri → None, tarama düşmez): `bugun`, `son` (sinyali son 60 işlem gününde olan ya da açık
+  son işlem: t, gun, alt/orta/ust, dip, sup_t, geri_t, durum, giriş, tepe, stop, 🔐 alanları, çıkış), `izle` (süpürüldü + geri alındı, ortaya dönüş
+  bekleniyor; kalan gün, uzak %), `g` (son 4 işlem), `poz` (girilmiş son işlem; panoya gömülmez).
+- **SAT / portföy (en sade çözüm):** ayrı SAT mesajı YOK. En son sistem girişi 🧲 ise (açık 🚀 pozisyon yokken ve gösterge AL'inden yeni) `analiz_et`
+  `iz`'i o girişten kurar (`iz.kaynak = 'bant'`, `al_tarih` = 🧲 sinyal günü) → mevcut portföy planı, 'iz stop kırıldı' Telegram'ı, tablo Stop sütunu aynen
+  çalışır (v3'ün `tk` override'ı gibi). Açık 🚀 v3 pozisyonunda iz ASLA 🧲'den gelmez (test). Canlı karne (gecmis.json) 🧲 kaydı AÇMAZ (sadece `kural: v3`).
+- **Pano:** tablo rozetleri `.bsb` (▲ 🧲 AL / 🧲 AL Ng önce / 🧲 bantta · Ng / 🧲 ortaya %x), hisse penceresinde 🚀 kutusunun altında `bsHtml` (bant alt/orta/üst,
+  süpürme dibi = stop fikri, ilk hedef bant üstü, çıkış A4 + %20 iz, piyasa zayıfsa not, 🟢▲ geçmiş istatistik, 🔴▼ son 1 yıl dürüstlük satırı, son 🧲
+  işlemleri), 'Bugün ne var?' kartında '🧲 Bant süpürme dönüşü (son 5 gün)' + '👀 🧲 Ortaya dönüş bekleyen' satırları, favorilerde 🧲, sözlükte 3 madde.
+  `DATA[k].bs` sadece son/izle olan hissede (16.11'de 11 hisse; index.html +~13 KB).
+- **Telegram:** v3 AL'lerinden AYRI bölüm '🟢▲ 🧲 AL — Bant süpürme dönüşü (n)' (`tarama.bant_bolumu`/`bant_satiri`), SADECE kesin kapanıştan sonra (18:30+;
+  kapanıştan önce gönderilmediği için iptal mesajı yok), günde bir kez (`durum.json` → `bs_gonderilen` {tarih, kodlar}; portföy bilgisi yok), 🎈/🔒/taban
+  serisinde mesaj yok. /hisse cevabında 🧲 satırı. v3 AL'i, v3 piyasa filtresi, backtest.py DEĞİŞMEDİ.
+- **🏢 Robot `kirilim_bant` '🔐🧲 Kırılımcı + bant dönüşü'** (tur `kirbant`, 10 yuva, Bekçi, riskli filtresi, `ana: True` = sadece BIST100 + EK, iz %20 +
+  `kar_kilit` (0.08, 0.05)): aynı gün önce 🚀 v3 kırılımları (kilitsiz `tk`), boş yuva kalırsa 🧲 (`ozet_hazirla` `bs` / replay `ozellik` `bs_bugun`,
+  `bs_orta`); her grupta az yükselen önce. Alım notu 🧲'de 5. öğe 'b' (orta), JS `notMetin`. 'Kaçan aday' `atla_n`. Salon: yapay zekâ köşesi
+  daraltıldı (tek hayalet masa), yanında '🧲 BANT · DENEME' köşesi [5,4, 15,6] (renk #86EFAC). Mevcut robotlar DEĞİŞMEDİ. DENEME/izleme (2-3 ay).
+- **Testler (scratchpad `433930d7…/scratchpad/bant/`, hepsi geçti):** `t1_sinyal.py` bölünme düzeltmeli 10y veriyle zincir = araştırma 156/156 işlem
+  (giriş/çıkış/getiri 0 fark), veri sinyal gününde kesilince 156/156 'bugun', olay listesi 1.114/1.114; `t2_gungun.py` 47 hisse × 2024→ her gün kesik
+  veri (32.768 hisse-gün): 23 doğru AL, 0 fazladan, 0 eksik; `t3_pencere.py` 4 yıllık pencere = 10y zincir (son 1 yıl 31 işlem, 0 fark); `t13_birim.py`
+  14/14 (istisna, boş High/Low, kısa veri, bant kapalıyken eski alanlar aynı, açık v3'te iz 🧲'den gelmez, Telegram/oda aday sırası); `t14_esit.py`
+  257 hissede `analiz_et` eski kodla `bs` dışında birebir (iz/al_tarih yalnız AKBNK, LYDHO'da 🧲'den); eski 26 robot aynı veriyle eski kodla `calistir`/
+  `oda_oynat` birebir (işlem, kasa, olay, bekçi; 6,5y), `oda_oynat` = `calistir` 27/27; canlı yol (13.11 oda.json + 16.11 taraması): eski robotlar eski
+  kodla aynı, 🔐🧲 o gün 100.000 TL ile eklendi; `node --check` (index, oda); headless Chrome 1280 + 390 px (iframe): JS hatası yok, taşma yok.
+  Bilinen fark: replay sadece BIST 100 günlerini alıyor (Yahoo tatil satırları atılır, eski bilinen fark) → 10y replay'de 🧲 günleri araştırmayla 148/156
+  ortak, 10 fazla (canlı tarama tatil satırlarıyla çalışır: 156/156).
+- **Robot sonuçları:** kanonik motor, 10 başlangıç medyanı (`t5_robot.py`, bist_10y): ana listede v3 tek başına 105 / 955 / tümü 2.024 (araştırmayla
+  birebir), v3 + 🧲 **296 / 1.132** (araştırma 227 / 1.145; fark yukarıdaki 8/10 farklı sinyal + başlangıç duyarlılığı: 2017-21 aralığı +%78…+%394),
+  11.21-05.23 166 (= araştırma), son 12 ay +1 (v3 −1), düşüş −25/−20 (v3 −24/−22). **oda_replay.json yeniden üretildi** (gerçek Yahoo verisi, 15.11.2021 →
+  13.11.2026, tüm robotlar yeni veriyle): 🔐🧲 **+%1.244** (düşüş −%20,7, isabet %68, 142 alım, son 1 yıl +%19,8, 6 ay −%4,8, şans 99) · 🔐 Kırılımcı
+  +%1.277 (−%25,2, son 1 yıl +%28,6, 6 ay −%16,2) · 🚀 +%930 · oda_replay.json 1.497 KB.
+- **Süre:** `bant_supurme` 257 hissede 0,2-0,4 sn (~1 ms/hisse); Telegram'sız tam tarama yerelde 55-70 sn (ağ gürültüsü baskın). Workflow ve fork'lar için
+  değişiklik yok (yeni dosya yok; yeni durum.json anahtarı `bs_gonderilen`).

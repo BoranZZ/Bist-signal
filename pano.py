@@ -4,6 +4,7 @@ import json
 import os
 from html import escape
 import pandas as pd
+from sinyal import BANT_NOT   # 🧲 bant dönüşü araştırma metinleri (Telegram ile tek kaynak)
 
 # Hangi GitHub deposu: Actions GITHUB_REPOSITORY verir (arkadaşın kopyasında onun deposu); yerelde varsayılan.
 REPO = os.environ.get("GITHUB_REPOSITORY") or "BoranZZ/Bist-signal"
@@ -266,6 +267,21 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None, 
             sdrz += f' <span class="tkb izle" title="Yeni alım sinyali DEĞİL: {tk.get("giris_tarih")} günkü 🚀 AL hâlâ sürüyor ({tk.get("degisim")}%, iz stop {tk.get("stop")} TL). Backtest: sinyalden 20+ gün sonra girmek belirgin kötü; yeni alım için bir sonraki kırılımı bekle">trendde · {tk.get("gun")}g</span>'
         elif tk.get("sablon") and tk.get("kirilima_uzak") is not None and 0 < tk["kirilima_uzak"] <= 3:
             sdrz += f' <span class="tkb izle" title="Trend şablonunda; 20 günlük zirveye (%{tk["kirilima_uzak"]} yukarıda, {tk.get("kirilim_seviye")} TL) yakın — kapanışla aşarsa v3 AL">👀 kırılıma %{tk["kirilima_uzak"]}</span>'
+        bs = s.get("bs") or {}
+        bss, bsi = bs.get("son") or {}, bs.get("izle")
+        if bs.get("bugun"):
+            sdrz += (f' <span class="bsb yeni" title="🧲 Bant süpürme dönüşü (ikinci tür AL, v3 değil): 3 aylık bandın altı süpürüldü, geri '
+                     f'alındı ve kapanış bant ortasının ({bss.get("orta")}) üstünde. Giriş ertesi açılış; stop fikri {bss.get("dip")} altı kapanış">'
+                     f'<span class=oky>▲</span> 🧲 AL</span>')
+        elif bss.get("durum") == "AL" and bss.get("giris") and bss.get("gun", 99) <= 5:
+            sdrz += (f' <span class="bsb" title="{bss.get("gun")} gün önce 🧲 bant süpürme dönüşü AL ({bss.get("t")}; o günden beri '
+                     f'{bss.get("degisim")}%). İz stop {bss.get("stop")} TL">🧲 AL {bss.get("gun")}g önce</span>')
+        elif bss.get("durum") == "AL" and bss.get("giris"):
+            sdrz += (f' <span class="bsb izle" title="Yeni alım sinyali değil: {bss.get("t")} günkü 🧲 bant dönüşü pozisyonu sürüyor '
+                     f'({bss.get("degisim")}%, iz stop {bss.get("stop")} TL)">🧲 bantta · {bss.get("gun")}g</span>')
+        elif bsi:
+            sdrz += (f' <span class="bsb izle" title="Bant altı süpürüldü ve geri alındı ({bsi["geri_t"]}); kapanış bant ortasının '
+                     f'({bsi["orta"]}) üstüne çıkarsa 🧲 AL. Kalan süre {bsi["kalan"]} işlem günü">🧲 ortaya %{bsi["uzak"]}</span>')
         uv = s.get("uv") or {}
         if uv.get("durum") == "AL":
             sdrz += f' <span class="uvsb" title="Uzun vade AL: {uv.get("tarih")} tarihinden beri">🌱 UV</span>'
@@ -339,6 +355,9 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None, 
             veri[k]["zr"] = s["zr"]
         if s.get("mn"):   # ⚠️ manipülasyon işaretleri — sadece olan hissede
             veri[k]["mn"] = s["mn"]
+        bs = s.get("bs") or {}
+        if bs.get("son") or bs.get("izle"):   # 🧲 bant dönüşü — sadece gösterilecek bir şey olan hissede ('poz' gömülmez)
+            veri[k]["bs"] = {a: bs[a] for a in ("bugun", "son", "izle", "g") if bs.get(a) is not None}
 
     banner = ""
     if ornek:
@@ -375,7 +394,7 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None, 
                  ("__TOPLAM__", str(len(sonuclar))),
                  ("__TKBUGUN__", str(sum(1 for s in sonuclar if (s.get("tk") or {}).get("bugun")))),
                  ("__TK5__", str(sum(1 for s in sonuclar if (s.get("tk") or {}).get("durum") == "AL" and ((s.get("tk") or {}).get("gun") or 0) <= 5))), ("__BANNER__", banner),
-                 ("__MNNOT__", json.dumps(MN_NOT, ensure_ascii=False)), ("__DURUST__", escape(DURUST_NOT, quote=False)),
+                 ("__MNNOT__", json.dumps(MN_NOT, ensure_ascii=False)), ("__BANTNOT__", json.dumps(BANT_NOT, ensure_ascii=False)), ("__DURUST__", escape(DURUST_NOT, quote=False)),
                  ("__ROWS__", "".join(rows)), ("__ARZ__", arzblok),
                  ("__XU__", json.dumps(endeks)), ("__PIYASA__", json.dumps(piyasa)),
                  ("__GI__", json.dumps(gunici, ensure_ascii=False, separators=(",", ":"))),
@@ -537,6 +556,7 @@ tbody tr:hover,tbody tr:hover td{background:#F2F5F3}
 .bilb{background:#EEF1F8;color:#2F4A7A;font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:5px;margin-left:5px;white-space:nowrap}
 .bilkutu{margin:0 0 14px;border:1px solid var(--line);border-radius:10px;padding:10px 14px;font-size:13px;line-height:1.55}
 .bilkutu svg{display:block;width:100%;max-width:420px;height:auto;margin-top:6px}
+.bsb{background:#E6F4EA;color:#14633A;font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:5px;margin-left:5px;white-space:nowrap;border:1px solid #9BD3AE}.bsb.yeni{background:#14633A;color:#fff}.bsb.yeni .oky{color:#B7F5C9}.bsb.izle{background:#F3F3F1;color:#555;border-color:#DDD}
 .uvsb{background:#E4F2E9;color:#14633A;font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:5px;margin-left:5px;white-space:nowrap}
 .bayrakb{font-size:11px;margin-left:4px}
 td.vd{white-space:nowrap;font-size:12px}.vu,.va,.vy{font-style:normal;font-weight:700}.vu{color:#1B7F4B}.va{color:#B4362E}.vy{color:var(--muted);font-weight:400}
@@ -710,6 +730,9 @@ __ARZ__
 <div class="sz"><span class="tkb yeni">🚀 KIRILIM</span><span>Bugün AL: hisse güçlü trenddeyken (fiyat 50/150/200 günlük ortalamaların üstünde, 52 hafta zirvesine yakın) son 20 günün zirvesini ilk kez aştı. Telegram'a gelen AL budur. Çıkış: tepe kapanışın %20 altı (iz stop).__KKCUMLE__</span></div>__KKSOZ__
 <div class="sz"><span class="tkb">🚀 AL 3g önce</span><span>AL birkaç gün önce geldi. Testte ilk 5 gün içinde almak, sinyal günüyle neredeyse aynı sonucu verdi.</span></div>
 <div class="sz"><span class="tkb izle">trendde · 25g</span><span>Eski AL hâlâ sürüyor ama <b>yeni alım sinyali değil</b>: 20+ gün sonra girmek testte belirgin kötüydü. Elindeyse iz stop'a kadar tut.</span></div>
+<div class="sz"><span class="bsb yeni"><span class=oky>▲</span> 🧲 AL</span><span><b>İkinci tür AL — Bant süpürme dönüşü</b> (🚀 v3'ten ayrı; v3'ü susturmaz). Hisse ~3 ay (60 işlem günü) yatay bir bantta en az iki kez alttan üste gidip gelmiş; fiyat bandın altına kısa bir iğne atıp ('likidite avı', stopları süpürme) en geç 3 günde geri dönmüş ve 10 gün içinde kapanış bant ortasını geçmiş. Giriş ertesi açılış; stop fikri süpürme dibinin altında kapanış, ilk hedef bant üstü, çıkış 🚀 ile aynı (tepe kapanışın %20 altı + 🔐). Piyasa zayıfken de verilir. 10 yıllık testte 156 işlem, isabet ~%73, rastgele güne göre ~+10 puan — ama son 1 yılda kazanç küçük (+%1,3/işlem). Telegram'a ayrı başlıkla gelir.</span></div>
+<div class="sz"><span class="bsb">🧲 AL 3g önce</span><span>🧲 AL birkaç gün önce geldi; <span class="bsb izle">🧲 bantta · 25g</span> eski 🧲 pozisyonu sürüyor (yeni alım değil).</span></div>
+<div class="sz"><span class="bsb izle">🧲 ortaya %2</span><span>Bant altı süpürüldü ve geri alındı; kapanış bant ortasının üstüne çıkarsa (10 gün içinde) 🧲 AL olur. Sadece izleme, alım sinyali değil. 1 haftalık / 1 aylık kısa bantlarda bu kurgu testte rastgele günden KÖTÜ çıktı; o yüzden yalnız ~3 aylık bant sayılır.</span></div>
 <div class="sz"><span class="tkb izle">🚀 Son roketler</span><span>Tablonun üstündeki filtre: son 5 / 20 / 60 işlem gününde 🚀 AL almış hisseler; sinyal günü, girişten beri getiri, BIST 100'e göre fark. İz stop ile kapananlar da listede (sadece iyi gidenleri göstermek yanıltıcı olur). Eski sinyaller yeni alım sinyali değil.</span></div>
 <div class="sz"><span class="tkb">⚠️ çok yükselmiş</span><span>Hisse penceresinde 🚀 AL notu: sinyal günü fiyat 52 hafta dibinin 5+ katı ya da 6 ayda 3+ kat. Geçmişte bu tür girişlerin ~%13'ü %30+ kayıpla kapandı (diğerlerinde ~%1), en büyük kazananların bir kısmı da bu grupta. AL engellenmez; pozisyon büyüklüğüne dikkat.</span></div>
 <div class="sz"><span class="tkb">🌍 dünya ve makro</span><span>Petrol, altın, çelik, dolar, ABD faizi, korku endeksi (VIX), S&amp;P 500 gibi dünya göstergelerinin bugünkü ve 5 günlük hareketi (Yahoo, ~30 dk'da bir). Oklar fiyatın yönüdür (gri), iyi/kötü değil. Renkli ok sadece hisseye etkisinde: <span class=oky>▲</span> lehine, <span class=okk>▼</span> aleyhine. 10 yıllık ölçümde yalnız ~13 hissede sağlam bir ilişki var (altın madencileri ↔ altın, TUPRS/AYGAZ ↔ petrol, Ereğli/Kardemir ↔ çelik; THY/Pegasus/TAV ↔ petrol 'son yıllarda'). Etki genelde aynı gün ya da ertesi sabah açılışta fiyatlanır; sonradan almak geçmişte ek kazanç getirmedi. Al-sat sinyali değildir.</span></div>
@@ -786,6 +809,7 @@ const GI=__GI__;
 const GEN=__GEN__;  // 🌡️ piyasa genişliği, son 60 işlem günü (tarama.piyasa_genisligi): t, s50/s200 (% üstünde), z/d (52h zirve/dip sayısı), n
 const KGK=__KGK__;  // 📉 canlı karne ↔ 'normal kötü günler' kıyası (pano.kotu_gun_kiyas)
 const KS=__KS__;  // 💵 altın / dolar / mevduat günlük endeksi + aylık TÜFE (pano.birikim_serisi; İşlem Odası birikim robotları), yoksa null
+const BANT_NOT=__BANTNOT__;  // 🧲 bant süpürme dönüşü araştırma metinleri (sinyal.BANT_NOT)
 const MN_NOT=__MNNOT__;  // ⚠️ manipülasyon rozeti açıklaması (pano.MN_NOT)
 const MAKRO=__MAKRO__;  // 🌍 makro.pano_veri: seriler (s), bugün büyük hareketten etkilenebilecekler (et), beyaz liste (duy) — bilgi
 const TAKVIM=__TAKVIM__;  // 📅 takvim.pano_veri: ~16 günlük olaylar (o), olağan gün (ol) — bilgi
@@ -1033,12 +1057,18 @@ function bugunRender(){
  h+=genHtml();
  if(KGK&&KGK.durum==='alt')h+='<div class="bgs"><span class=okk>▼</span> <b>Canlı karne normal aralığın dışında</b> (kötü tarafta): son '+KGK.n+' kapanan 🚀 işlemin ortalaması '+pyz(KGK.ort)+', en uzun art arda zarar '+KGK.seri+'. <a href="#kotugun" class="glink">→ sistemin normal kötü günleri</a></div>';
  h+='<div class="bgs">🚀 <b>Yeni AL</b> (son 5 gün): '+(al.length?al.map(function(k){var t=DATA[k].tk;return _kl(k)+(t.bugun?' <span class="tkb yeni">bugün</span>':' <span class="sgun">'+t.gun+'g önce</span>');}).join(' · '):'yok')+' <a href="#" class="glink" onclick="roketAc(20);return false">→ son 20 günün tüm 🚀 sinyalleri</a></div>';
+ var bsl=Object.keys(DATA).filter(function(k){var b=DATA[k].bs;return b&&(b.bugun||(b.son&&b.son.durum==='AL'&&b.son.gun<=5));})
+  .sort(function(a,b){return DATA[a].bs.son.gun-DATA[b].bs.son.gun;});
+ h+='<div class="bgs"><span class=oky>▲</span> 🧲 <b>Bant süpürme dönüşü</b> (ikinci tür AL, son 5 gün): '+(bsl.length?bsl.map(function(k){var b=DATA[k].bs;return _kl(k)+(b.bugun?' <span class="bsb yeni">bugün</span>':' <span class="sgun">'+b.son.gun+'g önce</span>');}).join(' · '):'yok')+'</div>';
+ var bsz=Object.keys(DATA).filter(function(k){return DATA[k].bs&&DATA[k].bs.izle;}).sort(function(a,b){return DATA[a].bs.izle.uzak-DATA[b].bs.izle.uzak;});
+ if(bsz.length)h+='<div class="bgs">👀 🧲 <b>Ortaya dönüş bekleyen</b> (süpürüldü + geri alındı; kapanış bant ortasını geçerse 🧲 AL): '+bsz.map(function(k){var z=DATA[k].bs.izle;return _kl(k)+' <span class="sgun">orta '+sayiTr(z.orta)+', '+pyz(z.uzak)+'</span>';}).join(' · ')+'</div>';
  var pf=pfOku(),ps=[];
  pf.forEach(function(p){var u=bugunUyari(p.kod,DATA[p.kod],p);if(u.length)ps.push(_kl(p.kod)+': '+u.join(', '));});
  h+='<div class="bgs">💼 <b>Portföyün</b>: '+(pf.length?(ps.length?ps.join(' · '):'dikkat gerektiren bir şey yok ✅'):'<span class="sgun">henüz hisse eklemedin</span>')+'</div>';
  var fv=favOku().filter(function(k){return !pf.some(function(p){return p.kod===k;});}),fs=[];
  fv.forEach(function(k){var d=DATA[k];if(!d)return;var u=bugunUyari(k,d,null);var t=d.tk;
   if(t&&(t.bugun||(t.durum==='AL'&&t.gun<=5)))u.unshift('🚀 AL');
+  var bb=d.bs;if(bb&&(bb.bugun||(bb.son&&bb.son.durum==='AL'&&bb.son.gun<=5)))u.unshift('🧲 AL');else if(bb&&bb.izle)u.push('🧲 ortaya '+pyz(bb.izle.uzak));
   if(t&&t.durum!=='AL'&&t.sablon&&t.kirilima_uzak!=null&&t.kirilima_uzak>0&&t.kirilima_uzak<=3)u.push('👀 kırılıma %'+t.kirilima_uzak);
   if(u.length)fs.push(_kl(k)+': '+u.join(', '));});
  if(favOku().length)h+='<div class="bgs">⭐ <b>Favorilerin</b>: '+(fs.length?fs.join(' · '):'önemli bir değişiklik yok')+'</div>';
@@ -1492,6 +1522,19 @@ function thDalga(th){return !!(th&&th.seviye==='sisme'&&(th.yuk20||0)<0);}  // �
 var HR_ESIK={1:4,5:10,20:20},HR_HACIM=1.5,HR_HACIM2=2.5;   // tarama.HR_ESIK / HR_HACIM ile aynı
 var OD_NOT='Geçmiş veride (2021-26, 299 hisse) bu durumdaki hisselerin sonraki 20 günde ancak ~%38\'i endeksi geçti (normalde ~%46); 2022-23 düşük faiz döneminde fark görülmedi. Kesin değil, bilgi.';
 function pyz(x){return (x>=0?'+':'−')+'%'+Math.abs(x).toFixed(1).replace('.',',');}
+// 🧲 Bant süpürme dönüşü kutusu (ikinci tür AL; v3'ten ayrı). Veri sinyal.bant_supurme → DATA[k].bs (son / izle / g / bugun).
+function bsHtml(d){var b=d.bs;if(!b)return '';var s=b.son,z=b.izle,T=function(x){return x==null?'—':sayiTr(x);};
+ var h='<div class="uvkutu bskutu">📊 <b>🧲 Bant süpürme dönüşü</b> <span class="sgun">(ikinci tür AL — 🚀 v3 değil, onu da susturmaz)</span>';
+ if(s){var bant='3 aylık bant <b>'+T(s.alt)+' – '+T(s.ust)+'</b> (orta '+T(s.orta)+')';
+  if(b.bugun)h+='<div><span class=oky>▲</span> <b>BUGÜN AL</b> — '+bant+'. Bant altı süpürüldü ('+trTarih(s.sup_t)+', dip '+T(s.dip)+'), geri alındı ('+trTarih(s.geri_t)+') ve kapanış bant ortasının üstünde. Giriş ertesi gün açılış.</div>';
+  else if(s.durum==='AL')h+='<div>'+(s.gun<=5?'<span class=oky>▲</span> <b>AL '+s.gun+' gün önce</b>':'<b>Pozisyon sürüyor</b> (yeni alım sinyali değil)')+' — sinyal '+trTarih(s.t)+', giriş '+T(s.giris)+' ('+trTarih(s.giris_tarih)+'), o günden beri '+pyz(s.degisim)+'. '+bant+'. İz stop <b>'+T(s.stop)+' TL</b> ('+izNeden(s)+').</div>';
+  else h+='<div>Son işlem kapandı — sinyal '+trTarih(s.t)+', giriş '+T(s.giris)+', '+trTarih(s.cikis_tarih)+' '+(s.kilit_cik?'🔐 kâr kilidiyle':'iz stop ile')+' çıktı ('+pyz(s.sonuc)+'). '+bant+'.</div>';
+  if(b.bugun||s.durum==='AL')h+='<div class="cikis">📍 Stop fikri: <b>'+T(s.dip)+'</b> (süpürme dibi) altında kapanış · 🎯 ilk hedef <b>'+T(s.ust)+'</b> (bant üstü; satış emri değil, izleme noktası) · Çıkış kuralı 🚀 ile aynı: tepe kapanışın %20 altı'+(KK?'; '+kkKisa():'')+'.</div>';}
+ if(z)h+='<div>👀 <b>Ortaya dönüş bekleniyor</b> — bant '+T(z.alt)+' – '+T(z.ust)+', orta <b>'+T(z.orta)+'</b> (fiyatın '+pyz(z.uzak)+' '+(z.uzak>=0?'yukarısı':'aşağısı')+'). Alt '+trTarih(z.sup_t)+' süpürüldü (dip '+T(z.dip)+'), '+trTarih(z.geri_t)+' geri alındı. Kapanış ortanın üstüne çıkarsa 🧲 AL (kalan süre '+z.kalan+' işlem günü; kapanış süpürme dibinin altına inerse iptal).</div>';
+ if((b.bugun||(s&&s.durum==='AL'))&&PIYASA&&PIYASA.zayif)h+='<div class="cikis">⚠️ <b>Piyasa zayıf</b> (BIST 100 50 günlük ortalamasının altında): 🚀 v3 bu dönemde AL vermez; bu sinyalde piyasa filtresi yok (geçmişte sinyallerin ~%'+BANT_NOT.zayif+'\'i böyle dönemlerde geldi). Temkinli ol.</div>';
+ h+='<div class="cikis"><span class=oky>▲</span> '+BANT_NOT.iyi+'</div><div class="cikis"><span class=okk>▼</span> '+BANT_NOT.kotu+'</div>';
+ if(b.g&&b.g.length)h+='<div class="pk sgun">Son 🧲 işlemleri (komisyonsuz): '+b.g.map(function(x){return trTarih(x[0])+' '+T(x[1])+(x[2]?' → '+trTarih(x[2])+' '+T(x[3])+' ('+pyz((x[3]/x[1]-1)*100)+')':' → açık');}).join(' · ')+'</div>';
+ return h+'<div class="pk sgun">Kural: son 60 işlem gününün bandı (en az 2 kez alttan üste gidip gelmiş, genişlik ≤ %30); dip bant altına iğne atıp en geç 3 günde geri alınırsa ve 10 gün içinde kapanış bant ortasını geçerse AL. Kaynak: likidite avı fikri + 10 yıllık test. Tavsiye değildir.</div></div>';}
 function kat(x){return x.toFixed(1).replace('.',',');}
 function hEsc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function spGetiri(sp,t0,t1){  // grafik verisinde t0 → t1 kapanış değişimi (%) ya da null
@@ -1715,7 +1758,7 @@ function ac(k){
    '<span class="c7">İz stop</span><span class="lm" style="color:#1B7F4B">▲ AL (🚀)</span><span class="lm" style="color:#B4362E">▼ SAT (iz stop'+(KK?' / 🔐':'')+')</span></div></div>'+
  nedenHtml(k,d)+makroHisseHtml(k)+
  zaman+vadeHtml(k,d)+
- pozHtml(k,d)+tkHtml(d)+lotHtml(k,d)+tkGecmisHtml(d)+gucHtml(d)+uvHtml(d)+
+ pozHtml(k,d)+tkHtml(d)+bsHtml(d)+lotHtml(k,d)+tkGecmisHtml(d)+gucHtml(d)+uvHtml(d)+
  sdHtml(d)+
  '<div class="metr">'+m('RSI',d.rsi)+m('F/K',d.fk)+m('PD/DD',d.pddd)+m('FD/FAVÖK',d.favok)+m('İz stop',d.iz&&!d.iz.cikti?d.iz.stop:'—')+m('Öneri lot',lot)+'</div>'+
  btHtml(d)+bilHtml(d)+kapHtml(d)+arzHtml(d)+
