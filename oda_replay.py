@@ -232,7 +232,7 @@ def ozellik(d, xu_ust, xu):
     for x in S.trend_kirilimi(d, xu_ust, ham=True, kar_kilit=False, erken=True):
         tq[x["i"]] = True
     F["tq_bugun"] = tq
-    if any(r["tur"] == "kirbant" for r in oda.ROBOTLAR.values()):   # 🧲 bant süpürme dönüşü (canlı sinyal.bant_supurme 'bugun' ile aynı zincir)
+    if any(r["tur"] == "destek" for r in oda.ROBOTLAR.values()):   # 🧲 Bant / SMA200 dönüşü (canlı bant_supurme / sma200_donus 'bugun' ile aynı zincir)
         bs, bo = np.zeros(n, bool), np.full(n, np.nan)
         try:
             dd = d[d["Close"] > 0]
@@ -243,6 +243,24 @@ def ozellik(d, xu_ust, xu):
         except Exception:
             pass
         F["bs_bugun"], F["bs_orta"] = bs, bo
+        d2, ds = np.zeros(n, bool), np.full(n, np.nan)
+        try:
+            for x in S.d200_zincir(dd, S.kar_kilit_ayar()):
+                d2[pos[x["m"]]] = True
+                ds[pos[x["m"]]] = x["ev"]["s200"]
+        except Exception:
+            pass
+        F["d2_bugun"], F["d2_s200"] = d2, ds
+    if any(r["tur"] == "tuzak" for r in oda.ROBOTLAR.values()):    # 🔁 tuzak sonrası AL (canlı sinyal.tuzak_geri)
+        tz = np.zeros(n, bool)
+        try:
+            dd = d[d["Close"] > 0]
+            pos = d.index.get_indexer(dd.index)
+            for j in S.tuzak_geri_gunleri(dd):
+                tz[pos[j]] = True
+        except Exception:
+            pass
+        F["tz_bugun"] = tz
     if any(r["tur"] == "akin" for r in oda.ROBOTLAR.values()):     # 🧪 AKIN 4 deneme robotları
         F["ak_rpd"] = S.akin_rpd(d)[0]
         F["ak_dk"] = S.akin_delta_kirilim(d)
@@ -334,7 +352,9 @@ def hazirla(g):
     if "ak_rpd" in M:
         M["aday"] |= M["ak_rpd"] | M["ak_dk"]
     if "bs_bugun" in M:
-        M["aday"] |= M["bs_bugun"]      # 🧲 (eski robotlar aday kümesinin genişliğinden bağımsız)
+        M["aday"] |= M["bs_bugun"] | M["d2_bugun"]      # 🧲 (eski robotlar aday kümesinin genişliğinden bağımsız)
+    if "tz_bugun" in M:
+        M["aday"] |= M["tz_bugun"]
     M["Cf"] = pd.DataFrame(M["C"].T).ffill().values.T
     buyuk = set(tarama.BIST100) | set(tarama.EK_HISSELER)
     return {"kod": tamam, "gun": gun, "A": M, "xu": xu, "xu_open": xd["Open"].astype(float).reindex(gun), "xu_ust": xu_ust,
@@ -390,7 +410,10 @@ def ozet(D, k, t):
                    "seviye": None if A["hh20"][k, t] != A["hh20"][k, t] else float(A["hh20"][k, t])},
             "ak": {"rpd": bool(A["ak_rpd"][k, t]), "dk": bool(A["ak_dk"][k, t])} if "ak_rpd" in A else {},
             "bs": {"bugun": bool(A["bs_bugun"][k, t]), "orta": None if A["bs_orta"][k, t] != A["bs_orta"][k, t] else float(A["bs_orta"][k, t])}
-            if "bs_bugun" in A else {}}
+            if "bs_bugun" in A else {},
+            "d2": {"bugun": bool(A["d2_bugun"][k, t]), "s200": None if A["d2_s200"][k, t] != A["d2_s200"][k, t] else float(A["d2_s200"][k, t])}
+            if "d2_bugun" in A else {},
+            "tz": bool(A["tz_bugun"][k, t]) if "tz_bugun" in A else False}
 
 
 def guc_ozet(A, k, t):

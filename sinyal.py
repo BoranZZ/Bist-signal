@@ -789,6 +789,202 @@ def bant_supurme(d, ilk=0):
     return out
 
 
+# --- 🧲 SMA200'den dönüş (2026-11-17; araştırma Documents/Bist-arastirma/2026-11-14/sinyal2/erken/RAPOR.md, sinyal_destek200.py) ------
+# İKİNCİ TÜR AL (v3'ten ayrı; 🧲 Bant ile aynı düzen). SMA200 20 günde yükselmiş; önceki 10 günün kapanışları SMA200'ün %2'den fazla
+# üstündeydi; dün düşük SMA200 × 1,02'ye kadar indi ve kapanış SMA200 × 0,98'in üstünde kaldı (dokunuş); bugün kapanış dünden yüksek ve
+# gün aralığının üst %30'unda → AL (ertesi açılış). Çıkış v3 ile aynı (%20 iz + 🔐 A4 + kilitli taban). Açık 🧲 SMA200 pozisyonu varken
+# (kapanışla tetiklenen çıkış gününe kadar) yeni AL yok — araştırmanın zinciri. Piyasa filtresi YOK.
+D200_TOL, D200_UST_PAY, D200_EGIM = 0.02, 0.7, 20
+D200_NOT = {"n": 737, "isabet": 71, "ort": 19, "ikiz": 7,
+            "iyi": "Geçmişte (2017-2026, ana liste + küçükler, 737 işlem) bu kurgudan sonra v3 çıkışıyla ortalama +%19, isabet %71; aynı hissede rastgele güne göre +7 puan (ana listede +9). Piyasa zayıfken de çalıştı.",
+            "kotu": "Son 1 yılda kötü: işlem başı −%2,0 (isabet %55), aynı hissede rastgele günden 1,3 puan geride. Son 2 ayda bu alımlar nakitte beklemekten kötüydü.",
+            "ek": "Piyasa zayıfken de AL verir (v3 vermez). Düşen piyasada risk daha yüksek."}
+
+
+def d200_maske(d):
+    """Her gün: bugün 🧲 SMA200 dönüş AL koşulu sağlanıyor mu (zincirsiz). Araştırma destek_sma200(teyit='ust') ile aynı."""
+    c, h, l = (d[x].values.astype(float) for x in ("Close", "High", "Low"))
+    n = len(c)
+
+    def sh(a, k=1):
+        o = np.full(n, np.nan)
+        if n > k:
+            o[k:] = a[:-k]
+        return o
+    s = pd.Series(c).rolling(200).mean().values
+    with np.errstate(invalid="ignore", divide="ignore"):
+        ust = pd.Series((c > s * (1 + D200_TOL)).astype(float)).rolling(10).min().values
+        m = (l <= s * (1 + D200_TOL)) & (c >= s * (1 - D200_TOL)) & (sh(ust) == 1) & (s > sh(s, D200_EGIM))
+        m = np.nan_to_num(m).astype(bool)
+        dk = np.r_[False, m[:-1]]
+        rng = np.where(h > l, h - l, np.nan)
+        tey = (c > sh(c)) & ((c - l) / rng >= D200_UST_PAY)
+    return np.nan_to_num(dk & tey).astype(bool)
+
+
+def d200_zincir(d, kk=None, ilk=0):
+    """🧲 SMA200 işlemleri: sinyal i, giriş i+1 açılışı, çıkış iz_yuru + gercekci_cikis; sonraki sinyal kapanışla tetiklenen çıkış
+    gününden SONRA (açıksa hiç). Döner işlemler ({m, e, giris, cik, q, cx, tepe, tepe_i, izs, kk_i, kk_cik, ev: {s200, dok}})."""
+    C = d["Close"].values.astype(float)
+    O = d["Open"].values.astype(float) if "Open" in d else C
+    n = len(C)
+    sig = d200_maske(d)
+    s200 = pd.Series(C).rolling(200).mean().values
+    kil = None
+    out, son = [], -1
+    for i in np.flatnonzero(sig):
+        i = int(i)
+        if i < ilk or i <= son:
+            continue
+        ev = {"s200": float(s200[i - 1]), "dok": i - 1}
+        if i + 1 >= n:
+            out.append({"m": i, "e": None, "giris": float(C[i]), "cik": None, "q": None, "cx": None, "tepe": float(C[i]),
+                        "tepe_i": i, "izs": [], "kk_i": None, "kk_cik": False, "ev": ev})
+            break
+        g = float(O[i + 1])
+        if not g > 0:
+            break
+        y = iz_yuru(C, g, i + 1, kk)
+        x = {"m": i, "e": i + 1, "giris": g, "cik": y["cik"], "tepe": float(y["tepe"]), "tepe_i": max(y["tepe_i"], i + 1),
+             "izs": y["izs"], "kk_i": y["kk_i"], "kk_cik": y["kk_cik"], "ev": ev, "q": None, "cx": None}
+        if y["cik"] is None:
+            son = n
+        else:
+            if kil is None:
+                kil = kilitli_gun(d).values
+            x["q"], x["cx"], _ = gercekci_cikis(d, y["cik"], kil=kil)
+            son = y["cik"]
+        out.append(x)
+    return out
+
+
+def _islem_ozet(x, ek, C, idx, kk):
+    """🧲 işlem özeti (pano/Telegram/portföy iz'i): sinyal günü t, gun, ek alanlar, giriş, tepe, stop, 🔐 alanları, çıkış."""
+    n = len(C)
+    ts = lambda i: str(idx[i].date())
+    o = {"t": ts(x["m"]), "gun": n - 1 - x["m"], **ek}
+    if x["e"] is None:
+        o["durum"] = "AL"
+        return o
+    o["giris_tarih"], o["giris"] = ts(x["e"]), round(x["giris"], 2)
+    o["tepe"], o["tepe_tarih"] = round(x["tepe"], 2), ts(x["tepe_i"])
+    if x["cik"] is None:
+        stop, kilit = iz_seviye(x["giris"], x["tepe"], kk)
+        o.update({"durum": "AL", "stop": round(float(stop), 2), "uzaklik": round(float(stop / C[-1] - 1) * 100, 1),
+                  "degisim": round(float(C[-1] / x["giris"] - 1) * 100, 1)})
+        o.update(_kk_alanlar(x, kk, kilit, idx))
+    else:
+        o.update({"durum": "CIKTI", "cikis_tarih": ts(x["cik"]), "cikis": round(float(C[x["cik"]]), 2),
+                  "stop": round(x["izs"][-1], 2), "cikis_gun": n - 1 - x["cik"],
+                  "sonuc": round(float(C[x["cik"]] / x["giris"] - 1) * 100, 1)})
+        o.update(_kk_alanlar(x, kk, x["kk_i"] is not None, idx))
+    return o
+
+
+def _islem_paketi(tum, ek_f, C, idx, kk, goster=BANT_GOSTER_GUN):
+    """Ortak çıktı: bugun, son (son işlem: sinyali son `goster` günde ya da açık), poz (girilmiş son işlem), g (son 4 işlem)."""
+    n = len(C)
+    out = {}
+    son = tum[-1] if tum else None
+    if son is not None and (son["cik"] is None or n - 1 - son["m"] <= goster):
+        out["son"] = _islem_ozet(son, ek_f(son), C, idx, kk)
+        out["bugun"] = son["e"] is None
+    gir = [x for x in tum if x["e"] is not None]
+    if gir:
+        out["poz"] = out["son"] if (son is gir[-1] and "son" in out) else _islem_ozet(gir[-1], ek_f(gir[-1]), C, idx, kk)
+    if gir and "son" in out:
+        out["g"] = [[str(idx[x["m"]].date()), round(x["giris"], 2), str(idx[x["cik"]].date()) if x["cik"] is not None else None,
+                     round(float(C[x["cik"]]), 2) if x["cik"] is not None else None] for x in gir[-4:]]
+    return out, gir
+
+
+def sma200_donus(d, ilk=0):
+    """🧲 SMA200'den dönüş — canlı (look-ahead yok; d: günlük OHLC, bölünme düzeltilmiş). Döner None ya da {bugun, son (t, gun, s200 =
+    dokunulan SMA200, dok_t, durum, giriş, tepe, stop, 🔐, çıkış), poz, g} (bant_supurme ile aynı düzen)."""
+    if not _hl_var(d):
+        return None
+    d = d[d["Close"] > 0]
+    if len(d) < 230:
+        return None
+    kk = kar_kilit_ayar()
+    tum = d200_zincir(d, kk, ilk)
+    idx, C = d.index, d["Close"].values.astype(float)
+    ek = lambda x: {"s200": round(x["ev"]["s200"], 2), "dok_t": str(idx[x["ev"]["dok"]].date())}
+    out, _ = _islem_paketi(tum, ek, C, idx, kk)
+    if not out:
+        return None
+    out["bugun"] = bool(out.get("bugun"))
+    return out
+
+
+# --- 🔁 Tuzak sonrası AL (2026-11-17; araştırma .../sinyal2/tuzak/RAPOR.md, sinyal_tuzak_geri.py) — SADECE İşlem Odası DENEME robotu ------
+# Panoya/Telegram'a AL olarak GİRMEZ. Kırılım (düşen trend çizgisi TL ya da yatay direnç YD) → 10 gün içinde kapanış seviyenin %3+ altına
+# basılır → basılmadan sonraki 10 gün içinde ilk kez kapanış seviyenin üstünde ve dünden yüksek → AL (ertesi açılış).
+TUZAK_K, TUZAK_PENCERE = 5, 500
+
+
+def tuzak_olaylar(h, c, bas):
+    """Kırılım olayları [(tip, t, L)] — araştırma sinyal_tuzak_geri._olaylar ile aynı (aynı tip 10 günde bir)."""
+    K = TUZAK_K
+    n = len(c)
+    piv = np.array([p for p in range(max(K, bas - 130), n - K) if h[p] == h[p - K:p + K + 1].max() and h[p] > h[p - K:p].max()], int)
+    ev, son = [], {"TL": -99, "YD": -99}
+    for t in range(max(bas, 130), n):
+        if not (c[t] > 0 and c[t - 1] > 0):
+            continue
+        pp = piv[(piv >= t - 120) & (piv + K <= t - 1)]
+        if len(pp) >= 2 and t - son["TL"] >= 10:
+            p1 = pp[np.argmax(h[pp])]
+            s2 = pp[(pp > p1 + 5) & (h[pp] < h[p1])]
+            if len(s2):
+                p2 = s2[-1]
+                eg = (h[p2] - h[p1]) / (p2 - p1)
+                Lt = h[p1] + eg * (t - p1)
+                if Lt > 0 and c[t] > Lt and c[t - 1] <= h[p1] + eg * (t - 1 - p1) and all(
+                        c[j] <= h[p1] + eg * (j - p1) for j in range(p2 + 1, t)):
+                    ev.append(("TL", t, Lt)); son["TL"] = t
+        if t - son["YD"] >= 10 and t >= 60:
+            w = pp[pp >= t - 60]
+            if len(w) >= 2:
+                L = h[t - 60:t].max()
+                dk = w[h[w] >= 0.97 * L]
+                if len(dk) >= 2 and dk[-1] - dk[0] >= 5 and c[t] > L and c[t - 1] <= L:
+                    ev.append(("YD", t, L)); son["YD"] = t
+    return ev
+
+
+def _tuzak_al(c, ev, n, d=0.03, W=10, R=10):
+    """Olaylardan AL günleri (her olay için ilk tetik) — araştırma dogrula.geri_al(teyit='L')."""
+    out = set()
+    for _, t, L in ev:
+        b = next((k for k in range(t + 1, min(n, t + W + 1)) if c[k] < L * (1 - d)), None)
+        if b is None:
+            continue
+        for k in range(b + 1, min(n, b + R + 1)):
+            if c[k] > L and c[k] >= c[k - 1]:
+                out.add(k); break
+    return out
+
+
+def tuzak_geri_gunleri(d, bas=260):
+    """Tüm geçmişte 🔁 AL günleri (tekrar oynatma). d: bölünme düzeltilmiş günlük OHLC."""
+    h, c = d["High"].values.astype(float), d["Close"].values.astype(float)
+    if len(c) < 300:
+        return set()
+    return _tuzak_al(c, tuzak_olaylar(h, c, bas), len(c))
+
+
+def tuzak_geri(d):
+    """Canlı: bugün 🔁 Tuzak sonrası AL mı (araştırma sinyal_tuzak_geri, son 500 bar penceresi)."""
+    h, c = d["High"].values.astype(float), d["Close"].values.astype(float)
+    n = len(c)
+    if n < 300:
+        return False
+    bas = max(260, n - TUZAK_PENCERE)
+    ev = [e for e in tuzak_olaylar(h, c, bas) if n - 1 - 20 <= e[1] < n - 1]
+    return (n - 1) in _tuzak_al(c, ev, n)
+
+
 def tk_gecmis(d, tum, n=TK_GECMIS_N):
     """trend_kirilimi(..., ham=True) işlemlerinin kompakt hali (eskiden yeniye, en çok n): [kırılım (sinyal) günü, giriş
     fiyatı (ertesi açılış; sinyal bugünse bugünkü kapanış), çıkış günü ya da None (açık), çıkış kapanışı ya da None].
@@ -1477,6 +1673,16 @@ def analiz_et(df, xu_ust=None, xu=None, bar_kesin=True, bugun=None, bant=True):
         bs = bant_supurme(d) if bant else None
     except Exception:
         bs = None
+    try:                            # 🧲 SMA200'den dönüş (ikinci tür AL)
+        d2 = sma200_donus(d) if bant else None
+    except Exception:
+        d2 = None
+    if d2 and d2.get("son"):   # grafikte SMA200 çizgisi (spark ile aynı son 130 gün)
+        d2["s2"] = [None if pd.isna(x) else round(float(x), 2) for x in d["SMA200"].tail(130).values]
+    try:                            # 🏢 🔁 Tuzak sonrası AL — SADECE oda deneme robotu, sadece kesin kapanışta (panoya/Telegram'a girmez)
+        tz = bool(tuzak_geri(d)) if (bant and bar_kesin) else None
+    except Exception:
+        tz = None
     if tk.get("giris_tarih") and (al_tarih is None or tk["giris_tarih"] >= al_tarih):
         al_tarih = tk["giris_tarih"]
         if tk["durum"] == "AL":
@@ -1490,11 +1696,13 @@ def analiz_et(df, xu_ust=None, xu=None, bar_kesin=True, bugun=None, bant=True):
                 iz[a] = tk[a]
     # 🧲 portföy iz stop'u: en son sistem girişi 🧲 bant dönüşüyse (açık 🚀 pozisyon yokken, gösterge AL'inden de yeni) iz stop o
     # girişten izlenir — çıkış kuralı v3 ile aynı (%20 iz + 🔐), Telegram 'iz stop kırıldı' ve pozisyon planı aynı yoldan çalışır.
-    _bs = (bs or {}).get("poz") or {}
+    # 🧲 SMA200 dönüşü de aynı kuralla (ikisinden en yeni giriş)
+    _ad = [(x["t"], k, x) for k, x in (("bant", (bs or {}).get("poz")), ("sma200", (d2 or {}).get("poz"))) if x and x.get("giris_tarih")]
+    _kay, _bs = (max(_ad, key=lambda a: a[0])[1:] if _ad else (None, {}))
     if _bs.get("giris_tarih") and tk.get("durum") != "AL" and (al_tarih is None or _bs["t"] > al_tarih):
         al_tarih = _bs["t"]
         iz = {"tepe": _bs["tepe"], "tepe_tarih": _bs["tepe_tarih"], "stop": _bs["stop"], "cikti": _bs["durum"] != "AL",
-              "cikis_tarih": _bs.get("cikis_tarih"), "uzaklik": round((_bs["stop"] / fiyat - 1) * 100, 1), "kaynak": "bant"}
+              "cikis_tarih": _bs.get("cikis_tarih"), "uzaklik": round((_bs["stop"] / fiyat - 1) * 100, 1), "kaynak": _kay}
         for a in ("iz20", "kk", "kilit", "kilit_seviye", "kilit_esik_fiyat", "kilit_tarih", "kilit_cik"):
             if a in _bs:
                 iz[a] = _bs[a]
@@ -1535,6 +1743,8 @@ def analiz_et(df, xu_ust=None, xu=None, bar_kesin=True, bugun=None, bant=True):
         "tk_oda": tk_oda,
         "tq": tq,
         "bs": bs,           # 🧲 Bant süpürme dönüşü (None = gösterilecek bir şey yok)
+        "d2": d2,           # 🧲 SMA200'den dönüş (aynı düzen)
+        "tz": tz,           # 🏢 🔁 Tuzak sonrası AL bugün mü (sadece oda; panoya gömülmez)
         "ak": akin_sinyal(d) if bar_kesin else None,   # 🏢 🧪 AKIN deneme robotları (sadece kesin kapanışta; panoya gömülmez)
         "vd": vade_durum(d, bar_kesin, bugun),
         "guc": _guc,

@@ -4,7 +4,8 @@ import json
 import os
 from html import escape
 import pandas as pd
-from sinyal import BANT_NOT   # 🧲 bant dönüşü araştırma metinleri (Telegram ile tek kaynak)
+from sinyal import BANT_NOT, D200_NOT   # 🧲 bant / SMA200 dönüşü araştırma metinleri (Telegram ile tek kaynak)
+DESTEK_AD = {"bant": ("🧲 bant", "🧲 Bant süpürme dönüşü (ikinci tür AL)"), "sma200": ("🧲 SMA200", "🧲 SMA200'den dönüş (ikinci tür AL)")}
 
 # Hangi GitHub deposu: Actions GITHUB_REPOSITORY verir (arkadaşın kopyasında onun deposu); yerelde varsayılan.
 REPO = os.environ.get("GITHUB_REPOSITORY") or "BoranZZ/Bist-signal"
@@ -282,6 +283,15 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None, 
         elif bsi:
             sdrz += (f' <span class="bsb izle" title="Bant altı süpürüldü ve geri alındı ({bsi["geri_t"]}); kapanış bant ortasının '
                      f'({bsi["orta"]}) üstüne çıkarsa 🧲 AL. Kalan süre {bsi["kalan"]} işlem günü">🧲 ortaya %{bsi["uzak"]}</span>')
+        d2 = s.get("d2") or {}
+        d2s = d2.get("son") or {}
+        if d2.get("bugun"):
+            sdrz += (f' <span class="bsb yeni" title="🧲 SMA200&#39;den dönüş (ikinci tür AL, v3 değil): yükselen 200 günlük ortalamaya '
+                     f'({d2s.get("s200")}) geri çekildi, dokundu ve bugün yükselişle döndü. Giriş ertesi açılış">'
+                     f'<span class=oky>▲</span> 🧲 SMA200</span>')
+        elif d2s.get("durum") == "AL" and d2s.get("giris") and d2s.get("gun", 99) <= 5:
+            sdrz += (f' <span class="bsb" title="{d2s.get("gun")} gün önce 🧲 SMA200 dönüşü AL ({d2s.get("t")}; o günden beri '
+                     f'{d2s.get("degisim")}%). İz stop {d2s.get("stop")} TL">🧲 SMA200 {d2s.get("gun")}g önce</span>')
         uv = s.get("uv") or {}
         if uv.get("durum") == "AL":
             sdrz += f' <span class="uvsb" title="Uzun vade AL: {uv.get("tarih")} tarihinden beri">🌱 UV</span>'
@@ -358,6 +368,9 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None, 
         bs = s.get("bs") or {}
         if bs.get("son") or bs.get("izle"):   # 🧲 bant dönüşü — sadece gösterilecek bir şey olan hissede ('poz' gömülmez)
             veri[k]["bs"] = {a: bs[a] for a in ("bugun", "son", "izle", "g") if bs.get(a) is not None}
+        d2 = s.get("d2") or {}
+        if d2.get("son"):   # 🧲 SMA200 dönüşü — sadece son işlemi gösterilecek hissede
+            veri[k]["d2"] = {a: d2[a] for a in ("bugun", "son", "g", "s2") if d2.get(a) is not None}
 
     banner = ""
     if ornek:
@@ -394,7 +407,7 @@ def pano_uret(sonuclar, ornek=False, uyari=None, piyasa=None, yeni_arzlar=None, 
                  ("__TOPLAM__", str(len(sonuclar))),
                  ("__TKBUGUN__", str(sum(1 for s in sonuclar if (s.get("tk") or {}).get("bugun")))),
                  ("__TK5__", str(sum(1 for s in sonuclar if (s.get("tk") or {}).get("durum") == "AL" and ((s.get("tk") or {}).get("gun") or 0) <= 5))), ("__BANNER__", banner),
-                 ("__MNNOT__", json.dumps(MN_NOT, ensure_ascii=False)), ("__BANTNOT__", json.dumps(BANT_NOT, ensure_ascii=False)), ("__DURUST__", escape(DURUST_NOT, quote=False)),
+                 ("__MNNOT__", json.dumps(MN_NOT, ensure_ascii=False)), ("__BANTNOT__", json.dumps(BANT_NOT, ensure_ascii=False)), ("__D200NOT__", json.dumps(D200_NOT, ensure_ascii=False)), ("__DURUST__", escape(DURUST_NOT, quote=False)),
                  ("__ROWS__", "".join(rows)), ("__ARZ__", arzblok),
                  ("__XU__", json.dumps(endeks)), ("__PIYASA__", json.dumps(piyasa)),
                  ("__GI__", json.dumps(gunici, ensure_ascii=False, separators=(",", ":"))),
@@ -434,7 +447,9 @@ def kk_metinleri():
 def gecmis_uret(acik, kapali, ozet):
     """Sinyal geçmişi sayfası: açık pozisyonlar + kapanmış sinyaller + karne."""
     def eski(r):
-        e = "" if r.get("kural") == "v3" else ' <span class="eskib" title="Eski (v3 öncesi) kurallarla açılmış kayıt">eski kural</span>'
+        k = r.get("kural")
+        e = ("" if k == "v3" else (f' <span class="bskb" title="{DESTEK_AD[k][1]}">{DESTEK_AD[k][0]}</span>' if k in DESTEK_AD
+                                   else ' <span class="eskib" title="Eski (v3 öncesi) kurallarla açılmış kayıt">eski kural</span>'))
         if r.get("kk"):
             e += f' <span title="🔐 kâr kilidi {r["kk"]} tarihinde devreye girdi: stop en az kayıt fiyatı +%{round(r["kar_kilit"][1] * 100, 1):g}">🔐</span>'
         return e
@@ -469,6 +484,16 @@ def gecmis_uret(acik, kapali, ozet):
                                 f'{e["kapanan"]} kapanan (isabet %{e["isabet"]}, ortalama %{e["ort"]}), {e["acik"]} açık. '
                                 f'Tablolarda "eski kural" etiketiyle görünürler.</div>') if (e["kapanan"] or e["acik"]) else "")(ozet.get("eski") or {"kapanan": 0, "acik": 0}),
     }
+    dsat = []
+    for k, (ad, acik_m) in DESTEK_AD.items():
+        o = ozet.get(k) or {}
+        if o.get("kapanan") or o.get("acik"):
+            dsat.append(f'<b>{ad}</b>: {o["kapanan"]} kapanan' + (f' (isabet %{o["isabet"]}, ortalama %{o["ort"]})' if o["kapanan"] else "")
+                        + f', {o["acik"]} açık')
+    reps_d = ('<div class="not">🧲 <b>İkinci tür AL kayıtları</b> (🚀 kartlarına dahil değil; tabloda 🧲 etiketiyle; 16.11.2026’dan itibaren '
+              'ileriye dönük): ' + (" · ".join(dsat) if dsat else "henüz kayıt yok") + '. Aynı kuralla kapanır: kayıttan beri tepe kapanışın %20 '
+              'altı + 🔐 kâr kilidi.</div>')
+    html = html.replace("__DESTEK__", reps_d)
     for a, b in reps.items():
         html = html.replace(a, b)
     return html
@@ -731,6 +756,7 @@ __ARZ__
 <div class="sz"><span class="tkb">🚀 AL 3g önce</span><span>AL birkaç gün önce geldi. Testte ilk 5 gün içinde almak, sinyal günüyle neredeyse aynı sonucu verdi.</span></div>
 <div class="sz"><span class="tkb izle">trendde · 25g</span><span>Eski AL hâlâ sürüyor ama <b>yeni alım sinyali değil</b>: 20+ gün sonra girmek testte belirgin kötüydü. Elindeyse iz stop'a kadar tut.</span></div>
 <div class="sz"><span class="bsb yeni"><span class=oky>▲</span> 🧲 AL</span><span><b>İkinci tür AL — Bant süpürme dönüşü</b> (🚀 v3'ten ayrı; v3'ü susturmaz). Hisse ~3 ay (60 işlem günü) yatay bir bantta en az iki kez alttan üste gidip gelmiş; fiyat bandın altına kısa bir iğne atıp ('likidite avı', stopları süpürme) en geç 3 günde geri dönmüş ve 10 gün içinde kapanış bant ortasını geçmiş. Giriş ertesi açılış; stop fikri süpürme dibinin altında kapanış, ilk hedef bant üstü, çıkış 🚀 ile aynı (tepe kapanışın %20 altı + 🔐). Piyasa zayıfken de verilir. 10 yıllık testte 156 işlem, isabet ~%73, rastgele güne göre ~+10 puan — ama son 1 yılda kazanç küçük (+%1,3/işlem). Telegram'a ayrı başlıkla gelir.</span></div>
+<div class="sz"><span class="bsb yeni"><span class=oky>▲</span> 🧲 SMA200</span><span><b>İkinci tür AL — SMA200'den dönüş</b> (🚀 v3'ten ayrı): yükselen 200 günlük ortalamaya geri çekildi, dokundu ve bugün yükselişle döndü (kapanış dünden yüksek, günün üst %30'unda). Piyasa zayıfken de AL verir (v3 vermez); düşen piyasada risk daha yüksek. Çıkış 🚀 ile aynı (tepe kapanışın %20 altı + 🔐). 10 yıllık testte 737 işlem, isabet ~%71, rastgele güne göre ~+7 puan — ama son 1 yılda işlem başı −%2. Telegram'a ayrı başlıkla gelir; canlı karneye '🧲 SMA200' etiketiyle yazılır.</span></div>
 <div class="sz"><span class="bsb">🧲 AL 3g önce</span><span>🧲 AL birkaç gün önce geldi; <span class="bsb izle">🧲 bantta · 25g</span> eski 🧲 pozisyonu sürüyor (yeni alım değil).</span></div>
 <div class="sz"><span class="bsb izle">🧲 ortaya %2</span><span>Bant altı süpürüldü ve geri alındı; kapanış bant ortasının üstüne çıkarsa (10 gün içinde) 🧲 AL olur. Sadece izleme, alım sinyali değil. 1 haftalık / 1 aylık kısa bantlarda bu kurgu testte rastgele günden KÖTÜ çıktı; o yüzden yalnız ~3 aylık bant sayılır.</span></div>
 <div class="sz"><span class="tkb izle">🚀 Son roketler</span><span>Tablonun üstündeki filtre: son 5 / 20 / 60 işlem gününde 🚀 AL almış hisseler; sinyal günü, girişten beri getiri, BIST 100'e göre fark. İz stop ile kapananlar da listede (sadece iyi gidenleri göstermek yanıltıcı olur). Eski sinyaller yeni alım sinyali değil.</span></div>
@@ -809,7 +835,8 @@ const GI=__GI__;
 const GEN=__GEN__;  // 🌡️ piyasa genişliği, son 60 işlem günü (tarama.piyasa_genisligi): t, s50/s200 (% üstünde), z/d (52h zirve/dip sayısı), n
 const KGK=__KGK__;  // 📉 canlı karne ↔ 'normal kötü günler' kıyası (pano.kotu_gun_kiyas)
 const KS=__KS__;  // 💵 altın / dolar / mevduat günlük endeksi + aylık TÜFE (pano.birikim_serisi; İşlem Odası birikim robotları), yoksa null
-const BANT_NOT=__BANTNOT__;  // 🧲 bant süpürme dönüşü araştırma metinleri (sinyal.BANT_NOT)
+const BANT_NOT=__BANTNOT__;
+const D200_NOT=__D200NOT__;  // 🧲 SMA200 dönüşü araştırma metinleri (sinyal.D200_NOT)  // 🧲 bant süpürme dönüşü araştırma metinleri (sinyal.BANT_NOT)
 const MN_NOT=__MNNOT__;  // ⚠️ manipülasyon rozeti açıklaması (pano.MN_NOT)
 const MAKRO=__MAKRO__;  // 🌍 makro.pano_veri: seriler (s), bugün büyük hareketten etkilenebilecekler (et), beyaz liste (duy) — bilgi
 const TAKVIM=__TAKVIM__;  // 📅 takvim.pano_veri: ~16 günlük olaylar (o), olağan gün (ol) — bilgi
@@ -1060,6 +1087,9 @@ function bugunRender(){
  var bsl=Object.keys(DATA).filter(function(k){var b=DATA[k].bs;return b&&(b.bugun||(b.son&&b.son.durum==='AL'&&b.son.gun<=5));})
   .sort(function(a,b){return DATA[a].bs.son.gun-DATA[b].bs.son.gun;});
  h+='<div class="bgs"><span class=oky>▲</span> 🧲 <b>Bant süpürme dönüşü</b> (ikinci tür AL, son 5 gün): '+(bsl.length?bsl.map(function(k){var b=DATA[k].bs;return _kl(k)+(b.bugun?' <span class="bsb yeni">bugün</span>':' <span class="sgun">'+b.son.gun+'g önce</span>');}).join(' · '):'yok')+'</div>';
+ var d2l=Object.keys(DATA).filter(function(k){var b=DATA[k].d2;return b&&(b.bugun||(b.son.durum==='AL'&&b.son.gun<=5));})
+  .sort(function(a,b){return DATA[a].d2.son.gun-DATA[b].d2.son.gun;});
+ h+='<div class="bgs"><span class=oky>▲</span> 🧲 <b>SMA200\'den dönüş</b> (ikinci tür AL, son 5 gün): '+(d2l.length?d2l.map(function(k){var b=DATA[k].d2;return _kl(k)+(b.bugun?' <span class="bsb yeni">bugün</span>':' <span class="sgun">'+b.son.gun+'g önce</span>');}).join(' · '):'yok')+'</div>';
  var bsz=Object.keys(DATA).filter(function(k){return DATA[k].bs&&DATA[k].bs.izle;}).sort(function(a,b){return DATA[a].bs.izle.uzak-DATA[b].bs.izle.uzak;});
  if(bsz.length)h+='<div class="bgs">👀 🧲 <b>Ortaya dönüş bekleyen</b> (süpürüldü + geri alındı; kapanış bant ortasını geçerse 🧲 AL): '+bsz.map(function(k){var z=DATA[k].bs.izle;return _kl(k)+' <span class="sgun">orta '+sayiTr(z.orta)+', '+pyz(z.uzak)+'</span>';}).join(' · ')+'</div>';
  var pf=pfOku(),ps=[];
@@ -1068,7 +1098,8 @@ function bugunRender(){
  var fv=favOku().filter(function(k){return !pf.some(function(p){return p.kod===k;});}),fs=[];
  fv.forEach(function(k){var d=DATA[k];if(!d)return;var u=bugunUyari(k,d,null);var t=d.tk;
   if(t&&(t.bugun||(t.durum==='AL'&&t.gun<=5)))u.unshift('🚀 AL');
-  var bb=d.bs;if(bb&&(bb.bugun||(bb.son&&bb.son.durum==='AL'&&bb.son.gun<=5)))u.unshift('🧲 AL');else if(bb&&bb.izle)u.push('🧲 ortaya '+pyz(bb.izle.uzak));
+  var bb=d.bs;if(bb&&(bb.bugun||(bb.son&&bb.son.durum==='AL'&&bb.son.gun<=5)))u.unshift('🧲 AL');
+  var b2=d.d2;if(b2&&(b2.bugun||(b2.son.durum==='AL'&&b2.son.gun<=5)))u.unshift('🧲 SMA200');else if(bb&&bb.izle)u.push('🧲 ortaya '+pyz(bb.izle.uzak));
   if(t&&t.durum!=='AL'&&t.sablon&&t.kirilima_uzak!=null&&t.kirilima_uzak>0&&t.kirilima_uzak<=3)u.push('👀 kırılıma %'+t.kirilima_uzak);
   if(u.length)fs.push(_kl(k)+': '+u.join(', '));});
  if(favOku().length)h+='<div class="bgs">⭐ <b>Favorilerin</b>: '+(fs.length?fs.join(' · '):'önemli bir değişiklik yok')+'</div>';
@@ -1115,7 +1146,7 @@ function grIsaret(tur,x,y,baslik,kk){  // ▲ AL (yeşil, fiyatın altında) / �
    '<text x="'+x.toFixed(1)+'" y="'+(b?y+24:y-17).toFixed(1)+'" font-size="9" font-weight="700" fill="#B4362E" text-anchor="middle" stroke="#fff" stroke-width="2.5" paint-order="stroke">SAT'+(kk?' 🔐':'')+'</text>';}
  return g+'</g>';
 }
-function grafik(sp,sd,ar,tkg){
+function grafik(sp,sd,ar,tkg,ek){
  if(!sp||!sp.c) return '<div style="color:#6B7079;font-size:13px">Grafik verisi yok.</div>';
  var ds=sd&&sd.destek?sd.destek.fiyat:null,dr=sd&&sd.direnc?sd.direnc.fiyat:null;
  if(sp.sc&&!sp.scg){sp.scg=new Array(sp.c.length).fill(null);sp.sc[1].forEach(function(v,k){sp.scg[sp.sc[0]+k]=v;});}  // 📏 sıkı çizgi parçası → gün dizisi
@@ -1131,7 +1162,8 @@ function grafik(sp,sd,ar,tkg){
    if(x[2]&&x[2]<sp.t[0]&&x[2]>=wt[0])eski.push([(x[4]&2)?'K':'C',x[2],x[3]]);});}
  var n=c.length;
  if(uz){var t0=Date.parse(tt[0]),t1=Date.parse(tt[n-1]);_PX=tt.map(function(s){return GR.L+(Date.parse(s)-t0)/((t1-t0)||1)*(GR.W-GR.L-GR.R);});}else _PX=null;
- var hepsi=c.concat(s20||[],s50||[],izg||[],scg||[],[ds,dr],eski.map(function(e){return e[2];})).filter(function(x){return x!=null;});
+ var ekv=ekDeger(ek);
+ var hepsi=c.concat(s20||[],s50||[],izg||[],scg||[],[ds,dr],ekv,eski.map(function(e){return e[2];})).filter(function(x){return x!=null;});
  var mn=Math.min.apply(null,hepsi),mx=Math.max.apply(null,hepsi),pay=(mx-mn)*0.04;mn-=pay;mx+=pay;
  _gr={c:c,t:tt,s20:s20,s50:s50,izg:izg,izk:izk,scg:scg,tk:tk,m:m,px:_PX,mn:mn,mx:mx,n:n};
  var g='<svg id="grsvg" viewBox="0 0 '+GR.W+' '+GR.H+'" width="100%" style="display:block;touch-action:pan-y" onmousemove="grHover(event)" ontouchstart="grHover(event)" ontouchmove="grHover(event)" onmouseleave="grCik()">';
@@ -1144,6 +1176,7 @@ function grafik(sp,sd,ar,tkg){
    '<text x="'+(grX(m,n)-4).toFixed(1)+'" y="'+(GR.T+9)+'" font-size="9" fill="#A0A4AB" text-anchor="end">← haftalık · günlük →</text>';
  if(ds!=null)g+=yatay(ds,'#3A6EA5',mn,mx);
  if(dr!=null)g+=yatay(dr,'#B7791F',mn,mx);
+ g+=ekCiz(ek,tt,n,mn,mx);
  if(s50)g+=cizgi(s50,'#C7962B',mn,mx,1.2);
  if(s20)g+=cizgi(s20,'#0E4D45',mn,mx,1.2);
  if(st)g+=cizgi(st,'#B4362E',mn,mx,1.1);
@@ -1161,6 +1194,25 @@ function grafik(sp,sd,ar,tkg){
     '<circle id="grnokta" r="3.5" fill="#16181D" visibility="hidden"/></svg><div id="grbilgi" class="grbilgi" hidden></div>';
  return g;
 }
+// 🧲 grafik ekleri: bant (üst/orta/alt, kesikli; bantın başladığı yerden) + süpürme dibi (noktalı, süpürme gününden) · SMA200 (🧲 SMA200 olan hissede)
+function ekSatir(d){  // grafiğin altında okunur satır (telefonda grafik içi yazılar küçük kalıyor)
+ var b=ekBant({bs:d.bs}),p=[];
+ if(b)p.push('<span style="color:#0F766E">🧲 3 aylık bant: alt <b>'+sayiTr(b.alt)+'</b> · orta <b>'+sayiTr(b.orta)+'</b> · üst <b>'+sayiTr(b.ust)+'</b></span> · <span style="color:#B4362E">süpürme dibi <b>'+sayiTr(b.dip)+'</b></span>');
+ if(d.d2&&d.d2.s2){var v=d.d2.s2.filter(function(x){return x!=null;});if(v.length)p.push('<span style="color:#2F855A">🧲 200 günlük ortalama (SMA200): <b>'+sayiTr(v[v.length-1])+'</b></span>');}
+ return p.length?'<div class="pk" style="font-size:12.5px;line-height:1.6;margin-top:4px">'+p.join('<br>')+'</div>':'';}
+function ekBant(ek){var b=ek&&ek.bs;return b?(b.son||b.izle||null):null;}
+function ekDeger(ek){var v=[],b=ekBant(ek);if(b)v.push(b.ust,b.alt,b.dip);if(ek&&ek.d2&&ek.d2.s2)ek.d2.s2.forEach(function(x){if(x!=null)v.push(x);});return v;}
+function ekCiz(ek,tt,n,mn,mx){var g='',b=ekBant(ek);
+ if(b){var i0=tt.indexOf(b.sup_t);if(i0<0)i0=0;var bas=Math.max(0,i0-60),x0=grX(bas,n),x1=grX(n-1,n),xd=grX(i0,n);
+  [[b.ust,'bant üst'],[b.orta,'orta'],[b.alt,'bant alt']].forEach(function(a){var y=grY(a[0],mn,mx).toFixed(1);
+   g+='<line x1="'+x0.toFixed(1)+'" x2="'+x1.toFixed(1)+'" y1="'+y+'" y2="'+y+'" stroke="#0F766E" stroke-width="'+(a[1]==='orta'?0.9:1.1)+'" stroke-dasharray="'+(a[1]==='orta'?'2 4':'7 4')+'" opacity=".85"><title>🧲 '+a[1]+' '+sayiTr(a[0])+'</title></line>'+
+    '<text x="'+(x0+3).toFixed(1)+'" y="'+(+y-3).toFixed(1)+'" font-size="9.5" fill="#0F766E" font-weight="600">🧲 '+a[1]+' '+sayiTr(a[0])+'</text>';});
+  var yd=grY(b.dip,mn,mx).toFixed(1);
+  g+='<line x1="'+xd.toFixed(1)+'" x2="'+x1.toFixed(1)+'" y1="'+yd+'" y2="'+yd+'" stroke="#B4362E" stroke-width="1" stroke-dasharray="1.5 3"><title>süpürme dibi '+sayiTr(b.dip)+' (stop fikri: altında kapanış)</title></line>'+
+   '<text x="'+(xd+3).toFixed(1)+'" y="'+(+yd+11).toFixed(1)+'" font-size="9.5" fill="#B4362E">süpürme dibi '+sayiTr(b.dip)+'</text>';}
+ if(ek&&ek.d2&&ek.d2.s2){var s2=ek.d2.s2,v=new Array(n).fill(null),o=n-s2.length;for(var k=0;k<s2.length;k++)if(o+k>=0)v[o+k]=s2[k];
+  g+=cizgiParca(v,'#2F855A',mn,mx,1.2,'5 3');}
+ return g;}
 function grHover(e){
  if(!_gr)return;var svg=document.getElementById('grsvg');if(!svg)return;
  var p=e.touches?e.touches[0]:e,r=svg.getBoundingClientRect(),x=(p.clientX-r.left)/r.width*GR.W;
@@ -1179,7 +1231,7 @@ function grHover(e){
 }
 function grCik(){['grcizgi','grnokta'].forEach(function(id){var el=document.getElementById(id);if(el)el.setAttribute('visibility','hidden');});var b=document.getElementById('grbilgi');if(b)b.hidden=true;}
 function grAralikSec(k,a){  // 6 ay / 1 yıl düğmesi
- var d=DATA[k];if(!d)return;_grAralik=a;var el=document.getElementById('grkutu');if(el)el.innerHTML=grafik(d.spark,d.sd,a,d.tkg);
+ var d=DATA[k];if(!d)return;_grAralik=a;var el=document.getElementById('grkutu');if(el)el.innerHTML=grafik(d.spark,d.sd,a,d.tkg,{bs:d.bs,d2:d.d2});
  ['6a','1y'].forEach(function(x){var b=document.getElementById('gra'+x);if(b)b.className='grb'+(x===a?' on':'');});
 }
 // --- 🚀 v3 işlem geçmişi: d.tkg = sinyal.tk_gecmis → [sinyal (kırılım) günü, giriş (ertesi açılış), çıkış günü|null, çıkış|null]
@@ -1522,6 +1574,18 @@ function thDalga(th){return !!(th&&th.seviye==='sisme'&&(th.yuk20||0)<0);}  // �
 var HR_ESIK={1:4,5:10,20:20},HR_HACIM=1.5,HR_HACIM2=2.5;   // tarama.HR_ESIK / HR_HACIM ile aynı
 var OD_NOT='Geçmiş veride (2021-26, 299 hisse) bu durumdaki hisselerin sonraki 20 günde ancak ~%38\'i endeksi geçti (normalde ~%46); 2022-23 düşük faiz döneminde fark görülmedi. Kesin değil, bilgi.';
 function pyz(x){return (x>=0?'+':'−')+'%'+Math.abs(x).toFixed(1).replace('.',',');}
+// 🧲 SMA200'den dönüş kutusu (ikinci tür AL; bsHtml ile aynı düzen). Veri sinyal.sma200_donus → DATA[k].d2.
+function d2Html(d){var b=d.d2;if(!b||!b.son)return '';var s=b.son,T=function(x){return x==null?'—':sayiTr(x);};
+ var h='<div class="uvkutu bskutu">📊 <b>🧲 SMA200\'den dönüş</b> <span class="sgun">(ikinci tür AL — 🚀 v3 değil)</span>';
+ var ac='Yükselen 200 günlük ortalamaya ('+T(s.s200)+') geri çekildi, dokundu ('+trTarih(s.dok_t)+') ve '+(b.bugun?'bugün':'sinyal gününde ('+trTarih(s.t)+')')+' yükselişle döndü.';
+ if(b.bugun)h+='<div><span class=oky>▲</span> <b>BUGÜN AL</b> — '+ac+' Giriş ertesi gün açılış.</div>';
+ else if(s.durum==='AL')h+='<div>'+(s.gun<=5?'<span class=oky>▲</span> <b>AL '+s.gun+' gün önce</b>':'<b>Pozisyon sürüyor</b> (yeni alım sinyali değil)')+' — '+ac+' Giriş '+T(s.giris)+' ('+trTarih(s.giris_tarih)+'), o günden beri '+pyz(s.degisim)+'. İz stop <b>'+T(s.stop)+' TL</b> ('+izNeden(s)+').</div>';
+ else h+='<div>Son işlem kapandı — sinyal '+trTarih(s.t)+', giriş '+T(s.giris)+', '+trTarih(s.cikis_tarih)+' '+(s.kilit_cik?'🔐 kâr kilidiyle':'iz stop ile')+' çıktı ('+pyz(s.sonuc)+').</div>';
+ if(b.bugun||s.durum==='AL')h+='<div class="cikis">📍 Çıkış kuralı 🚀 ile aynı: tepe kapanışın %20 altı'+(KK?'; '+kkKisa():'')+'. Grafikte kesikli yeşil çizgi = 200 günlük ortalama.</div>';
+ h+='<div class="cikis">⚠️ '+D200_NOT.ek+(PIYASA&&PIYASA.zayif&&(b.bugun||s.durum==='AL')?' <b>Şu an piyasa zayıf</b> (BIST 100 50 günlük ortalamasının altında).':'')+'</div>';
+ h+='<div class="cikis"><span class=oky>▲</span> '+D200_NOT.iyi+'</div><div class="cikis"><span class=okk>▼</span> '+D200_NOT.kotu+'</div>';
+ if(b.g&&b.g.length)h+='<div class="pk sgun">Son 🧲 SMA200 işlemleri (komisyonsuz): '+b.g.map(function(x){return trTarih(x[0])+' '+T(x[1])+(x[2]?' → '+trTarih(x[2])+' '+T(x[3])+' ('+pyz((x[3]/x[1]-1)*100)+')':' → açık');}).join(' · ')+'</div>';
+ return h+'<div class="pk sgun">Kural: 200 günlük ortalama 20 günde yükselmiş; önceki 10 gün fiyat ortalamanın %2\'den fazla üstündeydi; dün düşük ortalamanın %2 yakınına indi; bugün kapanış dünden yüksek ve günün üst %30\'unda. Tavsiye değildir.</div></div>';}
 // 🧲 Bant süpürme dönüşü kutusu (ikinci tür AL; v3'ten ayrı). Veri sinyal.bant_supurme → DATA[k].bs (son / izle / g / bugun).
 function bsHtml(d){var b=d.bs;if(!b)return '';var s=b.son,z=b.izle,T=function(x){return x==null?'—':sayiTr(x);};
  var h='<div class="uvkutu bskutu">📊 <b>🧲 Bant süpürme dönüşü</b> <span class="sgun">(ikinci tür AL — 🚀 v3 değil, onu da susturmaz)</span>';
@@ -1753,12 +1817,12 @@ function ac(k){
  ((d.tahta&&d.tahta.seviye)?'<div class="patlakkutu">'+(thDalga(d.tahta)?'🎈 <b>Sert tavan-taban dalgalanması (düşüş sonrası):</b> '+d.tahta.neden.join('; ')+', ama 20 günde hâlâ '+pyz(d.tahta.yuk20)+'. Tahtacı şişirmesiyle aynı işaret (kısa sürede çok tavan / çok oynak fiyat); bu durumdaki hisselerin ~%15-19\'u sonraki 20 günde %25+ düştü (normalde %2). Yeni alım için AL mesajı gönderilmez.':d.tahta.seviye==='sisme'?'🎈 <b>Şişme riski (tahtacı uyarısı):</b> '+d.tahta.neden.join('; ')+'. 5 yıllık veride bu durumdaki hisselerin ~%15-19\'u sonraki 20 günde %25+ çakıldı (normalde %2). Yeni alım için AL mesajı gönderilmez; elindeyse iz stop\'u sıkı takip et.':'⚠️ <b>Dağıtım işareti:</b> '+d.tahta.neden[0]+'. Büyük satıcı (tahtacı) malı dağıtıyor olabilir; bu durumdakilerin ~%10\'u 20 günde %25+ düştü (normalde %2).')+'</div>':'')+
  (d.bolunme?'<div class="arzkutu">✂️ <b>Bedelsiz/bölünme:</b> '+d.bolunme+' tarihinde fiyat tek günde sınırın ötesinde değişti; grafik ve göstergeler buna göre düzeltildi. Portföyündeyse maliyetini aracı kurumdaki yeni maliyetle güncelle.</div>':'')+
  '<div class="grafik">'+tkSonHtml(d)+((d.spark&&d.spark.w&&d.spark.w.length)?'<div class="graralik"><button id="gra6a" class="grb'+(_grAralik==='6a'?' on':'')+'" onclick="grAralikSec(\''+k+'\',\'6a\')">6 ay</button><button id="gra1y" class="grb'+(_grAralik==='1y'?' on':'')+'" onclick="grAralikSec(\''+k+'\',\'1y\')">1 yıl</button></div>':'')+
-   '<div id="grkutu">'+grafik(d.spark,d.sd,_grAralik,d.tkg)+'</div><div class="leg"><span class="c1">Fiyat</span><span class="c2">SMA20</span><span class="c3">SMA50</span><span class="c4">SuperTrend</span>'+
+   '<div id="grkutu">'+grafik(d.spark,d.sd,_grAralik,d.tkg,{bs:d.bs,d2:d.d2})+'</div><div class="leg"><span class="c1">Fiyat</span><span class="c2">SMA20</span><span class="c3">SMA50</span><span class="c4">SuperTrend</span>'+
    (d.sd&&d.sd.destek?'<span class="c5">Destek</span>':'')+(d.sd&&d.sd.direnc?'<span class="c6">Direnç</span>':'')+
-   '<span class="c7">İz stop</span><span class="lm" style="color:#1B7F4B">▲ AL (🚀)</span><span class="lm" style="color:#B4362E">▼ SAT (iz stop'+(KK?' / 🔐':'')+')</span></div></div>'+
+   (d.bs&&(d.bs.son||d.bs.izle)?'<span class="lm" style="color:#0F766E">┄ 🧲 bant</span><span class="lm" style="color:#B4362E">┈ süpürme dibi</span>':'')+(d.d2&&d.d2.s2?'<span class="lm" style="color:#2F855A">╌ SMA200</span>':'')+'<span class="c7">İz stop</span><span class="lm" style="color:#1B7F4B">▲ AL (🚀)</span><span class="lm" style="color:#B4362E">▼ SAT (iz stop'+(KK?' / 🔐':'')+')</span></div>'+ekSatir(d)+'</div>'+
  nedenHtml(k,d)+makroHisseHtml(k)+
  zaman+vadeHtml(k,d)+
- pozHtml(k,d)+tkHtml(d)+bsHtml(d)+lotHtml(k,d)+tkGecmisHtml(d)+gucHtml(d)+uvHtml(d)+
+ pozHtml(k,d)+tkHtml(d)+bsHtml(d)+d2Html(d)+lotHtml(k,d)+tkGecmisHtml(d)+gucHtml(d)+uvHtml(d)+
  sdHtml(d)+
  '<div class="metr">'+m('RSI',d.rsi)+m('F/K',d.fk)+m('PD/DD',d.pddd)+m('FD/FAVÖK',d.favok)+m('İz stop',d.iz&&!d.iz.cikti?d.iz.stop:'—')+m('Öneri lot',lot)+'</div>'+
  btHtml(d)+bilHtml(d)+kapHtml(d)+arzHtml(d)+
@@ -2580,6 +2644,7 @@ th,td{padding:9px 11px;text-align:left;white-space:nowrap}th{color:var(--muted);
 tbody tr{border-bottom:1px solid var(--line)}tbody tr:last-child{border-bottom:none}
 .kod{font-weight:650}.num{text-align:right;font-variant-numeric:tabular-nums}.stop{color:var(--neg)}.pos{color:var(--pos)}.neg{color:var(--neg)}
 .not{margin-top:22px;padding:13px 15px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--muted);font-size:12px;line-height:1.6}
+.bskb{font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:5px;margin-left:5px;background:#E6F4EA;color:#14633A}
 .eskib{font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:5px;margin-left:5px;background:#F1F1EE;color:#6B7079}
 </style></head><body><div class="wrap">
 <a class="geri" href="index.html">← Panoya dön</a>
@@ -2591,6 +2656,7 @@ tbody tr{border-bottom:1px solid var(--line)}tbody tr:last-child{border-bottom:n
 <div class="k"><div class="b">__ACIK__</div><div class="l">şu an açık takip</div></div>
 </div>
 __ESKI__
+__DESTEK__
 <h2>Açık pozisyonlar (takipte)</h2>
 <div class="sar"><table><thead><tr><th>Hisse</th><th>Sinyal tarihi</th><th class="num">Giriş</th><th class="num">Güncel</th><th class="num">Anlık %</th><th class="num">Stop</th></tr></thead><tbody>__ACIKROWS__</tbody></table></div>
 <h2>Kapanmış sinyaller</h2>

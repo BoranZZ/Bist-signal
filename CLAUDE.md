@@ -1017,7 +1017,7 @@ yeniden filtre önerilirse **tekrar araştırma**, bu sonucu anlat.
   modülü yüklenemedi → tarama tamam. Telegram'sız tam tarama: main 45,9/46,2 sn ↔ yeni 47,0/46,5 (önbellekten) ve 53,7/51,1 (indirmeli; makro 2,6 sn) →
   fark gürültü düzeyinde; index.html +~11 KB. `node --check` tamam; Chrome headless 1280 px + 390 px (iframe): JS hatası yok, taşma yok (`sayfa_hazirla.py`, `ekran/`).
 
-## 🧲 Bant süpürme dönüşü — ikinci tür AL + 🔐🧲 robot (2026-11-16, dal `bant-supurme`)
+## 🧲 Bant süpürme dönüşü · 🧲 SMA200'den dönüş — iki ikinci tür AL + 🧲 karne/grafik + 3 DENEME robotu (2026-11-16/17, dal `bant-supurme`)
 Kaynak: dc_akademi 'Altın ne olur abi' likidite avı videosu + kullanıcının 'uzun süre zikzak yapan hissede süpürme tahmin edilebilir' (uzun bant)
 fikri. Araştırma arşivi `Documents/Bist-arastirma/2026-11-14/sinyal2/bant/RAPOR.md` (kural, 1 hafta/1 ay/3 ay kıyası) ve `.../sinyal2/birlesik/RAPOR.md`
 (kanonik oda motoruyla kıyas). **Tekrar araştırma.** 1 hafta / 1 aylık bant süpürmeleri rastgele günden KÖTÜ; bant üstü süpürmesi uyarı/çıkış olarak işe
@@ -1034,7 +1034,8 @@ yaramıyor; bant içi al-sat komisyonu karşılamıyor → bunlar eklenmedi.
   bekleniyor; kalan gün, uzak %), `g` (son 4 işlem), `poz` (girilmiş son işlem; panoya gömülmez).
 - **SAT / portföy (en sade çözüm):** ayrı SAT mesajı YOK. En son sistem girişi 🧲 ise (açık 🚀 pozisyon yokken ve gösterge AL'inden yeni) `analiz_et`
   `iz`'i o girişten kurar (`iz.kaynak = 'bant'`, `al_tarih` = 🧲 sinyal günü) → mevcut portföy planı, 'iz stop kırıldı' Telegram'ı, tablo Stop sütunu aynen
-  çalışır (v3'ün `tk` override'ı gibi). Açık 🚀 v3 pozisyonunda iz ASLA 🧲'den gelmez (test). Canlı karne (gecmis.json) 🧲 kaydı AÇMAZ (sadece `kural: v3`).
+  çalışır (v3'ün `tk` override'ı gibi; 🧲 Bant ile 🧲 SMA200'den en yeni giriş; `iz.kaynak` 'bant'|'sma200'). Açık 🚀 v3 pozisyonunda iz ASLA 🧲'den gelmez
+  (test). 16.11'de 257 hissenin 36'sında portföy iz'i 🧲'den (34'ü SMA200) — yalnız o hisse portföydeyse görünür.
 - **Pano:** tablo rozetleri `.bsb` (▲ 🧲 AL / 🧲 AL Ng önce / 🧲 bantta · Ng / 🧲 ortaya %x), hisse penceresinde 🚀 kutusunun altında `bsHtml` (bant alt/orta/üst,
   süpürme dibi = stop fikri, ilk hedef bant üstü, çıkış A4 + %20 iz, piyasa zayıfsa not, 🟢▲ geçmiş istatistik, 🔴▼ son 1 yıl dürüstlük satırı, son 🧲
   işlemleri), 'Bugün ne var?' kartında '🧲 Bant süpürme dönüşü (son 5 gün)' + '👀 🧲 Ortaya dönüş bekleyen' satırları, favorilerde 🧲, sözlükte 3 madde.
@@ -1042,10 +1043,28 @@ yaramıyor; bant içi al-sat komisyonu karşılamıyor → bunlar eklenmedi.
 - **Telegram:** v3 AL'lerinden AYRI bölüm '🟢▲ 🧲 AL — Bant süpürme dönüşü (n)' (`tarama.bant_bolumu`/`bant_satiri`), SADECE kesin kapanıştan sonra (18:30+;
   kapanıştan önce gönderilmediği için iptal mesajı yok), günde bir kez (`durum.json` → `bs_gonderilen` {tarih, kodlar}; portföy bilgisi yok), 🎈/🔒/taban
   serisinde mesaj yok. /hisse cevabında 🧲 satırı. v3 AL'i, v3 piyasa filtresi, backtest.py DEĞİŞMEDİ.
-- **🏢 Robot `kirilim_bant` '🔐🧲 Kırılımcı + bant dönüşü'** (tur `kirbant`, 10 yuva, Bekçi, riskli filtresi, `ana: True` = sadece BIST100 + EK, iz %20 +
-  `kar_kilit` (0.08, 0.05)): aynı gün önce 🚀 v3 kırılımları (kilitsiz `tk`), boş yuva kalırsa 🧲 (`ozet_hazirla` `bs` / replay `ozellik` `bs_bugun`,
-  `bs_orta`); her grupta az yükselen önce. Alım notu 🧲'de 5. öğe 'b' (orta), JS `notMetin`. 'Kaçan aday' `atla_n`. Salon: yapay zekâ köşesi
-  daraltıldı (tek hayalet masa), yanında '🧲 BANT · DENEME' köşesi [5,4, 15,6] (renk #86EFAC). Mevcut robotlar DEĞİŞMEDİ. DENEME/izleme (2-3 ay).
+- **🏢 3 DENEME robotu (2026-11-17; birlesik/RAPOR.md bölüm 7; salon köşesi '🧲 DESTEK DÖNÜŞÜ · DENEME' [1,0 / 3,7 / 6,4, 15,6] — yapay zekâ hayalet
+  masası kaldırıldı; hepsi 10 yuva, Bekçi, riskli filtresi, %20 iz + 🔐 A4):** tur `destek` (`v3` bayrağı, `sinyaller` = ('bs', 'd2'), `ana`) ve tur `tuzak`.
+  (1) `kirilim_destek` '🔐🧲 Kırılımcı + destek dönüşü' (ilk sürümdeki `kirilim_bant` buna dönüştü; hiç yayınlanmamıştı): aynı gün önce 🚀 v3 (kilitsiz `tk`),
+  boş yuvaya 🧲 Bant VE 🧲 SMA200; ana liste. (2) `destek_donus` '🧲 Destek dönüşçü': v3 YOK, sadece 🧲 Bant + 🧲 SMA200; ana liste. (3) `tuzak_geri`
+  '🔁 Tuzak sonrası AL': `sinyal.tuzak_geri` (canlı, son 500 bar, sadece `bar_kesin`) / `tuzak_geri_gunleri` (replay); odanın tüm evreni; **panoya/Telegram'a
+  GİRMEZ**. Her grupta az yükselen önce. Alım notu 5. öğe 'b' (bant orta) / 's' (SMA200), JS `notMetin`; `_al_notu(..., robot)`. 'Kaçan aday' `atla_n`.
+  Canlı: `ozet_hazirla` `bs`/`d2`/`tz`; replay `ozellik` `bs_bugun`/`bs_orta`/`d2_bugun`/`d2_s200`/`tz_bugun` (+ aday).
+- **🧲 SMA200'den dönüş (2026-11-17; araştırma `Documents/Bist-arastirma/2026-11-14/sinyal2/erken/RAPOR.md`, `sinyal_destek200.py`):** `sinyal.d200_maske` /
+  `d200_zincir` / `sma200_donus` → `analiz_et` `d2` (Bant ile aynı düzen: bugun, son, poz, g; grafik için `s2` = son 130 günün SMA200'ü). Kural: SMA200 20
+  günde yükselmiş; önceki 10 günün kapanışları SMA200 × 1,02'nin üstünde; dün düşük ≤ SMA200 × 1,02 ve kapanış ≥ SMA200 × 0,98 (dokunuş); bugün kapanış dünden
+  yüksek ve gün aralığının üst %30'unda → AL (ertesi açılış). Çıkış %20 iz + 🔐 + kilitli taban; zincir: kapanışla tetiklenen çıkış gününden SONRA yeni AL
+  (araştırmanın motoru; Bant'ta gerçekçi çıkış günü). Piyasa filtresi yok. Evren `BANT_EVREN`. Metin `sinyal.D200_NOT` (737 işlem, ort +%19, isabet %71,
+  rastgeleye göre +7 puan; 🔴▼ son 1 yılda işlem başı −%2,0, isabet %55). Pano: rozet '▲ 🧲 SMA200' / '🧲 SMA200 Ng önce', `d2Html` kutusu (açıklama +
+  'Piyasa zayıfken de AL verir (v3 vermez). Düşen piyasada risk daha yüksek.' + istatistik + dürüst satır), 'Bugün ne var?' satırı, favoriler, sözlük. Telegram
+  ayrı bölüm '🟢▲ 🧲 AL — SMA200'den dönüş (n)' (`d2_bolumu`/`d2_satiri`, kesin kapanış sonrası, `durum.json` → `d2_gonderilen`), /hisse satırı.
+- **Canlı karne (gecmis.json/gecmis.html) — 🧲 ayrı tür:** `tarama.DESTEK_KURAL` = {'bant': 'bs', 'sma200': 'd2'}; kesin kapanışta `bugun` olan 🧲 sinyali
+  `kural: 'bant'|'sma200'` kaydı açar (taban serisi hariç; aynı hissede aynı türde açık kayıt yoksa; 🚀 kaydından bağımsız), kapanış mevcut genel döngüyle
+  (%20 iz + 🔐). Kartlar ve 'eski kural' özeti, `KOTU_GUN` kıyası, haftalık özet yalnız eski düzen (v3 / eski); 🧲 kayıtlar tabloda `.bskb` '🧲 bant' /
+  '🧲 SMA200' etiketiyle ve ayrı özet satırında (`ozet['bant'|'sma200']`, `__DESTEK__`). Eski kayıtlar değişmez.
+- **Grafik:** `grafik(..., ek)` → `ekCiz`: 🧲 bant üst/orta/alt (yeşil-mavi kesikli, bantın başladığı yerden; `son` ya da `izle` olan hissede) + süpürme dibi
+  (kırmızı noktalı, süpürme gününden), 🧲 SMA200 (yeşil kesikli, `d2.s2`); y ekseni bu değerleri kapsar; lejantta '┄ 🧲 bant / ┈ süpürme dibi / ╌ SMA200';
+  telefonda grafik içi yazılar küçük kaldığı için grafiğin altında okunur satır (`ekSatir`: bant alt/orta/üst, süpürme dibi, SMA200 değeri).
 - **Testler (scratchpad `433930d7…/scratchpad/bant/`, hepsi geçti):** `t1_sinyal.py` bölünme düzeltmeli 10y veriyle zincir = araştırma 156/156 işlem
   (giriş/çıkış/getiri 0 fark), veri sinyal gününde kesilince 156/156 'bugun', olay listesi 1.114/1.114; `t2_gungun.py` 47 hisse × 2024→ her gün kesik
   veri (32.768 hisse-gün): 23 doğru AL, 0 fazladan, 0 eksik; `t3_pencere.py` 4 yıllık pencere = 10y zincir (son 1 yıl 31 işlem, 0 fark); `t13_birim.py`
@@ -1060,5 +1079,20 @@ yaramıyor; bant içi al-sat komisyonu karşılamıyor → bunlar eklenmedi.
   11.21-05.23 166 (= araştırma), son 12 ay +1 (v3 −1), düşüş −25/−20 (v3 −24/−22). **oda_replay.json yeniden üretildi** (gerçek Yahoo verisi, 15.11.2021 →
   13.11.2026, tüm robotlar yeni veriyle): 🔐🧲 **+%1.244** (düşüş −%20,7, isabet %68, 142 alım, son 1 yıl +%19,8, 6 ay −%4,8, şans 99) · 🔐 Kırılımcı
   +%1.277 (−%25,2, son 1 yıl +%28,6, 6 ay −%16,2) · 🚀 +%930 · oda_replay.json 1.497 KB.
+- **2026-11-17 eki testleri (aynı scratchpad):** `t16_d2.py` 🧲 SMA200 zincir = araştırma 737/737 (çıkış günü, getiri 0 fark), kesik veri 737/737, 30 hisse
+  × 2024-06→ her gün (18.237 hisse-gün) 0 fazla / 0 eksik; 4 yıllık pencere = 10y son 1 yıl 127 işlemin 125'i (CGCAM, EGEGY: pencere başındaki zincir farkı);
+  🔁 tuzak: araştırmanın 1.358 işleminin hepsi repo AL günlerinde (repo 1.660 gün: zincirsiz), kesik veri 149/150 (RTALB 2017-12: <300 bar, araştırma
+  fonksiyonu da False), canlı 500 bar penceresi = tüm geçmiş 3.000 hisse-günde 0 fark. `t13_birim.py` 26/26 (+ istisnalar, seans içinde tuzak yok, 3 robotun
+  aday sırası, 's' notu, karne: ayrı tür, ikinci kez açılmaz, iz stop'la kapanır, kartlara girmez, gecmis.html etiketi). `t14_esit.py` 257 hissede
+  `bs/d2/tz` dışında eski kodla birebir (iz/al_tarih 36 hissede 🧲'den). Eski 26 robot eski kodla `calistir`/`oda_oynat`/olaylar/bekçi birebir, `oda_oynat` =
+  `calistir` 29/29; canlı yol: 3 yeni robot o gün 100.000 TL ile eklendi. `node --check` index/oda; Chrome 1280 + 390 (iframe): JS hatası yok, taşma yok.
+- **3 robot, kanonik motor 10 başlangıç medyanı (`t17_robotlar.py`; 2017-21 / 2022-26 / 11.21-05.23 / son 12 ay / tümü, araştırma parantezde):**
+  🔐🧲 Kırılımcı + destek 288 / 1.350 / 208 / −3 / 6.167 (306 / 1.136 / 207 / −1 / 4.897; düşüş −31/−24); 🧲 Destek dönüşçü 153 / 1.208 / 192 / −6 / 3.385
+  (158 / 1.120 / 192 / −1 / 3.270); 🔁 Tuzak sonrası 263 / 1.466 / 162 / 0 / 7.411 (181 / 1.377 / 102 / −2 / 4.493) — tuzakta sapma büyük: araştırma
+  listesi kendi çıkış zinciriyle seyreltilmişti (1.358 işlem), robot zincirsiz AL günlerini görüyor (1.660) + başlangıç duyarlılığı (2017-21 +%207…+%364).
+  **oda_replay.json yeniden** (veri_oda.pkl, 15.11.2021 → 13.11.2026): 🔐🧲 +%1.332 (son 1y +%49, 6a −%12,8, şans 99) · 🧲 Destek dönüşçü +%1.282 (1y +%33,
+  6a −%11,9, şans 98) · 🔁 Tuzak +%2.361 (1y −%0,8, 6a −%22,5, şans 1y 16) · 🔐 Kırılımcı +%1.277 (1y +%29) · 🚀 +%930; oda_replay.json 1.575 KB.
+- **Süre (2026-11-17):** bant 0,26 / SMA200 0,32 / tuzak 1,96 sn (257 hisse; tuzak sadece kesin kapanış taramasında) → kapanış taramasında ~+2,5 sn,
+  gün içinde ~+0,6 sn. index.html +~78 KB (%2; 40 hissede `d2` + `s2` grafik serisi). Yeni durum.json anahtarı `d2_gonderilen`.
 - **Süre:** `bant_supurme` 257 hissede 0,2-0,4 sn (~1 ms/hisse); Telegram'sız tam tarama yerelde 55-70 sn (ağ gürültüsü baskın). Workflow ve fork'lar için
   değişiklik yok (yeni dosya yok; yeni durum.json anahtarı `bs_gonderilen`).

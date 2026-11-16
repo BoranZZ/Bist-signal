@@ -12,7 +12,7 @@ from kap import kap_guncelle, kap_mesaji, fr_yayinlar, fr_son_donem, tedbir_gunc
 from bilanco import bilancolari_al, bilanco_ozet, bilanco_metni, bilanco_yakin, tarih_tr, temettu_ozet, zarar_guncelle
 from sinyal import analiz_et, destek_direnc, bolunme_duzelt, tahta_riski, TABAN_GETIRI, TABAN_GUN, IZ_STOP_ORAN, KILIT_ARALIK
 from sinyal import rs_puanlari, rs_tam, bilanco_tepkisi
-from sinyal import kar_kilit_ayar, iz_seviye, MANIP_ESIK, BANT_NOT
+from sinyal import kar_kilit_ayar, iz_seviye, MANIP_ESIK, BANT_NOT, D200_NOT
 from pano import pano_uret, gecmis_uret, manip_isaret
 import gunici
 try:
@@ -1293,6 +1293,35 @@ def bant_bolumu(bant_al, pf, piyasa=None):
     return bas + "\n" + "\n".join(satir)
 
 
+def d2_satiri(s, pf):
+    """🧲 SMA200'den dönüş — Telegram AL satırı."""
+    b = (s.get("d2") or {}).get("son") or {}
+    isaret = "❗" if s["kod"] in pf else "🧲"
+    y = " 🔹küçük hisse (tahta sığ, sert oynar — lotu küçük tut)" if s["kod"] in KUCUK_HISSELER else ""
+    dk = b.get("dok_t") or ""
+    t = (f"{isaret} <b>{s['kod']}</b>{y}  {_sayi(s['fiyat'])} TL — yükselen 200 günlük ortalamaya ({_sayi(b['s200'])}) "
+         f"geri çekildi, dokundu ({dk[8:10]}.{dk[5:7]}) ve bugün yükselişle döndü.\n"
+         f"     Çıkış: tepe kapanışın %20 altı" + (f"; {kk_metni(True)}" if kk_metni() else "") + ".")
+    if s["kod"] in pf:
+        t += "\n     " + plan_metni(s, pf[s["kod"]])
+    return t
+
+
+def d2_bolumu(d2_al, pf, piyasa=None):
+    """🧲 SMA200 bölümü (v3 ve 🧲 Bant'tan ayrı başlık)."""
+    sirali = sorted(d2_al, key=lambda x: (x["kod"] not in pf, x["mom20"] if x.get("mom20") is not None else 0))
+    gos = [s for s in sirali if s["kod"] in pf] + [s for s in sirali if s["kod"] not in pf][:MAX_AL_SATIR]
+    bas = (f"🟢▲ 🧲 <b>AL — SMA200'den dönüş ({len(d2_al)})</b>\n<i>v3 (🚀) AL'i değil; ek sinyal. {D200_NOT['ek']}</i>\n"
+           f"🟢▲ <i>Geçmiş isabet %{D200_NOT['isabet']} ({D200_NOT['n']} işlem), rastgele güne göre +{D200_NOT['ikiz']} puan.</i>\n"
+           f"🔴▼ <i>Son 1 yılda kötü (işlem başı −%2,0). Giriş ertesi gün açılış.</i>")
+    if piyasa and piyasa.get("zayif"):
+        bas += "\n⚠️ <i>Piyasa zayıf (BIST 100 &lt; 50 günlük ortalama): 🚀 AL gelmez; bu sinyal yine verilir — temkinli ol.</i>"
+    satir = [d2_satiri(s, pf) for s in gos]
+    if len(sirali) > len(gos):
+        satir.append(f"…ve {len(sirali) - len(gos)} hisse daha (panoya bak)")
+    return bas + "\n" + "\n".join(satir)
+
+
 MOMENTUM_PAY = 0.20   # aylık momentum listesi: taranan hisselerin en güçlü %20'si
 
 
@@ -1344,7 +1373,7 @@ def uv_mesaji(uv_al, uv_sat, pf):
 
 
 def telegram_mesaji(yeni_al, yeni_sat, sat_teyit, pf, uyari, piyasa=None, karar_kirilan=None, on_kapanis=False, iptal=None,
-                    diger_al=None, takvim_notu=None, bant_al=None):
+                    diger_al=None, takvim_notu=None, bant_al=None, d2_al=None):
     tarih = pd.Timestamp.now(tz="Europe/Istanbul").strftime("%d.%m.%Y %H:%M")
     parca = [f"📊 <b>BIST Sinyal</b> — {tarih}"]
     if yeni_al:
@@ -1369,6 +1398,8 @@ def telegram_mesaji(yeni_al, yeni_sat, sat_teyit, pf, uyari, piyasa=None, karar_
         parca.append(bas + "\n" + "\n".join(satir))
     if bant_al:   # 🧲 ikinci tür AL (kesin kapanıştan sonra; v3 AL'lerinden ayrı başlık)
         parca.append(bant_bolumu(bant_al, pf, piyasa))
+    if d2_al:     # 🧲 SMA200'den dönüş (ayrı başlık)
+        parca.append(d2_bolumu(d2_al, pf, piyasa))
     if yeni_sat:
         satir = []
         for s in yeni_sat:
@@ -1600,6 +1631,9 @@ def _kapa(r, fiyat, sebep, bugun):
     r["sebep"] = sebep
 
 
+DESTEK_KURAL = {"bant": "bs", "sma200": "d2"}   # karnedeki 🧲 ikinci tür AL kayıtları: kural → analiz_et alanı
+
+
 def gecmis_guncelle(by_kod, bugun, piyasa=None, yeni_kayit=True):
     """Canlı karne, canlıdaki (v3) kuralların aynısını ölçer: 🚀 trend kırılımında gir (şablon + 20g zirve, piyasa
     zayıf değil, aşırı oynak/taban serisi değil); iz stop (kayıttan beri tepe kapanışın %20 altı) kırılınca çık.
@@ -1630,8 +1664,23 @@ def gecmis_guncelle(by_kod, bugun, piyasa=None, yeni_kayit=True):
         if s["fiyat"] < r["stop"]:
             _kapa(r, s["fiyat"], "🔐 kâr kilidi" if (kilit and st > r["tepe"] * (1 - IZ_STOP_ORAN)) else "iz stop", bugun)
 
-    acik = {r["kod"] for r in kayitlar if r["durum"] == "açık"}
-    kayitli = {(r["kod"], r.get("sinyal_tarih")) for r in kayitlar}
+    # 🧲 ikinci tür AL'ler (Bant / SMA200) ayrı tür (`kural`) ile; 🚀 kayıtlarından ve birbirinden bağımsız (aynı hissede açık aynı tür yoksa)
+    acik_tur = {(r["kod"], r.get("kural")) for r in kayitlar if r["durum"] == "açık"}
+    kayitli_tur = {(r["kod"], r.get("sinyal_tarih"), r.get("kural")) for r in kayitlar}
+    for kod, s in by_kod.items():
+        for kural, alan in DESTEK_KURAL.items():
+            b = (s.get(alan) or {})
+            t = (b.get("son") or {}).get("t")
+            if (yeni_kayit and b.get("bugun") and t and not s.get("patlak") and s.get("fiyat") and (kod, kural) not in acik_tur
+                    and (kod, t, kural) not in kayitli_tur):
+                kayitlar.append({"kod": kod, "giris_tarih": bugun, "giris_fiyat": s["fiyat"],
+                                 "stop": round(s["fiyat"] * (1 - IZ_STOP_ORAN), 2), "tepe": s["fiyat"], "durum": "açık",
+                                 "guncel": s["fiyat"], "anlik": 0.0, "sinyal_tarih": t, "kural": kural,
+                                 **({"kar_kilit": list(kar_kilit_ayar())} if kar_kilit_ayar() else {}),
+                                 "piyasa": "zayıf" if (piyasa and piyasa.get("zayif")) else "normal"})
+
+    acik = {r["kod"] for r in kayitlar if r["durum"] == "açık" and r.get("kural") not in DESTEK_KURAL}
+    kayitli = {(r["kod"], r.get("sinyal_tarih")) for r in kayitlar if r.get("kural") not in DESTEK_KURAL}
     for kod, s in by_kod.items():
         tk = s.get("tk") or {}
         if (yeni_kayit and tk.get("durum") == "AL" and (tk.get("gun") or 0) <= 1 and not s.get("patlak") and s.get("fiyat")
@@ -1656,7 +1705,10 @@ def gecmis_guncelle(by_kod, bugun, piyasa=None, yeni_kayit=True):
     # karne kartları sadece canlı kural (v3) kayıtlarını sayar; eski kurallarla açılmışlar ayrı özet
     v3 = lambda r: r.get("kural") == "v3"
     ozet = _istat([r for r in acik if v3(r)], [r for r in kapali if v3(r)])
-    ozet["eski"] = _istat([r for r in acik if not v3(r)], [r for r in kapali if not v3(r)])
+    eski = lambda r: not v3(r) and r.get("kural") not in DESTEK_KURAL
+    ozet["eski"] = _istat([r for r in acik if eski(r)], [r for r in kapali if eski(r)])
+    for kural in DESTEK_KURAL:   # 🧲 türleri ayrı özet (kartlara girmez)
+        ozet[kural] = _istat([r for r in acik if r.get("kural") == kural], [r for r in kapali if r.get("kural") == kural])
     return acik, kapali, ozet
 
 
@@ -1759,6 +1811,13 @@ def hisse_metni(s, p=None):
                    f"📍 iz stop <b>{bb['stop']} TL</b>")
     elif bz:
         sat.append(f"👀 🧲 bant altı süpürüldü + geri alındı; kapanış {_sayi(bz['orta'])} (bant ortası) üstüne çıkarsa 🧲 AL")
+    d2 = s.get("d2") or {}
+    dd = d2.get("son") or {}
+    if d2.get("bugun"):
+        sat.append(f"🟢▲ 🧲 <b>Bugün SMA200'den dönüş AL</b> (ikinci tür) · 200 günlük ortalama {_sayi(dd['s200'])}")
+    elif dd.get("durum") == "AL" and dd.get("stop") is not None:
+        sat.append(f"🧲 SMA200 dönüşü AL {dd['gun']} gün önce ({_tt(dd['t'])}), o günden beri {_yzd(dd.get('degisim'))} · "
+                   f"📍 iz stop <b>{dd['stop']} TL</b>")
     g, rs = s.get("guc") or {}, s.get("rs")
     ek = ([f"💪 güç {g['puan']}/{g['toplam']}"] if g else []) + ([f"RS {rs}"] if rs is not None else []) \
         + ([f"RSI {s['rsi']}"] if s.get("rsi") is not None else [])
@@ -2083,6 +2142,11 @@ def main():
     bant_al = []
     if kapanis_zamani:
         bant_al = [s for s in sonuclar if (s.get("bs") or {}).get("bugun") and not _riskli(s) and s["kod"] not in bs_gonderilen]
+    d2_d = durum.get("d2_gonderilen") or {}
+    d2_gonderilen = set(d2_d.get("kodlar", [])) if d2_d.get("tarih") == bugun_iso else set()
+    d2_al = []
+    if kapanis_zamani:
+        d2_al = [s for s in sonuclar if (s.get("d2") or {}).get("bugun") and not _riskli(s) and s["kod"] not in d2_gonderilen]
 
     # v2: portföyde iz stop kırılımı (uzun vade hariç) — kesin kapanıştan sonra, her AL dalgası için bir kez.
     # durum.json herkese açık: anahtarlar gizli özetle (HMAC); ilk çalışmada sessiz başlangıç kaydı.
@@ -2164,8 +2228,8 @@ def main():
     if patlak_al:
         print(f"Taban serisi / kilitli taban / şişme {len(patlak_al)} hissenin AL mesajı gönderilmedi.")
 
-    if yeni or yeni_sat or sat_teyit or karar_kirilan or iptal or diger_al or bant_al:
-        print(f"Telegram: {len(yeni)} yeni AL (+{len(diger_al)} trend dışı), {len(bant_al)} 🧲 bant AL, {len(yeni_sat)} portföy SAT, "
+    if yeni or yeni_sat or sat_teyit or karar_kirilan or iptal or diger_al or bant_al or d2_al:
+        print(f"Telegram: {len(yeni)} yeni AL (+{len(diger_al)} trend dışı), {len(bant_al)} 🧲 bant AL, {len(d2_al)} 🧲 SMA200 AL, {len(yeni_sat)} portföy SAT, "
               f"{len(sat_teyit)} iz stop kırılımı, {len(karar_kirilan)} karar çizgisi kırılımı, {len(iptal)} iptal.")
         _tn = None
         try:
@@ -2173,8 +2237,9 @@ def main():
         except Exception:
             pass
         if tg_gonder(telegram_mesaji(yeni, yeni_sat, sat_teyit, pf, uyari, piyasa, karar_kirilan, on_kapanis, iptal, diger_al, _tn,
-                                     bant_al=bant_al)) or not os.environ.get("TELEGRAM_TOKEN"):
+                                     bant_al=bant_al, d2_al=d2_al)) or not os.environ.get("TELEGRAM_TOKEN"):
             bs_gonderilen |= {s["kod"] for s in bant_al}   # gönderilemediyse sonraki taramada yeniden dener
+            d2_gonderilen |= {s["kod"] for s in d2_al}
     else:
         print("Yeni AL / portföyde SAT yok, Telegram sessiz." if kapanis_sonrasi
               else "Gün içi tarama: AL/SAT mesajları kapanış sonrası taramada gönderilir.")
@@ -2353,7 +2418,8 @@ def main():
     # Haftalık özet: cuma kapanıştan sonraki ilk taramada bir kez
     hafta_tarih = durum.get("hafta_tarih")
     if simdi.weekday() == 4 and kapanis_zamani and hafta_tarih != bugun_iso:
-        if tg_gonder(haftalik_ozet(sonuclar, pf, acik, kapali, simdi)):
+        if tg_gonder(haftalik_ozet(sonuclar, pf, [r for r in acik if r.get('kural') not in DESTEK_KURAL],
+                                    [r for r in kapali if r.get('kural') not in DESTEK_KURAL], simdi)):
             hafta_tarih = bugun_iso
             print("Haftalık özet gönderildi.")
 
@@ -2395,6 +2461,7 @@ def main():
                    "uv_son": dict(sorted(uv_son.items())), "kap_son": kap_son,
                    "tk_gonderilen": {"tarih": bugun_iso, "kodlar": sorted(tk_gonderilen)}, "mom_ay": mom,
                    "bs_gonderilen": {"tarih": bugun_iso, "kodlar": sorted(bs_gonderilen)},
+                   "d2_gonderilen": {"tarih": bugun_iso, "kodlar": sorted(d2_gonderilen)},
                    "gunici": {"tarih": bugun_iso, "g": sorted(gi_gonderilen)},
                    "sabah_tarih": sabah_tarih, "makro_sabah": makro_sabah, **({"olay_tarih": olay_tarih} if olay_tarih else {}), **({"tg_ofset": int(tg_ofset)} if tg_ofset else {}),
                    **({"anahtar_uyari": anahtar_uyari} if anahtar_uyari else {})},
