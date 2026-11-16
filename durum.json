@@ -11,6 +11,7 @@
     "METRO",
     "MPARK",
     "PGSUS",
+    "SNGYO",
     "TAVHL",
     "THYAO",
     "YKBNK"
@@ -285,7 +286,7 @@
     "SKBNK": "SAT",
     "SMRTG": "SAT",
     "SMRVA": "SAT",
-    "SNGYO": "SAT",
+    "SNGYO": "AL",
     "SOHOE": "SAT",
     "SOKM": "SAT",
     "SSAAT": "SAT",
@@ -356,6 +357,11 @@
   "alarm_tetik": [],
   "on_sinyal": {
     "PGSUS": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-16"
+    },
+    "SNGYO": {
       "sinyal": "AL",
       "onceki": "SAT",
       "tarih": "2026-11-16"
@@ -640,7 +646,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1698548,
+  "kap_son": 1698565,
   "tk_gonderilen": {
     "tarih": "2026-11-16",
     "kodlar": []
