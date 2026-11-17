@@ -1352,6 +1352,54 @@ def d2_bolumu(d2_al, pf, piyasa=None):
     return bas + "\n" + "\n".join(satir)
 
 
+OA_BAS, OA_SON = 17 * 60, 18 * 60   # ⏱️ 🧲 ön uyarı penceresi (TR saati; veri ~15 dk gecikmeli → 16:45+ fiyatı)
+OA_ALT = 0.97                        # fiyat eşiğin en çok %3 altındaysa listeye girer
+OA_UST = 1.05                        # eşiğin %5'ten fazla üstündeyse 'çok üstünde, kovalamadan' notu
+# 16:45'te eşiğin üstündekilerin kapanışta üstünde kalma oranı (scratchpad onuyari/v3_15dk.py: 26.08 → 16.11.2026, Yahoo 15 dk, 698 aday-gün;
+# Bant 8/8, SMA200 27/30; eşiğin 0…−%3 altındakilerden 9/81 kapanışta geçti) — az örnek, dönem değişince yeniden ölç. None → yazılmaz.
+OA_TUTMA = ("Son ~3 ayda 16:45'te eşiğin üstünde olan 38 adayın 35'i kapanışta da üstündeydi (%92); eşiğin hemen altındakilerin "
+            "~%11'i kapanışta geçti. Az örnek, kesin değil.")
+
+
+def on_uyari_adaylari(sonuclar, riskli):
+    """⏱️ 🧲 olası AL adayları: (s, tür 'Bant'|'SMA200', eşik, uzaklık %). Fiyatı eşiğin −%3'ünden yukarıda olanlar; 🧲 süzgeçleri aynı."""
+    out = []
+    for s in sonuclar:
+        oa = s.get("oa") or {}
+        if not oa or riskli(s) or s["kod"] not in BANT_EVREN or not s.get("fiyat"):
+            continue
+        for tur, a in (("Bant", oa.get("b")), ("SMA200", oa.get("s"))):
+            if a and a.get("esik") and s["fiyat"] >= a["esik"] * OA_ALT:
+                out.append((s, tur, a["esik"], (s["fiyat"] / a["esik"] - 1) * 100))
+    return sorted(out, key=lambda x: (x[1], -x[3]))
+
+
+def on_uyari_mesaji(adaylar, saat, piyasa=None):
+    """⏱️ 🧲 Olası AL — kapanışta kesinleşir (günde bir kez, 17:00-18:00)."""
+    sat = [f"⏱️ 🧲 <b>Olası AL — kapanışta kesinleşir</b> ({saat}, fiyatlar ~15 dk gecikmeli)"]
+    for s, tur, esik, uz in adaylar:
+        a = (s.get("oa") or {}).get("b" if tur == "Bant" else "s") or {}
+        not_ = ""
+        if uz >= (OA_UST - 1) * 100:
+            not_ = " · <i>eşiğin çok üstünde, kovalamadan</i>"
+        elif uz < 0:
+            not_ = " · <i>şu an eşiğin altında</i>"
+        ek = ""
+        if tur == "Bant" and a.get("dip_sinir") is not None:
+            ek = f" (bugünün en düşüğü {_sayi(a['dip_sinir'])} altına inerse geçersiz)"
+        elif tur == "SMA200":
+            ek = f" (ve günün üst %30'unda; dünkü kapanış {_sayi(a['dun_kapanis'])}; gün içinde yeni dip/zirve eşiği değiştirir)"
+        sat.append(f"🧲 <b>{s['kod']}</b> {tur} · <b>EŞİK: kapanış {_sayi(esik)} TL üstü</b>{ek} · şu an {_sayi(s['fiyat'])} TL "
+                   f"({_yz(uz)}){not_}")
+    if piyasa and piyasa.get("zayif"):
+        sat.append("⚠️ <i>Piyasa zayıf (BIST 100 &lt; 50 günlük ortalama) — 🧲 sinyallerde piyasa filtresi yok, temkinli ol.</i>")
+    if OA_TUTMA:
+        sat.append(f"<i>{OA_TUTMA}</i>")
+    sat.append("👉 18:00-18:10 kapanış seansında canlı fiyata bak: eşiğin ÜSTÜNDEYSE kapanış seansında al; altındaysa alma. "
+               "Kesin liste 18:30 mesajında.\n<i>Yatırım tavsiyesi değildir.</i>")
+    return "\n".join(sat)
+
+
 MOMENTUM_PAY = 0.20   # aylık momentum listesi: taranan hisselerin en güçlü %20'si
 
 
@@ -2268,6 +2316,17 @@ def main():
     if patlak_al:
         print(f"Taban serisi / kilitli taban / şişme {len(patlak_al)} hissenin AL mesajı gönderilmedi.")
 
+    # ⏱️ 🧲 ön uyarı: 17:00-18:00 arası (veri ~16:45+), hafta içi, günde bir kez — kapanış seansında canlı fiyata bakıp almak için eşikler
+    oa_tarih = durum.get("oa_tarih")
+    if simdi.weekday() < 5 and OA_BAS <= dakika < OA_SON and oa_tarih != bugun_iso:
+        try:
+            _oa = on_uyari_adaylari(sonuclar, _riskli)
+            _saat = (simdi - pd.Timedelta(minutes=15)).strftime("%H:%M")
+            if not _oa or tg_gonder(on_uyari_mesaji(_oa, _saat, piyasa)) or not os.environ.get("TELEGRAM_TOKEN"):
+                oa_tarih = bugun_iso
+                print(f"Telegram: ⏱️ 🧲 olası AL ön uyarısı ({len(_oa)} aday)." if _oa else "🧲 ön uyarı: eşiğe yakın aday yok, mesaj yok.")
+        except Exception as e:
+            print(f"🧲 ön uyarı hazırlanamadı ({type(e).__name__}).")
     if yeni or yeni_sat or sat_teyit or karar_kirilan or iptal or diger_al or bant_al or d2_al:
         print(f"Telegram: {len(yeni)} yeni AL (+{len(diger_al)} trend dışı), {len(bant_al)} 🧲 bant AL, {len(d2_al)} 🧲 SMA200 AL, {len(yeni_sat)} portföy SAT, "
               f"{len(sat_teyit)} iz stop kırılımı, {len(karar_kirilan)} karar çizgisi kırılımı, {len(iptal)} iptal.")
@@ -2502,6 +2561,7 @@ def main():
                    "tk_gonderilen": {"tarih": bugun_iso, "kodlar": sorted(tk_gonderilen)}, "mom_ay": mom,
                    "bs_gonderilen": {"tarih": bugun_iso, "kodlar": sorted(bs_gonderilen)},
                    "d2_gonderilen": {"tarih": bugun_iso, "kodlar": sorted(d2_gonderilen)},
+                   **({"oa_tarih": oa_tarih} if oa_tarih else {}),
                    "gunici": {"tarih": bugun_iso, "g": sorted(gi_gonderilen)},
                    "sabah_tarih": sabah_tarih, "makro_sabah": makro_sabah, **({"olay_tarih": olay_tarih} if olay_tarih else {}), **({"tg_ofset": int(tg_ofset)} if tg_ofset else {}),
                    **({"anahtar_uyari": anahtar_uyari} if anahtar_uyari else {})},

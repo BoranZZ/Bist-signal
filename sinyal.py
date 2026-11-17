@@ -654,10 +654,11 @@ def _bant_seri(H, L, N=BANT_GUN):
     return top, bot, segs
 
 
-def bant_olaylar(H, L, C, ilk=0):
+def bant_olaylar(H, L, C, ilk=0, bekleyen=None):
     """Alt süpürme + geri alma (+ orta dönüş) olayları; araştırma sinyal_bant.olaylar ile aynı (j süpürme, r geri alma, m orta
     dönüşü (AL) günü ya da −1, bot/top bant, sl süpürme dibi). Ek alan (izleme için): 'ip' = orta dönüşü beklenirken kapanış süpürme
-    dibinin altına indi (iptal)."""
+    dibinin altına indi (iptal). bekleyen (liste verilirse): verinin sonunda 3 günlük geri alma penceresi henüz kapanmamış süpürmeler
+    ({j, bot, top, sl}; ⏱️ 17:00 ön uyarısı için — olay listesini değiştirmez)."""
     n = len(C)
     top, bot, segs = _bant_seri(H, L)
     w = top - bot
@@ -670,10 +671,11 @@ def bant_olaylar(H, L, C, ilk=0):
         if j <= son:
             continue
         b, t = bot[j], top[j]; ww = t - b
-        sl, r = np.inf, -1
+        sl, r, kesik = np.inf, -1, False
         for dd in range(BANT_GERI_GUN):
             q = j + dd
             if q >= n:
+                kesik = True
                 break
             sl = min(sl, L[q])
             if sl < b - BANT_DERIN * ww:
@@ -682,6 +684,8 @@ def bant_olaylar(H, L, C, ilk=0):
                 r = q
                 break
         if r < 0:
+            if kesik and bekleyen is not None:
+                bekleyen.append({"j": int(j), "bot": float(b), "top": float(t), "sl": float(sl)})
             son = j + BANT_GERI_GUN - 1
             continue
         mid, m, slm, ip = (t + b) / 2, -1, sl, False
@@ -732,6 +736,7 @@ def bant_zincir(d, kk=None, ilk=0):
             q, cx, tur = gercekci_cikis(d, y["cik"], kil=kil)
             x["q"], x["cx"] = q, cx
             son = n if tur == "kilitli" else q   # hâlâ kilitli tabanda: satılamadı, pozisyon sürüyor sayılır
+            x["kil"] = tur == "kilitli"
         out.append(x)
     return out, evs
 
@@ -996,6 +1001,76 @@ def tuzak_geri(d):
     bas = max(260, n - TUZAK_PENCERE)
     ev = [e for e in tuzak_olaylar(h, c, bas) if n - 1 - 20 <= e[1] < n - 1]
     return (n - 1) in _tuzak_al(c, ev, n)
+
+
+# --- ⏱️ 🧲 17:00 ön uyarı: bugünkü yarım mum KULLANILMADAN 'aday + eşik' (2026-11-17, dal `on-uyari`) --------------------------------
+# d = DÜNKÜ kapanışa kadarki veri (son satır = dün). Bugün kapanış eşiği geçerse (diğer şartlar dünden belli) bant_supurme / sma200_donus
+# bugün AL verir. Doğrulama: 10 yıllık veride her gün (aday ∧ kapanış koşulu) ⇔ gerçek sinyal (CLAUDE.md, scratchpad onuyari/).
+def bant_aday(d):
+    """🧲 Bant: bugün AL olabilir mi? Döner None ya da {esik (= bant ortası; kapanış > esik), alt, ust, orta, dip, sup_t, geri_t (None: geri alma
+    da bugün olacak), dip_sinir (sadece geri alma bugünse: bugünün en düşüğü bunun altına inmemeli), kalan}. Açık 🧲 pozisyon varken aday yok."""
+    if not _hl_var(d):
+        return None
+    d = d[d["Close"] > 0]
+    n = len(d)
+    if n <= BANT_GUN + 2:
+        return None
+    H, L, C = (d[c].values.astype(float) for c in ("High", "Low", "Close"))
+    tum, evs = bant_zincir(d, kar_kilit_ayar())
+    if tum and (tum[-1]["cik"] is None or tum[-1].get("kil")):
+        return None                                  # açık 🧲 pozisyon (ya da kilitli tabanda satılamayan çıkış) → yeni AL sayılmaz
+    idx = d.index
+    ts = lambda i: str(idx[i].date())
+    ad = []
+    # (a) süpürüldü + geri alındı, orta dönüşü bekleniyor, pencere bugünü kapsıyor, iptal yok
+    for e in evs:
+        if e["m"] < 0 and not e["ip"] and e["r"] + BANT_ORTA_GUN >= n:
+            ad.append({"esik": (e["bot"] + e["top"]) / 2, "alt": e["bot"], "ust": e["top"], "dip": e["sl"], "sup_t": ts(e["j"]),
+                       "geri_t": ts(e["r"]), "dip_sinir": None, "kalan": e["r"] + BANT_ORTA_GUN - n})
+    # (b) süpürme dün/evvelsi gün oldu, 3 günlük geri alma penceresi bugünü kapsıyor: bugün kapanış ortanın üstüne çıkarsa (o da bant
+    #     altının üstü demek) geri alma ve AL aynı gün olur — bugünün en düşüğü bant altı − yarım genişliğin altına inmemeli
+    bek = []
+    bant_olaylar(H, L, C, 0, bek)
+    for e in bek:
+        ww = e["top"] - e["bot"]
+        ad.append({"esik": (e["bot"] + e["top"]) / 2, "alt": e["bot"], "ust": e["top"], "dip": e["sl"], "sup_t": ts(e["j"]), "geri_t": None,
+                   "dip_sinir": e["bot"] - BANT_DERIN * ww, "kalan": 0})
+    if not ad:
+        return None
+    x = min(ad, key=lambda a: a["esik"])
+    return {k: (round(float(v), 4) if isinstance(v, (float, np.floating)) else v) for k, v in x.items()}   # 4 hane: düşük fiyatlı hissede eşik yuvarlanıp kaymasın
+
+
+def d200_aday(d):
+    """🧲 SMA200: dün yükselen SMA200'e yukarıdan dokundu mu (açık 🧲 SMA200 pozisyonu yokken)? Döner None ya da {dun_kapanis, s200, dok_t}.
+    Bugün AL şartı: kapanış > dünkü kapanış VE kapanış ≥ bugünün en düşüğü + 0,7 × (en yüksek − en düşük) (günün üst %30'u) — eşik gün içinde
+    yeni dip/zirveyle değişir (`d200_esik`). SMA200 şartları (20 günde yükselmiş, önceki 10 gün %2 üstünde) dünün verisiyle kesinleşmiş olur."""
+    if not _hl_var(d):
+        return None
+    d = d[d["Close"] > 0]
+    n = len(d)
+    if n < 230:
+        return None
+    c, l = d["Close"].values.astype(float), d["Low"].values.astype(float)
+    s = pd.Series(c).rolling(200).mean().values
+    with np.errstate(invalid="ignore"):
+        ust = pd.Series((c > s * (1 + D200_TOL)).astype(float)).rolling(10).min().values
+        m = (l[-1] <= s[-1] * (1 + D200_TOL)) and (c[-1] >= s[-1] * (1 - D200_TOL)) and ust[-2] == 1 and s[-1] > s[-1 - D200_EGIM]
+    if not m:
+        return None
+    tum = d200_zincir(d, kar_kilit_ayar())
+    if tum and tum[-1]["cik"] is None:
+        return None                                  # açık 🧲 SMA200 pozisyonu
+    return {"dun_kapanis": round(float(c[-1]), 4), "s200": round(float(s[-1]), 2), "dok_t": str(d.index[-1].date())}
+
+
+def d200_esik(a, yuksek, dusuk):
+    """Bugünün o ana kadarki en yüksek/en düşüğüyle SMA200 eşiği: max(dünkü kapanış, düşük + 0,7·(yüksek − düşük)). Fiyat günün zirvesindeyse
+    (yeni zirve) sadece dünkü kapanış yeter; gün içinde yeni dip eşiği düşürür, yeni zirve yükseltir."""
+    e = a["dun_kapanis"]
+    if yuksek is not None and dusuk is not None and yuksek == yuksek and dusuk == dusuk and yuksek > dusuk:
+        e = max(e, dusuk + D200_UST_PAY * (yuksek - dusuk))
+    return round(float(e), 4)
 
 
 def tk_gecmis(d, tum, n=TK_GECMIS_N):
@@ -1696,6 +1771,17 @@ def analiz_et(df, xu_ust=None, xu=None, bar_kesin=True, bugun=None, bant=True):
         tz = bool(tuzak_geri(d)) if (bant and bar_kesin) else None
     except Exception:
         tz = None
+    oa = None                       # ⏱️ 🧲 ön uyarı (seans içinde, son mum bugünün yarım mumu): dünkü veriyle aday + bugünkü kapanış eşiği
+    if bant and not bar_kesin and bugun is not None and len(d) > 2 and d.index[-1].date() == bugun:
+        try:
+            _dd = d.iloc[:-1]
+            _b, _a = bant_aday(_dd), d200_aday(_dd)
+            if _a:
+                _a["esik"] = d200_esik(_a, float(d["High"].iloc[-1]), float(d["Low"].iloc[-1]))
+            if _b or _a:
+                oa = {**({"b": _b} if _b else {}), **({"s": _a} if _a else {})}
+        except Exception:
+            oa = None
     if tk.get("giris_tarih") and (al_tarih is None or tk["giris_tarih"] >= al_tarih):
         al_tarih = tk["giris_tarih"]
         if tk["durum"] == "AL":
@@ -1758,6 +1844,7 @@ def analiz_et(df, xu_ust=None, xu=None, bar_kesin=True, bugun=None, bant=True):
         "bs": bs,           # 🧲 Bant süpürme dönüşü (None = gösterilecek bir şey yok)
         "d2": d2,           # 🧲 SMA200'den dönüş (aynı düzen)
         "tz": tz,           # 🏢 🔁 Tuzak sonrası AL bugün mü (sadece oda; panoya gömülmez)
+        "oa": oa,           # ⏱️ 🧲 olası AL: {b: bant adayı (esik = bant ortası), s: SMA200 adayı (esik = gün içi H/L ile)} — sadece seans içinde
         "ak": akin_sinyal(d) if bar_kesin else None,   # 🏢 🧪 AKIN deneme robotları (sadece kesin kapanışta; panoya gömülmez)
         "vd": vade_durum(d, bar_kesin, bugun),
         "guc": _guc,

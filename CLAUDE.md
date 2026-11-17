@@ -1147,3 +1147,32 @@ Testler scratchpad `433930d7…/scratchpad/paket/` (`t_birim.py`, `t_dogrula.py`
 - Kaynak: arşiv Documents/Bist-arastirma/2026-11-14/sinyal2/tuzak/RAPOR.md bölüm 3: kırılımların %60'ı 10 gün içinde seviyenin altına sarkıyor; seviyenin hemen altındaki başlangıç stopu silkeler (rastgeleden kötü). Seviye − 3 ATR: −%20'den kötü kayıp %12-14 → %3-6, bedeli ortalamadan ~1-3 puan.
 - `sinyal.trend_kirilimi` → `out["kstop"] = {s: kırılım seviyesi (önceki 20 kapanışın en yükseği), a: ATR14 (Wilder, `_atr(d,14)`), v: s − 3a}`. Açık 🚀 pozisyonda kırılım gününden ≤10 gün (seviye ve ATR kırılım gününden), ya da şablonda pozisyonsuz (bugünkü hh ve ATR). try/except: hata → alan yok.
 - Pano 🚀 kutusu: bugün / AL ≤10 gün / şablonda bekleniyor iken '🛑 Kırılım stopu önerisi' satırı; sözlükte madde. Telegram 🚀 AL mesajında tek satır.
+
+## ⏱️ 🧲 17:00 ön uyarı — 'olası AL, kapanışta kesinleşir' (2026-11-17, dal `on-uyari`; 🧲 AL kuralları, v3, backtest, İşlem Odası DEĞİŞMEZ)
+Kullanıcı 18:00-18:10 kapanış seansında canlı fiyata kendisi bakıp alacak (bizim veri ~15 dk gecikmeli). Testler scratchpad `433930d7…/scratchpad/onuyari/`.
+- **`sinyal.bant_aday(d)` / `d200_aday(d)` / `d200_esik(a, yüksek, düşük)`** — d = DÜNKÜ kapanışa kadarki veri (bugünkü yarım mum KULLANILMAZ). Bant:
+  (a) süpürülüp geri alınmış, 10 günlük orta penceresi bugünü kapsıyor, iptal yok → eşik = bant ortası; (b) süpürme dün/evvelsi gün, geri alma penceresi açık
+  (`bant_olaylar(..., bekleyen=[])`, olay listesini değiştirmez) → eşik = bant ortası + 'bugünün en düşüğü bant altı − yarım genişliğin altına inerse geçersiz'
+  (`dip_sinir`); açık 🧲 pozisyon (ya da kilitli tabanda bekleyen çıkış; `bant_zincir` işleme `kil` alanı eklendi) → aday yok; birden çok aday → en düşük eşik.
+  SMA200: dün yükselen SMA200'e yukarıdan dokunuş (SMA200 şartları dünün verisiyle kesin; bugünkü kapanış onları değiştirmez) + açık 🧲 SMA200 pozisyonu yok →
+  bugün AL şartı: kapanış > dünkü kapanış VE kapanış ≥ düşük + 0,7·(yüksek − düşük) (günün üst %30'u; kural 'ust' teyidi — 'tepe' değil) → canlı eşik =
+  max(dünkü kapanış, düşük + 0,7·(yüksek − düşük)) gün içi H/L ile; yeni dip/zirve eşiği değiştirir (metinde not). Eşikler 4 haneli (düşük fiyatlı hissede
+  2 haneye yuvarlama eşiği kaydırıyordu).
+- **Doğrulama (`v1_dogrula.py`, 10y bist_10y, bölünme düzeltmeli; tüm sinyal günleri + 60 hisse × 2021→ her gün, 63.000+ hisse-gün):** SMA200 734/734
+  (%100), 0 fazla; Bant 153/157 (%97,5), 2 fazla. Uyuşmayanlar: 2 aynı gün süpürme + AL (EGEEN 23.03.2021, METRO 20.12.2021 — bugünün dibi bilinmeden
+  önceden görülemez), 2 eksik + 2 fazla (TTKOM 2019, ATATP 2025, FRIGO 2025) zincirin bilinen sıra özelliği: iki üst üste binen olayda zincir olayları
+  süpürme sırasıyla işler; dünkü veride erken olay 'dün AL' verir (bugün açık pozisyon → aday yok), tam veride geç olay AL olur (araştırmanın 156 işlemlik
+  listesi de böyle, kural değiştirilmedi).
+- **`analiz_et` → `oa`** = {b, s} (sadece `bar_kesin` değil, son mum bugünün yarım mumu ve 🧲 evreninde; try/except). Panoya `DATA[k].oa`.
+- **Telegram (`tarama.on_uyari_adaylari` / `on_uyari_mesaji`):** hafta içi 17:00-18:00 (`OA_BAS`/`OA_SON`; veri ~16:45+) ilk taramada, günde bir kez
+  (`durum.json` → `oa_tarih`, yalnız tarih), aday yoksa mesaj yok. Her aday tek satır: kod, tür, **EŞİK: kapanış X TL üstü**, şu anki fiyat ve uzaklık; fiyatı
+  eşiğin −%3'ünden yukarıda olanlar (`OA_ALT`), eşiğin %5+ üstünde 'kovalamadan' (`OA_UST`), altındaysa 'şu an eşiğin altında'. 🧲 süzgeçleri aynı (taban serisi,
+  🔒, 🎈 → `_riskli`; `BANT_EVREN`). Sonda talimat ('18:00-18:10 … eşiğin ÜSTÜNDEYSE kapanış seansında al; altındaysa alma. Kesin liste 18:30 mesajında.').
+  **Tutma oranı (`OA_TUTMA`, `v3_15dk.py`, Yahoo 15 dk 26.08 → 16.11.2026, 698 aday-gün):** 16:45'te eşiğin üstündeki 38 adayın 35'i kapanışta da üstündeydi
+  (Bant 8/8, SMA200 27/30); eşiğin 0…−%3 altındakilerden 9/81 geçti (Bant 0/28). Az örnek — mesajda 'kesin değil'; dönem değişince yeniden ölç.
+- **Pano:** hisse penceresinde 🚀 kutularının altında `oaHtml` ('Bugün kapanış X TL üstündeyse 🧲 AL', şu anki fiyat ve uzaklık, iptal/geçersizlik notu,
+  kapanış seansı talimatı); 'Bugün ne var?' kartında '⏱️ 🧲 Olası AL' satırı (seans içinde, −%3 süzgeciyle).
+- **Testler:** `t_oa.py` 10/10 (eşik, −%3 süzgeci, 'kovalamadan'/'altında' notları, riskli/evren dışı, mesaj parçaları, AKBNK bant eşiği 68,83, kesin kapanışta
+  `oa` yok); eski `t13` 26/26, `t14` (main ile `analiz_et` `oa` dışında 257 hissede birebir); Telegram'sız tam tarama sahte 17:05 (17.11): 1 aday (HRKET SMA200,
+  eşiğin −%5,4 altında → mesaj yok), `oa_tarih` yazıldı; süre main 54,5 sn ↔ yeni 55,8 sn (aday hesabı ~0,5 sn); `node --check`; Chrome 1280 + 390 px: JS hatası
+  yok, taşma yok, kutu ve kart satırı görünüyor.
