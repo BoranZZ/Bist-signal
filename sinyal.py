@@ -210,6 +210,7 @@ def bolunme_duzelt(df):
     if "Volume" in df:
         df["Volume"] = df["Volume"] / carpan
     df.attrs["bolunme"] = [str(t.date()) for t in olay.index]
+    df.attrs["bolunme_oran"] = [[str(t.date()), float(o)] for t, o in olay.items()]   # 🎁💎 bilgi paketi: pay çarpanı = 1/o
     return df
 
 
@@ -1758,6 +1759,7 @@ def analiz_et(df, xu_ust=None, xu=None, bar_kesin=True, bugun=None, bant=True):
         "kt": None if taban >= PATLAK_TABAN else kilitli_taban(d, xu),
         "tahta": tahta_riski(d),
         "tuzak": trend_tuzagi(d),
+        "bp": _bilgi_guvenli(d, tk, df.attrs.get("bolunme_oran")),   # 🎢 🪤 bilgi paketi (sinyal değil)
         "mf": _manip_guvenli(d, xu),   # ⚠️ manipülasyon rozetinin fiyat işaretleri (KAP işaretleriyle tarama.manip_rozet birleştirir)
         "sinyal_tarih": sinyal_tarih,
         "sinyal_degisim": sinyal_degisim,
@@ -1886,3 +1888,83 @@ def bilanco_tepkisi(c, xu, yayinlar, bar_kesin=True, bugun=None):
     if bekle and (son is None or bekle["y"] > son["y"]):
         o["b"] = bekle
     return o
+
+
+# --- 🎁 🪤 🎢 💎 Bilgi paketi: fiyattan hesaplananlar (2026-11-17; SADECE BİLGİ — AL/SAT, iz stop, backtest, İşlem Odası DEĞİŞMEZ) ---------
+# Metinler ve KAP/İş Yatırım tarafı bilgi.py'de. (1) 🎢 aşırı koşmuş + oynak (tuzak/fiyat 'U1'): 120 günde ≥2 kat VE 60 günlük günlük
+# oynaklık ≥%4 → 20 günde %25+ çakılma ~%14 (benzer günlerde %5); 🎈 şişme yanıyorsa pano 🎢'yi göstermez. (2) 🪤 tavanlı kırılım
+# (tuzak/kirmizi): açık 🚀 pozisyonun sinyal günü dahil son 20 işlem gününde ≥2 kapanış ≥ +%9,5 → bu AL'lerin %45'i zararla kapandı
+# (diğerleri %29). İkisi de bölünme düzeltilmiş seride. Filtre değil (ikisi de AL'i susturunca testte kâr düştü).
+KOSU_KAT, KOSU_GUN, KOSU_OYNAK, KOSU_OYNAK_GUN = 2.0, 120, 0.04, 60
+TAVAN_KIR_GUN, TAVAN_KIR_EN_AZ, TAVAN_ESIK = 20, 2, 0.095
+
+
+def bilgi_fiyat(d, tk=None, bolunme=None):
+    """Döner None ya da {"ko": {"r": 120g getiri %, "v": 60g oynaklık %}, "tv": {"n": tavan sayısı, "t": sinyal günü},
+    "bl": [[gün, pay çarpanı], ...] (fiyattan bulunan, Yahoo'nun kaydetmediği bölünmeler; tarama değerlemede kullanıp siler)}."""
+    c = d["Close"]
+    r = c.pct_change()
+    o = {}
+    if len(c) > KOSU_GUN:
+        kat = float(c.iloc[-1] / c.iloc[-KOSU_GUN - 1])
+        v = float(r.tail(KOSU_OYNAK_GUN).std())
+        if kat >= KOSU_KAT and v >= KOSU_OYNAK:
+            o["ko"] = {"r": int(round((kat - 1) * 100)), "v": round(v * 100, 1)}
+    if tk and tk.get("durum") == "AL" and tk.get("giris_tarih"):
+        gun = pd.DatetimeIndex(d.index).normalize()
+        i = int(gun.searchsorted(pd.Timestamp(tk["giris_tarih"])))
+        if i < len(gun) and str(gun[i].date()) == tk["giris_tarih"]:
+            n = int((r.iloc[max(0, i - TAVAN_KIR_GUN + 1):i + 1] >= TAVAN_ESIK).sum())
+            if n >= TAVAN_KIR_EN_AZ:
+                o["tv"] = {"n": n, "t": tk["giris_tarih"]}
+    sk = sikisma_kirilimi(d)
+    if sk:
+        o["sk"] = sk
+    if bolunme:
+        o["bl"] = [[t, round(1 / x, 6)] for t, x in bolunme if x and x > 0]
+    return o or None
+
+
+# (3) 🗜️ Sıkışma kırılımı (sinyal2/erken 'sikisma', K=10, U=60, oran 0,35, trend 'alt'): kapanış ≤ SMA200 iken önceki 10 günün aralığı
+# (en yüksek − en düşük) önceki 60 günün aralığının ≤ %35'i ve kapanış önceki 10 günün en yükseğini İLK kez aşıyor. BİLGİ rozeti (son 5 gün):
+# işlem başı rastgele güne göre +12 / +7,5 puan, isabet %42-49 (az sayıda büyük kazanç), 2022-26'da BIST 100'ü geçmedi → AL olarak elendi.
+SIK_K, SIK_U, SIK_ORAN, SIK_GUN, SIK_MIN = 10, 60, 0.35, 5, 260
+
+
+def sikisma_seri(d):
+    """Her gün için sıkışma kırılımı (bool dizi; t günü yalnız t kapanışına kadarki veriyle — sinyal2/erken/sinyaller.sikisma ile aynı)."""
+    c, h, l = (d[k].values.astype(float) for k in ("Close", "High", "Low"))
+
+    def sh(a):
+        o = np.full(len(a), np.nan)
+        o[1:] = a[:-1]
+        return o
+    hk = sh(pd.Series(h).rolling(SIK_K).max().values)
+    lk = sh(pd.Series(l).rolling(SIK_K).min().values)
+    hu = sh(pd.Series(h).rolling(SIK_U).max().values)
+    lu = sh(pd.Series(l).rolling(SIK_U).min().values)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        rr = (hk - lk) / (hu - lu)
+        s200 = pd.Series(c).rolling(200).mean().values
+        s = (c > hk) & (rr <= SIK_ORAN) & ~(sh(c) > sh(hk)) & (c <= s200)
+    return np.nan_to_num(s).astype(bool)
+
+
+def sikisma_kirilimi(d, son_gun=SIK_GUN):
+    """Son `son_gun` işlem gününde sıkışma kırılımı olduysa en yenisi {"t": gün, "g": kaç gün önce, "k": o günkü kapanış}; yoksa None.
+    Araştırmanın canlı sarmalayıcısı gibi o gün en az 260 günlük veri gerekir."""
+    n = len(d)
+    if n < SIK_MIN:
+        return None
+    s = sikisma_seri(d)
+    for i in range(n - 1, max(n - 1 - son_gun, SIK_MIN - 2), -1):
+        if s[i]:
+            return {"t": str(d.index[i].date()), "g": int(n - 1 - i), "k": round(float(d["Close"].iloc[i]), 2)}
+    return None
+
+
+def _bilgi_guvenli(d, tk, bolunme):
+    try:
+        return bilgi_fiyat(d, tk, bolunme)
+    except Exception:
+        return None

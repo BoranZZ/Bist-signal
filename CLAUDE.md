@@ -1096,3 +1096,49 @@ yaramıyor; bant içi al-sat komisyonu karşılamıyor → bunlar eklenmedi.
   gün içinde ~+0,6 sn. index.html +~78 KB (%2; 40 hissede `d2` + `s2` grafik serisi). Yeni durum.json anahtarı `d2_gonderilen`.
 - **Süre:** `bant_supurme` 257 hissede 0,2-0,4 sn (~1 ms/hisse); Telegram'sız tam tarama yerelde 55-70 sn (ağ gürültüsü baskın). Workflow ve fork'lar için
   değişiklik yok (yeni dosya yok; yeni durum.json anahtarı `bs_gonderilen`).
+## 🎁 🪤 🎢 💎 Bilgi paketi (2026-11-17, dal `bilgi-paketi`; SADECE BİLGİ — v3 AL/SAT, iz stop, 🔐, piyasa filtresi, backtest, İşlem Odası DEĞİŞMEZ)
+Araştırmalar (tekrar araştırma): `Documents/Bist-arastirma/2026-11-14/` → `OZET_14-11.md`, `tuzak/{haber,fiyat,kirmizi}/RAPOR.md`, `ucuz/RAPOR.md`,
+`sinyal2/erken/RAPOR.md` (🗜️). Kod: yeni `bilgi.py` (KAP sınıflaması, değerleme, metinler `NOT`/`BASLIK` — pano JS'e `BP_NOT` olarak gömülür, tek kaynak),
+`sinyal.bilgi_fiyat` → `analiz_et` `bp` (fiyattan: 🎢, 🪤 tavanlı, 🗜️, bölünme oranları `bl`), `tarama.py` RS/genişlikten sonra `bilgi.paket_uygula`
+(try/except; hata → rozet yok, F/K–PD/DD boş, tarama düşmez). Veri `s["bp"]` = {bz, bd, ko, tv, sk, uc, dz} (yalnız dolu alanlar; DATA'ya sadece olan hissede).
+Testler scratchpad `433930d7…/scratchpad/paket/` (`t_birim.py`, `t_dogrula.py`, `t_sikisma.py`, `t_chrome.py`).
+- **🎁 bedelsiz sonrası (`bz`):** kap.json 45 günlük ODA önbelleğinde (YENİ KAP isteği yok) `bilgi.sermaye_tur` = 'o' (tuzak/haber `siniflandir.py`'nin
+  sermaye kısmı birebir: 6.668 sermaye bildiriminde 0 fark) → en son SPK onayının tepki günü (18:00+ ertesi gün, hafta sonu → sonraki işlem günü; takvim =
+  hissenin kendi günleri) gün 0, 20 işlem günü (`BZ_GUN`) görünür. Metin: %63 endeksin gerisinde (diğer günler %54), −3,7 puan, 9/9 yıl. Karar/başvuru ('k',
+  raporda 'daha hafif aynı rozet') EKLENMEDİ (iş tanımı yalnız onay).
+- **🪤 bedelli/tahsisli (`bd`):** İş Yatırım aynı tek istekten `2OA` ödenmiş sermaye (bu dönem / geçen yıl aynı dönem) + `4CBC` nakit akışında sermaye
+  artırımı (son 4 çeyrek / geçen yıl): sermaye ≥ ×1,10 VE nakit ≥ eski sermayenin %8'i (`bilgi.bedelli_mi`; bedelsiz nakit getirmez → ayrılır; araştırma
+  fiyattaki bölünme izine bakıyordu, canlıda nakit kalemi daha temiz). USAK/MRGYO/GSRAY bedelli, TUKAS/ENTRA/SASA değil. Metin: 12 ayda sektörünü %42 geçti
+  (diğerleri %51), 9/9 yıl. 💎 tuzak işareti olarak da kullanılır.
+- **🎢 aşırı koşmuş + oynak (`ko`):** 120 günde ≥ ×2 ve 60 günlük oynaklık ≥ %4 (`sinyal.KOSU_*`); 🎈 şişme varsa gösterilmez. Canlı = araştırma `u1.pkl` 3.000
+  kesilmiş hisse-günde 0 fark. AL'i susturmaz (filtre testte kârı düşürdü).
+- **🪤 tavanlı kırılım (`tv`):** açık 🚀 pozisyonun sinyal günü dahil son 20 günde ≥2 kapanış ≥ +%9,5 → not (%45 zararla vs %29). `islemler_A4.csv` 2.269 işlemde
+  0 fark. **Telegram 🚀 AL satırına tek satır** (`bilgi.TV_TG`; raporun önerisi) — AL gönderimi değişmez.
+- **🗜️ sıkışma kırılımı (`sk`, kullanıcı özellikle istedi):** kapanış ≤ SMA200, önceki 10 günün aralığı önceki 60 günün ≤ %35'i, kapanış önceki 10 günün
+  en yükseğini İLK kez aşıyor (`sinyal.sikisma_seri`, ≥260 gün), son 5 işlem günü rozet. Araştırma (`sinyal2/erken/sinyaller.sikisma`) ile vektörel 0 fark,
+  6.894 kesilmiş hisse-günde 0 fark, araştırma motoruyla (zincir, %15 iz) `sinyaller_sikisma.csv` 1.894/1.894 işlem birebir. Metin: rastgele güne göre
+  +12 / +7,5 puan, isabet %42-49; 🔴▼ 2022-26'da BIST 100'ü geçmedi, AL olarak elendi. Telegram'a, İşlem Odası'na girmez.
+- **💎 kalitesine göre ucuz (`uc`):** her taramada log(PD/DD) = değerleme grubu sabiti + ROE (finans ayrı eğim, ROE −0,5…1 kırpılı) `lstsq`, kalıntı sırası
+  c ≥ 0,8 + son 4 çeyrek kârlı (sanayi/hizmet, holding) ya da GYO'da grup içi B/P ≥ 0,8; tuzak (⚠️ MANIP2, 🎈, bedelli) varsa '🪤 ucuz ama dikkat' ('t');
+  c ≤ 0,2 'p' pahalı satırı; banka/finans 'b' (rozet yok). Gruplar = KIYAS_GRUP → `bilgi.BIRLESTIR` → `ELLE` (araştırmanın ortak.py'si). <40 hisse
+  (`UC_MIN_HISSE`) → 💎 hiç yok; bilanço bilinmesi 200 günden eskiyse o hisse değerlenmez. **F/K ve PD/DD sütunları artık İş Yatırım'dan** (piyasa değeri =
+  son fiyat × ödenmiş sermaye × bilanço dönem sonundan sonraki bölünme çarpanı; Yahoo kayıtlı bölünmeler `tarama.YAHOO_BOLUNME` — `veri_cek` artık
+  `actions=True` indirip 'Stock Splits'i ayırıyor, sütunları atıyor; Yahoo'nun kaydetmediği bölünmeler fiyattan `bolunme_oran`). Yahoo F/K yedek DEĞİL: veri
+  yoksa '—'. THYAO PD/DD 0,39 (Yahoo 19), ENKAI 1,15. **AL+, tüm-hisse-medyanlı ucuz/pahalı okları ve yorumdaki 'görece ucuz' cümlesi KALKTI.**
+- **İş Yatırım (`bilanco.isy_cek`):** aynı tek istekten e/e1 (`2O`), s/s1 (`2OA`), k/k2 (`4CBC`); eski kayıtlarda bu alanlar yoksa yeni dönemden sonra
+  'eksik alan' önceliğiyle yeniden çekilir (seans içi 8 sn, dışı 30 sn bütçe → ~1-2 günde dolar; dolana kadar o hissede F/K–PD/DD boş, 💎 yok). Çökerse
+  önbellekle devam (17.11 gecesi ara ara ReadTimeout verdi, sonra çalıştı).
+- **📊 dipte zayıf bilanço (`dz`):** ana listede 📊 zayıf tepki + haberden önceki gün (j−1) kapanış SMA200'ün %20+ altı → tepki ölçümünden sonraki 20 işlem
+  günü 'panikle satma' notu (%70 endeksi geçti vs %38; az örnek).
+- **Metin düzeltmeleri:** 🪤 trend tuzağı 'düşüşteki hissede sert sıçrama … %54 geri verdi, çizgi kırılmayan benzer sıçramalarda da aynı; çizgi kırılımı tek
+  başına AL sebebi değil' (tablo, sözlük, pencere, sade anlat, Telegram /hisse); 🎈 / ⚠️ dağıtım / ⚠️ MANIP2 sözlük + pencere kutusuna 'risk notu' cümlesi
+  (çakılma 3-11 kat, ortalama endeksle benzer); sözlükte '💥 rozetlerin göremediği' (çöküşlerin %61-77'si uyarısız, çoğu piyasa geneli) + 'Sistemi nasıl
+  kullanırım?' 5. madde; F/K–PD/DD kartları.
+- **Gösterim:** tablo rozetleri (`pano._bp_rozet`), pencere `bpUyariHtml` (🎢 🎁 🪤 bedelli, uyarı kutularının ardından), `tvHtml` + `skHtml` (🚀 kutusunun
+  altında), `ucHtml` + `dzHtml` (📊 kutusunun üst/altı), `modalOzet` (💎, 🗜️), `bugunUyari` (🎢 🎁 🪤; dz yalnız portföy), sade anlat (🪤'dan sonra 🎢, 🎁).
+  Telegram: AL'e yalnız 🪤 tavanlı satırı; /hisse'de `bilgi.tg_satirlari`. durum.json/oda.json'a yeni anahtar YOK.
+- **Ölçüm (17.11 gece, Telegram'sız kopya, aynı önbellek, 2'şer tur):** main 212 / 45 sn ↔ yeni 203 / 43 sn (ilk turlar indirmeli; fark yok, paket 0,1 sn);
+  index.html 3.586 → 3.617 KB (+%0,9). O gece: 💎 24, 🪤 ucuz ama dikkat 4, 🪤 bedelli 29, 🎁 1, 🗜️ 52, 📊 dipte 18, 🎢 0, F/K–PD/DD 282/291 hisse.
+  Birim testleri 36/36; `node --check` tamam; Chrome (Playwright, sistem Chrome) 1280/390 px: JS hatası yok, sayfa taşması yok, 10 kutu türü açıldı.
+- **Açık:** 'kaliteye göre ucuz' sayıları yılda bir yenilenmeli (`ucuz/t7_son_kural.py`); Yahoo'nun sessizce (kayıtsız) düzelttiği bedelsizlerde bilanço
+  sonrası piyasa değeri eksik çıkabilir (bir sonraki bilançoda düzelir).

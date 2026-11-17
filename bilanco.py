@@ -236,8 +236,14 @@ def isy_ttm(degerler, q):
     return v1 + v2 - v3
 
 
-def isy_ttm_cek(kod, y, q, grp=None, oturum=None):
-    """İş Yatırım'dan (y, q) için son 4 çeyrek net kâr. Döner (ttm|None, finansal grup|None). Ağ hatası dışarı fırlar."""
+# 💎 bilgi paketi (2026-11-17): aynı tek yanıttan özkaynak / ödenmiş sermaye / sermaye artırımı nakit girişi de alınır (ek istek yok)
+ISY_EK = {"e": "2O", "s": "2OA", "k": "4CBC"}   # ana ortaklık özkaynağı (bankada toplam özkaynak), ödenmiş sermaye, nakit akışında sermaye artırımı
+
+
+def isy_cek(kod, y, q, grp=None, oturum=None):
+    """İş Yatırım'dan (y, q) için tek istek. Döner (kayıt|None, finansal grup|None); kayıt = {"n": son 4 çeyrek net kâr, "e"/"e1":
+    özkaynak bu dönem / geçen yıl aynı dönem, "s"/"s1": ödenmiş sermaye (aynı), "k": sermaye artırımı nakit girişi son 4 çeyrek,
+    "k2": geçen yıl 12 ay}. Ağ hatası dışarı fırlar."""
     yil_ay = [(y, 3 * q), (y - 1, 12), (y - 1, 3 * q), (y - 1, 3 * q)]
     sorgu = "&".join(f"year{i + 1}={a}&period{i + 1}={b}" for i, (a, b) in enumerate(yil_ay))
     get = (oturum or requests).get
@@ -248,17 +254,31 @@ def isy_ttm_cek(kod, y, q, grp=None, oturum=None):
         v = r.json().get("value") or []
         if not v:
             continue
-        sat = next((x for x in v if x.get("itemCode") == ISY_KALEM), None)
-        if sat is None:
+        kal = {x.get("itemCode"): [_isy_sayi(x.get(f"value{i}")) for i in (1, 2, 3)] for x in v}
+        if ISY_KALEM not in kal:
             return None, g
-        return isy_ttm([_isy_sayi(sat.get(f"value{i}")) for i in (1, 2, 3)], q), g
+        o = {"n": isy_ttm(kal[ISY_KALEM], q)}
+        e, s, k = kal.get(ISY_EK["e"]), kal.get(ISY_EK["s"]), kal.get(ISY_EK["k"])
+        if e:
+            o["e"], o["e1"] = e[0], (e[2] or None)
+        if s:
+            o["s"], o["s1"] = s[0], (s[2] or None)
+        if k:
+            o["k"], o["k2"] = isy_ttm(k, q), k[1]
+        return o, g
     return None, grp
+
+
+def isy_ttm_cek(kod, y, q, grp=None, oturum=None):
+    """İş Yatırım'dan (y, q) için son 4 çeyrek net kâr. Döner (ttm|None, finansal grup|None). Ağ hatası dışarı fırlar."""
+    o, g = isy_cek(kod, y, q, grp, oturum)
+    return (o or {}).get("n"), g
 
 
 def zarar_guncelle(kodlar, son_donem, bugun=None, butce=ZARAR_BUTCE, sure=None):
     """son_donem: {kod: (yıl, dönem 1-4)} KAP'ta yayınlanmış son finansal rapor. bilanco.json 'isy' önbelleğini (hisse:
     {"g": grup, "p": [yıl, dönem], "n": son 4 çeyrek net kâr, "t": çekildiği gün, "a": son deneme günü}) gerekirse günceller.
-    Döner {kod: {"d": '2Ç26', "n": toplam}} (sadece verisi olanlar). Kaynağa ulaşılamazsa önbellekle devam."""
+    Döner {kod: {"d": '2Ç26', "n": toplam, + 💎 bilgi paketi için p, t, e, e1, s, s1, k, k2 (varsa)}} (sadece verisi olanlar). Kaynağa ulaşılamazsa önbellekle devam."""
     simdi = pd.Timestamp.now(tz="Europe/Istanbul")
     bugun = bugun or simdi.strftime("%Y-%m-%d")
     if sure is None:
@@ -270,7 +290,7 @@ def zarar_guncelle(kodlar, son_donem, bugun=None, butce=ZARAR_BUTCE, sure=None):
     except Exception:
         c = {}
     isy = dict(c.get("isy") or {})
-    yeni_donem, yenile = [], []
+    yeni_donem, eksik, yenile = [], [], []
     for k in kodlar:
         hedef = son_donem.get(k)
         if not hedef:
@@ -280,9 +300,11 @@ def zarar_guncelle(kodlar, son_donem, bugun=None, butce=ZARAR_BUTCE, sure=None):
             continue                                       # bugün denendi (İş Yatırım KAP'tan geç güncelleyebilir: yarın yine)
         if e.get("p") != list(hedef):
             yeni_donem.append(k)
+        elif "s" not in e:
+            eksik.append(k)                                # 💎 bilgi paketi alanları (özkaynak/sermaye) henüz yok
         elif not e.get("t") or (pd.Timestamp(bugun) - pd.Timestamp(e["t"])).days >= ZARAR_YENILE_GUN:
             yenile.append(k)
-    sira = (yeni_donem + yenile)[:butce]
+    sira = (yeni_donem + eksik + yenile)[:butce]
     if sira:
         t0, n_ok, n_den = time.time(), 0, 0
         oturum = requests.Session()
@@ -295,18 +317,22 @@ def zarar_guncelle(kodlar, son_donem, bugun=None, butce=ZARAR_BUTCE, sure=None):
             isy[k] = e
             n_den += 1
             try:
-                ttm, g = isy_ttm_cek(k, int(y), int(q), e.get("g"), oturum)
+                kay, g = isy_cek(k, int(y), int(q), e.get("g"), oturum)
             except Exception as ex:   # yavaş/ulaşılamıyor: bu taramada bırak, kalanlar sonraki taramalarda
                 print(f"İş Yatırım mali tablo alınamadı ({type(ex).__name__}); önbellekle devam.")
                 break
             if g:
                 e["g"] = g
-            if ttm is not None:
-                e.update(p=[int(y), int(q)], n=ttm, t=bugun)
+            if kay and kay.get("n") is not None:
+                for x in ("e", "e1", "s", "s1", "k", "k2"):
+                    e.pop(x, None)
+                e.update(kay, p=[int(y), int(q)], t=bugun)
+                e.setdefault("e", None)
+                e.setdefault("s", None)                    # kalem yoksa (bazı finans şirketleri) her gün yeniden istenmesin
                 n_ok += 1
             time.sleep(0.3)
         print(f"Zarar notu: İş Yatırım'dan {n_den} hisse istendi, {n_ok} güncellendi (bekleyen: {len(yeni_donem)} yeni dönem, "
-              f"{len(yenile)} yenileme; {time.time() - t0:.1f} sn).")
+              f"{len(eksik)} eksik alan, {len(yenile)} yenileme; {time.time() - t0:.1f} sn).")
         try:
             with open(BILANCO_CACHE, encoding="utf-8") as f:
                 c = json.load(f)
@@ -315,5 +341,6 @@ def zarar_guncelle(kodlar, son_donem, bugun=None, butce=ZARAR_BUTCE, sure=None):
         c["isy"] = dict(sorted(isy.items()))
         with open(BILANCO_CACHE, "w", encoding="utf-8") as f:
             json.dump(c, f, ensure_ascii=False)
-    return {k: {"d": f"{e['p'][1]}Ç{e['p'][0] % 100:02d}", "n": e["n"]}
+    return {k: dict({x: e[x] for x in ("p", "t", "e", "e1", "s", "s1", "k", "k2") if x in e},
+                    d=f"{e['p'][1]}Ç{e['p'][0] % 100:02d}", n=e["n"])
             for k, e in isy.items() if e.get("p") and e.get("n") is not None}

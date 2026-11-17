@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 BIST sinyal taraması — BIST100, ~15 dk'da bir güncellenir.
-Akış: fiyat çek -> sinyal + (günlük önbellekli) oran -> risk/lot -> AL+ -> yorum
+Akış: fiyat çek -> sinyal + (günlük önbellekli) oran -> risk/lot -> bilgi paketi (F/K, PD/DD İş Yatırım'dan) -> yorum
 -> index.html -> Telegram (tüm hisselerde yeni AL, portföyde yeni SAT).
 """
 import bisect, json, math, os, time
@@ -15,6 +15,10 @@ from sinyal import rs_puanlari, rs_tam, bilanco_tepkisi
 from sinyal import kar_kilit_ayar, iz_seviye, MANIP_ESIK, BANT_NOT, D200_NOT
 from pano import pano_uret, gecmis_uret, manip_isaret
 import gunici
+try:   # 🎁 🪤 🎢 💎 bilgi paketi (SADECE BİLGİ); modül yüklenemezse tarama yine çalışır
+    import bilgi
+except Exception:
+    bilgi = None
 try:
     import oda   # 🏢 İşlem Odası (sanal para); yoksa/bozuksa tarama etkilenmez
 except Exception as _e:
@@ -181,6 +185,29 @@ def _gun_ici_indir(tickers, gun):
     return s
 
 
+YAHOO_BOLUNME = {}   # {kod: [[gün, oran], ...]} Yahoo'nun KAYDETTİĞİ bölünme/bedelsizler (💎 piyasa değeri: bilanço sonrası pay sayısı)
+
+
+def _bolunme_ayir(g):
+    """yf.download(actions=True) çıktısından 'Stock Splits'i YAHOO_BOLUNME'ye alır, 'Dividends'/'Stock Splits' sütunlarını atar
+    (geri kalan kod eskisi gibi Open/High/Low/Close/Volume görür). Hata olursa sözlük boş kalır."""
+    YAHOO_BOLUNME.clear()
+    try:
+        sp = g.xs("Stock Splits", axis=1, level=1)
+        for tk in sp.columns:
+            x = sp[tk].dropna()
+            x = x[x > 0]
+            if len(x):
+                YAHOO_BOLUNME[str(tk).replace(".IS", "")] = [[str(pd.Timestamp(t).date()), float(v)] for t, v in x.items()]
+    except Exception:
+        pass
+    try:
+        g = g.drop(columns=["Dividends", "Stock Splits"], level=1, errors="ignore")
+    except Exception:
+        pass
+    return g
+
+
 def veri_cek(kodlar, kesin_kapanis=False, gunici_gun=None, ara=None):
     """Günlük veri (VERI_DONEM = 4 yıl: v3 ısınması + zincirli durum için) + kapanış düzeltmesi. Yahoo'nun BIST günlük barlarında kapanış
     çoğu zaman resmi kapanıştan farklı (Eylül 2026 kontrolü: günlerin ~%30'unda >%0,3; THYAO 24.09 günlük 288,5, resmi
@@ -192,7 +219,9 @@ def veri_cek(kodlar, kesin_kapanis=False, gunici_gun=None, ara=None):
     saatlik indirmeye düşülür (gün içi görünüm o taramada boş kalır)."""
     tickers = [k + ".IS" for k in kodlar] + [ENDEKS + ".IS"]
     print(f"{len(tickers)} hisse indiriliyor...")
-    g = yf.download(tickers, period=VERI_DONEM, interval="1d", group_by="ticker", auto_adjust=True, progress=False, threads=True)
+    g = yf.download(tickers, period=VERI_DONEM, interval="1d", group_by="ticker", auto_adjust=True, progress=False, threads=True,
+                    actions=True)
+    g = _bolunme_ayir(g)
     try:
         s = _gun_ici_indir(tickers, gunici_gun)
         if ara is not None:
@@ -617,14 +646,9 @@ def yorum_uret(s, fk_med, pddd_med):
             p.append(f"RSI {r:.0f} ile aşırı alımda — kısa vadede geri çekilme riski var.")
         elif r < 30:
             p.append(f"RSI {r:.0f} ile aşırı satımda — tepki gelebilir ama trend teyidi ister.")
-    if s.get("fk") and fk_med:
-        p.append(f"F/K {s['fk']} " + ("grup medyanının altında, görece ucuz." if s["fk"] < fk_med
-                 else "grup medyanının üstünde, görece pahalı.") + " (Enflasyonda yanıltıcı olabilir.)")
     if sn == "AL" and s.get("stop"):
         p.append(f"Alırsan çıkış kuralı iz stop: şimdilik {round(s['fiyat'] * (1 - IZ_STOP_ORAN), 2)} TL; fiyat yükseldikçe "
                  f"tepe kapanışın %20 altına taşınır, kapanış altına inerse çık." + (f" {kk_metni()}." if kk_metni() else ""))
-    if s.get("guclu"):
-        p.insert(0, "★ AL+: hem grafik hem değerleme olumlu — listenin öne çıkanı.")
     return " ".join(p)
 
 
@@ -1234,7 +1258,7 @@ MAX_AL_SATIR = 20  # Telegram mesajı 4096 karakterle sınırlı
 
 def _al_satiri(s, pf):
     isaret = "❗" if s["kod"] in pf else "🟢"
-    y = " ★AL+" if s["guclu"] else ""
+    y = ""
     if s["kod"] in KUCUK_HISSELER:
         y += " 🔹küçük hisse (tahta sığ, sert oynar — lotu küçük tut)"
     h = f" 🟢▲hacim {s['hacim_kat']}x" if s.get("hacim_teyit") else ""
@@ -1253,6 +1277,9 @@ def _al_satiri(s, pf):
          + (f"; {kk_metni(True)}" if kk_metni() else "") + f"){lot}")
     if tk.get("uzama"):   # bilgi notu, AL engellenmez
         t += "\n     " + uzama_metni(tk["uzama"])
+    tv = (s.get("bp") or {}).get("tv")
+    if tv and bilgi:      # 🪤 tavanlı kırılım (bilgi paketi; AL engellenmez)
+        t += "\n     " + bilgi.TV_TG.format(n=tv["n"])
     if s["kod"] in pf:
         t += "\n     " + plan_metni(s, pf[s["kod"]])
     return t
@@ -1762,7 +1789,12 @@ def _tg_rozetler(s):
     if s.get("mn"):
         u.append(manip_metni(s["mn"]))
     if s.get("tuzak"):
-        u.append(f"🪤 düşen trend kırılımı tuzağı riski ({s['tuzak'].get('tarih')})")
+        u.append(f"🪤 düşüşteki hissede sert sıçrama, düşen trend kırıldı ({s['tuzak'].get('tarih')}) — tek başına AL sebebi değil")
+    if bilgi:
+        try:
+            u += bilgi.tg_satirlari(s)
+        except Exception:
+            pass
     if s.get("od"):
         u.append(f"🔴▼ son {s['od']['u']} günde hisseye özel hacimli düşüş ({_yzd(s['od']['r'])})")
     if s.get("trend_asagi"):
@@ -2064,18 +2096,23 @@ def main():
     except Exception as e:
         print(f"Piyasa genişliği hesaplanamadı ({type(e).__name__}).")
         genislik = None
+    try:   # 🎁 🪤 🎢 💎 bilgi paketi (SADECE BİLGİ): F/K · PD/DD İş Yatırım'dan (Yahoo yedek DEĞİL), 💎, 🪤 bedelli, 🎁 bedelsiz, 📊 dipte zayıf
+        _t0 = time.time()
+        _say = bilgi.paket_uygula(sonuclar, zarar, kap_fr.get("kod"), _kapanis, bilgi.kap_bildirimleri(), YAHOO_BOLUNME,
+                                  KIYAS_GRUP, _ana, _sim.strftime("%Y-%m-%d"))
+        print(f"Bilgi paketi ({time.time() - _t0:.1f} sn): " + ", ".join(f"{k} {v}" for k, v in _say.items()))
+    except Exception as e:
+        print(f"Bilgi paketi hesaplanamadı ({type(e).__name__}); rozetler bu taramada yok.")
+        for s in sonuclar:
+            s["fk"] = s["pddd"] = None
+            if s.get("bp"):
+                s["bp"].pop("bl", None)
     _kapanis.clear()
     for s in sonuclar:
         s["rs"] = rs_tam(_rs.get(s["kod"]))
 
-    fk_l = sorted(s["fk"] for s in sonuclar if s.get("fk"))
-    pd_l = sorted(s["pddd"] for s in sonuclar if s.get("pddd"))
-    fk_med = fk_l[len(fk_l) // 2] if fk_l else None
-    pd_med = pd_l[len(pd_l) // 2] if pd_l else None
-    for s in sonuclar:
-        s["guclu"] = bool(s["sinyal"] == "AL" and s.get("fk") and s.get("pddd")
-                          and fk_med and pd_med and s["fk"] <= fk_med and s["pddd"] <= pd_med)
-        s["yorum"] = yorum_uret(s, fk_med, pd_med)
+    for s in sonuclar:   # AL+ ve tüm-hisse-medyanlı 'ucuz/pahalı' kaldırıldı (14.11 ucuz araştırması: yazı-tura düzeyinde)
+        s["yorum"] = yorum_uret(s, None, None)
     kiyas_gruplari(sonuclar)                       # sektör kıyas grubu (pano da kullanır)
     hr_hepsi = hareket_hepsi(sonuclar, endeks)     # 1/5/20 gün hareket açıklaması (pano JS 'hareket' ile aynı)
     for s in sonuclar:
@@ -2189,7 +2226,7 @@ def main():
 
     uyari = None
     if len(yeni) > ASIRI_ISLEM_ESIGI:
-        uyari = (f"Bu taramada {len(yeni)} yeni AL var — çok fazla. Hepsini alma; en yüksek puanlı/AL+ "
+        uyari = (f"Bu taramada {len(yeni)} yeni AL var — çok fazla. Hepsini alma; en yüksek puanlı "
                  f"birkaçına odaklan, aşırı işlem komisyonda eritir.")
 
 
