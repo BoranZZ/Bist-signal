@@ -538,6 +538,18 @@ def trend_kirilimi(d, xu_ust=None, islemler=False, ham=False, kar_kilit=None, er
            "kirilima_uzak": round((hh / fiyat - 1) * 100, 1) if (hh and sab_son and not acik) else None}
     if n < 250:   # 52 haftalık zirve/dip için en az 250 işlem günü gerekir: yeni halka arzlarda sinyal henüz çıkamaz
         out["kisa"] = True
+    try:   # 🛑 kırılım stopu önerisi — BİLGİ (arşiv 2026-11-14/sinyal2/tuzak: seviye − 3 ATR silkelenmeyi önler); kural DEĞİL
+        at = _atr(d, 14)
+        sv = a = None
+        if acik and n - 1 - acik["i"] <= 10 and acik["i"] >= KIRILIM_GUN:
+            j = acik["i"]
+            sv, a = float(c.iloc[j - KIRILIM_GUN:j].max()), float(at.iloc[j])
+        elif sab_son and not acik and hh:
+            sv, a = hh, float(at.iloc[-1])
+        if sv and a == a and a > 0:
+            out["kstop"] = {"s": round(sv, 2), "a": round(a, 2), "v": round(sv - 3 * a, 2)}
+    except Exception:
+        pass
     if sab_son and not acik and hh:
         # şablonda ama AL yok: hangi koşul eksik? (fiyat seviyenin üstündeyken 'çıkarsa AL' demek yanıltıcıydı — ENERY 2026-10)
         eksik = []

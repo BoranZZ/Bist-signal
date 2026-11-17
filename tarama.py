@@ -1277,6 +1277,9 @@ def _al_satiri(s, pf):
          + (f"; {kk_metni(True)}" if kk_metni() else "") + f"){lot}")
     if tk.get("uzama"):   # bilgi notu, AL engellenmez
         t += "\n     " + uzama_metni(tk["uzama"])
+    ks = tk.get("kstop")
+    if ks:                # 🛑 kırılım stopu önerisi (bilgi; seviye − 3 ATR)
+        t += f"\n     🛑 Kırılım stopu önerisi: {ks['v']} TL (seviye {ks['s']} − 3 ATR; seviyenin hemen altı silkeler)"
     tv = (s.get("bp") or {}).get("tv")
     if tv and bilgi:      # 🪤 tavanlı kırılım (bilgi paketi; AL engellenmez)
         t += "\n     " + bilgi.TV_TG.format(n=tv["n"])

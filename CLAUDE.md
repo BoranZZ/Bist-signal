@@ -1142,3 +1142,8 @@ Testler scratchpad `433930d7…/scratchpad/paket/` (`t_birim.py`, `t_dogrula.py`
   Birim testleri 36/36; `node --check` tamam; Chrome (Playwright, sistem Chrome) 1280/390 px: JS hatası yok, sayfa taşması yok, 10 kutu türü açıldı.
 - **Açık:** 'kaliteye göre ucuz' sayıları yılda bir yenilenmeli (`ucuz/t7_son_kural.py`); Yahoo'nun sessizce (kayıtsız) düzelttiği bedelsizlerde bilanço
   sonrası piyasa değeri eksik çıkabilir (bir sonraki bilançoda düzelir).
+
+## 🛑 Kırılım stopu önerisi (2026-11-17, dal `kirilim-stop`; SADECE BİLGİ — v3 AL/SAT, %20 iz stop, 🔐, backtest, İşlem Odası DEĞİŞMEZ)
+- Kaynak: arşiv Documents/Bist-arastirma/2026-11-14/sinyal2/tuzak/RAPOR.md bölüm 3: kırılımların %60'ı 10 gün içinde seviyenin altına sarkıyor; seviyenin hemen altındaki başlangıç stopu silkeler (rastgeleden kötü). Seviye − 3 ATR: −%20'den kötü kayıp %12-14 → %3-6, bedeli ortalamadan ~1-3 puan.
+- `sinyal.trend_kirilimi` → `out["kstop"] = {s: kırılım seviyesi (önceki 20 kapanışın en yükseği), a: ATR14 (Wilder, `_atr(d,14)`), v: s − 3a}`. Açık 🚀 pozisyonda kırılım gününden ≤10 gün (seviye ve ATR kırılım gününden), ya da şablonda pozisyonsuz (bugünkü hh ve ATR). try/except: hata → alan yok.
+- Pano 🚀 kutusu: bugün / AL ≤10 gün / şablonda bekleniyor iken '🛑 Kırılım stopu önerisi' satırı; sözlükte madde. Telegram 🚀 AL mesajında tek satır.
