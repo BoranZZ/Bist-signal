@@ -2,6 +2,7 @@
   "al": [
     "BAHKM",
     "CELHA",
+    "EMKEL",
     "ENERY",
     "ENJSA",
     "FRIGO",
@@ -14,7 +15,6 @@
     "PGSUS",
     "TAVHL",
     "THYAO",
-    "TSKB",
     "VAKFA",
     "YKBNK"
   ],
@@ -637,7 +637,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1699040,
+  "kap_son": 1699090,
   "tk_gonderilen": {
     "tarih": "2026-11-17",
     "kodlar": []
