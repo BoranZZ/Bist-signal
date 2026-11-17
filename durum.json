@@ -15,6 +15,7 @@
     "PGSUS",
     "TAVHL",
     "THYAO",
+    "VAKFA",
     "YKBNK"
   ],
   "son": {
@@ -61,7 +62,7 @@
     "AVHOL": "SAT",
     "AYDEM": "SAT",
     "AYGAZ": "SAT",
-    "BAHKM": "SAT",
+    "BAHKM": "AL",
     "BALSU": "SAT",
     "BERA": "SAT",
     "BESTE": "SAT",
@@ -356,7 +357,13 @@
   "hafta_tarih": "2026-11-13",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {},
+  "on_sinyal": {
+    "BAHKM": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-17"
+    }
+  },
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
