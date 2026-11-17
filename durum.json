@@ -1,5 +1,6 @@
 {
   "al": [
+    "AFYON",
     "BAHKM",
     "CELHA",
     "ENERY",
@@ -14,6 +15,7 @@
     "PGSUS",
     "TAVHL",
     "THYAO",
+    "VAKFA",
     "YKBNK"
   ],
   "son": {
@@ -635,7 +637,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1699108,
+  "kap_son": 1699111,
   "tk_gonderilen": {
     "tarih": "2026-11-17",
     "kodlar": []
