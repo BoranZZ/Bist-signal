@@ -1,16 +1,15 @@
 {
   "al": [
-    "AFYON",
     "BAHKM",
     "CELHA",
     "ENERY",
+    "ENJSA",
     "FRIGO",
     "GARAN",
     "HKTM",
     "METEN",
     "METRO",
     "MPARK",
-    "ORZAX",
     "PGSUS",
     "SNGYO",
     "TAVHL",
@@ -665,7 +664,9 @@
   "oa_tarih": "2026-11-17",
   "gunici": {
     "tarih": "2026-11-18",
-    "g": []
+    "g": [
+      "5058e79b7a0b834a"
+    ]
   },
   "sabah_tarih": "2026-11-18",
   "makro_sabah": "2026-11-18"
