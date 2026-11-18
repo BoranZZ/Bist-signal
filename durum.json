@@ -3,7 +3,6 @@
     "BAHKM",
     "CELHA",
     "ENERY",
-    "ENJSA",
     "FRIGO",
     "GARAN",
     "HKTM",
@@ -635,7 +634,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1699333,
+  "kap_son": 1699493,
   "tk_gonderilen": {
     "tarih": "2026-11-18",
     "kodlar": []
