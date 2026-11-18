@@ -1,6 +1,5 @@
 {
   "al": [
-    "AFYON",
     "BAHKM",
     "CELHA",
     "ENERY",
@@ -635,9 +634,9 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1699271,
+  "kap_son": 1699319,
   "tk_gonderilen": {
-    "tarih": "2026-11-17",
+    "tarih": "2026-11-18",
     "kodlar": []
   },
   "mom_ay": {
@@ -654,22 +653,18 @@
     ]
   },
   "bs_gonderilen": {
-    "tarih": "2026-11-17",
+    "tarih": "2026-11-18",
     "kodlar": []
   },
   "d2_gonderilen": {
-    "tarih": "2026-11-17",
+    "tarih": "2026-11-18",
     "kodlar": []
   },
   "oa_tarih": "2026-11-17",
   "gunici": {
-    "tarih": "2026-11-17",
-    "g": [
-      "91dd67fa112461ad",
-      "968b81d125483a79",
-      "d73480442ffc845d"
-    ]
+    "tarih": "2026-11-18",
+    "g": []
   },
-  "sabah_tarih": "2026-11-17",
-  "makro_sabah": "2026-11-17"
+  "sabah_tarih": "2026-11-18",
+  "makro_sabah": "2026-11-18"
 }
