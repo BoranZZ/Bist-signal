@@ -133,7 +133,7 @@
     "FORTE": "SAT",
     "FRIGO": "AL",
     "FRMPL": "SAT",
-    "FROTO": "SAT",
+    "FROTO": "AL",
     "FZLGY": "SAT",
     "GARAN": "AL",
     "GENIL": "SAT",
@@ -143,10 +143,10 @@
     "GIPTA": "SAT",
     "GLRMK": "SAT",
     "GLYHO": "SAT",
-    "GMTAS": "AL",
+    "GMTAS": "SAT",
     "GOKNR": "SAT",
     "GOLDA": "SAT",
-    "GRSEL": "AL",
+    "GRSEL": "SAT",
     "GRTHO": "SAT",
     "GSDDE": "SAT",
     "GSDHO": "SAT",
@@ -352,7 +352,23 @@
   "hafta_tarih": "2026-11-13",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {},
+  "on_sinyal": {
+    "FROTO": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-18"
+    },
+    "GMTAS": {
+      "sinyal": "SAT",
+      "onceki": "AL",
+      "tarih": "2026-11-18"
+    },
+    "GRSEL": {
+      "sinyal": "SAT",
+      "onceki": "AL",
+      "tarih": "2026-11-18"
+    }
+  },
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
