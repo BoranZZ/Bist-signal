@@ -12,8 +12,7 @@
     "MPARK",
     "PGSUS",
     "TAVHL",
-    "THYAO",
-    "YKBNK"
+    "THYAO"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -664,7 +663,10 @@
   "gunici": {
     "tarih": "2026-11-18",
     "g": [
-      "5058e79b7a0b834a"
+      "5058e79b7a0b834a",
+      "9b6fa7547ad67247",
+      "d9b6af617ece9ec5",
+      "f412fff25c27d300"
     ]
   },
   "sabah_tarih": "2026-11-18",
