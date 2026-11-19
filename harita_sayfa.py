@@ -1,0 +1,224 @@
+# -*- coding: utf-8 -*-
+"""🎯 Tahtacı Haritası sayfa şablonu (harita.html). harita.py `html_yaz` ile yazılır; veri `fetch('harita.json')`.
+Düzenlerken: JS dizelerinde Türkçe kesme işareti olan metinler ÇİFT tırnakta; sonra `node --check` (BENIOKU)."""
+
+SAYFA = r"""<!doctype html><html lang="tr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1"><title>Tahtacı Haritası</title>
+<style>
+:root{--bg:#F4F1FB;--panel:#FFFFFF;--ink:#1D1530;--muted:#6E6488;--line:#E3DCF2;--accent:#6D3FD8;--pos:#1B8A52;--neg:#C2412F;
+--chip:#EFE9FB;--kel:#1B8A52;--kutu:#2F6FD8;--mal:#D9822B;--kilit:#8B3FD8;--gri:#8C84A3}
+@media (prefers-color-scheme:dark){:root{--bg:#0F0A1E;--panel:#19122E;--ink:#ECE7FA;--muted:#A79BC8;--line:#2E2450;--accent:#B596FF;
+--pos:#5BD69A;--neg:#FF7A6B;--chip:#241A40;--kel:#5BD69A;--kutu:#7FA8FF;--mal:#F2A65A;--kilit:#C59BFF;--gri:#8E86A8}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+font-feature-settings:"tnum" 1;-webkit-font-smoothing:antialiased;line-height:1.45}
+a{color:var(--accent)}
+.ust{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:14px 18px;border-bottom:1px solid var(--line);background:var(--panel)}
+.ust h1{font-size:19px;margin:0;font-weight:700}.ust .alt{color:var(--muted);font-size:12.5px}
+.ust .sag{margin-left:auto;font-size:13px}
+.ana{max-width:1100px;margin:0 auto;padding:14px 18px 40px}
+.kart{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:14px;min-width:0}
+.kart h2{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 8px;font-weight:700}
+.uyari{background:var(--chip);border-radius:12px;padding:10px 14px;font-size:13.5px}
+details.ne summary{cursor:pointer;font-weight:650}
+details.ne p,details.ne li{font-size:13.5px}
+.listeler{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-bottom:14px}
+.listeler .kart{margin:0}
+.cips{display:flex;flex-wrap:wrap;gap:6px}
+.cip{border:1px solid var(--line);background:var(--chip);color:var(--ink);border-radius:999px;padding:4px 10px;font:inherit;font-size:12.5px;cursor:pointer}
+.cip small{color:var(--muted)}
+.bos{color:var(--muted);font-size:13px}
+.suz{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.suz input,.suz select{font:inherit;font-size:14px;padding:7px 10px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink)}
+.suz input{flex:1;min-width:150px}
+.suz .say{color:var(--muted);font-size:12.5px}
+.hk{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:14px;min-width:0}
+.hk .bas{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px}
+.hk .bas b.kod{font-size:18px}.hk .bas .fy{font-size:17px;font-weight:700}
+.hk .bas .m{color:var(--muted);font-size:12px}
+.etk{display:inline-block;font-size:11.5px;border-radius:6px;padding:1px 7px;background:var(--chip);color:var(--muted)}
+.etk.dk{background:#D9A11B22;color:#B7860B}
+.izg{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:12px;margin-top:8px}
+@media(max-width:760px){.izg{grid-template-columns:minmax(0,1fr)}}
+.dur{font-size:13.5px}
+.dur p{margin:0 0 7px}
+.dur .not{color:var(--muted);font-size:12.5px}
+.oky{color:var(--pos);font-weight:700}.okk{color:var(--neg);font-weight:700}.okn{color:var(--gri)}
+table.sv{width:100%;border-collapse:collapse;font-size:12.5px}
+table.sv td{padding:4px 5px;border-bottom:1px solid var(--line);vertical-align:top}
+table.sv td.r{text-align:right;white-space:nowrap}
+table.sv td .a{color:var(--muted);font-size:11.5px}
+table.sv tr.fy td{font-weight:700;background:var(--chip)}
+.nokta{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;vertical-align:0}
+.graf{width:100%;height:auto;display:block}
+.graf text{font-size:11px;fill:var(--muted)}
+.dahafazla{display:block;margin:6px auto 0;border:1px solid var(--line);background:var(--chip);color:var(--ink);border-radius:10px;padding:8px 16px;font:inherit;cursor:pointer}
+.durust{font-size:13.5px}
+.durust li{margin-bottom:5px}
+@media(max-width:560px){.ana{padding:12px 10px 30px}.ust{padding:12px}.hk{padding:10px}.listeler{grid-template-columns:minmax(0,1fr)}}
+</style></head><body>
+<div class="ust"><div><h1>🎯 Tahtacı Haritası</h1>
+<div class="alt">Haftalık grafikte seviyeler ve durum bilgisi · <b>AL/SAT vermez</b> · <span id="tarih">yükleniyor…</span></div></div>
+<div class="sag"><a href="index.html">← Panoya dön</a> · <a href="oda.html">🏢 İşlem Odası</a></div></div>
+<div class="ana">
+<div class="kart"><details class="ne"><summary>📊 Bu sayfa ne? (önce bunu oku)</summary>
+<p>Bir borsa eğitmeni (DC Akademi) hisselere "tahtacı / piyasa yapıcı" gözüyle bakıyor: büyük para malı <b>ucuzdan toplar</b>, fiyatı bir süre
+<b>kutu içinde</b> tutar, sonra kaldırır. Ona göre önce <b>bölgeyi</b> bulmak gerekir; gösterge ve formasyon ancak o bölgede anlam taşır.
+Hisselere çoğunlukla <b>haftalık</b> grafikte bakıyor.</p>
+<p>Biz bu anlatımın <b>ölçülebilen</b> parçalarını aldık ve BIST'in 10-25 yıllık haftalık verisinde test ettik. Bu sayfa her hisse için
+o parçaları gösterir: büyük tepe ve dip, kutu, değer alanı, kelepir bandı, büyük düşüşten sonraki evre.</p>
+<ul><li>Seviyelerin adları <b>bizim</b> ("kutu üst kenarı", "maliyet vekili"). Eğitmenin gizli hesabı değil; onun sayılarını tutturduğumuzu iddia etmiyoruz.</li>
+<li>Durumlar <b>haftalık kapanışla</b> kesinleşir. Hafta içinde anlık fiyat "hafta şimdi kapansa" diye kullanılır.</li>
+<li>Her satırın yanında geçmişte ne bulunduğu yazar. Tutmayan parçalar (trend çizgisi tuzağı, kâr/zarar oranı) sayfaya <b>konmadı</b>.</li>
+<li>Panodaki AL/SAT, Telegram ve İşlem Odası bu sayfadan <b>etkilenmez</b>.</li></ul>
+</details></div>
+<div class="listeler" id="listeler"></div>
+<div class="suz"><input id="ara" type="search" placeholder="Hisse ara (ör. THYAO)" autocomplete="off" autocapitalize="characters">
+<select id="suzgec">
+<option value="one">Öne çıkanlar</option><option value="hepsi">Tüm hisseler</option>
+<option value="kelepir">🟢 Kelepir bandı</option><option value="ucuz">Ucuz bandı</option><option value="kutu">📦 Kutu alt bölgesi</option>
+<option value="dusus">Büyük düşüş sonrası</option><option value="ucuzyari">Tepe-dip aralığının alt yarısı</option>
+<option value="pahaliyari">Tepe-dip aralığının üst yarısı</option><option value="ana">Ana liste (BIST 100 + ek)</option><option value="kucuk">Küçük hisseler</option>
+</select><span class="say" id="say"></span></div>
+<div id="kartlar"></div>
+<div class="kart durust"><h2>📊 Dürüstlük notu</h2>
+<p>Eğitmenin iddiaları 2000-2026 haftalık verisinde (MANIPULE listesindeki 32 hisse hariç, ~256 hisse) test edildi. Kısaca:</p>
+<ul>
+<li><span class="oky">▲</span> <b>Kelepir bandı:</b> gerçekten nadir (haftada ortalama 1-2 hisse) ve sonrası iyi: 25 yılda 101 olay, 12 ayda aynı hissenin sıradan haftasından
++35 puan, 36 ayda +55 puan iyi. <span class="okk">▼</span> Ama "8-10 kat" abartı: medyan en yüksek nokta 3,3 kat, 8 katı ancak 10 olaydan 1'i gördü; ilk yılda medyan −%22 ara düşüş.</li>
+<li><span class="oky">▲</span> <b>Ucuz bandı:</b> 12 ayda rastgeleden +15 puan; kelepirden zayıf.</li>
+<li><b>Büyük düşüş sonrası evre:</b> ilk tepkide alanların %40'ı bir yıl içinde yeni dip gördü (doğru). Ama ana tepenin üstünde haftalık kapanışı beklemek getiriyi
+<span class="okk">▼</span> düşürdü (52 haftada rastgeleden −9 puan). Risk bilgisidir, "bekle" tavsiyesi değil.</li>
+<li><span class="oky">▲</span> <b>Kutu alt bölgesi:</b> kutunun alt üçte birinde almak, kutu kırılımını beklemekten iyiydi (rastgeleye göre ~+6 puan, iki dönemde de).</li>
+<li><span class="okk">▼</span> <b>Seviyeler:</b> eğitmenin seviye hesabı çözülemedi. "Kutu üst kenarı" onun "kilit" seviyelerine en yakın basit tanım, ama
+kilitlerin ancak 4'te 1'i ile yarısını tutturuyor; "üstünde haftalık kapanışta al" kuralı rastgele alımdan iyi değil. "Maliyet vekili" doğrulanmadı.
+Tepe-dip aralığının ucuz/pahalı yarısı AL'lere filtre olarak değer katmadı. Uzun taban büyük ralli getirmedi.</li>
+<li><span class="okk">▼</span> <b>Sayfaya konmayanlar:</b> "trend çizgisine 3. temasta kırarlar" (yazı-tura çıktı) ve "kâr/zarar oranı 1:4" (sonucu ayırmadı).
+Haftalık Wyckoff "spring" (aralığın dibini süpürüp geri dönme) da test edildi: portföyde rastgele eklemeden iyi değil. Yabancı payı değişimi de test edildi; sonrasını öngörmüyor.</li>
+<li><span class="okk">▼</span> <b>Hayatta kalan yanlılığı:</b> veride yalnız bugün borsada olan şirketler var. Tabanına dönüp batan ya da borsadan çıkan şirketler yok. Kelepir
+tam da onların bulunacağı yer: gerçek sonuç tablodakinden <b>kötüdür</b>, ne kadar kötü olduğu ölçülemiyor. 2025-26'nın şişirme rallileri (20-30 kat) geçmişte bu kadar yoktu.</li>
+<li><b>Bu bir al-sat önerisi değildir.</b> Geçmiş ortalamalar tek hissede ne olacağını söylemez. Kararı sen verirsin; stop ve pozisyon büyüklüğünü unutma.</li>
+</ul><p class="bos" id="kaynak"></p></div>
+</div>
+<script>
+var D=null,H={},KODLAR=[],GOSTER=20;
+var ANA_URL="https://boranzz.github.io/Bist-signal/harita.json";
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+function sayi(v,n){if(v==null||!isFinite(v))return "—";if(n==null)n=v<1?3:2;return Number(v).toLocaleString("tr-TR",{minimumFractionDigits:n,maximumFractionDigits:n});}
+function yz(v,n){if(v==null||!isFinite(v))return "—";var s=(v*100).toLocaleString("tr-TR",{maximumFractionDigits:n==null?0:n});return "%"+s;}
+function fark(x,f){if(!x||!f)return "";var r=x/f-1;return (r>=0?"+":"−")+"%"+Math.abs(r*100).toLocaleString("tr-TR",{maximumFractionDigits:r>-0.1&&r<0.1?1:0});}
+function tr(t){if(!t)return "—";var p=String(t).split("-");return p[2]+"."+p[1]+"."+p[0];}
+function yil(t){return t?String(t).slice(0,4):"";}
+function oky(){return '<span class="oky">▲</span>';}function okk(){return '<span class="okk">▼</span>';}
+function kelMetin(k,kod){var e=k.kel,d=k.d||{},f=k.f,h="";if(!e)return "";
+ if(d.kel==="kelepir"){
+  h+="<p>📊 <b>Kelepir bandında</b> — "+yil(e.T_t)+"'de "+sayi(e.T)+" TL'den başlayan ralli "+yil(e.P_t)+"'de "+sayi(e.P)+" TL'ye çıkmıştı ("+sayi(e.kat,1)+" kat). Fiyat şimdi "+sayi(f)+" TL: rallinin başladığı tabana dönmüş (bant "+sayi(e.kel_alt)+" – "+sayi(e.kel_ust)+").</p>";
+  h+="<p>"+oky()+" Geçmişte (2000-2026, 101 olay) bu durumdan sonra 12 ayda ortalama +%50 (medyan +%30): aynı hissenin sıradan haftasından +35 puan, BIST 100'den +15 puan iyi. 36 ayda medyan +%96.</p>";
+  h+="<p>"+okk()+" Yolu sert: ilk yılda medyan −%22 ara düşüş, her 4 olaydan biri −%40'tan kötü. \"8-10 kat\" sadece 10'da 1 olayda görüldü (medyan en yüksek 3,3 kat).</p>";
+  h+='<p class="not">⚠️ Veride batan / borsadan çıkan şirketler yok: gerçek sonuç bundan kötüdür.</p>';
+ }else if(d.kel==="ucuz"){
+  h+="<p>📊 <b>Ucuz bandında</b> — "+yil(e.T_t)+" tabanı "+sayi(e.T)+" → "+yil(e.P_t)+" tepesi "+sayi(e.P)+" ("+sayi(e.kat,1)+" kat). Fiyat "+sayi(f)+": rallinin büyük kısmını geri vermiş, kelepir bandının üstünde (ucuz bandı "+sayi(e.kel_ust)+" – "+sayi(e.ucuz_ust)+").</p>";
+  h+="<p>"+oky()+" Geçmişte (292 olay) 12 ayda ortalama +%29 (medyan +%13): sıradan haftadan +15 puan iyi, ama BIST 100'den farksız (−2). Kelepirden zayıf.</p>";
+  h+='<p class="not">⚠️ Veride batan şirketler yok: gerçek sonuç bundan kötüdür.</p>';
+ }else if(d.kel==="altinda"){
+  h+="<p>📊 <b>Ralli tabanının da altında</b> — taban "+sayi(e.T)+" ("+yil(e.T_t)+"), fiyat "+sayi(f)+" (tabanın "+fark(f,e.T)+"). Kelepir tanımı tabanın %70'ine kadar; bunun altı araştırmada sayılmadı.</p>";
+ }else{if(e.kat<4)return "";
+  return '<p class="not">Kelepir / ucuz bandında değil: son 5 yılın büyük rallisi '+sayi(e.T)+" ("+yil(e.T_t)+") → "+sayi(e.P)+" ("+yil(e.P_t)+"), "+sayi(e.kat,1)+" kat. Ucuz bandı "+sayi(e.ucuz_ust)+" altında başlar (fiyatın "+fark(e.ucuz_ust,f)+"), kelepir bandı "+sayi(e.kel_ust)+" altında. Fiyatlar bölünme/bedelsiz düzeltmeli: eski grafikteki sayılardan farklı görünebilir.</p>";}
+ if(e.hizli)h+='<p class="not">'+okk()+" Ralli hızlıydı ("+e.rh+" haftada "+sayi(e.kat,1)+" kat, 1 yıldan kısa): şişirme tipi rallilerin tabanında geçmişteki fark küçük ve anlamsızdı (+12 puan). Taban güvenilmez.</p>";
+ if(k.dk)h+='<p class="not">⚠️ Bu hissede panoda manipülasyon / şişme uyarısı var: dikkat.</p>';
+ return h;}
+function yonMetin(k){var y=k.yon,f=k.f,h="";if(!y)return "";
+ if(y.asildi!=null){return "<p>📊 <b>Yön durumu</b> — büyük düşüşten (zirve "+sayi(y.zirve)+", dip "+sayi(y.dip)+", −%"+Math.round(y.dusus*100)+") sonra ana tepe "+sayi(y.ana_tepe)+" "+(y.asildi===0?"bu hafta":y.asildi+" hafta önce")+" haftalık kapanışla aşıldı: bölüm bitti.</p><p class=\"not\">Geçmişte bu noktada fiyat dipten ortalama +%73 yukarıdaydı ve sonraki 52 haftada rastgele haftadan 9 puan geride kaldı. Yeni dip görme oranı ise %15'e indi.</p>";}
+ h+="<p>📊 <b>Yön durumu</b> — 104 haftalık zirveden ("+sayi(y.zirve)+", "+tr(y.zirve_t)+") −%"+Math.round(y.dusus*100)+" düştü. Dip "+sayi(y.dip)+" (haftalık kapanışla, "+(y.dip_yas===0?"bu hafta":y.dip_yas+" hafta önce")+"), ana tepe "+sayi(y.ana_tepe)+(y.tepecik?", tepecik "+sayi(y.tepecik)+(y.tgec?" (geçildi ✓)":""):"")+".</p>";
+ if(!y.ilk)h+="<p>Dip arayışı: dipten henüz +%20 haftalık tepki yok.</p>";
+ else h+="<p>İlk tepki evresi: geçmişte bu evrede alanların %40'ı bir yıl içinde yeni dip gördü (ana tepe kırılımından sonra alanlarda %15). Ama ana tepeyi beklemek ortalamada kazancı düşürdü: o noktada fiyat dipten ortalama +%73 yukarıdaydı ve 52 haftada rastgele haftadan 9 puan geride kaldı.</p>";
+ if(f&&y.dip_yas>=4&&f<=y.dip*1.10&&f>=y.dip)h+="<p>Dip yakını: dip 4+ haftadır korunuyor, fiyat dibin en çok %10 üstünde. Geçmişte buradan 52 hafta tutmak sıradan haftadan +21 puan iyiydi, ama %79'u bir yıl içinde dibin altını gördü.</p>";
+ return h+'<p class="not">Risk bilgisi; "bekle" ya da "al" tavsiyesi değil. Son tamamlanan hafta: '+tr(y.son_hafta)+".</p>";}
+function kutuMetin(k){var b=k.kutu,d=k.d||{};if(!b||!d.kutu)return "";
+ return "<p>📦 <b>Kutunun alt bölgesinde</b> — tepeden ("+sayi(b.tepe)+") %"+Math.round((1-b.ust/b.tepe)*100)+"+ çekilip 8 haftadır "+sayi(b.alt)+" – "+sayi(b.ust)+" kutusunda; fiyat "+sayi(k.f)+" kutunun alt üçte birinde ("+sayi(b.ucte)+" altı).</p><p>"+oky()+" Geçmişte kutu içi alt bölge alımı, kutu kırılımını beklemekten iyi sonuç verdi (rastgeleye göre ~+6 puan, iki dönemde de). Kutu dibinin %3 altına inen hafta kutu bozulmuş sayılır ("+sayi(b.alt*0.97)+").</p>";}
+function svMetin(k){var s=k.sv,d=k.d||{},h="";if(!s)return "";
+ if(d.konum!=null){var u=d.konum<0.5;h+="<p>"+(u?oky()+" Tepe-dip aralığının <b>alt (ucuz) yarısında</b>":okk()+" Tepe-dip aralığının <b>üst (pahalı) yarısında</b>")+": fiyat aralığın %"+Math.round(Math.max(0,Math.min(1,d.konum))*100)+"'inde (orta "+sayi(s.orta)+"). <span class=\"not\">Filtre olarak değer katmadı.</span></p>";}
+ if(k.f&&k.f<s.dip)h+="<p>"+okk()+" Fiyat büyük dibin ("+sayi(s.dip)+") altında: dip yenileniyor.</p>";
+ if(s.dip_yas<12)h+='<p class="not">Taban henüz oluşmadı: dip '+(s.dip_yas===0?"bu hafta":s.dip_yas+" hafta önce")+" (en az 12 hafta gerekir); kutu üst kenarı ve maliyet vekili gösterilmez.</p>";
+ else{if(s.kilit)h+='<p class="not">Kutu üst kenarı '+sayi(s.kilit)+(k.f>s.kilit?" — fiyat üstünde (tek başına AL sebebi değil: rastgeleden iyi çıkmadı).":" ("+fark(s.kilit,k.f)+" yukarıda).")+"</p>";
+  if(s.mal)h+='<p class="not">Maliyet vekili '+sayi(s.mal)+": fiyat "+(k.f>=s.mal?"üstünde":"altında")+" (doğrulanmamış tahmin).</p>";}
+ h+='<p class="not">Taban süresi: '+s.sure+" hafta (kapanışlar 1,5 kat aralıkta). Uzun taban büyük ralli getirmedi.</p>";
+ return h;}
+function yabMetin(k){if(!D.bayrak||!D.bayrak.yabanci||!k.yb)return "";return "<p>📊 Yabancı payı: %"+sayi(k.yb.oran,1)+"</p>";}
+function seviyeListesi(k){var L=[],s=k.sv,e=k.kel,y=k.yon,b=k.kutu&&(k.d||{}).kutu?k.kutu:null;
+ if(s){L.push(["Büyük tepe","son 3 yılın en yükseği · "+tr(s.tepe_t),s.tepe,"var(--gri)","",1]);
+  L.push(["Orta nokta","tepe-dip ortası (ucuz/pahalı yarı sınırı)",s.orta,"var(--gri)","3 4",0,0,1]);
+  if(s.kilit)L.push(["Kutu üst kenarı","son 26 haftanın en yüksek kapanışı",s.kilit,"var(--kilit)","",1.4]);
+  L.push(["Değer alanı üstü","52 haftada işlemin %70'i bu aralıkta",s.vah,"var(--kutu)","2 3",0.8,0,1]);
+  L.push(["En yoğun fiyat","52 haftada en çok işlem gören fiyat",s.poc,"var(--kutu)","1 2",1]);
+  L.push(["Değer alanı altı","",s.val,"var(--kutu)","2 3",0.8,0,1]);
+  if(s.mal)L.push(["Maliyet vekili","dipten bugüne hacim ağırlıklı ortalama",s.mal,"var(--mal)","",1.4]);
+  L.push(["Büyük dip",tr(s.dip_t)+" · "+(s.dip_yas===0?"bu hafta":s.dip_yas+" hafta önce"),s.dip,"var(--gri)","",1]);}
+ if(y&&y.asildi==null){L.push(["Ana tepe","büyük düşüşteki son düşen tepe",y.ana_tepe,"var(--neg)","5 3",1.2]);if(y.tepecik)L.push(["Tepecik","dipten sonraki ilk küçük tepe"+(y.tgec?" · geçildi":""),y.tepecik,"var(--neg)","1 3",1]);}
+ if(b){L.push(["Kutu üstü (8 hafta)","",b.ust,"var(--kutu)","",1]);L.push(["Kutu altı (8 hafta)","",b.alt,"var(--kutu)","",1]);}
+ if(e&&e.kat>=4){L.push(["Ralli tepesi",tr(e.P_t)+" · "+sayi(e.kat,1)+" kat",e.P,"var(--kel)","4 3",0.9,0,s&&Math.abs(e.P/s.tepe-1)<0.03?1:0]);
+  L.push(["Ucuz bandı üstü","taban + rallinin %21,4'ü",e.ucuz_ust,"var(--kel)","4 3",1]);
+  L.push(["Kelepir bandı üstü","taban +%30",e.kel_ust,"var(--kel)","",1.2,0,1]);
+  L.push(["Ralli tabanı",tr(e.T_t),e.T,"var(--kel)","",1.6]);
+  L.push(["Kelepir bandı altı","tabanın %70'i",e.kel_alt,"var(--kel)","",1.2,0,1]);}
+ return L;}
+function tablo(k){var L=seviyeListesi(k).slice(),f=k.f,h='<table class="sv">';L.push(["Fiyat (şimdi)","",f,"var(--ink)","",0,1]);
+ L.sort(function(a,b){return (b[2]||0)-(a[2]||0);});
+ L.forEach(function(r){if(r[2]==null)return;h+="<tr"+(r[6]?' class="fy"':"")+'><td><span class="nokta" style="background:'+r[3]+'"></span>'+esc(r[0])+(r[1]?'<br><span class="a">'+esc(r[1])+"</span>":"")+'</td><td class="r">'+sayi(r[2])+'</td><td class="r">'+(r[6]?"":'<span class="a">'+fark(r[2],f)+"</span>")+"</td></tr>";});
+ if(k.kel&&k.kel.kat<4)h+='<tr><td colspan="3"><span class="a">Kelepir: son 5 yılda büyük ralli yok (tepe/taban '+sayi(k.kel.kat,1)+" kat; en az 4 kat gerekir).</span></td></tr>";
+ return h+"</table>";}
+function grafik(k){var s=k.s||[],n=s.length;if(n<10)return "";var W=Math.max(300,Math.min(640,(window.innerWidth||640)-50)),Hh=W<480?240:260,ml=4,mr=W<480?92:118,mt=10,mb=20,pw=W-ml-mr,ph=Hh-mt-mb;
+ var v=s.filter(function(x){return x!=null&&x>0;});if(v.length<5)return "";var lo=Math.min.apply(null,v),hi=Math.max.apply(null,v);
+ var L=seviyeListesi(k),ic=[],dis=[];L.forEach(function(r){if(r[7])return;if(r[2]>0&&r[2]>=lo/1.7&&r[2]<=hi*1.7)ic.push(r);else if(r[2]>0)dis.push(r);});
+ ic.forEach(function(r){lo=Math.min(lo,r[2]);hi=Math.max(hi,r[2]);});
+ var a=Math.log(lo/1.03),b=Math.log(hi*1.03);function Y(p){return mt+ph*(1-(Math.log(p)-a)/(b-a));}function X(i){return ml+pw*i/(n-1);}
+ var g='<svg class="graf" viewBox="0 0 '+W+" "+Hh+'" role="img" width="100%" aria-label="Haftalık kapanış grafiği ve seviyeler">';
+ var e=k.kel;if(e&&e.kat>=4&&e.kel_ust>=lo&&e.kel_alt<=hi){var y1=Y(Math.min(e.kel_ust,hi*1.03)),y2=Y(Math.max(e.kel_alt,lo/1.03));g+='<rect x="'+ml+'" y="'+y1+'" width="'+pw+'" height="'+Math.max(1,y2-y1)+'" fill="var(--kel)" opacity=".12"/>';}
+ var sv=k.sv;if(sv&&sv.vah&&sv.val){var y3=Y(Math.min(sv.vah,hi*1.03)),y4=Y(Math.max(sv.val,lo/1.03));g+='<rect x="'+ml+'" y="'+y3+'" width="'+pw+'" height="'+Math.max(1,y4-y3)+'" fill="var(--kutu)" opacity=".07"/>';}
+ var g0=new Date(D.g0+"T00:00:00"),son=-1;for(var i=0;i<n;i++){var dt=new Date(g0.getTime()+i*7*864e5);var yl=dt.getFullYear();if(son>=0&&yl!==son){g+='<line x1="'+X(i)+'" x2="'+X(i)+'" y1="'+mt+'" y2="'+(mt+ph)+'" stroke="var(--line)"/><text x="'+(X(i)+3)+'" y="'+(Hh-6)+'">'+yl+"</text>";}son=yl;}
+ var et=[];ic.forEach(function(r){var y=Y(r[2]);g+='<line x1="'+ml+'" x2="'+(ml+pw)+'" y1="'+y+'" y2="'+y+'" stroke="'+r[3]+'" stroke-width="'+(r[5]||1)+'"'+(r[4]?' stroke-dasharray="'+r[4]+'"':"")+(r[5]?"":' opacity=".7"')+"/>";et.push([y,r[0],r[3]]);});
+ var p="",acik=false;for(i=0;i<n;i++){if(s[i]==null||!(s[i]>0)){acik=false;continue;}p+=(acik?"L":"M")+X(i).toFixed(1)+" "+Y(s[i]).toFixed(1)+" ";acik=true;}
+ g+='<path d="'+p+'" fill="none" stroke="var(--ink)" stroke-width="1.6"/>';
+ if(k.f>0){g+='<circle cx="'+X(n-1)+'" cy="'+Y(k.f)+'" r="3" fill="var(--accent)"/>';et.push([Y(k.f),"Fiyat "+sayi(k.f),"var(--accent)"]);}
+ et.sort(function(u,w){return u[0]-w[0];});var top=mt+4;et.forEach(function(q){q[3]=Math.max(q[0]+4,top);top=q[3]+13;});
+ var asl=mt+ph+6;for(i=et.length-1;i>=0;i--){if(et[i][3]>asl)et[i][3]=asl;asl=et[i][3]-13;}
+ et.forEach(function(q){g+='<text x="'+(ml+pw+4)+'" y="'+q[3]+'" style="fill:'+q[2]+'">'+esc(q[1].length>16?q[1].slice(0,15)+"…":q[1])+"</text>";});
+ g+="</svg>";if(dis.length)g+='<div class="bos" style="font-size:11.5px">Grafiğin dışında kalan: '+dis.map(function(r){return esc(r[0])+" "+sayi(r[2]);}).join(" · ")+"</div>";
+ return g+'<div class="bos" style="font-size:11.5px">Son 3 yıl, haftalık kapanış (log ölçek). Yeşil şerit = kelepir bandı, mavi şerit = değer alanı. Son nokta = anlık fiyat. Tüm seviyeler tabloda.</div>';}
+function kart(kod){var k=H[kod];if(!k)return "";var d=k.d||{};
+ var dur=kelMetin(k,kod)+kutuMetin(k)+yonMetin(k)+svMetin(k)+yabMetin(k);
+ if(!dur)dur='<p class="bos">Bu hisse için öne çıkan durum yok.</p>';
+ return '<div class="hk" id="h_'+esc(kod)+'"><div class="bas"><b class="kod">'+esc(kod)+'</b><span class="fy">'+sayi(k.f)+' TL</span><span class="etk">'+(k.g==="ana"?"ana liste":"küçük hisse")+"</span>"+(k.dk?'<span class="etk dk">⚠️ panoda risk uyarısı</span>':"")+'<span class="m">bilgi amaçlı, AL/SAT değil</span></div>'+
+  '<div class="izg"><div class="dur">'+dur+'</div><div>'+grafik(k)+tablo(k)+"</div></div></div>";}
+function cip(kod,ek){return '<button class="cip" onclick="sec(\''+esc(kod)+'\')">'+esc(kod)+(ek?" <small>"+ek+"</small>":"")+"</button>";}
+function listeler(){var L=D.liste||{},h="";
+ function kutu(baslik,aciklama,dizi,ek){h+='<div class="kart"><h2>'+baslik+'</h2><div class="bos" style="margin-bottom:6px">'+aciklama+'</div><div class="cips">'+(dizi&&dizi.length?dizi.slice(0,24).map(function(k){return cip(k,ek(k));}).join("")+(dizi.length>24?'<span class="bos">…ve '+(dizi.length-24)+' hisse daha (aşağıdaki süzgeçten seç)</span>':""):'<span class="bos">Şu an yok.</span>')+"</div></div>";}
+ kutu("🟢 Şu an kelepir bandında","Büyük (≥4 kat) rallinin başladığı tabana dönenler. Yanındaki sayı: fiyat / taban.",L.kelepir,function(k){return "×"+sayi(H[k].f/H[k].kel.T,2);});
+ kutu("📦 Kutu alt bölgesinde","Tepeden çekilip 8 haftalık dar kutuya giren, fiyatı kutunun alt üçte birinde olanlar.",L.kutu,function(k){return "";});
+ kutu("Ucuz bandında","Rallinin büyük kısmını geri vermiş, kelepirin bir üstündeki bant.",L.ucuz,function(k){return "×"+sayi(H[k].f/H[k].kel.T,1);});
+ document.getElementById("listeler").innerHTML=h;}
+function suz(){var q=document.getElementById("ara").value.trim().toUpperCase(),s=document.getElementById("suzgec").value,L=D.liste||{};
+ if(q)return KODLAR.filter(function(k){return k.indexOf(q)===0;}).concat(KODLAR.filter(function(k){return k.indexOf(q)>0;}));
+ if(s==="one"){var g={},o=[];(L.kelepir||[]).concat(L.kutu||[],L.ucuz||[]).forEach(function(k){if(!g[k]){g[k]=1;o.push(k);}});return o;}
+ if(s==="hepsi")return KODLAR;
+ if(s==="kelepir"||s==="ucuz"||s==="kutu")return L[s]||[];
+ if(s==="dusus")return L.dusus||[];
+ if(s==="ana"||s==="kucuk")return KODLAR.filter(function(k){return H[k].g===s;});
+ return KODLAR.filter(function(k){var c=(H[k].d||{}).konum;return c!=null&&(s==="ucuzyari"?c<0.5:c>=0.5);}).sort(function(a,b){return (H[a].d.konum-H[b].d.konum)*(s==="ucuzyari"?1:-1);});}
+function ciz(){var L=suz(),h=L.slice(0,GOSTER).map(kart).join("");if(!L.length)h='<div class="kart bos">Eşleşen hisse yok.</div>';
+ if(L.length>GOSTER)h+='<button class="dahafazla" onclick="GOSTER+=20;ciz()">Daha fazla göster ('+(L.length-GOSTER)+" kaldı)</button>";
+ document.getElementById("kartlar").innerHTML=h;document.getElementById("say").textContent=L.length+" hisse";}
+function sec(kod){document.getElementById("ara").value=kod;GOSTER=20;ciz();try{history.replaceState(null,"","#"+kod);}catch(e){}
+ var el=document.getElementById("kartlar");if(el.scrollIntoView)el.scrollIntoView({behavior:"smooth",block:"start"});}
+function basla(d){D=d;H=d.h||{};KODLAR=Object.keys(H).sort();
+ var t="Seviyeler "+(d.uretim||"?")+" · fiyat "+(d.guncel||"?")+" · hafta "+tr(d.hafta)+(d.tamam?" (kapandı)":" (sürüyor; durumlar hafta kapanışında kesinleşir)");
+ if(!d.taze)t+=" · ⚠️ uzun geçmiş alınamadı, seviyeler eski";
+ document.getElementById("tarih").textContent=t;document.getElementById("kaynak").textContent=KODLAR.length+" hisse · ana liste + küçük hisseler, MANIPULE hariç · veri Yahoo (~15 dk gecikmeli).";
+ listeler();var h=decodeURIComponent((location.hash||"").slice(1)).toUpperCase();if(h&&H[h])document.getElementById("ara").value=h;ciz();}
+function hata(){document.getElementById("tarih").textContent="harita verisi (harita.json) okunamadı";document.getElementById("kartlar").innerHTML='<div class="kart bos">Harita henüz üretilmedi ya da okunamadı. Bir sonraki taramadan sonra tekrar dene.</div>';}
+function al(u){return fetch(u+"?v="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(d){if(!d||!d.h)throw 0;return d;});}
+document.getElementById("ara").addEventListener("input",function(){GOSTER=20;ciz();});
+document.getElementById("suzgec").addEventListener("change",function(){document.getElementById("ara").value="";GOSTER=20;ciz();});
+al("harita.json").then(basla).catch(function(){if(location.hostname.indexOf("boranzz.github.io")<0&&location.protocol!=="file:")al(ANA_URL).then(basla).catch(hata);else hata();});
+</script></body></html>
+"""

@@ -1176,3 +1176,22 @@ Kullanıcı 18:00-18:10 kapanış seansında canlı fiyata kendisi bakıp alacak
   `oa` yok); eski `t13` 26/26, `t14` (main ile `analiz_et` `oa` dışında 257 hissede birebir); Telegram'sız tam tarama sahte 17:05 (17.11): 1 aday (HRKET SMA200,
   eşiğin −%5,4 altında → mesaj yok), `oa_tarih` yazıldı; süre main 54,5 sn ↔ yeni 55,8 sn (aday hesabı ~0,5 sn); `node --check`; Chrome 1280 + 390 px: JS hatası
   yok, taşma yok, kutu ve kart satırı görünüyor.
+
+## 🎯 Tahtacı Haritası (2026-11-19, dal `tahtaci-harita`; SADECE BİLGİ sayfası — AL/SAT, Telegram, backtest, İşlem Odası DEĞİŞMEZ)
+Araştırmalar (tekrar araştırma): `Documents/Bist-arastirma/2026-11-19/test1/RAPOR.md` (E kelepir, C yön durumu; B trend çizgisi tuzağı ve D kâr/zarar oranı
+TUTMADI → sayfada YOK), `.../test2/RAPOR.md` (seviyeler, 📦 kutu alt bölgesi), `.../piyasa-yapici/` (eğitmenin mantığı), `.../spring/RAPOR.md` (Wyckoff spring
+portföyde rastgele eklemeden iyi değil → sayfada YOK; 🌱 simgesi panoda SMA200'e ait). Uygulama notları: `.../2026-11-19/harita/BENIOKU.md`.
+- **Dosyalar:** `harita.py` (hesap + `calistir`), `harita_sayfa.py` (şablon `SAYFA`), üretilenler `harita.json` + `harita.html` (workflow `git add` satırında →
+  **fork'lar workflow'u elle güncellemeli**; güncellemezlerse sayfa ana projenin harita.json'unu okur). Pano başlığında '🎯 Tahtacı Haritası' düğmesi (İşlem Odası'nın yanında).
+- **Mantık araştırmayla BİREBİR** (değiştirirsen sayılar geçersiz): `kelepir_param` = testE.olaylar (tepe = 260 hafta, son 4 hafta hariç; taban = tepeden önceki 156
+  hafta; ≥4 kat; kelepir [0,7T, 1,3T], ucuz T+0,214(P−T)'ye kadar), `yon_durumu` = testC.bolumler (%40 / %15 / %20 / %8) + son bölümün durumu, `kutu_param` =
+  olaylar.k4_olaylar(8 hafta, ≤%30, tepeden ≥%20, alt üçte bir, hafta dibi ≥ kutu dibi×0,97), `seviyeler` = test2 harita.tahtaci_haritasi. Doğrulama: 13.11 kelepir
+  listesi 14/14, tepe/taban 246/247; yön olayları 29.488 hisse-haftada 0 fark; kutu olayları 2.027/2.027; seviyeler 256/256.
+- **Veri/zamanlama:** günde bir kez (+ yeni hafta başlayınca, + cuma kesin kapanıştan sonra; anahtar `gun`/`hafta`/`tamam`) `yenile`: 10 yıllık GÜNLÜK veri ayrı
+  indirilir (tek `yf.download`, daemon iş parçacığı, `ZAMAN_ASIMI` 45 sn), son 4 yıl taramanın düzeltilmiş verisinden; `bolunme_duzelt` + W-FRI. 1wk yerine günlük:
+  bölünme düzeltmesi günlükte doğru çalışıyor, süre aynı (~10 sn). Ham veri saklanmaz; harita.json'da seviyeler + 157 haftalık grafik serisi. Diğer taramalarda `canli`:
+  anlık fiyat + bu haftanın en düşüğü saklanan seviyelerle kıyaslanır. 'Bu hafta' = taramanın son işlem gününün haftası; parametreleri ÖNCEKİ haftalardan, kapanış yerine
+  anlık fiyat (hafta kapanışında kesinleşir); yön durumu yalnız tamamlanmış haftalarla. İndirme başarısızsa eski harita (`taze: false`), dosya yoksa atlanır.
+- **Süre/boyut:** yenileme 9-15 sn (günde 1-2 kez; gerçek tarama içinde 9,0 sn), diğer taramalar 0,3 sn; harita.json ~360 KB (gzip ~117 KB), harita.html ~26 KB.
+  Testler `Documents/Bist-arastirma/2026-11-19/harita/testler/` (t1 kelepir, t2 eşitlik, t3 birim 31/31, t5 JSON şeması); `node --check`; Chrome 1280 + 390 px (iframe).
+- **Yer tutucu:** `YABANCI_ACIK = False` + `yabanci_payi(kod)` (yabancı payı satırı; test OLUMSUZ — `2026-11-19/yabanci/RAPOR.md`: sonraki getiriyi öngörmüyor; kapalı, sayfada görünmez). Açmak için BENIOKU.

@@ -644,7 +644,7 @@ table.kgt{min-width:0;font-size:12.5px}.kgt th,.kgt td{padding:7px 10px}.kgt th{
 .lotform select{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13px;font-family:inherit;background:#fff}.lotsonuc .pk{margin:4px 0;font-size:12.8px;line-height:1.5}.pfkiyas.uyar{border-color:#E6C3BD;background:#FBECEA}
 .durust{margin-top:12px;padding:13px 16px;border:1px solid var(--line);border-left:4px solid #B7791F;border-radius:10px;background:#FFFBF2;color:#5B4A2A;font-size:12.6px;line-height:1.6;overflow-wrap:anywhere}
 .uyari{margin-top:28px;padding:13px 16px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--muted);font-size:12.2px;line-height:1.6}
-.odabtn{display:inline-block;margin-left:10px;vertical-align:2px;font-size:12.5px;font-weight:650;color:#fff;background:#6D3FD8;border-radius:999px;padding:4px 11px;text-decoration:none}.odabtn:hover{background:#5A2FC0}.glink{color:var(--accent);font-weight:600;text-decoration:none}.glink:hover{text-decoration:underline}
+.odabtn{display:inline-block;margin-left:10px;vertical-align:2px;font-size:12.5px;font-weight:650;color:#fff;background:#6D3FD8;border-radius:999px;padding:4px 11px;text-decoration:none}.odabtn:hover{background:#5A2FC0}.hbtn{margin-left:4px;background:#1B6E5A}.hbtn:hover{background:#145647}.glink{color:var(--accent);font-weight:600;text-decoration:none}.glink:hover{text-decoration:underline}
 .pfbox{margin-top:18px}
 .pfbas{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:8px}
 .pfbas h2{margin:0;font-size:16px}.pftop{font-weight:650;font-size:14px}.pftop.pos{color:var(--pos)}.pftop.neg{color:var(--neg)}
@@ -730,7 +730,7 @@ tr.dfdetay td{white-space:normal;background:#FAFAF8;font-size:12.5px;line-height
 @media(max-width:480px){.dfform{grid-template-columns:1fr}.dfk .v{font-size:17px}}
 </style>
 </head><body><div class="wrap">
-<header><div><h1>BIST Sinyal Panosu <a class="odabtn" href="oda.html" title="Sanal parayla kural robotları: panonun kurallarını 100.000 sanal TL ile deniyorlar (yatırım tavsiyesi değil)">🏢 İşlem Odası</a></h1><div class="tarih">Son güncelleme: __TARIH__ · <a href="#" onclick="yenile();return false" title="Sayfanın en son halini getirir (önbelleği atlar)">↻ Yenile</a> · <a href="https://github.com/__REPO__/actions/workflows/tarama.yml" target="_blank" rel="noopener" title="GitHub'da 'Run workflow' ile taramayı hemen başlat; 3-5 dk sonra Yenile'ye bas">Taramayı şimdi başlat ↗</a></div></div>
+<header><div><h1>BIST Sinyal Panosu <a class="odabtn" href="oda.html" title="Sanal parayla kural robotları: panonun kurallarını 100.000 sanal TL ile deniyorlar (yatırım tavsiyesi değil)">🏢 İşlem Odası</a> <a class="odabtn hbtn" href="harita.html" title="Haftalık grafikte seviyeler ve durum bilgisi: kelepir bandı, kutu, büyük düşüş sonrası evre (bilgi amaçlı, AL/SAT vermez)">🎯 Tahtacı Haritası</a></h1><div class="tarih">Son güncelleme: __TARIH__ · <a href="#" onclick="yenile();return false" title="Sayfanın en son halini getirir (önbelleği atlar)">↻ Yenile</a> · <a href="https://github.com/__REPO__/actions/workflows/tarama.yml" target="_blank" rel="noopener" title="GitHub'da 'Run workflow' ile taramayı hemen başlat; 3-5 dk sonra Yenile'ye bas">Taramayı şimdi başlat ↗</a></div></div>
 <div class="ozet">
 <div><div class="b">__TKBUGUN__</div><div class="l">bugün 🚀 AL</div></div>
 <div><div class="b g">__TK5__</div><div class="l">son 5 günde 🚀 AL · __TOPLAM__ hisse taranıyor</div></div>

@@ -24,6 +24,11 @@ try:
 except Exception as _e:
     oda = None
     print(f"İşlem odası yüklenemedi ({type(_e).__name__}).")
+try:   # 🎯 Tahtacı Haritası (SADECE BİLGİ sayfası); yoksa/bozuksa tarama etkilenmez
+    import harita
+except Exception as _e:
+    harita = None
+    print(f"Harita modülü yüklenemedi ({type(_e).__name__}).")
 try:   # 🌍 dünya/makro + 📅 ekonomik takvim (BİLGİ; yoksa/bozuksa tarama etkilenmez)
     import makro
 except Exception as _e:
@@ -2535,6 +2540,17 @@ def main():
             print(f"İşlem odası: {_m} ({time.time() - _t0:.1f} sn).")
         except Exception as e:
             print(f"İşlem odası çalışmadı ({type(e).__name__}: {e}); tarama etkilenmedi.")
+
+    # 🎯 Tahtacı Haritası: harita.json + harita.html (SADECE BİLGİ; AL/SAT, Telegram, İşlem Odası'na girmez). Günde bir kez 10 yıllık
+    # veri ayrı indirilir (zaman aşımlı), diğer taramalarda sadece anlık fiyat kıyaslanır. Hata taramayı ASLA bozmaz.
+    if harita:
+        try:
+            _t0 = time.time()
+            _dk = {s["kod"] for s in sonuclar if s.get("mn") or (s.get("tahta") or {}).get("seviye") == "sisme"}
+            _m = harita.calistir(data, simdi, kapanis_zamani, set(BIST100) | set(EK_HISSELER), set(KUCUK_HISSELER), MANIPULE, _dk)
+            print(f"{_m} ({time.time() - _t0:.1f} sn).")
+        except Exception as e:
+            print(f"Harita çalışmadı ({type(e).__name__}); tarama etkilenmedi.")
 
     # 🤖 Telegram komutları (/yardim, /hisse KOD, /piyasa, /portfoy): sadece TELEGRAM_CHAT_ID'den; token yoksa sessizce atlanır
     tg_ofset = durum.get("tg_ofset")
