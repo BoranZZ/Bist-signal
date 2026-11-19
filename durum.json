@@ -2,9 +2,7 @@
   "al": [
     "BAHKM",
     "CELHA",
-    "EGEEN",
     "ENERY",
-    "ENTRA",
     "FRIGO",
     "FROTO",
     "GARAN",
@@ -13,11 +11,10 @@
     "MPARK",
     "OTKAR",
     "PGSUS",
-    "SAYAS",
     "TAVHL",
+    "TCKRC",
     "THYAO",
-    "VAKBN",
-    "ZGYO"
+    "VAKBN"
   ],
   "son": {
     "A1CAP": "SAT",
