@@ -12,12 +12,10 @@
     "OTKAR",
     "PGSUS",
     "PKART",
-    "SAYAS",
     "TAVHL",
     "TCKRC",
     "THYAO",
-    "VAKBN",
-    "VESBE"
+    "VAKBN"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -668,8 +666,11 @@
   "gunici": {
     "tarih": "2026-11-19",
     "g": [
+      "5ed3cf24cebcedc0",
       "6f646098e80b8cf6",
+      "81098387126739db",
       "93f427189eed1798",
+      "9dc56ae10a51c78d",
       "afbb0487c5364c1f",
       "d26062bb53c412c3",
       "ff241257896f953f"
