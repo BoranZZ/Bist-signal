@@ -2,7 +2,6 @@
   "al": [
     "BAHKM",
     "CELHA",
-    "EGEEN",
     "ENERY",
     "ENTRA",
     "FRIGO",
@@ -637,7 +636,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1700160,
+  "kap_son": 1700187,
   "tk_gonderilen": {
     "tarih": "2026-11-19",
     "kodlar": []
