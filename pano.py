@@ -1896,7 +1896,7 @@ function ac(k){
    zaman+='</div>';
  }
  document.getElementById('modal').innerHTML=
- '<div class="mh"><div class="sol"><h2>'+k+'</h2>'+pill+uyum+' <button class="mfav" id="mfav" onclick="favDegis(\''+k+'\')">'+(favOku().indexOf(k)>=0?'⭐ Favorilerde':'☆ Favorilere ekle')+'</button></div><button class="kapa" onclick="kapat()">✕</button></div>'+
+ '<div class="mh"><div class="sol"><h2>'+k+'</h2>'+pill+uyum+' <button class="mfav" id="mfav" onclick="favDegis(\''+k+'\')">'+(favOku().indexOf(k)>=0?'⭐ Favorilerde':'☆ Favorilere ekle')+'</button> <a class="mfav" href="harita.html#'+encodeURIComponent(k)+'" title="Tahtacı Haritası: haftalık seviyeler ve durum (bilgi amaçlı)" style="text-decoration:none">🎯 Haritada gör</a></div><button class="kapa" onclick="kapat()">✕</button></div>'+
  '<div class="mfiyat">'+(d.fiyat!=null?d.fiyat+' TL':'')+' <span class="'+dcls+'">'+dtxt+'</span>'+
    (d.sektor?' <span class="sektorb">'+d.sektor+(d.endustri&&d.endustri!==d.sektor?' · '+d.endustri:'')+'</span>':'')+'</div>'+
  sadeHtml(k,d)+

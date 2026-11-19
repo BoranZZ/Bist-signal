@@ -192,7 +192,7 @@ function kart(kod){var k=H[kod];if(!k)return "";var d=k.d||{};
   '<div class="izg"><div class="dur">'+dur+'</div><div>'+grafik(k)+tablo(k)+"</div></div></div>";}
 function cip(kod,ek){return '<button class="cip" onclick="sec(\''+esc(kod)+'\')">'+esc(kod)+(ek?" <small>"+ek+"</small>":"")+"</button>";}
 function listeler(){var L=D.liste||{},h="";
- function kutu(baslik,aciklama,dizi,ek){h+='<div class="kart"><h2>'+baslik+'</h2><div class="bos" style="margin-bottom:6px">'+aciklama+'</div><div class="cips">'+(dizi&&dizi.length?dizi.slice(0,24).map(function(k){return cip(k,ek(k));}).join("")+(dizi.length>24?'<span class="bos">…ve '+(dizi.length-24)+' hisse daha (aşağıdaki süzgeçten seç)</span>':""):'<span class="bos">Şu an yok.</span>')+"</div></div>";}
+ function kutu(baslik,aciklama,dizi,ek){h+='<div class="kart"><h2>'+baslik+'</h2><div class="bos" style="margin-bottom:6px">'+aciklama+'</div><div class="cips">'+(dizi&&dizi.length?dizi.map(function(k){return cip(k,ek(k));}).join("")+'<span class="bos"> ('+dizi.length+' hisse)</span>':'<span class="bos">Şu an yok.</span>')+"</div></div>";}
  kutu("🟢 Şu an kelepir bandında","Büyük (≥4 kat) rallinin başladığı tabana dönenler. Yanındaki sayı: fiyat / taban.",L.kelepir,function(k){return "×"+sayi(H[k].f/H[k].kel.T,2);});
  kutu("📦 Kutu alt bölgesinde","Tepeden çekilip 8 haftalık dar kutuya giren, fiyatı kutunun alt üçte birinde olanlar.",L.kutu,function(k){return "";});
  kutu("Ucuz bandında","Rallinin büyük kısmını geri vermiş, kelepirin bir üstündeki bant.",L.ucuz,function(k){return "×"+sayi(H[k].f/H[k].kel.T,1);});
