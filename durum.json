@@ -15,7 +15,8 @@
     "TAVHL",
     "TCKRC",
     "THYAO",
-    "VAKBN"
+    "VAKBN",
+    "YKBNK"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -53,7 +54,7 @@
     "ARDYZ": "SAT",
     "ARFYE": "SAT",
     "ARMGD": "SAT",
-    "ARSAN": "AL",
+    "ARSAN": "SAT",
     "ASELS": "SAT",
     "ASTOR": "SAT",
     "ATATP": "SAT",
@@ -248,7 +249,7 @@
     "ONRYT": "SAT",
     "ORGE": "SAT",
     "ORZAX": "SAT",
-    "OTKAR": "SAT",
+    "OTKAR": "AL",
     "OYAKC": "SAT",
     "OZATD": "SAT",
     "OZSUB": "AL",
@@ -261,7 +262,7 @@
     "PENTA": "SAT",
     "PETKM": "SAT",
     "PGSUS": "AL",
-    "PKART": "SAT",
+    "PKART": "AL",
     "PRZMA": "SAT",
     "PSGYO": "SAT",
     "QUAGR": "SAT",
@@ -299,7 +300,7 @@
     "TATEN": "SAT",
     "TAVHL": "AL",
     "TCELL": "SAT",
-    "TCKRC": "SAT",
+    "TCKRC": "AL",
     "TEHOL": "SAT",
     "TERA": "SAT",
     "TGSAS": "SAT",
@@ -327,7 +328,7 @@
     "ULUSE": "SAT",
     "ULUUN": "SAT",
     "USAK": "SAT",
-    "VAKBN": "SAT",
+    "VAKBN": "AL",
     "VAKFA": "AL",
     "VBTYZ": "SAT",
     "VESBE": "SAT",
@@ -356,7 +357,33 @@
   "hafta_tarih": "2026-11-13",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {},
+  "on_sinyal": {
+    "ARSAN": {
+      "sinyal": "SAT",
+      "onceki": "AL",
+      "tarih": "2026-11-19"
+    },
+    "OTKAR": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-19"
+    },
+    "PKART": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-19"
+    },
+    "TCKRC": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-19"
+    },
+    "VAKBN": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-19"
+    }
+  },
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
