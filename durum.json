@@ -12,6 +12,7 @@
     "OTKAR",
     "PGSUS",
     "PKART",
+    "SAYAS",
     "TAVHL",
     "TCKRC",
     "THYAO",
@@ -279,7 +280,7 @@
     "SARAE": "SAT",
     "SARKY": "SAT",
     "SASA": "SAT",
-    "SAYAS": "SAT",
+    "SAYAS": "AL",
     "SDTTR": "SAT",
     "SEGMN": "SAT",
     "SELEC": "SAT",
@@ -368,6 +369,11 @@
       "tarih": "2026-11-19"
     },
     "PKART": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-19"
+    },
+    "SAYAS": {
       "sinyal": "AL",
       "onceki": "SAT",
       "tarih": "2026-11-19"
