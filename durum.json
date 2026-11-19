@@ -9,9 +9,11 @@
     "METEN",
     "METRO",
     "MPARK",
+    "OTKAR",
     "PGSUS",
     "TAVHL",
-    "THYAO"
+    "THYAO",
+    "VAKBN"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -632,7 +634,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1700115,
+  "kap_son": 1700131,
   "tk_gonderilen": {
     "tarih": "2026-11-19",
     "kodlar": []
