@@ -16,7 +16,8 @@
     "TAVHL",
     "TCKRC",
     "THYAO",
-    "VAKBN"
+    "VAKBN",
+    "VESBE"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -637,7 +638,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1700308,
+  "kap_son": 1700321,
   "tk_gonderilen": {
     "tarih": "2026-11-19",
     "kodlar": []
@@ -663,7 +664,7 @@
     "tarih": "2026-11-19",
     "kodlar": []
   },
-  "oa_tarih": "2026-11-18",
+  "oa_tarih": "2026-11-19",
   "gunici": {
     "tarih": "2026-11-19",
     "g": [
