@@ -96,7 +96,7 @@ o parçaları gösterir: büyük tepe ve dip, kutu, değer alanı, kelepir band�
 <p>Eğitmenin iddiaları 2000-2026 haftalık verisinde (MANIPULE listesindeki 32 hisse hariç, ~256 hisse) test edildi. Kısaca:</p>
 <ul>
 <li><span class="oky">▲</span> <b>Kelepir bandı:</b> gerçekten nadir (haftada ortalama 1-2 hisse) ve sonrası iyi: 25 yılda 101 olay, 12 ayda aynı hissenin sıradan haftasından
-+35 puan, 36 ayda +55 puan iyi. <span class="okk">▼</span> Ama "8-10 kat" abartı: medyan en yüksek nokta 3,3 kat, 8 katı ancak 10 olaydan 1'i gördü; ilk yılda medyan −%22 ara düşüş.</li>
++35 puan, 36 ayda +55 puan iyi. <span class="okk">▼</span> Ama "8-10 kat" abartı: medyan en yüksek nokta 3,3 kat, 8 katı ancak 10 olaydan 1'i gördü; ilk yılda medyan −%22 ara düşüş. Ayrıca aynı hafta başka bir BIST hissesi almakla kıyaslanınca avantaj kalmıyor (12 ayda −2,5 puan): getirinin çoğu kriz haftalarında almaktan geliyor. ABD'de (S&P 500 / 600) kelepir yine iyi, ama orada da batan şirketler veride yok.</li>
 <li><span class="oky">▲</span> <b>Ucuz bandı:</b> 12 ayda rastgeleden +15 puan; kelepirden zayıf.</li>
 <li><b>Büyük düşüş sonrası evre:</b> ilk tepkide alanların %40'ı bir yıl içinde yeni dip gördü (doğru). Ama ana tepenin üstünde haftalık kapanışı beklemek getiriyi
 <span class="okk">▼</span> düşürdü (52 haftada rastgeleden −9 puan). Risk bilgisidir, "bekle" tavsiyesi değil.</li>
@@ -107,6 +107,7 @@ Tepe-dip aralığının ucuz/pahalı yarısı AL'lere filtre olarak değer katma
 <li><span class="okk">▼</span> <b>Yalnız 📚 Eğitim katmanında (rozetli):</b> "trend çizgisine 3. temasta kırarlar" (yazı-tura çıktı), "kâr/zarar oranı 1:4" (sonucu ayırmadı), iki durak, kilit, dip süpürmesi; yukarıdaki durum metinlerine karışmaz.
 Haftalık Wyckoff "spring" (aralığın dibini süpürüp geri dönme) da test edildi: portföyde rastgele eklemeden iyi değil. Yabancı payı değişimi de test edildi; sonrasını öngörmüyor.</li>
 <li><b>Manipülasyon yüzünden mi tutmadı?</b> Hayır: tutmayan kurallar büyük ve likit hisselerde (hacimce ilk 30/50) ve şişirme hisseleri çıkarılmış listede de tutmadı; tutanlar (kelepir, ilk tepkide yeni dip riski) her alt kümede tuttu (20.11 araştırması).</li>
+<li><b>Türkiye'ye mi özgü?</b> Hayır: aynı kurallar ABD'de (S&P 500 ve S&P 600, 2000-2026) de denendi; 12 iddianın hepsi iki piyasada aynı yöne çıktı. Kâr/zarar oranı ABD'de tersine bile çalışıyor (yüksek oran = daha kötü sonuç).</li>
 <li><span class="okk">▼</span> <b>Hayatta kalan yanlılığı:</b> veride yalnız bugün borsada olan şirketler var. Tabanına dönüp batan ya da borsadan çıkan şirketler yok. Kelepir
 tam da onların bulunacağı yer: gerçek sonuç tablodakinden <b>kötüdür</b>, ne kadar kötü olduğu ölçülemiyor. 2025-26'nın şişirme rallileri (20-30 kat) geçmişte bu kadar yoktu.</li>
 <li><b>Bu bir al-sat önerisi değildir.</b> Geçmiş ortalamalar tek hissede ne olacağını söylemez. Kararı sen verirsin; stop ve pozisyon büyüklüğünü unutma.</li>
@@ -127,7 +128,7 @@ function oky(){return '<span class="oky">▲</span>';}function okk(){return '<sp
 function kelMetin(k,kod){var e=k.kel,d=k.d||{},f=k.f,h="";if(!e)return "";
  if(d.kel==="kelepir"){
   h+="<p>📊 <b>Kelepir bandında</b> — "+yil(e.T_t)+"'de "+sayi(e.T)+" TL'den başlayan ralli "+yil(e.P_t)+"'de "+sayi(e.P)+" TL'ye çıkmıştı ("+sayi(e.kat,1)+" kat). Fiyat şimdi "+sayi(f)+" TL: rallinin başladığı tabana dönmüş (bant "+sayi(e.kel_alt)+" – "+sayi(e.kel_ust)+").</p>";
-  h+="<p>"+oky()+" Geçmişte (2000-2026, 101 olay) bu durumdan sonra 12 ayda ortalama +%50 (medyan +%30): aynı hissenin sıradan haftasından +35 puan, BIST 100'den +15 puan iyi. 36 ayda medyan +%96.</p>";
+  h+="<p>"+oky()+" Geçmişte (2000-2026, 101 olay) bu durumdan sonra 12 ayda ortalama +%50 (medyan +%30): aynı hissenin sıradan haftasından +35 puan, BIST 100'den +15 puan iyi. 36 ayda medyan +%96. <span class=\"okk\">▼</span> Ama aynı hafta başka bir BIST hissesi almaktan iyi değil (12 ayda −2,5 puan): avantajın çoğu kriz haftalarında almaktan geliyor.</p>";
   h+="<p>"+okk()+" Yolu sert: ilk yılda medyan −%22 ara düşüş, her 4 olaydan biri −%40'tan kötü. \"8-10 kat\" sadece 10'da 1 olayda görüldü (medyan en yüksek 3,3 kat).</p>";
   h+='<p class="not">⚠️ Veride batan / borsadan çıkan şirketler yok: gerçek sonuç bundan kötüdür.</p>';
  }else if(d.kel==="ucuz"){

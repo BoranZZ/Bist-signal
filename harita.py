@@ -273,14 +273,14 @@ def seviyeler(d, kilit_hafta=26, tepe_hafta=156, kutu_oran=1.5):
 # hesabı bilinmiyor. Her kavramın BIST ölçüm sonucu EGITIM_ROZET'te (tek yer: yeni test sonucu gelince sadece burayı güncelle).
 # Durum kodları: 'y' 🟢 tuttu, 's' 🟡 kısmen, 'r' 🔴 tutmadı, 'o' ⚪ henüz ölçülmedi. Kaynak: 2026-11-19/OZET_19-11.md bölüm 3.
 EGITIM_ROZET = {   # kavram: [durum, BIST'te tek satır, ABD sonucu (None = test sürüyor; gelince [durum, tek satır])]
-    "trend": ["r", "3. temasta kırılma yazı-tura (%52); her ek temas kırılmayı ~%7 AZALTIYOR (çok temas = zayıf çizgi değil); kırılım sonrası rastgeleden kötü gitmedi.", None],
+    "trend": ["r", "3. temasta kırılma yazı-tura (%52); her ek temas kırılmayı ~%7 AZALTIYOR (çok temas = zayıf çizgi değil); kırılım sonrası rastgeleden kötü gitmedi.", ["r", "S&P 500 ve S&P 600'de de 3. temasta kırılma yazı-tura (%50 / %51)."]],
     "yatay": ["r", "3. temasta kırılma %40, 6.+ temasta %33 (çok temas seviyeyi zayıflatmıyor); kırılırsa alttaki seviyeye inme %60, rastgele günde de %61.", None],
-    "durak": ["s", "Alt kademe (kelepir bandı) 25 yılda tuttu; ama 'arada alma' uyarısı ters çıktı: ara kademede ve taban dibinde almak kilit üstünde almaktan iyiydi.", None],
-    "tepe": ["s", "Riskte haklı (ana tepe geçilince yeni dip olasılığı %40 → %15), getiride haksız (beklemek 52 haftada −9 puan).", None],
-    "kutu": ["y", "Kutunun alt üçte birinde almak kutu kırılımını beklemekten iyiydi (~+6 puan, iki dönemde de); 'kutu içinde işlem açma' uyarısı ters çıktı.", None],
-    "kz": ["r", "Oran v3, 🧲 Bant ve 🧲 SMA200 işlemlerinin sonucunu ayırmadı; '%30 kâr kalmıyorsa alma' süzgeci iyi işlemleri de atardı.", None],
-    "kilit": ["r", "Eğitmenin formülü çözülemedi (kutu üst kenarı kilitlerin ancak 4'te 1 ile yarısını tutturuyor); 'kilit üstünde haftalık kapanışta al' rastgeleden iyi değil.", None],
-    "supurme": ["s", "3+ temaslı destek süpürülüp geri alınınca 120 günde rastgeleden +7 puan; ama süpürmesiz tepki de +5, kırılıp geri alınmayan +12: süpürmeye özgü değil, genel 'düşüş sonrası alım' etkisi.", None],
+    "durak": ["s", "Alt kademe (kelepir bandı) 25 yılda tuttu; ama 'arada alma' uyarısı ters çıktı: ara kademede ve taban dibinde almak kilit üstünde almaktan iyiydi.", ["s", "'Arada alma' uyarısı ABD'de de ters: kutu içinden almak 17 yılın 17'sinde rastgeleden iyi; kelepir ABD'de de tuttu."]],
+    "tepe": ["s", "Riskte haklı (ana tepe geçilince yeni dip olasılığı %40 → %15), getiride haksız (beklemek 52 haftada −9 puan).", ["s", "ABD'de de aynı: yeni dip olasılığı büyüklerde %31 → %9, küçüklerde %44 → %19; ama beklemek 52 haftada −7 / −15 puan."]],
+    "kutu": ["y", "Kutunun alt üçte birinde almak kutu kırılımını beklemekten iyiydi (~+6 puan, iki dönemde de); 'kutu içinde işlem açma' uyarısı ters çıktı.", ["y", "ABD'de de kutu içinden almak beklemekten iyi (17 yılın 17'si); 'kutu içinde işlem açma' uyarısı ters."]],
+    "kz": ["r", "Oran v3, 🧲 Bant ve 🧲 SMA200 işlemlerinin sonucunu ayırmadı; '%30 kâr kalmıyorsa alma' süzgeci iyi işlemleri de atardı.", ["r", "ABD'de tersine çalışıyor: ana tepeye uzaklık (yüksek oran) büyüdükçe sonuç kötüleşiyor."]],
+    "kilit": ["r", "Eğitmenin formülü çözülemedi (kutu üst kenarı kilitlerin ancak 4'te 1 ile yarısını tutturuyor); 'kilit üstünde haftalık kapanışta al' rastgeleden iyi değil.", ["r", "ABD'de de 'kilit üstünde haftalık kapanışta al' rastgeleden iyi değil."]],
+    "supurme": ["s", "3+ temaslı destek süpürülüp geri alınınca 120 günde rastgeleden +7 puan; ama süpürmesiz tepki de +5, kırılıp geri alınmayan +12: süpürmeye özgü değil, genel 'düşüş sonrası alım' etkisi.", ["s", "Wyckoff spring ABD'de de aynı hissenin sıradan haftasından +8-10 puan iyi, ama aynı hafta başka hisse almaktan iyi değil."]],
 }
 EG_PIVOT = 2           # haftalık dönüş noktası: iki yanındaki 2 haftanın en düşüğü/en yükseği (test1 B ana tanımı)
 EG_TOL = 0.5           # temas toleransı = 0,5 haftalık ATR (test1 B ana tanımı)
