@@ -1195,3 +1195,14 @@ portföyde rastgele eklemeden iyi değil → sayfada YOK; 🌱 simgesi panoda SM
 - **Süre/boyut:** yenileme 9-15 sn (günde 1-2 kez; gerçek tarama içinde 9,0 sn), diğer taramalar 0,3 sn; harita.json ~360 KB (gzip ~117 KB), harita.html ~26 KB.
   Testler `Documents/Bist-arastirma/2026-11-19/harita/testler/` (t1 kelepir, t2 eşitlik, t3 birim 31/31, t5 JSON şeması); `node --check`; Chrome 1280 + 390 px (iframe).
 - **Yer tutucu:** `YABANCI_ACIK = False` + `yabanci_payi(kod)` (yabancı payı satırı; test OLUMSUZ — `2026-11-19/yabanci/RAPOR.md`: sonraki getiriyi öngörmüyor; kapalı, sayfada görünmez). Açmak için BENIOKU.
+- **📚 Eğitim katmanı (2026-11-19, dal `egitim-katmani`; SADECE GÖSTERİM — AL/SAT, Telegram, İşlem Odası, backtest DEĞİŞMEZ):** kullanıcı, tutmasa bile dünyada
+  çok kullanılan eğitmen kavramlarının görünmesini istedi. Her kartın altında 8 madde + rozet, grafikte turuncu çizgiler (`📚 Eğitim çizgileri` düğmesi,
+  `localStorage harita_eg`), üstte açıklama, iki ek liste/süzgeç (`tdestek` 3+ temaslı desteğin ≤%3 üstü, `supurme` son 20 günde süpürme). Hesap `harita.egitim_katmani`
+  (haftalık: trend çizgisi = test1 B kuralı, iki durak = %15 zigzag son dip + ondan %5 derin önceki dip, ana tepe = `yon_durumu` varsa o yoksa son dibe ait %15 tepe,
+  8 hafta kutu, kâr/zarar = durak→ana tepe / durak−1 haftalık ATR, kilit ≈ son 26 haftanın en yüksek kapanışı — "eğitmenin hesabı bilinmiyor") + `bariz_seviyeler`
+  (GÜNLÜK destek/direnç + süpürme = `2026-11-20/temas` `seviye.seviyeler` birebir: pivot 5, 0,5 ATR, ömür 250 gün, kapanışa ≤%15; son 750 gün yeter). harita.json → `h[kod].eg`,
+  `egr`. **Rozet metinleri TEK yerde `harita.EGITIM_ROZET`** ([durum y/s/r/o, BIST satırı, ABD sonucu (None = test sürüyor)]); yeni test gelince yalnız orayı güncelle
+  (json'a her yenilemede yazılır, sayfa değişmez). `SURUM` 2 (ilk taramada yeniden hesap). Hata → o hissede `eg` yok, harita/tarama sürer.
+  Testler (`2026-11-19/harita/testler/`): t3 31/31, `t6_egitim.py` 28/28 (kenar durumları), `t7_temas_esit.py` (seviyeler 256/256 hisse ve süpürme 4.676/4.676 olay araştırmayla
+  0 fark, 750 gün penceresi = tam veri); `node --check`; Playwright + sistem Chrome 1280/390 (THYAO, ADEL, ASELS, VESBE): JS hatası yok, taşma yok. Yenileme +~2,8 sn
+  (8,5 → 11,3 sn, günde bir kez), canlı taramalar ~0,5 sn; harita.json 359 → 466 KB (+%30, gzip 145 KB).

@@ -25,7 +25,7 @@ import pandas as pd
 
 HARITA_JSON = "harita.json"
 HARITA_HTML = "harita.html"
-SURUM = 1
+SURUM = 2              # 2: 📚 eğitim katmanı (eg) eklendi → ilk taramada yeniden hesaplanır
 YABANCI_ACIK = False   # yabancı payı satırı: test OLUMSUZ (2026-11-19/yabanci/RAPOR.md); kullanıcı karar verene kadar kapalı, sayfada görünmez
 INDIRME_DONEM = "10y"
 ZAMAN_ASIMI = 45       # sn: uzun geçmiş indirmesi bundan uzun sürerse eski harita kalır, tarama devam eder
@@ -268,6 +268,289 @@ def seviyeler(d, kilit_hafta=26, tepe_hafta=156, kutu_oran=1.5):
             "taban_sure": int(sure)}
 
 
+# ============================================================ 📚 eğitim katmanı (SADECE GÖSTERİM; kavramların çoğu BIST'te TUTMADI)
+# Eğitmenin (DC Akademi, Smart Money/ICT) dünyada çok kullanılan kavramlarının ŞEFFAF, ölçülebilir yaklaşık tanımları. Eğitmenin kendi
+# hesabı bilinmiyor. Her kavramın BIST ölçüm sonucu EGITIM_ROZET'te (tek yer: yeni test sonucu gelince sadece burayı güncelle).
+# Durum kodları: 'y' 🟢 tuttu, 's' 🟡 kısmen, 'r' 🔴 tutmadı, 'o' ⚪ henüz ölçülmedi. Kaynak: 2026-11-19/OZET_19-11.md bölüm 3.
+EGITIM_ROZET = {   # kavram: [durum, BIST'te tek satır, ABD sonucu (None = test sürüyor; gelince [durum, tek satır])]
+    "trend": ["r", "3. temasta kırılma yazı-tura (%52); her ek temas kırılmayı ~%7 AZALTIYOR (çok temas = zayıf çizgi değil); kırılım sonrası rastgeleden kötü gitmedi.", None],
+    "yatay": ["r", "3. temasta kırılma %40, 6.+ temasta %33 (çok temas seviyeyi zayıflatmıyor); kırılırsa alttaki seviyeye inme %60, rastgele günde de %61.", None],
+    "durak": ["s", "Alt kademe (kelepir bandı) 25 yılda tuttu; ama 'arada alma' uyarısı ters çıktı: ara kademede ve taban dibinde almak kilit üstünde almaktan iyiydi.", None],
+    "tepe": ["s", "Riskte haklı (ana tepe geçilince yeni dip olasılığı %40 → %15), getiride haksız (beklemek 52 haftada −9 puan).", None],
+    "kutu": ["y", "Kutunun alt üçte birinde almak kutu kırılımını beklemekten iyiydi (~+6 puan, iki dönemde de); 'kutu içinde işlem açma' uyarısı ters çıktı.", None],
+    "kz": ["r", "Oran v3, 🧲 Bant ve 🧲 SMA200 işlemlerinin sonucunu ayırmadı; '%30 kâr kalmıyorsa alma' süzgeci iyi işlemleri de atardı.", None],
+    "kilit": ["r", "Eğitmenin formülü çözülemedi (kutu üst kenarı kilitlerin ancak 4'te 1 ile yarısını tutturuyor); 'kilit üstünde haftalık kapanışta al' rastgeleden iyi değil.", None],
+    "supurme": ["s", "3+ temaslı destek süpürülüp geri alınınca 120 günde rastgeleden +7 puan; ama süpürmesiz tepki de +5, kırılıp geri alınmayan +12: süpürmeye özgü değil, genel 'düşüş sonrası alım' etkisi.", None],
+}
+EG_PIVOT = 2           # haftalık dönüş noktası: iki yanındaki 2 haftanın en düşüğü/en yükseği (test1 B ana tanımı)
+EG_TOL = 0.5           # temas toleransı = 0,5 haftalık ATR (test1 B ana tanımı)
+EG_PENCERE = 104       # trend çizgisi ve yatay seviyeler: son 2 yıl
+# bariz destek/direnç + süpürme: 2026-11-20/temas araştırmasının ana tanımı (seviye.seviyeler, PG): günlük pivot 5, tolerans 0,5 ATR(14),
+# seviye ömrü son temastan 250 gün, test 20 günde sonuçlanmazsa düşer, kapanışla sarkma ≤5 günde geri alınırsa süpürme
+SV_K, SV_TOL, SV_EXP, SV_TO, SV_SW = 5, 0.5, 250, 20, 5
+SV_UZAK = 0.15         # kapanışın en çok %15 uzağındaki seviyeler gösterilir
+SV_BAR = 750           # hesap son ~3 yılın günlük verisiyle (t7: 256 hissede tam 10 yılla 0 fark; 500 günde 7 hissede fark)
+EG_SUP_GUN = 40        # son dip süpürmesi: son 40 işlem günü (~8 hafta)
+EG_SUP_TEMAS = 3       # süpürülen destek bariz olmalı: en az 3 temas (araştırmanın süpürme testi)
+EG_ZZ = 0.15           # iki durak / ana tepe: haftalık kapanışta %15'lik dönüş (zigzag)
+EG_DERIN = 0.95        # alt durak: üst duraktan en az %5 derin önceki dip
+EG_KILIT = 26          # yaklaşık kilit: son 26 haftanın en yüksek haftalık kapanışı
+EG_YAKIN = 0.03        # üst liste 'çok temaslı desteğe yakın': fiyat en yakın 3+ temaslı desteğin en çok %3 üstünde
+EG_SUP_LISTE = 20      # üst liste 'son dip süpürmesi': geri alma son 20 işlem gününde (~4 hafta)
+
+
+def _pivot(x, k, dip):
+    """Haftalık dönüş noktaları: x[i] iki yanındaki k haftanın en düşüğü (dip) / en yükseği (tepe). Son k hafta onaysız."""
+    n = len(x)
+    p = np.zeros(n, bool)
+    if n < 2 * k + 1:
+        return p
+    from numpy.lib.stride_tricks import sliding_window_view
+    w = sliding_window_view(x, 2 * k + 1)
+    ref = w.min(axis=1) if dip else w.max(axis=1)
+    p[k:n - k] = x[k:n - k] == ref
+    return p
+
+
+def _atr_hafta(h, l, c, n=14):
+    pc = np.r_[c[0], c[:-1]]
+    tr = np.maximum(h - l, np.maximum(np.abs(h - pc), np.abs(l - pc)))
+    return pd.Series(tr).rolling(n, min_periods=5).mean().values
+
+
+def _cizgi(x, xc, tol, P, n):
+    """test1 testB çizgi kuralının 'bugün' hâli (ayna uzayında yükselen çizgi): x = log dip (düşen çizgide −log tepe), xc = log kapanış.
+    İki dönüş noktası q<p, x[q]<x[p]; q..p arası x çizgi−tol altına inmez, p sonrası kapanış çizgi−tol altına inmez (kırılmamış).
+    Temas = x çizgiye tol kadar yaklaşan hafta (ardışık haftalar tek temas). En çok temaslı, eşitse son teması yeni olan."""
+    best = None
+    for i, q in enumerate(P):
+        for p in P[i + 1:]:
+            if p - q < 4 or not x[p] > x[q]:
+                continue
+            s = (x[p] - x[q]) / (p - q)
+            ss = np.arange(q, n)
+            line = x[q] + s * (ss - q)
+            tt = tol[ss]
+            ara = ss <= p
+            if np.any(x[ss[ara]] < line[ara] - tt[ara]) or np.any(xc[ss[~ara]] < line[~ara] - tt[~ara]):
+                continue
+            tm = x[ss] <= line + tt
+            bas = tm & ~np.r_[False, tm[:-1]]
+            temas = int(bas.sum())
+            son = int(ss[np.flatnonzero(tm)[-1]])
+            anah = (temas, son, -q)
+            if best is None or anah > best[0]:
+                best = (anah, q, s, temas, son)
+    return best
+
+
+def gunluk_seviyeler(lo, hi, cl, tol, k=SV_K, EXP=SV_EXP, TO=SV_TO, SW=SV_SW, basla=None):
+    """2026-11-20/temas seviye.seviyeler'in (yatay destek) birebir kopyası; sadece canlıda gereken 'sup' olayları kaydedilir.
+    lo/hi/cl: log fiyat (direnç için −log High / −log Low / −log Close), tol: her bar için log tolerans. Döner (sup olayları, aktif seviyeler).
+    Temas n: seviyeyi kuran pivot dip = 1; her zıplama (kapanış ≥ L + 2·tol) +1. Süpürme: kapanışla L − tol altına sarktıktan 1..SW bar
+    sonra kapanış L üstü."""
+    n = len(cl); aktif = []; ev = []
+    basla = n if basla is None else basla
+    for t in range(n):
+        tt = tol[t]
+        if not tt == tt:
+            continue
+        kayit = t >= basla
+        for S in list(aktif):
+            L = S["L"]
+            d = S["dur"]
+            if d == "kurulum":
+                if cl[t] < L - tt:
+                    aktif.remove(S); continue
+                if cl[t] >= L + 2 * tt:
+                    S["dur"] = "serbest"
+                continue
+            if d == "serbest":
+                if lo[t] <= L + tt:
+                    S.update(dur="test", ep=t, minl=lo[t], b=None, g=None)
+                elif t - S["son"] > EXP:
+                    aktif.remove(S); continue
+                else:
+                    continue
+            S["minl"] = min(S["minl"], lo[t])
+            if S["b"] is None and cl[t] < L - tt:
+                S["b"] = t; S["g"] = None
+            if S["b"] is not None and S["g"] is None and t > S["b"]:
+                if cl[t] > L:
+                    S["g"] = t
+                    if kayit:
+                        ev.append({"t": t, "n": S["n"], "L": L, "gun": t - S["b"], "derin": S["minl"] - L, "b": S["b"]})
+                elif t - S["b"] >= SW:
+                    aktif.remove(S); continue
+            if S["g"] is not None and t > S["g"] and cl[t] < L - tt:
+                S["b"] = t; S["g"] = None
+            if cl[t] >= L + 2 * tt:
+                S["n"] += 1; S["dur"] = "serbest"; S["son"] = t
+                continue
+            if (S["b"] is None or S["g"] is not None) and t - S["ep"] > TO:
+                aktif.remove(S); continue
+        p = t - k
+        if p >= k and lo[p] == lo[p - k:t + 1].min():
+            if not any(abs(Q["L"] - lo[p]) <= tt for Q in aktif):
+                aktif.append({"L": lo[p], "n": 1, "dur": "kurulum", "son": t, "p": p})
+    return ev, aktif
+
+
+def _atr_wilder(H, L, C, a=14):
+    pc = np.r_[np.nan, C[:-1]]
+    tr = np.nanmax(np.vstack([H - L, np.abs(H - pc), np.abs(L - pc)]), axis=0)
+    return pd.Series(tr).ewm(alpha=1 / a, adjust=False, min_periods=a).mean().values
+
+
+def bariz_seviyeler(d, bar=SV_BAR):
+    """Günlük df → {'sd': destekler, 'sr': dirençler, 'sp': son süpürme}. sd/sr = [[en yakın, temas], ([en yakın 3+ temaslı, temas])],
+    yalnız kapanışın %15 içindekiler (araştırmanın bugun.py'si). sp: son EG_SUP_GUN günde 3+ temaslı desteğin süpürülüp geri alınması."""
+    x = d.iloc[-bar:] if bar else d
+    H, L, C = (x[c].values.astype(float) for c in ("High", "Low", "Close"))
+    if len(C) < 60:
+        return {}
+    a = _atr_wilder(H, L, C) / C
+    tol = SV_TOL * a
+    lh, ll, lc = np.log(H), np.log(L), np.log(C)
+    out = {}
+    tt = tol[-1]
+    for ad, (lo, hi, cc), sgn in (("sd", (ll, lh, lc), 1), ("sr", (-lh, -ll, -lc), -1)):
+        ev, ak = gunluk_seviyeler(lo, hi, cc, tol, basla=len(C) - EG_SUP_GUN if ad == "sd" else None)
+        ak = [S for S in ak if S["dur"] != "kurulum" and S["L"] < cc[-1] + tt and abs(np.exp(sgn * S["L"]) / C[-1] - 1) <= SV_UZAK]
+        if ak:
+            en = max(ak, key=lambda S: S["L"])
+            liste = [[_r(np.exp(sgn * en["L"])), int(en["n"])]]
+            cok = [S for S in ak if S["n"] >= 3]
+            if cok:
+                ec = max(cok, key=lambda S: S["L"])
+                if ec is not en:
+                    liste.append([_r(np.exp(sgn * ec["L"])), int(ec["n"])])
+            out[ad] = liste
+        if ad == "sd":
+            sup = [e for e in ev if e["n"] >= EG_SUP_TEMAS]
+            if sup:
+                e = sup[-1]
+                out["sp"] = {"t": _g(x.index[e["t"]]), "bt": _g(x.index[e["b"]]), "s": _r(np.exp(e["L"])), "d": _r(np.exp(e["L"] + e["derin"])),
+                             "n": int(e["n"]), "h": int(len(C) - 1 - e["t"]), "gun": int(e["gun"])}
+    return out
+
+
+def zigzag_dipler(c, Z):
+    """Kapanış zigzag dipleri (dip indeksi, değer, onay haftası); zigzag_tepeler'in aynası."""
+    out = []
+    yon = 0
+    li, lv = 0, c[0]
+    ci, cv = 0, c[0]
+    for t in range(1, len(c)):
+        x = c[t]
+        if yon <= 0:
+            if x < lv:
+                li, lv = t, x
+            if x >= lv * (1 + Z):
+                out.append((li, lv, t))
+                yon = 1
+                ci, cv = t, x
+        if yon > 0:
+            if x > cv:
+                ci, cv = t, x
+            if x <= cv * (1 - Z):
+                yon = -1
+                li, lv = t, x
+    return out
+
+
+def egitim_katmani(h, l, c, wt, yd=None, tepe3=None):
+    """📚 Eğitim katmanı: TAMAMLANMIŞ haftalık h/l/c (wt = hafta tarihleri) ile 8 kavramın yaklaşık hâli. yd = yon_durumu sonucu (varsa
+    ana tepe/tepecik oradan, araştırmanın tanımı), tepe3 = son 3 yılın en yükseği (hedef yedeği). Döner sözlük (harita.json 'eg')."""
+    n = len(c)
+    if n < 60:
+        return None
+    a = _atr_hafta(h, l, c) / c                       # haftalık ATR, fiyata oranla (log birimi yaklaşığı)
+    a = pd.Series(a).ffill().bfill().values
+    tol = EG_TOL * a
+    k = EG_PIVOT
+    pd_, pt_ = _pivot(l, k, True), _pivot(h, k, False)
+    bas = n - EG_PENCERE
+    eg = {}
+    # 1) trend çizgisi (yükselen: dipler; düşen: tepeler, ayna uzayında)
+    lw, hw, cw = np.log(l), np.log(h), np.log(c)
+    Pd = [p for p in np.flatnonzero(pd_) if p >= bas]
+    Pt = [p for p in np.flatnonzero(pt_) if p >= bas]
+    by = _cizgi(lw, cw, tol, Pd, n)
+    bd = _cizgi(-hw, -cw, tol, Pt, n)
+    sec = None
+    if by and (not bd or by[0] >= bd[0]):
+        sec = (1, by)
+    elif bd:
+        sec = (-1, bd)
+    if sec:
+        yon, (_, q, s, temas, son) = sec
+        x0 = lw[q] if yon == 1 else hw[q]
+        eg["tc"] = {"y": yon, "n": temas, "q": int(q), "x0": float(x0), "s": float(s * yon), "st": int(n - 1 - son),
+                    "qt": _g(wt[q]), "e": round(float(np.expm1(s * yon)), 4)}
+    # 2) bariz destek/direnç ve 8) son dip süpürmesi günlük veriyle: hisse_kaydi (bariz_seviyeler)
+    # 3) iki durak: son onaylı %15 zigzag dibi (üst) + ondan %5+ derin önceki dip (alt)
+    zd = [z for z in zigzag_dipler(c, EG_ZZ) if z[0] > 0]   # serinin ilk haftası "dip" sayılmaz
+    i_ust = None
+    if zd:
+        i_ust = zd[-1][0]
+        ust = float(l[i_ust])
+        dr = {"u": _r(ust), "ut": _g(wt[i_ust])}
+        for i_, v_, _ in reversed(zd[:-1]):
+            if l[i_] < ust * EG_DERIN:
+                dr.update({"a": _r(l[i_]), "at": _g(wt[i_])})
+                break
+        eg["dr"] = dr
+    # 4) ana tepe / tepecik: büyük düşüş bölümü varsa araştırmanın tanımı (yon_durumu), yoksa son zigzag dibine ait tepe
+    if yd:
+        eg["tp"] = {"k": "yon", "at": _r(yd["ana_tepe"]), "dp": _r(yd["dip"]), "dt": _g(wt[yd["i_dip"]]) if yd["i_dip"] < n else None,
+                    "g": yd["i_asildi"] is not None, "tc": _r(yd["tepecik"]) if yd["tepecik"] else None, "tg": yd["i_tepecik"] is not None}
+    elif i_ust is not None:
+        tep = [z for z in zigzag_tepeler(c, EG_ZZ) if z[0] < i_ust]
+        if tep:
+            at = float(tep[-1][1])
+            sonra = c[i_ust + 1:]
+            gi = np.flatnonzero(sonra > at)
+            tc, tg = None, False
+            R, pR = c[i_ust], i_ust
+            for t_ in range(i_ust + 1, n):
+                if c[t_] > R:
+                    R, pR = c[t_], t_
+                if pR > i_ust and c[t_] <= R * (1 - YON_TZ):
+                    tc = float(R)
+                    tg = bool(np.any(c[t_ + 1:] > tc))
+                    break
+            eg["tp"] = {"k": "zz", "at": _r(at), "att": _g(wt[tep[-1][0]]), "dp": _r(c[i_ust]), "dt": _g(wt[i_ust]),
+                        "g": bool(len(gi)), "gt": _g(wt[i_ust + 1 + int(gi[0])]) if len(gi) else None,
+                        "tc": _r(tc) if tc else None, "tg": tg}
+    # 5) kutu: son 8 tamamlanmış hafta
+    ka, ku = float(l[n - KUTU_N:].min()), float(h[n - KUTU_N:].max())
+    eg["kt"] = {"a": _r(ka), "u": _r(ku)}
+    # 6) kâr/zarar: alt duraktan (yoksa üst) ana tepeye kâr, stop = durağın 1 haftalık ATR altı
+    dr = eg.get("dr")
+    tp = eg.get("tp")
+    if dr:
+        giris = dr.get("a") or dr["u"]
+        hk = "t" if tp and tp.get("at") and tp["at"] > giris else "3y"
+        hedef = tp["at"] if hk == "t" else (tepe3 if tepe3 and tepe3 > giris else None)
+        stop = giris * (1 - a[n - 1])
+        if hedef and giris > stop > 0:
+            eg["kz"] = {"g": _r(giris), "s": _r(stop), "h": _r(hedef), "o": round((hedef - giris) / (giris - stop), 1),
+                        "ad": "a" if dr.get("a") else "u", "hk": hk}
+    # 7) yaklaşık kilit: son tamamlanan hafta hariç son 26 haftanın en yüksek kapanışı; son haftalık kapanış üstünde mi
+    kl = float(c[n - 1 - EG_KILIT:n - 1].max())
+    eg["kl"] = {"v": _r(kl), "u": bool(c[n - 1] > kl), "c": _r(c[n - 1])}
+    return eg
+
+
+def egitim_destek(eg, en_az=3):
+    """En yakın bariz destek (en az `en_az` temas, kapanışın %15 içinde) → (seviye, temas) | None. JS `egYakin` ile aynı seçim."""
+    if not eg:
+        return None
+    alt = [z for z in eg.get("sd", []) if z[0] and z[1] >= en_az]
+    return tuple(max(alt, key=lambda z: z[0])) if alt else None
+
+
 # ============================================================ tek hisse kaydı
 def _r(v, sig=5):
     if v is None or not np.isfinite(v):
@@ -323,6 +606,24 @@ def hisse_kaydi(d, hafta_son, tamam, grup):
     s = seri.reindex(izgara.union(seri.index)).ffill().reindex(izgara)
     kayit["s"] = [None if not np.isfinite(v) else _r(v, 4) for v in s.values]
     kayit["_wl"] = _g(hafta_son)
+    # 📚 eğitim katmanı (hata olursa yalnız bu bölüm düşer; harita ve tarama etkilenmez)
+    try:
+        m = len(ct)
+        eg = egitim_katmani(W["h"][:m], W["l"][:m], ct, wtt, yd, sv["tepe"] if sv else None)
+        if eg:
+            tc = eg.get("tc")
+            if tc:
+                q, x0, sl = tc.pop("q"), tc.pop("x0"), tc.pop("s")
+                deger = lambda j: float(np.exp(x0 + sl * (j - q)))
+                j0 = max(q, int(hs.searchsorted(izgara[0])))
+                g0 = int(izgara.get_indexer([hs[j0]])[0]) if j0 < len(hs) else -1
+                tc["v"] = _r(deger(t))
+                if g0 >= 0:
+                    tc["a"] = [g0, _r(deger(j0)), GRAFIK_HAFTA, tc["v"]]
+            eg.update(bariz_seviyeler(d))
+            kayit["eg"] = eg
+    except Exception as e:
+        print(f"Harita: eğitim katmanı hesaplanamadı ({type(e).__name__}).")
     return kayit
 
 
@@ -347,7 +648,7 @@ def canli(kayit, x, wl):
 
 
 def listeler(H):
-    L = {"kelepir": [], "ucuz": [], "kutu": [], "dusus": []}
+    L = {"kelepir": [], "ucuz": [], "kutu": [], "dusus": [], "tdestek": [], "supurme": []}
     for kod, k in H.items():
         d = k.get("d") or {}
         if d.get("kel") == "kelepir":
@@ -359,11 +660,20 @@ def listeler(H):
         y = k.get("yon")
         if y and y.get("asildi") is None:
             L["dusus"].append(kod)
+        eg = k.get("eg")
+        if eg:
+            ds = egitim_destek(eg)
+            if ds and k.get("f") and ds[0] <= k["f"] <= ds[0] * (1 + EG_YAKIN):
+                L["tdestek"].append(kod)
+            if eg.get("sp") and eg["sp"]["h"] < EG_SUP_LISTE:
+                L["supurme"].append(kod)
     f = lambda kod: (H[kod].get("f") or 0) / (H[kod]["kel"]["T"] or 1)
     L["kelepir"].sort(key=f)
     L["ucuz"].sort(key=f)
     L["kutu"].sort()
     L["dusus"].sort(key=lambda kod: -H[kod]["yon"]["dusus"])
+    L["tdestek"].sort(key=lambda kod: H[kod]["f"] / egitim_destek(H[kod]["eg"])[0])
+    L["supurme"].sort(key=lambda kod: (H[kod]["eg"]["sp"]["h"], kod))
     return L
 
 
@@ -506,7 +816,7 @@ def calistir(data, simdi, kapanis_zamani, ana, kucuk, manip=(), dikkat=(), yol=H
         k["dk"] = kod in set(dikkat)
     veri = {"v": SURUM, "anahtar": anahtar_yaz, "uretim": uretim, "guncel": simdi.strftime("%Y-%m-%d %H:%M"),
             "taze": taze or bool(eski and eski.get("anahtar") == anahtar),
-            "hafta": hs_str, "tamam": tamam, "bayrak": {"yabanci": YABANCI_ACIK},
+            "hafta": hs_str, "tamam": tamam, "bayrak": {"yabanci": YABANCI_ACIK}, "egr": EGITIM_ROZET,
             "g0": _g(pd.date_range(end=hafta_son, periods=GRAFIK_HAFTA + 1, freq="W-FRI")[0]),
             "liste": listeler(H), "h": H}
     yaz(veri, yol)
