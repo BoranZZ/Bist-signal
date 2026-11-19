@@ -6,6 +6,7 @@
     "FRIGO",
     "GARAN",
     "HKTM",
+    "KPEKS",
     "METEN",
     "METRO",
     "MPARK",
@@ -205,7 +206,7 @@
     "KONYA": "SAT",
     "KOPOL": "SAT",
     "KORDS": "SAT",
-    "KPEKS": "NÖTR",
+    "KPEKS": "AL",
     "KRDMA": "SAT",
     "KRDMB": "SAT",
     "KRDMD": "SAT",
@@ -360,6 +361,11 @@
     "ARSAN": {
       "sinyal": "SAT",
       "onceki": "AL",
+      "tarih": "2026-11-19"
+    },
+    "KPEKS": {
+      "sinyal": "AL",
+      "onceki": "NÖTR",
       "tarih": "2026-11-19"
     },
     "OTKAR": {
