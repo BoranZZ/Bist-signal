@@ -9,6 +9,7 @@
     "METEN",
     "METRO",
     "MPARK",
+    "OTKAR",
     "PGSUS",
     "PKART",
     "SAYAS",
@@ -636,7 +637,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1700273,
+  "kap_son": 1700274,
   "tk_gonderilen": {
     "tarih": "2026-11-19",
     "kodlar": []
