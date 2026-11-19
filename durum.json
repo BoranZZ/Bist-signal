@@ -6,13 +6,13 @@
     "FRIGO",
     "GARAN",
     "HKTM",
-    "KPEKS",
     "METEN",
     "METRO",
     "MPARK",
     "OTKAR",
     "PGSUS",
     "PKART",
+    "SAYAS",
     "TAVHL",
     "TCKRC",
     "THYAO",
@@ -673,7 +673,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1700321,
+  "kap_son": 1700371,
   "tk_gonderilen": {
     "tarih": "2026-11-19",
     "kodlar": []
