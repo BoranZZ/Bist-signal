@@ -25,7 +25,7 @@ import pandas as pd
 
 HARITA_JSON = "harita.json"
 HARITA_HTML = "harita.html"
-SURUM = 2              # 2: 📚 eğitim katmanı (eg) eklendi → ilk taramada yeniden hesaplanır
+SURUM = 3              # 2: 📚 eğitim katmanı (eg) eklendi; 3: dip arası bölge + ekmek kırıntısı → ilk taramada yeniden hesaplanır
 YABANCI_ACIK = False   # yabancı payı satırı: test OLUMSUZ (2026-11-19/yabanci/RAPOR.md); kullanıcı karar verene kadar kapalı, sayfada görünmez
 INDIRME_DONEM = "10y"
 ZAMAN_ASIMI = 45       # sn: uzun geçmiş indirmesi bundan uzun sürerse eski harita kalır, tarama devam eder
@@ -280,6 +280,8 @@ EGITIM_ROZET = {   # kavram: [durum, BIST'te tek satır, ABD sonucu (None = test
     "kutu": ["y", "Kutunun alt üçte birinde almak kutu kırılımını beklemekten iyiydi (~+6 puan, iki dönemde de); 'kutu içinde işlem açma' uyarısı ters çıktı.", ["y", "ABD'de de kutu içinden almak beklemekten iyi (17 yılın 17'si); 'kutu içinde işlem açma' uyarısı ters."]],
     "kz": ["r", "Oran v3, 🧲 Bant ve 🧲 SMA200 işlemlerinin sonucunu ayırmadı; '%30 kâr kalmıyorsa alma' süzgeci iyi işlemleri de atardı.", ["r", "ABD'de tersine çalışıyor: ana tepeye uzaklık (yüksek oran) büyüdükçe sonuç kötüleşiyor."]],
     "kilit": ["r", "Eğitmenin formülü çözülemedi (kutu üst kenarı kilitlerin ancak 4'te 1 ile yarısını tutturuyor); 'kilit üstünde haftalık kapanışta al' rastgeleden iyi değil.", ["r", "ABD'de de 'kilit üstünde haftalık kapanışta al' rastgeleden iyi değil."]],
+    "dipara": ["s", "Bölgeye inince almak 52 haftada rastgele haftadan +29 puan iyi (25 yılda +22); ama yükselen dip şartı olmadan 3 yılın dibine aynı yakınlıkta almak da +30 (+19): avantaj dibe yakınlıktan, yapıdan değil. 'Üstünde tutunursa' teyidini beklemek kazancı +21'e (+10) düşürüyor; kırılım sonrası az olay, sonuç belirsiz.", None],
+    "kirinti": ["r", "Yükselişteki ara diplere düşüşte dokununca 26 haftada önce +%15 gelme %61; tepeye aynı uzaklıktaki rastgele seviyede %64: seviyeler özel değil, tutma oranını yalnız tepeden uzaklık belirliyor.", None],
     "supurme": ["s", "3+ temaslı destek süpürülüp geri alınınca 120 günde rastgeleden +7 puan; ama süpürmesiz tepki de +5, kırılıp geri alınmayan +12: süpürmeye özgü değil, genel 'düşüş sonrası alım' etkisi.", ["s", "Wyckoff spring ABD'de de aynı hissenin sıradan haftasından +8-10 puan iyi, ama aynı hafta başka hisse almaktan iyi değil."]],
 }
 EG_PIVOT = 2           # haftalık dönüş noktası: iki yanındaki 2 haftanın en düşüğü/en yükseği (test1 B ana tanımı)
@@ -294,6 +296,11 @@ EG_SUP_GUN = 40        # son dip süpürmesi: son 40 işlem günü (~8 hafta)
 EG_SUP_TEMAS = 3       # süpürülen destek bariz olmalı: en az 3 temas (araştırmanın süpürme testi)
 EG_ZZ = 0.15           # iki durak / ana tepe: haftalık kapanışta %15'lik dönüş (zigzag)
 EG_DERIN = 0.95        # alt durak: üst duraktan en az %5 derin önceki dip
+EG_DA_PENCERE = 156    # dip arası bölge: alt = son 156 haftanın en düşük haftalık dibi (ana dip; videodaki ENTRA kutusunu birebir verir)
+EG_DA_FARK = 1.03      # üst = ana dipten sonraki, ana dipten ≥%3 yüksek ilk onaylı %15 zigzag dibi (daha yakın dipler tabanın parçası)
+EG_DA_TEYIT = 1.05     # bölgeye inişten sonra yukarıdaki dibin %5 üstünde haftalık kapanış = teyit (2026-11-20/dip-arasi tanımı)
+EG_DA_HAFTA = 12       # teyit / kırılım bölgeye inişten sonraki 12 hafta içinde aranır
+EG_KR_N = 4            # ekmek kırıntısı: son 3 yılın en büyük tepesine çıkarken bırakılan en çok 4 yükselen dip
 EG_KILIT = 26          # yaklaşık kilit: son 26 haftanın en yüksek haftalık kapanışı
 EG_YAKIN = 0.03        # üst liste 'çok temaslı desteğe yakın': fiyat en yakın 3+ temaslı desteğin en çok %3 üstünde
 EG_SUP_LISTE = 20      # üst liste 'son dip süpürmesi': geri alma son 20 işlem gününde (~4 hafta)
@@ -459,6 +466,78 @@ def zigzag_dipler(c, Z):
     return out
 
 
+def zigzag_hl(h, l, Z):
+    """Haftalık en yüksek/en düşükle onaylı zigzag (2026-11-20/dip-arasi/dip_arasi.py zz ile aynı).
+    Döner [(tür 'H'/'L', pivot haftası, değer, onay haftası)]; pivot ancak fiyat ondan Z kadar dönünce bilinir (bakış-ileri yok)."""
+    P = []
+    mode, hi, hi_i, lo, lo_i = 0, h[0], 0, l[0], 0
+    for i in range(1, len(h)):
+        if mode == 0:
+            if h[i] > hi:
+                hi, hi_i = h[i], i
+            if l[i] < lo:
+                lo, lo_i = l[i], i
+            if l[i] <= hi * (1 - Z) and hi_i < i:
+                P.append(("H", hi_i, hi, i)); mode = -1; lo, lo_i = l[i], i
+            elif h[i] >= lo * (1 + Z) and lo_i < i:
+                P.append(("L", lo_i, lo, i)); mode = 1; hi, hi_i = h[i], i
+        elif mode == 1:
+            if h[i] > hi:
+                hi, hi_i = h[i], i
+            elif l[i] <= hi * (1 - Z):
+                P.append(("H", hi_i, hi, i)); mode = -1; lo, lo_i = l[i], i
+        else:
+            if l[i] < lo:
+                lo, lo_i = l[i], i
+            elif h[i] >= lo * (1 + Z):
+                P.append(("L", lo_i, lo, i)); mode = 1; hi, hi_i = h[i], i
+    return P
+
+
+def dip_arasi(h, l, c, wt):
+    """9) dip arası takip bölgesi + 10) ekmek kırıntısı (eğitmenin 30.10.2026 kısa videoları). Döner {'da': ..., 'kr': ...} (boş olabilir)."""
+    out = {}
+    n = len(c)
+    P = zigzag_hl(h, l, EG_ZZ)
+    Ls = [p for p in P if p[0] == "L"]
+    b = max(0, n - EG_DA_PENCERE)
+    ia = b + int(np.argmin(l[b:]))
+    sira = [s for s, p in enumerate(Ls) if p[1] == ia]
+    if n >= 60:
+        # ana dip kırılırsa yeni dip ana dip olur (yd = ana dibin yaşı, hafta); ana dipten %3'ten az yüksek dipler tabanın parçası (ikili dip)
+        da = {"a": _r(l[ia]), "at": _g(wt[ia]), "y": 0, "yd": int(n - 1 - ia)}
+        if sira:
+            sonra = [p for p in Ls[sira[0] + 1:] if p[2] >= l[ia] * EG_DA_FARK]
+            if sonra:
+                _, i2, L2, c2 = sonra[0]
+                da.update({"u": _r(L2), "ut": _g(wt[i2]), "y": 1})
+                j = next((q for q in range(c2 + 1, n) if l[q] <= L2), None)
+                if j is not None:
+                    da["gt"] = _g(wt[j])
+                    for q in range(j + 1, min(j + 1 + EG_DA_HAFTA, n)):
+                        if c[q] >= L2 * EG_DA_TEYIT:
+                            da["ty"] = _g(wt[q])
+                            break
+            elif sira[0] + 1 < len(Ls):
+                da["ik"] = True
+        out["da"] = da
+    Hs = [i for i, p in enumerate(P) if p[0] == "H" and p[1] >= b]   # son 3 yılın en büyük onaylı tepesi (eğitmen: büyük ralli)
+    if Hs:
+        pi = max(Hs, key=lambda i: P[i][2])
+        _, ih, Hp, ch = P[pi]
+        zincir = []
+        for x in reversed([p for p in P[:pi] if p[0] == "L"]):
+            if zincir and x[2] >= zincir[-1][2]:
+                break
+            zincir.append(x)
+            if len(zincir) == EG_KR_N:
+                break
+        if len(zincir) >= 2:
+            out["kr"] = {"t": _r(Hp), "tt": _g(wt[ih]), "g": bool(np.max(h[ch:]) > Hp),
+                         "s": [[_r(x[2]), _g(wt[x[1]])] for x in zincir]}
+    return out
+
+
 def egitim_katmani(h, l, c, wt, yd=None, tepe3=None):
     """📚 Eğitim katmanı: TAMAMLANMIŞ haftalık h/l/c (wt = hafta tarihleri) ile 8 kavramın yaklaşık hâli. yd = yon_durumu sonucu (varsa
     ana tepe/tepecik oradan, araştırmanın tanımı), tepe3 = son 3 yılın en yükseği (hedef yedeği). Döner sözlük (harita.json 'eg')."""
@@ -540,6 +619,8 @@ def egitim_katmani(h, l, c, wt, yd=None, tepe3=None):
     # 7) yaklaşık kilit: son tamamlanan hafta hariç son 26 haftanın en yüksek kapanışı; son haftalık kapanış üstünde mi
     kl = float(c[n - 1 - EG_KILIT:n - 1].max())
     eg["kl"] = {"v": _r(kl), "u": bool(c[n - 1] > kl), "c": _r(c[n - 1])}
+    # 9-10) dip arası takip bölgesi + ekmek kırıntısı
+    eg.update(dip_arasi(h, l, c, wt))
     return eg
 
 
@@ -648,7 +729,7 @@ def canli(kayit, x, wl):
 
 
 def listeler(H):
-    L = {"kelepir": [], "ucuz": [], "kutu": [], "dusus": [], "tdestek": [], "supurme": []}
+    L = {"kelepir": [], "ucuz": [], "kutu": [], "dusus": [], "tdestek": [], "supurme": [], "dipara": []}
     for kod, k in H.items():
         d = k.get("d") or {}
         if d.get("kel") == "kelepir":
@@ -667,6 +748,9 @@ def listeler(H):
                 L["tdestek"].append(kod)
             if eg.get("sp") and eg["sp"]["h"] < EG_SUP_LISTE:
                 L["supurme"].append(kod)
+            da = eg.get("da")
+            if da and da["y"] == 1 and k.get("f") and da["a"] <= k["f"] <= da["u"]:
+                L["dipara"].append(kod)
     f = lambda kod: (H[kod].get("f") or 0) / (H[kod]["kel"]["T"] or 1)
     L["kelepir"].sort(key=f)
     L["ucuz"].sort(key=f)
@@ -674,6 +758,7 @@ def listeler(H):
     L["dusus"].sort(key=lambda kod: -H[kod]["yon"]["dusus"])
     L["tdestek"].sort(key=lambda kod: H[kod]["f"] / egitim_destek(H[kod]["eg"])[0])
     L["supurme"].sort(key=lambda kod: (H[kod]["eg"]["sp"]["h"], kod))
+    L["dipara"].sort(key=lambda kod: (H[kod]["f"] - H[kod]["eg"]["da"]["a"]) / (H[kod]["eg"]["da"]["u"] - H[kod]["eg"]["da"]["a"]))
     return L
 
 
