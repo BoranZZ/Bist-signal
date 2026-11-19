@@ -2,9 +2,7 @@
   "al": [
     "BAHKM",
     "CELHA",
-    "EGEEN",
     "ENERY",
-    "ENTRA",
     "FRIGO",
     "FROTO",
     "GARAN",
@@ -15,10 +13,8 @@
     "PGSUS",
     "SAYAS",
     "TAVHL",
-    "TCKRC",
     "THYAO",
-    "VAKBN",
-    "ZGYO"
+    "VAKBN"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -669,8 +665,11 @@
   "gunici": {
     "tarih": "2026-11-19",
     "g": [
+      "6f646098e80b8cf6",
       "93f427189eed1798",
-      "d26062bb53c412c3"
+      "afbb0487c5364c1f",
+      "d26062bb53c412c3",
+      "ff241257896f953f"
     ]
   },
   "sabah_tarih": "2026-11-19",
