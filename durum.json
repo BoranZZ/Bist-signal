@@ -1,7 +1,9 @@
 {
   "al": [
+    "AKSA",
     "BAHKM",
     "CELHA",
+    "EGGUB",
     "ENERY",
     "HKTM",
     "METRO",
@@ -629,7 +631,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1700682,
+  "kap_son": 1700695,
   "tk_gonderilen": {
     "tarih": "2026-11-20",
     "kodlar": []
