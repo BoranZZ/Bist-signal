@@ -1,6 +1,5 @@
 {
   "al": [
-    "AKSA",
     "BAHKM",
     "CELHA",
     "EGGUB",
@@ -11,8 +10,7 @@
     "MPARK",
     "ORZAX",
     "PGSUS",
-    "THYAO",
-    "VAKBN"
+    "THYAO"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -692,6 +690,7 @@
       "4927ff2abe94c86f",
       "56055938fdab7a44",
       "5ed3cf24cebcedc0",
+      "6208d9d28d82784e",
       "6cd4d81c91f4de0f",
       "6fbda986f0cacd1d",
       "81098387126739db",
