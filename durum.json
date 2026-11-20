@@ -2,13 +2,14 @@
   "al": [
     "BAHKM",
     "CELHA",
+    "EGGUB",
     "ENERY",
-    "FRIGO",
     "HKTM",
     "METRO",
     "MPARK",
     "PGSUS",
-    "THYAO"
+    "THYAO",
+    "ZGYO"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -660,7 +661,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1700695,
+  "kap_son": 1700775,
   "tk_gonderilen": {
     "tarih": "2026-11-20",
     "kodlar": []
