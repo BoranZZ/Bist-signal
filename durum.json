@@ -9,6 +9,7 @@
     "MPARK",
     "PGSUS",
     "THYAO",
+    "VAKBN",
     "ZGYO"
   ],
   "son": {
@@ -661,7 +662,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1700775,
+  "kap_son": 1700788,
   "tk_gonderilen": {
     "tarih": "2026-11-20",
     "kodlar": []
