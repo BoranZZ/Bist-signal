@@ -2,13 +2,12 @@
   "al": [
     "BAHKM",
     "CELHA",
-    "ENERY",
     "FRIGO",
     "HKTM",
     "METRO",
     "MPARK",
+    "OTKAR",
     "PGSUS",
-    "PKART",
     "THYAO"
   ],
   "son": {
@@ -660,11 +659,14 @@
   "gunici": {
     "tarih": "2026-11-20",
     "g": [
+      "56055938fdab7a44",
       "5ed3cf24cebcedc0",
+      "6cd4d81c91f4de0f",
       "6fbda986f0cacd1d",
       "81098387126739db",
       "818bf7d184f0e700",
       "9dc56ae10a51c78d",
+      "a70f558876ca8c02",
       "b7f7ca2920dc3752"
     ]
   },
