@@ -8,6 +8,8 @@
     "MPARK",
     "OTKAR",
     "PGSUS",
+    "PKART",
+    "SAYAS",
     "THYAO"
   ],
   "son": {
@@ -629,7 +631,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1700495,
+  "kap_son": 1700588,
   "tk_gonderilen": {
     "tarih": "2026-11-20",
     "kodlar": []
