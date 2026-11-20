@@ -1,8 +1,11 @@
 {
   "al": [
+    "AKSA",
     "BAHKM",
     "CELHA",
+    "EGGUB",
     "ENERY",
+    "FRIGO",
     "HKTM",
     "METRO",
     "MPARK",
@@ -107,7 +110,7 @@
     "EGEEN": "AL",
     "EGEGY": "SAT",
     "EGEPO": "SAT",
-    "EGGUB": "SAT",
+    "EGGUB": "AL",
     "EKDMR": "SAT",
     "EKGYO": "SAT",
     "EKIM": "SAT",
@@ -232,7 +235,7 @@
     "MPARK": "AL",
     "MRGYO": "SAT",
     "MRSHL": "SAT",
-    "NETCD": "AL",
+    "NETCD": "SAT",
     "NTHOL": "SAT",
     "OBAMS": "SAT",
     "ODAS": "SAT",
@@ -352,6 +355,16 @@
   "alarm_tetik": [],
   "on_sinyal": {
     "AFYON": {
+      "sinyal": "SAT",
+      "onceki": "AL",
+      "tarih": "2026-11-20"
+    },
+    "EGGUB": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-20"
+    },
+    "NETCD": {
       "sinyal": "SAT",
       "onceki": "AL",
       "tarih": "2026-11-20"
