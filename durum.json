@@ -5,6 +5,7 @@
     "CELHA",
     "EGGUB",
     "ENERY",
+    "FRIGO",
     "HKTM",
     "METRO",
     "MPARK",
@@ -12,6 +13,7 @@
     "PGSUS",
     "PKART",
     "THYAO",
+    "VAKBN",
     "ZGYO"
   ],
   "son": {
@@ -248,7 +250,7 @@
     "OTKAR": "AL",
     "OYAKC": "SAT",
     "OZATD": "SAT",
-    "OZSUB": "SAT",
+    "OZSUB": "AL",
     "PAHOL": "SAT",
     "PAPIL": "SAT",
     "PASEU": "SAT",
@@ -349,42 +351,11 @@
     "ed52d36b8529c244",
     "fc9a269fa7f1b36a"
   ],
-  "ozet_tarih": "2026-11-19",
-  "hafta_tarih": "2026-11-13",
+  "ozet_tarih": "2026-11-20",
+  "hafta_tarih": "2026-11-20",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {
-    "AFYON": {
-      "sinyal": "SAT",
-      "onceki": "AL",
-      "tarih": "2026-11-20"
-    },
-    "EGGUB": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-11-20"
-    },
-    "NETCD": {
-      "sinyal": "SAT",
-      "onceki": "AL",
-      "tarih": "2026-11-20"
-    },
-    "ORZAX": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-11-20"
-    },
-    "OZSUB": {
-      "sinyal": "SAT",
-      "onceki": "AL",
-      "tarih": "2026-11-20"
-    },
-    "ZGYO": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-11-20"
-    }
-  },
+  "on_sinyal": {},
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
@@ -590,7 +561,7 @@
     "OTKAR": "SAT",
     "OYAKC": "SAT",
     "OZATD": "SAT",
-    "OZSUB": "AL",
+    "OZSUB": "SAT",
     "PAPIL": "SAT",
     "PASEU": "SAT",
     "PATEK": "SAT",
@@ -664,7 +635,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1700815,
+  "kap_son": 1700826,
   "tk_gonderilen": {
     "tarih": "2026-11-20",
     "kodlar": []
