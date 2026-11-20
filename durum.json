@@ -1,5 +1,6 @@
 {
   "al": [
+    "AKSA",
     "BAHKM",
     "CELHA",
     "ENERY",
@@ -7,8 +8,8 @@
     "METRO",
     "MPARK",
     "PGSUS",
-    "PKART",
-    "THYAO"
+    "THYAO",
+    "VAKBN"
   ],
   "son": {
     "A1CAP": "SAT",
