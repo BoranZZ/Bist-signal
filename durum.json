@@ -3,6 +3,7 @@
     "BAHKM",
     "CELHA",
     "ENERY",
+    "ENTRA",
     "HKTM",
     "METRO",
     "MPARK",
@@ -629,7 +630,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1700641,
+  "kap_son": 1700660,
   "tk_gonderilen": {
     "tarih": "2026-11-20",
     "kodlar": []
