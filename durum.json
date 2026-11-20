@@ -8,9 +8,10 @@
     "HKTM",
     "METRO",
     "MPARK",
-    "ORZAX",
     "PGSUS",
-    "THYAO"
+    "THYAO",
+    "VAKBN",
+    "ZGYO"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -333,7 +334,7 @@
     "YIGIT": "SAT",
     "YKBNK": "AL",
     "ZERGY": "SAT",
-    "ZGYO": "SAT",
+    "ZGYO": "AL",
     "ZOREN": "SAT"
   },
   "iz_kirilim_g": [
@@ -375,6 +376,11 @@
     "OZSUB": {
       "sinyal": "SAT",
       "onceki": "AL",
+      "tarih": "2026-11-20"
+    },
+    "ZGYO": {
+      "sinyal": "AL",
+      "onceki": "SAT",
       "tarih": "2026-11-20"
     }
   },
