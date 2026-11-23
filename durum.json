@@ -1,6 +1,5 @@
 {
   "al": [
-    "AKSA",
     "ALARK",
     "BAHKM",
     "CCOLA",
@@ -14,6 +13,7 @@
     "METRO",
     "MPARK",
     "PGSUS",
+    "SAYAS",
     "THYAO",
     "VAKBN",
     "YEOTK",
@@ -638,7 +638,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1700940,
+  "kap_son": 1701018,
   "tk_gonderilen": {
     "tarih": "2026-11-23",
     "kodlar": []
