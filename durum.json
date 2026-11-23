@@ -210,7 +210,7 @@
     "LIDER": "SAT",
     "LILAK": "SAT",
     "LINK": "SAT",
-    "LMKDC": "SAT",
+    "LMKDC": "AL",
     "LOGO": "SAT",
     "LXGYO": "SAT",
     "LYDHO": "SAT",
@@ -347,37 +347,11 @@
     "ed52d36b8529c244",
     "fc9a269fa7f1b36a"
   ],
-  "ozet_tarih": "2026-11-20",
+  "ozet_tarih": "2026-11-23",
   "hafta_tarih": "2026-11-20",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {
-    "ISCTR": {
-      "sinyal": "SAT",
-      "onceki": "AL",
-      "tarih": "2026-11-23"
-    },
-    "LMKDC": {
-      "sinyal": "SAT",
-      "onceki": "AL",
-      "tarih": "2026-11-23"
-    },
-    "OTKAR": {
-      "sinyal": "SAT",
-      "onceki": "AL",
-      "tarih": "2026-11-23"
-    },
-    "OZSUB": {
-      "sinyal": "SAT",
-      "onceki": "AL",
-      "tarih": "2026-11-23"
-    },
-    "VAKFA": {
-      "sinyal": "SAT",
-      "onceki": "AL",
-      "tarih": "2026-11-23"
-    }
-  },
+  "on_sinyal": {},
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
@@ -657,7 +631,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1701489,
+  "kap_son": 1701505,
   "tk_gonderilen": {
     "tarih": "2026-11-23",
     "kodlar": []
