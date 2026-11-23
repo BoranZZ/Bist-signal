@@ -3,15 +3,13 @@
     "AKSA",
     "BAHKM",
     "CELHA",
-    "ENTRA",
     "FRIGO",
     "HKTM",
     "METRO",
     "PGSUS",
-    "SANFM",
+    "SAYAS",
     "THYAO",
-    "VAKBN",
-    "YEOTK"
+    "VAKBN"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -172,7 +170,7 @@
     "IHLAS": "SAT",
     "INDES": "SAT",
     "INFO": "SAT",
-    "ISCTR": "AL",
+    "ISCTR": "SAT",
     "ISDMR": "SAT",
     "ISGSY": "SAT",
     "ISGYO": "SAT",
@@ -211,7 +209,7 @@
     "LIDER": "SAT",
     "LILAK": "SAT",
     "LINK": "SAT",
-    "LMKDC": "AL",
+    "LMKDC": "SAT",
     "LOGO": "SAT",
     "LXGYO": "SAT",
     "LYDHO": "SAT",
@@ -244,10 +242,10 @@
     "ONRYT": "SAT",
     "ORGE": "SAT",
     "ORZAX": "AL",
-    "OTKAR": "AL",
+    "OTKAR": "SAT",
     "OYAKC": "SAT",
     "OZATD": "SAT",
-    "OZSUB": "AL",
+    "OZSUB": "SAT",
     "PAHOL": "SAT",
     "PAPIL": "SAT",
     "PASEU": "SAT",
@@ -324,7 +322,7 @@
     "ULUUN": "SAT",
     "USAK": "SAT",
     "VAKBN": "AL",
-    "VAKFA": "AL",
+    "VAKFA": "SAT",
     "VBTYZ": "SAT",
     "VESBE": "SAT",
     "VESTL": "SAT",
@@ -352,7 +350,33 @@
   "hafta_tarih": "2026-11-20",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {},
+  "on_sinyal": {
+    "ISCTR": {
+      "sinyal": "SAT",
+      "onceki": "AL",
+      "tarih": "2026-11-23"
+    },
+    "LMKDC": {
+      "sinyal": "SAT",
+      "onceki": "AL",
+      "tarih": "2026-11-23"
+    },
+    "OTKAR": {
+      "sinyal": "SAT",
+      "onceki": "AL",
+      "tarih": "2026-11-23"
+    },
+    "OZSUB": {
+      "sinyal": "SAT",
+      "onceki": "AL",
+      "tarih": "2026-11-23"
+    },
+    "VAKFA": {
+      "sinyal": "SAT",
+      "onceki": "AL",
+      "tarih": "2026-11-23"
+    }
+  },
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
