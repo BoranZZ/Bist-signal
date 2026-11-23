@@ -1,19 +1,20 @@
 {
   "al": [
     "AKSA",
+    "ALARK",
     "BAHKM",
     "CCOLA",
     "CELHA",
     "CITAS",
+    "ENTRA",
     "FRIGO",
     "HKTM",
     "METRO",
     "MPARK",
     "PGSUS",
-    "PKART",
     "THYAO",
     "VAKBN",
-    "ZGYO"
+    "YEOTK"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -663,7 +664,9 @@
   "oa_tarih": "2026-11-20",
   "gunici": {
     "tarih": "2026-11-23",
-    "g": []
+    "g": [
+      "4927ff2abe94c86f"
+    ]
   },
   "sabah_tarih": "2026-11-23",
   "makro_sabah": "2026-11-23"
