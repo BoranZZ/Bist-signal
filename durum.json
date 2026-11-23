@@ -3,6 +3,7 @@
     "AKSA",
     "BAHKM",
     "CELHA",
+    "EGGUB",
     "FRIGO",
     "HKTM",
     "METRO",
@@ -628,7 +629,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1701390,
+  "kap_son": 1701392,
   "tk_gonderilen": {
     "tarih": "2026-11-23",
     "kodlar": []
