@@ -10,6 +10,7 @@
     "MPARK",
     "ORZAX",
     "PGSUS",
+    "PKART",
     "THYAO",
     "ZGYO"
   ],
@@ -632,7 +633,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1700894,
+  "kap_son": 1700928,
   "tk_gonderilen": {
     "tarih": "2026-11-23",
     "kodlar": []
