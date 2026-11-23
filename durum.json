@@ -6,6 +6,7 @@
     "ENTRA",
     "FRIGO",
     "HKTM",
+    "METRO",
     "PGSUS",
     "SAYAS",
     "THYAO",
@@ -630,7 +631,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1701289,
+  "kap_son": 1701313,
   "tk_gonderilen": {
     "tarih": "2026-11-23",
     "kodlar": []
