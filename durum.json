@@ -12,6 +12,7 @@
     "PGSUS",
     "PKART",
     "RYSAS",
+    "SANFM",
     "THYAO",
     "VAKBN"
   ],
@@ -665,7 +666,8 @@
     "tarih": "2026-11-24",
     "g": [
       "4927ff2abe94c86f",
-      "93fd65dad6ffa38f"
+      "93fd65dad6ffa38f",
+      "bc4d6056a2d96af8"
     ]
   },
   "sabah_tarih": "2026-11-24",
