@@ -7,7 +7,7 @@
     "HKTM",
     "METRO",
     "PGSUS",
-    "SANFM",
+    "QUICK",
     "THYAO"
   ],
   "son": {
@@ -676,7 +676,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1701933,
+  "kap_son": 1702033,
   "tk_gonderilen": {
     "tarih": "2026-11-24",
     "kodlar": []
