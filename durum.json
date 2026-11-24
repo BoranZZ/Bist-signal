@@ -2,15 +2,14 @@
   "al": [
     "AKSA",
     "BAHKM",
+    "CCOLA",
     "CELHA",
+    "CWENE",
     "ENTRA",
     "FRIGO",
     "HKTM",
     "METRO",
-    "ORZAX",
     "PGSUS",
-    "PKART",
-    "SAYAS",
     "THYAO",
     "VAKBN"
   ],
@@ -663,7 +662,8 @@
   "gunici": {
     "tarih": "2026-11-24",
     "g": [
-      "4927ff2abe94c86f"
+      "4927ff2abe94c86f",
+      "93fd65dad6ffa38f"
     ]
   },
   "sabah_tarih": "2026-11-24",
