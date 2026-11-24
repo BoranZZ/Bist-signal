@@ -7,7 +7,6 @@
     "HKTM",
     "METRO",
     "PGSUS",
-    "PKART",
     "THYAO"
   ],
   "son": {
@@ -659,9 +658,15 @@
   "gunici": {
     "tarih": "2026-11-24",
     "g": [
+      "2c744ac86e715d06",
       "4927ff2abe94c86f",
+      "4ef22bf6d7c30ec9",
+      "5c2856fefddd1818",
+      "93aee6ee474d912d",
       "93fd65dad6ffa38f",
-      "bc4d6056a2d96af8"
+      "bc4d6056a2d96af8",
+      "c7dfe7852f38f475",
+      "d44dd6cfbe4bc56d"
     ]
   },
   "sabah_tarih": "2026-11-24",
