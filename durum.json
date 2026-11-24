@@ -1,6 +1,5 @@
 {
   "al": [
-    "AKSA",
     "BAHKM",
     "CCOLA",
     "CELHA",
@@ -11,8 +10,7 @@
     "PGSUS",
     "PKART",
     "SANFM",
-    "THYAO",
-    "VAKBN"
+    "THYAO"
   ],
   "son": {
     "A1CAP": "SAT",
