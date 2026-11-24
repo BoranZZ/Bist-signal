@@ -3,11 +3,12 @@
     "AKSA",
     "BAHKM",
     "CELHA",
-    "ENTRA",
+    "CWENE",
     "FRIGO",
     "HKTM",
     "METRO",
     "PGSUS",
+    "SANFM",
     "SAYAS",
     "THYAO",
     "VAKBN"
@@ -660,7 +661,9 @@
   "oa_tarih": "2026-11-23",
   "gunici": {
     "tarih": "2026-11-24",
-    "g": []
+    "g": [
+      "4927ff2abe94c86f"
+    ]
   },
   "sabah_tarih": "2026-11-24",
   "makro_sabah": "2026-11-24"
