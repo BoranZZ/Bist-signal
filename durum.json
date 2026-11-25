@@ -1,5 +1,6 @@
 {
   "al": [
+    "AKSA",
     "BAHKM",
     "BIOEN",
     "BLUME",
@@ -661,14 +662,17 @@
   "gunici": {
     "tarih": "2026-11-25",
     "g": [
+      "0ab7e894eaee7aed",
       "4a1484825a3c4380",
       "4e452145f1ffc615",
       "5b3a0ae729dddc0b",
       "7efe31be619e2c28",
       "80bb53f5474983d6",
       "826c54eea9e01a88",
+      "89f2e532691fa101",
       "93fd65dad6ffa38f",
       "9dd80c3a6ec2e2fd",
+      "ac659a2321f78d90",
       "b4068ec780b40fa4",
       "bc4d6056a2d96af8",
       "d8aa44ed1aedbe58"
