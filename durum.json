@@ -1,11 +1,9 @@
 {
   "al": [
     "AKSA",
-    "ARFYE",
     "BAHKM",
     "BIOEN",
     "CELHA",
-    "CITAS",
     "ENERY",
     "FRIGO",
     "HKTM",
@@ -13,7 +11,8 @@
     "PGSUS",
     "QUICK",
     "SANFM",
-    "THYAO"
+    "THYAO",
+    "ZGYO"
   ],
   "son": {
     "A1CAP": "SAT",
