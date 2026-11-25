@@ -2,6 +2,7 @@
   "al": [
     "BAHKM",
     "CELHA",
+    "CWENE",
     "FRIGO",
     "HKTM",
     "METRO",
@@ -629,9 +630,9 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1702121,
+  "kap_son": 1702147,
   "tk_gonderilen": {
-    "tarih": "2026-11-24",
+    "tarih": "2026-11-25",
     "kodlar": []
   },
   "mom_ay": {
@@ -648,28 +649,18 @@
     ]
   },
   "bs_gonderilen": {
-    "tarih": "2026-11-24",
+    "tarih": "2026-11-25",
     "kodlar": []
   },
   "d2_gonderilen": {
-    "tarih": "2026-11-24",
+    "tarih": "2026-11-25",
     "kodlar": []
   },
   "oa_tarih": "2026-11-24",
   "gunici": {
-    "tarih": "2026-11-24",
-    "g": [
-      "2c744ac86e715d06",
-      "4927ff2abe94c86f",
-      "4ef22bf6d7c30ec9",
-      "5c2856fefddd1818",
-      "93aee6ee474d912d",
-      "93fd65dad6ffa38f",
-      "bc4d6056a2d96af8",
-      "c7dfe7852f38f475",
-      "d44dd6cfbe4bc56d"
-    ]
+    "tarih": "2026-11-25",
+    "g": []
   },
-  "sabah_tarih": "2026-11-24",
-  "makro_sabah": "2026-11-24"
+  "sabah_tarih": "2026-11-25",
+  "makro_sabah": "2026-11-25"
 }
