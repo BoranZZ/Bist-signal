@@ -1,17 +1,17 @@
 {
   "al": [
-    "AKSA",
     "BAHKM",
     "BIOEN",
     "CATES",
     "CELHA",
+    "EGEGY",
     "ENERY",
     "FRIGO",
     "HKTM",
     "METRO",
     "ORZAX",
-    "PENTA",
     "PGSUS",
+    "SANFM",
     "THYAO",
     "ZGYO"
   ],
@@ -665,8 +665,11 @@
   "gunici": {
     "tarih": "2026-11-25",
     "g": [
+      "4e452145f1ffc615",
       "93fd65dad6ffa38f",
-      "bc4d6056a2d96af8"
+      "b4068ec780b40fa4",
+      "bc4d6056a2d96af8",
+      "d8aa44ed1aedbe58"
     ]
   },
   "sabah_tarih": "2026-11-25",
