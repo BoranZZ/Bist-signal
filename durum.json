@@ -3,16 +3,13 @@
     "AKSA",
     "BAHKM",
     "BIOEN",
-    "BLUME",
     "CELHA",
-    "EGEGY",
     "ENERY",
     "FRIGO",
     "HKTM",
     "METRO",
     "PGSUS",
-    "THYAO",
-    "ZGYO"
+    "THYAO"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -660,7 +657,7 @@
     "tarih": "2026-11-25",
     "kodlar": []
   },
-  "oa_tarih": "2026-11-24",
+  "oa_tarih": "2026-11-25",
   "gunici": {
     "tarih": "2026-11-25",
     "g": [
