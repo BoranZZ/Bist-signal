@@ -7,7 +7,6 @@
     "CELHA",
     "EGEGY",
     "FRIGO",
-    "HKTM",
     "METRO",
     "PGSUS",
     "THYAO"
@@ -632,7 +631,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1702550,
+  "kap_son": 1702568,
   "tk_gonderilen": {
     "tarih": "2026-11-25",
     "kodlar": []
