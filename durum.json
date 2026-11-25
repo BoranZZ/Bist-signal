@@ -1,5 +1,7 @@
 {
   "al": [
+    "AKSA",
+    "ARFYE",
     "BAHKM",
     "BIOEN",
     "BLUME",
@@ -44,7 +46,7 @@
     "ANSGR": "SAT",
     "ARCLK": "SAT",
     "ARDYZ": "SAT",
-    "ARFYE": "SAT",
+    "ARFYE": "AL",
     "ARMGD": "SAT",
     "ARSAN": "SAT",
     "ASELS": "SAT",
@@ -352,6 +354,11 @@
   "karar_kirilim_g": [],
   "alarm_tetik": [],
   "on_sinyal": {
+    "ARFYE": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-25"
+    },
     "BIOEN": {
       "sinyal": "AL",
       "onceki": "SAT",
@@ -692,7 +699,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1702668,
+  "kap_son": 1702694,
   "tk_gonderilen": {
     "tarih": "2026-11-25",
     "kodlar": []
