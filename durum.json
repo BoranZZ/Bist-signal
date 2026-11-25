@@ -8,7 +8,6 @@
     "FRIGO",
     "HKTM",
     "METRO",
-    "PENTA",
     "PGSUS",
     "THYAO",
     "ZGYO"
@@ -633,7 +632,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1702327,
+  "kap_son": 1702365,
   "tk_gonderilen": {
     "tarih": "2026-11-25",
     "kodlar": []
@@ -666,6 +665,7 @@
       "0ab7e894eaee7aed",
       "4a1484825a3c4380",
       "4e452145f1ffc615",
+      "4e6f6c699b65ce7c",
       "5b3a0ae729dddc0b",
       "7efe31be619e2c28",
       "80bb53f5474983d6",
@@ -675,7 +675,9 @@
       "9dd80c3a6ec2e2fd",
       "ac659a2321f78d90",
       "b4068ec780b40fa4",
+      "bc3386d5511e9237",
       "bc4d6056a2d96af8",
+      "bdf3419c29a4d4bd",
       "d8aa44ed1aedbe58"
     ]
   },
