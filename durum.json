@@ -5,6 +5,7 @@
     "BIOEN",
     "BLUME",
     "CELHA",
+    "CWENE",
     "EGEGY",
     "FRIGO",
     "HKTM",
@@ -92,7 +93,7 @@
     "CRDFA": "SAT",
     "CRFSA": "SAT",
     "CVKMD": "SAT",
-    "CWENE": "SAT",
+    "CWENE": "AL",
     "DAGI": "SAT",
     "DAPGM": "SAT",
     "DCTTR": "SAT",
@@ -360,6 +361,11 @@
       "tarih": "2026-11-25"
     },
     "BLUME": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-25"
+    },
+    "CWENE": {
       "sinyal": "AL",
       "onceki": "SAT",
       "tarih": "2026-11-25"
