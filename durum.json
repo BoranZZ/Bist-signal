@@ -3,14 +3,15 @@
     "AKSA",
     "BAHKM",
     "BIOEN",
+    "CATES",
     "CELHA",
     "ENERY",
     "FRIGO",
     "HKTM",
     "METRO",
+    "ORZAX",
+    "PENTA",
     "PGSUS",
-    "QUICK",
-    "SANFM",
     "THYAO",
     "ZGYO"
   ],
@@ -664,6 +665,7 @@
   "gunici": {
     "tarih": "2026-11-25",
     "g": [
+      "93fd65dad6ffa38f",
       "bc4d6056a2d96af8"
     ]
   },
