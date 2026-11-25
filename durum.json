@@ -11,7 +11,6 @@
     "HKTM",
     "METRO",
     "ORZAX",
-    "PENTA",
     "PGSUS",
     "THYAO",
     "ZGYO"
@@ -636,7 +635,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1702240,
+  "kap_son": 1702265,
   "tk_gonderilen": {
     "tarih": "2026-11-25",
     "kodlar": []
