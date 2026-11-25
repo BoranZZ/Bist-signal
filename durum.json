@@ -1,7 +1,6 @@
 {
   "al": [
     "AKSA",
-    "ARFYE",
     "BAHKM",
     "BIOEN",
     "BLUME",
@@ -10,7 +9,8 @@
     "METRO",
     "PENTA",
     "PGSUS",
-    "THYAO"
+    "THYAO",
+    "ZGYO"
   ],
   "son": {
     "A1CAP": "SAT",
@@ -46,7 +46,7 @@
     "ANSGR": "SAT",
     "ARCLK": "SAT",
     "ARDYZ": "SAT",
-    "ARFYE": "AL",
+    "ARFYE": "SAT",
     "ARMGD": "SAT",
     "ARSAN": "SAT",
     "ASELS": "SAT",
@@ -92,7 +92,7 @@
     "CRDFA": "SAT",
     "CRFSA": "SAT",
     "CVKMD": "SAT",
-    "CWENE": "AL",
+    "CWENE": "SAT",
     "DAGI": "SAT",
     "DAPGM": "SAT",
     "DCTTR": "SAT",
@@ -107,7 +107,7 @@
     "EDATA": "SAT",
     "EFOR": "SAT",
     "EGEEN": "SAT",
-    "EGEGY": "AL",
+    "EGEGY": "SAT",
     "EGEPO": "SAT",
     "EGGUB": "AL",
     "EKDMR": "SAT",
@@ -232,7 +232,7 @@
     "MOBTL": "SAT",
     "MOGAN": "SAT",
     "MOPAS": "SAT",
-    "MPARK": "SAT",
+    "MPARK": "AL",
     "MRGYO": "SAT",
     "MRSHL": "SAT",
     "NETCD": "SAT",
@@ -346,80 +346,15 @@
     "8b657f1af04933e5",
     "8c88d6acca091a1b",
     "96415f7908a061a3",
+    "b6c5a2eef42eb53a",
     "ed52d36b8529c244",
     "fc9a269fa7f1b36a"
   ],
-  "ozet_tarih": "2026-11-24",
+  "ozet_tarih": "2026-11-25",
   "hafta_tarih": "2026-11-20",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {
-    "ARFYE": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-11-25"
-    },
-    "BIOEN": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-11-25"
-    },
-    "BLUME": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-11-25"
-    },
-    "CWENE": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-11-25"
-    },
-    "EGEEN": {
-      "sinyal": "SAT",
-      "onceki": "AL",
-      "tarih": "2026-11-25"
-    },
-    "EGEGY": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-11-25"
-    },
-    "GARAN": {
-      "sinyal": "SAT",
-      "onceki": "AL",
-      "tarih": "2026-11-25"
-    },
-    "MPARK": {
-      "sinyal": "SAT",
-      "onceki": "AL",
-      "tarih": "2026-11-25"
-    },
-    "PENTA": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-11-25"
-    },
-    "RYGYO": {
-      "sinyal": "SAT",
-      "onceki": "AL",
-      "tarih": "2026-11-25"
-    },
-    "RYSAS": {
-      "sinyal": "SAT",
-      "onceki": "AL",
-      "tarih": "2026-11-25"
-    },
-    "VAKBN": {
-      "sinyal": "SAT",
-      "onceki": "AL",
-      "tarih": "2026-11-25"
-    },
-    "YKBNK": {
-      "sinyal": "SAT",
-      "onceki": "AL",
-      "tarih": "2026-11-25"
-    }
-  },
+  "on_sinyal": {},
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
@@ -437,7 +372,7 @@
     "AKSA": "SAT",
     "AKSEN": "SAT",
     "AKSUE": "SAT",
-    "ALARK": "AL",
+    "ALARK": "SAT",
     "ALBRK": "SAT",
     "ALCTL": "SAT",
     "ALFAS": "SAT",
@@ -481,7 +416,7 @@
     "BVSAN": "SAT",
     "CANTE": "SAT",
     "CATES": "SAT",
-    "CCOLA": "AL",
+    "CCOLA": "SAT",
     "CELHA": "AL",
     "CEMZY": "SAT",
     "CGCAM": "SAT",
@@ -699,7 +634,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1702694,
+  "kap_son": 1702702,
   "tk_gonderilen": {
     "tarih": "2026-11-25",
     "kodlar": []
