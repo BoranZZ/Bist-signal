@@ -7,6 +7,7 @@
     "CELHA",
     "FRIGO",
     "METRO",
+    "PENTA",
     "PGSUS",
     "THYAO"
   ],
@@ -253,7 +254,7 @@
     "PATEK": "SAT",
     "PCILT": "SAT",
     "PEKGY": "SAT",
-    "PENTA": "SAT",
+    "PENTA": "AL",
     "PETKM": "SAT",
     "PGSUS": "AL",
     "PKART": "AL",
@@ -385,6 +386,11 @@
     "MPARK": {
       "sinyal": "SAT",
       "onceki": "AL",
+      "tarih": "2026-11-25"
+    },
+    "PENTA": {
+      "sinyal": "AL",
+      "onceki": "SAT",
       "tarih": "2026-11-25"
     },
     "RYGYO": {
