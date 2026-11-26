@@ -8,7 +8,6 @@
     "FRIGO",
     "HKTM",
     "PENTA",
-    "PGSUS",
     "TOASO",
     "ZGYO"
   ],
@@ -634,7 +633,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1702962,
+  "kap_son": 1702973,
   "tk_gonderilen": {
     "tarih": "2026-11-26",
     "kodlar": []
