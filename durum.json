@@ -9,7 +9,6 @@
     "FRIGO",
     "HKTM",
     "PENTA",
-    "PGSUS",
     "PKART",
     "TOASO",
     "ZGYO"
@@ -90,7 +89,7 @@
     "CEMZY": "SAT",
     "CGCAM": "SAT",
     "CIMSA": "SAT",
-    "CITAS": "SAT",
+    "CITAS": "AL",
     "CRDFA": "SAT",
     "CRFSA": "SAT",
     "CVKMD": "SAT",
@@ -109,7 +108,7 @@
     "EDATA": "SAT",
     "EFOR": "SAT",
     "EGEEN": "SAT",
-    "EGEGY": "SAT",
+    "EGEGY": "AL",
     "EGEPO": "SAT",
     "EGGUB": "AL",
     "EKDMR": "SAT",
@@ -307,7 +306,7 @@
     "TKNKA": "SAT",
     "TMPOL": "SAT",
     "TNZTP": "SAT",
-    "TOASO": "SAT",
+    "TOASO": "AL",
     "TRALT": "SAT",
     "TRENJ": "SAT",
     "TRGYO": "SAT",
@@ -356,7 +355,23 @@
   "hafta_tarih": "2026-11-20",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {},
+  "on_sinyal": {
+    "CITAS": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-26"
+    },
+    "EGEGY": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-26"
+    },
+    "TOASO": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-26"
+    }
+  },
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
