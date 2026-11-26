@@ -8,7 +8,6 @@
     "EGEGY",
     "FRIGO",
     "HKTM",
-    "METEN",
     "PENTA",
     "PGSUS",
     "PKART",
@@ -637,7 +636,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1703005,
+  "kap_son": 1703009,
   "tk_gonderilen": {
     "tarih": "2026-11-26",
     "kodlar": []
