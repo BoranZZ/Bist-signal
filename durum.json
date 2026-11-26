@@ -8,6 +8,7 @@
     "EGEGY",
     "FRIGO",
     "HKTM",
+    "KCAER",
     "PENTA",
     "PKART",
     "TOASO",
@@ -190,7 +191,7 @@
     "KATMR": "SAT",
     "KAYSE": "SAT",
     "KBORU": "SAT",
-    "KCAER": "SAT",
+    "KCAER": "AL",
     "KCHOL": "SAT",
     "KGYO": "SAT",
     "KLKIM": "SAT",
@@ -362,6 +363,11 @@
       "tarih": "2026-11-26"
     },
     "EGEGY": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-26"
+    },
+    "KCAER": {
       "sinyal": "AL",
       "onceki": "SAT",
       "tarih": "2026-11-26"
