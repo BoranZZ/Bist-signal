@@ -7,7 +7,6 @@
     "CITAS",
     "EGEGY",
     "FRIGO",
-    "HKTM",
     "METRO",
     "PENTA",
     "ZGYO"
@@ -634,7 +633,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1702884,
+  "kap_son": 1702889,
   "tk_gonderilen": {
     "tarih": "2026-11-26",
     "kodlar": []
