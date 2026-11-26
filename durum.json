@@ -1,13 +1,13 @@
 {
   "al": [
+    "AKENR",
     "AKSA",
     "BAHKM",
     "BIOEN",
     "CELHA",
-    "EGEGY",
     "FRIGO",
     "HKTM",
-    "SANFM",
+    "PENTA",
     "ZGYO"
   ],
   "son": {
@@ -661,7 +661,9 @@
   "oa_tarih": "2026-11-25",
   "gunici": {
     "tarih": "2026-11-26",
-    "g": []
+    "g": [
+      "d083b27138acdf3c"
+    ]
   },
   "sabah_tarih": "2026-11-26",
   "makro_sabah": "2026-11-26"
