@@ -9,7 +9,6 @@
     "FRIGO",
     "HKTM",
     "KCAER",
-    "PENTA",
     "PKART",
     "ZGYO"
   ],
@@ -47,7 +46,7 @@
     "ANSGR": "SAT",
     "ARCLK": "SAT",
     "ARDYZ": "SAT",
-    "ARFYE": "AL",
+    "ARFYE": "SAT",
     "ARMGD": "SAT",
     "ARSAN": "SAT",
     "ASELS": "SAT",
@@ -306,7 +305,7 @@
     "TKNKA": "SAT",
     "TMPOL": "SAT",
     "TNZTP": "SAT",
-    "TOASO": "AL",
+    "TOASO": "SAT",
     "TRALT": "SAT",
     "TRENJ": "SAT",
     "TRGYO": "SAT",
@@ -351,37 +350,11 @@
     "ed52d36b8529c244",
     "fc9a269fa7f1b36a"
   ],
-  "ozet_tarih": "2026-11-25",
+  "ozet_tarih": "2026-11-26",
   "hafta_tarih": "2026-11-20",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {
-    "ARFYE": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-11-26"
-    },
-    "CITAS": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-11-26"
-    },
-    "EGEGY": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-11-26"
-    },
-    "KCAER": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-11-26"
-    },
-    "TOASO": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-11-26"
-    }
-  },
+  "on_sinyal": {},
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
@@ -627,7 +600,7 @@
     "TATEN": "SAT",
     "TAVHL": "SAT",
     "TCELL": "SAT",
-    "TCKRC": "SAT",
+    "TCKRC": "AL",
     "TEHOL": "SAT",
     "TERA": "SAT",
     "TGSAS": "SAT",
@@ -661,7 +634,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1703069,
+  "kap_son": 1703074,
   "tk_gonderilen": {
     "tarih": "2026-11-26",
     "kodlar": []
