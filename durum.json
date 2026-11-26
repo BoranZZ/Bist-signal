@@ -1,12 +1,12 @@
 {
   "al": [
+    "AKENR",
     "AKSA",
     "BAHKM",
     "BIOEN",
     "CELHA",
-    "CWENE",
     "FRIGO",
-    "HKTM",
+    "METRO",
     "ZGYO"
   ],
   "son": {
@@ -631,7 +631,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1702849,
+  "kap_son": 1702871,
   "tk_gonderilen": {
     "tarih": "2026-11-26",
     "kodlar": []
