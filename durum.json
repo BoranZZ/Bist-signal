@@ -1,14 +1,11 @@
 {
   "al": [
-    "AKENR",
     "AKSA",
     "BAHKM",
     "BIOEN",
     "CELHA",
     "FRIGO",
-    "METRO",
-    "SANFM",
-    "ZGYO"
+    "SANFM"
   ],
   "son": {
     "A1CAP": "SAT",
