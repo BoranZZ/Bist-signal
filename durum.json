@@ -12,11 +12,10 @@
     "ENERY",
     "ENTRA",
     "FRIGO",
-    "HKTM",
     "KCAER",
     "KLSER",
-    "MPARK",
     "PKART",
+    "TOASO",
     "VEYAS"
   ],
   "son": {
@@ -312,7 +311,7 @@
     "TKNKA": "SAT",
     "TMPOL": "SAT",
     "TNZTP": "SAT",
-    "TOASO": "SAT",
+    "TOASO": "AL",
     "TRALT": "SAT",
     "TRENJ": "SAT",
     "TRGYO": "SAT",
@@ -378,6 +377,11 @@
       "tarih": "2026-11-27"
     },
     "KLSER": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-27"
+    },
+    "TOASO": {
       "sinyal": "AL",
       "onceki": "SAT",
       "tarih": "2026-11-27"
