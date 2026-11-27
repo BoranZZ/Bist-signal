@@ -6,12 +6,14 @@
     "CELHA",
     "CITAS",
     "EGEGY",
+    "ENTRA",
     "FRIGO",
     "HKTM",
     "KCAER",
+    "KLSER",
     "PKART",
-    "SANFM",
     "TCKRC",
+    "VEYAS",
     "ZGYO"
   ],
   "son": {
@@ -665,7 +667,9 @@
   "oa_tarih": "2026-11-26",
   "gunici": {
     "tarih": "2026-11-27",
-    "g": []
+    "g": [
+      "2dbde2427e1e7d50"
+    ]
   },
   "sabah_tarih": "2026-11-27",
   "makro_sabah": "2026-11-27"
