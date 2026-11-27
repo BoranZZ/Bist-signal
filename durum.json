@@ -12,11 +12,14 @@
     "ENERY",
     "ENTRA",
     "FRIGO",
+    "HKTM",
     "KCAER",
     "KLSER",
     "METEN",
-    "PENTA",
-    "PKART"
+    "MPARK",
+    "PKART",
+    "VEYAS",
+    "ZGYO"
   ],
   "son": {
     "A1CAP": "SAT",
