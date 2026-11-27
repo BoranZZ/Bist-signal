@@ -7,6 +7,7 @@
     "BSOKE",
     "CELHA",
     "CGCAM",
+    "CITAS",
     "EGEGY",
     "ENERY",
     "ENTRA",
@@ -15,7 +16,8 @@
     "KCAER",
     "METEN",
     "MPARK",
-    "PKART"
+    "PKART",
+    "VEYAS"
   ],
   "son": {
     "A1CAP": "SAT",
