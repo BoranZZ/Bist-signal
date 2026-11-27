@@ -13,9 +13,13 @@
     "ENTRA",
     "FRIGO",
     "KCAER",
+    "KLSER",
+    "METEN",
+    "PENTA",
     "PKART",
     "QUICK",
     "SANFM",
+    "TGSAS",
     "VEYAS"
   ],
   "son": {
@@ -305,7 +309,7 @@
     "TCKRC": "SAT",
     "TEHOL": "SAT",
     "TERA": "SAT",
-    "TGSAS": "SAT",
+    "TGSAS": "AL",
     "THYAO": "AL",
     "TKFEN": "SAT",
     "TKNKA": "SAT",
@@ -382,6 +386,11 @@
       "tarih": "2026-11-27"
     },
     "SANFM": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-27"
+    },
+    "TGSAS": {
       "sinyal": "AL",
       "onceki": "SAT",
       "tarih": "2026-11-27"
