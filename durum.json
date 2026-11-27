@@ -13,9 +13,8 @@
     "ENTRA",
     "FRIGO",
     "KCAER",
-    "KLSER",
     "PKART",
-    "TOASO",
+    "SANFM",
     "VEYAS"
   ],
   "son": {
@@ -278,7 +277,7 @@
     "RYSAS": "SAT",
     "SAFKR": "SAT",
     "SAHOL": "SAT",
-    "SANFM": "SAT",
+    "SANFM": "AL",
     "SARAE": "SAT",
     "SARKY": "SAT",
     "SASA": "SAT",
@@ -377,6 +376,11 @@
       "tarih": "2026-11-27"
     },
     "KLSER": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-27"
+    },
+    "SANFM": {
       "sinyal": "AL",
       "onceki": "SAT",
       "tarih": "2026-11-27"
