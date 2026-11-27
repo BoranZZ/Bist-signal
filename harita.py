@@ -25,7 +25,7 @@ import pandas as pd
 
 HARITA_JSON = "harita.json"
 HARITA_HTML = "harita.html"
-SURUM = 3              # 2: 📚 eğitim katmanı (eg) eklendi; 3: dip arası bölge + ekmek kırıntısı → ilk taramada yeniden hesaplanır
+SURUM = 4              # 2: 📚 eğitim katmanı (eg); 3: dip arası bölge + ekmek kırıntısı; 4: 🥇 altın/gümüş/döviz bölümü (em) → ilk taramada yeniden hesaplanır
 YABANCI_ACIK = False   # yabancı payı satırı: test OLUMSUZ (2026-11-19/yabanci/RAPOR.md); kullanıcı karar verene kadar kapalı, sayfada görünmez
 INDIRME_DONEM = "10y"
 ZAMAN_ASIMI = 45       # sn: uzun geçmiş indirmesi bundan uzun sürerse eski harita kalır, tarama devam eder
@@ -271,7 +271,7 @@ def seviyeler(d, kilit_hafta=26, tepe_hafta=156, kutu_oran=1.5):
 # ============================================================ 📚 eğitim katmanı (SADECE GÖSTERİM; kavramların çoğu BIST'te TUTMADI)
 # Eğitmenin (DC Akademi, Smart Money/ICT) dünyada çok kullanılan kavramlarının ŞEFFAF, ölçülebilir yaklaşık tanımları. Eğitmenin kendi
 # hesabı bilinmiyor. Her kavramın BIST ölçüm sonucu EGITIM_ROZET'te (tek yer: yeni test sonucu gelince sadece burayı güncelle).
-# Durum kodları: 'y' 🟢 tuttu, 's' 🟡 kısmen, 'r' 🔴 tutmadı, 'o' ⚪ henüz ölçülmedi. Kaynak: 2026-11-19/OZET_19-11.md bölüm 3.
+# Durum kodları: 'y' 🟢 tuttu, 's' 🟡 kısmen, 'r' 🔴 tutmadı, 'o' ⚪ henüz ölçülmedi, 't' 🧪 test sürüyor. Kaynak: 2026-11-19/OZET_19-11.md bölüm 3.
 EGITIM_ROZET = {   # kavram: [durum, BIST'te tek satır, ABD sonucu (None = test sürüyor; gelince [durum, tek satır])]
     "trend": ["r", "3. temasta kırılma yazı-tura (%52); her ek temas kırılmayı ~%7 AZALTIYOR (çok temas = zayıf çizgi değil); kırılım sonrası rastgeleden kötü gitmedi.", ["r", "S&P 500 ve S&P 600'de de 3. temasta kırılma yazı-tura (%50 / %51)."]],
     "yatay": ["r", "3. temasta kırılma %40, 6.+ temasta %33 (çok temas seviyeyi zayıflatmıyor); kırılırsa alttaki seviyeye inme %60, rastgele günde de %61.", None],
@@ -282,6 +282,7 @@ EGITIM_ROZET = {   # kavram: [durum, BIST'te tek satır, ABD sonucu (None = test
     "kilit": ["r", "Eğitmenin formülü çözülemedi (kutu üst kenarı kilitlerin ancak 4'te 1 ile yarısını tutturuyor); 'kilit üstünde haftalık kapanışta al' rastgeleden iyi değil.", ["r", "ABD'de de 'kilit üstünde haftalık kapanışta al' rastgeleden iyi değil."]],
     "dipara": ["s", "Bölgeye inince almak 52 haftada rastgele haftadan +29 puan iyi (25 yılda +22); ama yükselen dip şartı olmadan 3 yılın dibine aynı yakınlıkta almak da +30 (+19): avantaj dibe yakınlıktan, yapıdan değil. 'Üstünde tutunursa' teyidini beklemek kazancı +21'e (+10) düşürüyor; kırılım sonrası az olay, sonuç belirsiz.", None],
     "kirinti": ["r", "Yükselişteki ara diplere düşüşte dokununca 26 haftada önce +%15 gelme %61; tepeye aynı uzaklıktaki rastgele seviyede %64: seviyeler özel değil, tutma oranını yalnız tepeden uzaklık belirliyor.", None],
+    "taban": ["t", "Rallinin kalktığı tabana dönüş kuralı BIST, ABD, emtia ve dövizde test ediliyor (28.11.2026 taban araştırması); sonuç gelince bu satır güncellenecek.", None],
     "supurme": ["s", "3+ temaslı destek süpürülüp geri alınınca 120 günde rastgeleden +7 puan; ama süpürmesiz tepki de +5, kırılıp geri alınmayan +12: süpürmeye özgü değil, genel 'düşüş sonrası alım' etkisi.", ["s", "Wyckoff spring ABD'de de aynı hissenin sıradan haftasından +8-10 puan iyi, ama aynı hafta başka hisse almaktan iyi değil."]],
 }
 EG_PIVOT = 2           # haftalık dönüş noktası: iki yanındaki 2 haftanın en düşüğü/en yükseği (test1 B ana tanımı)
@@ -762,6 +763,204 @@ def listeler(H):
     return L
 
 
+# ============================================================ 🥇 Altın, gümüş ve döviz (SADECE BİLGİ; 2026-11-28, dal `altin-harita`)
+# Hisse kartlarının hesapları (kelepir, kutu, yön, seviyeler, 📚 eğitim katmanı) AYNEN; ek olarak 'taban bölgesi'. Veri her tarama içinde
+# en çok EM_YENILE_DK dakikada bir ayrı bir yf.download ile iner (daemon iş parçacığı, EM_ZAMAN sn sınırı); hata → eski bölüm (taze False),
+# o da yoksa bölüm yazılmaz ve sayfada görünmez. Bölünme düzeltmesi YAPILMAZ (gümüş 30.01.2026 −%31, BTC 12.03.2020 −%37 gerçek hareket).
+EMTIA = (  # (kod, sayfadaki ad, Yahoo kodu | None = hesaplanır, birim)
+    ("ALTIN", "Ons altın", "GC=F", "$"),
+    ("GRAM", "Gram altın", None, "TL"),      # ons (GC=F) × USDTRY=X ÷ 31,1035 (yaklaşık; kuyumcu makası yok)
+    ("GUMUS", "Ons gümüş", "SI=F", "$"),
+    ("USDTRY", "Dolar/TL", "USDTRY=X", "TL"),
+    ("EURTRY", "Euro/TL", "EURTRY=X", "TL"),
+    ("BTC", "Bitcoin", "BTC-USD", "$"),
+)
+ONS_GRAM = 31.1035     # 1 troy ons = 31,1035 gram
+EMTIA_ACIK = True
+EM_ZAMAN = 20          # sn: indirme bundan uzun sürerse beklenmez (eski bölüm kalır)
+EM_YENILE_DK = 30      # dk: bölüm en çok bu sıklıkla yeniden indirilir/hesaplanır (taramalar ~15 dk'da bir)
+# 🧱 taban bölgesi: rallinin kalktığı son yatay konsolidasyon (haftalık, tamamlanmış haftalar). Kural metni sayfada (JS tbMetin) da var.
+TB_MIN = 8             # en az 8 hafta
+TB_GEN = 0.25          # pencerenin en yükseği / en düşüğü − 1 ≤ %25 (fitiller dahil)
+TB_SAPMA = 0.08        # her haftalık kapanış pencerenin medyan kapanışının ±%8'i içinde (yatay)
+TB_EGIM = 0.06         # kapanışlardan çekilen (log) doğrunun pencere boyunca toplam eğimi ≤ ±%6 (yükselen merdiven taban sayılmaz)
+TB_ITKI = 0.40         # kırılımdan sonraki 52 haftada bölgenin üst kenarının ≥ %40 üstü görüldü; o zamana kadar bölge altında kapanış yok
+TB_ITKI_HAFTA = 52
+TB_ALT_Q, TB_UST_Q = 0.20, 0.80   # bölge = gövde bandının çekirdeği: gövde altlarının %20'lik, gövde üstlerinin %80'lik dilimi
+
+
+def emtia_hazirla(df):
+    """Emtia/döviz/kripto ön işleme: hisse `hazirla`'sının aynısı ama bölünme düzeltmesi YOK. H/L gövdeyi kapsayacak şekilde onarılır."""
+    x = df[["Open", "High", "Low", "Close", "Volume"]].dropna(subset=["Close"]).copy()
+    x = x[x["Close"] > 0]
+    if x.index.tz is not None:
+        x = x.tz_localize(None)
+    for c in ("Open", "High", "Low"):
+        x[c] = x[c].where(x[c] > 0, x["Close"])
+    x["High"] = x[["High", "Open", "Close"]].max(axis=1)
+    x["Low"] = x[["Low", "Open", "Close"]].min(axis=1)
+    x["Volume"] = x["Volume"].fillna(0)
+    return x
+
+
+def gram_altin(ons, usd):
+    """Gram altın TL = ons $ × dolar/TL ÷ 31,1035 (O/H/L/C ayrı ayrı o günün dolar kapanışıyla; dolar en çok 5 gün ileri taşınır)."""
+    if ons is None or usd is None or ons.empty or usd.empty:
+        return None
+    u = usd["Close"]
+    u = u.reindex(ons.index.union(u.index)).ffill(limit=5).reindex(ons.index)
+    x = ons.copy()
+    for c in ("Open", "High", "Low", "Close"):
+        x[c] = ons[c] * u / ONS_GRAM
+    return x.dropna(subset=["Close"])
+
+
+def taban_bolgesi(o, h, l, c, wt):
+    """🧱 Son taban bölgesi (rally-base-rally'nin 'base'i). o/h/l/c: TAMAMLANMIŞ haftalık mumlar, wt: hafta tarihleri.
+    En yeni haftadan geriye: kırılım haftası b için taban = b'den önce biten, geriye doğru büyütülen en uzun pencere [i, b−1] ki
+    (1) en az TB_MIN hafta, (2) en yüksek/en düşük ≤ 1+TB_GEN, (3) her kapanış medyanın ±TB_SAPMA içinde, (4) log kapanış doğrusunun
+    toplam eğimi ≤ ±TB_EGIM. Kırılım: b'nin kapanışı penceredeki en yüksek gövdenin üstünde. İtki: b'den sonraki TB_ITKI_HAFTA haftada
+    bölge üstü × (1+TB_ITKI) görülmüş ve o haftaya kadar bölge altının altında kapanış yok. İlk (en yeni) uyan döner, yoksa None.
+    Bölge = gövde bandının çekirdeği (TB_ALT_Q / TB_UST_Q), 'tüm' = en düşük/en yüksek gövde, tavan = penceredeki en yüksek fitil
+    ('kırılan eski tepe'). Bakış-ileri: taban ancak itki görüldükten sonra bilinir (geçmişe dönük bölge, sinyal değil)."""
+    n = len(c)
+    if n < TB_MIN + 2:
+        return None
+    o, h, l, c = (np.asarray(v, float) for v in (o, h, l, c))
+    bt, bb = np.maximum(o, c), np.minimum(o, c)
+    lc = np.log(c)
+    for b in range(n - 1, TB_MIN, -1):
+        e = b - 1
+        bas = None
+        hh, ll = h[e], l[e]
+        for i in range(e, -1, -1):
+            hh, ll = max(hh, h[i]), min(ll, l[i])
+            if hh / ll - 1 > TB_GEN:
+                break
+            cc = c[i:e + 1]
+            if np.any(np.abs(cc / np.median(cc) - 1) > TB_SAPMA):
+                break
+            L = e - i + 1
+            if L >= TB_MIN:
+                eg = np.polyfit(np.arange(L), lc[i:e + 1], 1)[0] * (L - 1)
+                if abs(np.expm1(eg)) <= TB_EGIM:
+                    bas = i
+        if bas is None or not c[b] > bt[bas:e + 1].max():
+            continue
+        i = bas
+        a, u = float(np.quantile(bb[i:e + 1], TB_ALT_Q)), float(np.quantile(bt[i:e + 1], TB_UST_Q))
+        z = min(n, b + TB_ITKI_HAFTA + 1)
+        j = next((q for q in range(b, z) if h[q] >= u * (1 + TB_ITKI)), None)
+        if j is None or c[b:j + 1].min() < a:
+            continue
+        sonra = h[b:]
+        jt = b + int(np.argmax(sonra))
+        geri = next((q for q in range(jt + 1, n) if l[q] <= u), None)
+        return {"bt": _g(wt[i]), "bs": _g(wt[e]), "kt": _g(wt[b]), "n": int(e - i + 1), "a": _r(a), "u": _r(u),
+                "a0": _r(bb[i:e + 1].min()), "u0": _r(bt[i:e + 1].max()), "tv": _r(h[i:e + 1].max()),
+                "tp": _r(h[jt]), "tpt": _g(wt[jt]), "it": round(float(h[jt] / u - 1), 3), "gr": _g(wt[geri]) if geri is not None else None}
+    return None
+
+
+def _em_indir(sure=EM_ZAMAN):
+    """Emtia/döviz 10 yıllık günlük veri, tek yf.download; daemon iş parçacığında, `sure` sn'de bitmezse (None, 'zaman aşımı')."""
+    sonuc = {}
+    kodlar = sorted({y for _, _, y, _ in EMTIA if y} | {"USDTRY=X"})
+
+    def is_():
+        try:
+            import yfinance as yf
+            sonuc["g"] = yf.download(kodlar, period=INDIRME_DONEM, interval="1d", group_by="ticker", auto_adjust=True,
+                                     progress=False, threads=True)
+        except Exception as e:
+            sonuc["hata"] = type(e).__name__
+
+    th = threading.Thread(target=is_, daemon=True)
+    th.start()
+    th.join(sure)
+    if th.is_alive():
+        return None, "zaman aşımı"
+    g = sonuc.get("g")
+    if g is None or getattr(g, "empty", True):
+        return None, sonuc.get("hata") or "boş veri"
+    return g, None
+
+
+def _simdi_naif(simdi):
+    t = pd.Timestamp(simdi)
+    return t.tz_localize(None) if t.tzinfo is not None else t
+
+
+def emtia_kaydi(d, simdi, ad, yf_kod, birim):
+    """Tek varlık: hisse_kaydi (aynı hesaplar) + taban bölgesi + canlı durum. d = emtia_hazirla'dan geçmiş günlük df."""
+    hafta_son, tamam = hafta_bilgisi(d.index[-1], simdi, False)
+    d = d[d.index <= hafta_son + pd.Timedelta(days=1)]
+    k = hisse_kaydi(d, hafta_son, tamam, "em")
+    W = haftalik(d)
+    t = int(np.asarray(W["hs"] < hafta_son).sum())
+    m = t + 1 if tamam and len(W["c"]) > t else t
+    try:
+        tb = taban_bolgesi(W["o"][:m], W["h"][:m], W["l"][:m], W["c"][:m], list(W["t"][:m]))
+        if tb:
+            k["tb"] = tb
+    except Exception as e:
+        print(f"Harita: {ad} taban bölgesi hesaplanamadı ({type(e).__name__}).")
+    bu = d[d.index > hafta_son - pd.Timedelta(days=7)]
+    canli(k, float(d["Close"].iloc[-1]), float(bu["Low"].min()) if len(bu) else None)
+    k.update({"ad": ad, "br": birim, "yf": yf_kod, "son": _g(d.index[-1]), "hafta": _g(hafta_son), "tamam": tamam,
+              "g0": _g(pd.date_range(end=hafta_son, periods=GRAFIK_HAFTA + 1, freq="W-FRI")[0])})
+    k.pop("g", None)
+    return k
+
+
+def emtia_hesapla(g, simdi):
+    """g: _em_indir çıktısı (çoklu sütun). Döner {kod: kayıt} (hesaplanamayan varlık atlanır)."""
+    def al(y):
+        try:
+            x = g[y]
+        except (KeyError, TypeError):
+            return None
+        x = x.dropna(subset=["Close"]) if "Close" in x else None
+        return emtia_hazirla(x) if x is not None and len(x) >= 300 else None
+    ham = {y: al(y) for y in {yk for _, _, yk, _ in EMTIA if yk} | {"USDTRY=X"}}
+    H = {}
+    for kod, ad, yk, br in EMTIA:
+        try:
+            d = gram_altin(ham.get("GC=F"), ham.get("USDTRY=X")) if kod == "GRAM" else ham.get(yk)
+            if d is None or len(d) < 300:
+                continue
+            H[kod] = emtia_kaydi(d, simdi, ad, yk or "GC=F × USDTRY=X ÷ 31,1035", br)
+        except Exception as e:
+            print(f"Harita: {kod} hesaplanamadı ({type(e).__name__}).")
+    return H
+
+
+def emtia_guncelle(eski, simdi, g=None):
+    """harita.json 'em' bölümü. eski: önceki bölüm (yoksa None). EM_YENILE_DK dolmadıysa ve sürüm aynıysa eskisi aynen döner.
+    g: önceden indirilmiş veri (test). İndirme/hesap başarısızsa eski bölüm taze=False ile, o da yoksa None (bölüm gizlenir)."""
+    sn = _simdi_naif(simdi)
+    son = max([v for v in ((eski or {}).get("t"), (eski or {}).get("d")) if v] or [None], key=lambda v: v or "")
+    if eski and eski.get("v") == SURUM and son and g is None:
+        try:   # son başarılı yenileme (t) ya da son başarısız deneme (d) EM_YENILE_DK'dan yeniyse tekrar indirme
+            if pd.Timedelta(0) <= sn - pd.Timestamp(son) < pd.Timedelta(minutes=EM_YENILE_DK):
+                return eski, "🥇 önceki veri"
+        except Exception:
+            pass
+    neden = None
+    if g is None:
+        g, neden = _em_indir()
+    H = emtia_hesapla(g, simdi) if g is not None else {}
+    if H:
+        return {"v": SURUM, "t": sn.strftime("%Y-%m-%d %H:%M"), "taze": True, "sira": [k for k, *_ in EMTIA if k in H], "h": H}, \
+            f"🥇 {len(H)} varlık yenilendi"
+    zaman = sn.strftime("%Y-%m-%d %H:%M")
+    if eski and eski.get("h") and eski.get("v") == SURUM:
+        e = dict(eski)
+        e.update({"taze": False, "d": zaman})
+        return e, f"🥇 alınamadı ({neden or 'veri yok'}), eski veri"
+    return {"v": SURUM, "d": zaman, "taze": False, "h": {}}, f"🥇 alınamadı ({neden or 'veri yok'}), bölüm gizli"
+
+
 # ============================================================ indirme + yenileme
 def _uzun_indir(kodlar, sure=ZAMAN_ASIMI):
     """10 yıllık günlük veri tek toplu indirme; daemon iş parçacığında, `sure` sn'de bitmezse None (tarama beklemez)."""
@@ -849,9 +1048,10 @@ def yaz(veri, yol=HARITA_JSON):
         json.dump(veri, f, ensure_ascii=False, separators=(",", ":"))
 
 
-def calistir(data, simdi, kapanis_zamani, ana, kucuk, manip=(), dikkat=(), yol=HARITA_JSON, html_yol=HARITA_HTML, uzun=None):
+def calistir(data, simdi, kapanis_zamani, ana, kucuk, manip=(), dikkat=(), yol=HARITA_JSON, html_yol=HARITA_HTML, uzun=None, em_veri=None):
     """tarama.py'den: data = taramanın günlük verisi (yf.download çoklu sütun, KOD.IS), ana/kucuk = kod kümeleri.
-    dikkat = ⚠️/🎈 işaretli kodlar (kartta 'dikkat' notu). Döner kısa log metni. İstisna fırlatabilir (tarama try/except'li)."""
+    dikkat = ⚠️/🎈 işaretli kodlar (kartta 'dikkat' notu). em_veri: önceden indirilmiş emtia verisi (test; yoksa gerekirse indirilir).
+    Döner kısa log metni. İstisna fırlatabilir (tarama try/except'li)."""
     kodlar = sorted((set(ana) | set(kucuk)) - set(manip))
     gruplar = {k: ("ana" if k in ana else "kucuk") for k in kodlar}
     kisa, son_gun = {}, None
@@ -899,14 +1099,23 @@ def calistir(data, simdi, kapanis_zamani, ana, kucuk, manip=(), dikkat=(), yol=H
             fiyat = k.get("f")
         canli(k, fiyat, wl)
         k["dk"] = kod in set(dikkat)
+    em_not = ""
+    em = None
+    if EMTIA_ACIK:   # 🥇 altın/gümüş/döviz: kendi hatası haritayı ve taramayı bozmaz
+        try:
+            em, em_not = emtia_guncelle((eski or {}).get("em"), simdi, g=em_veri)
+        except Exception as e:
+            em, em_not = None, f"🥇 hesaplanamadı ({type(e).__name__})"
     veri = {"v": SURUM, "anahtar": anahtar_yaz, "uretim": uretim, "guncel": simdi.strftime("%Y-%m-%d %H:%M"),
             "taze": taze or bool(eski and eski.get("anahtar") == anahtar),
             "hafta": hs_str, "tamam": tamam, "bayrak": {"yabanci": YABANCI_ACIK}, "egr": EGITIM_ROZET,
             "g0": _g(pd.date_range(end=hafta_son, periods=GRAFIK_HAFTA + 1, freq="W-FRI")[0]),
             "liste": listeler(H), "h": H}
+    if em:
+        veri["em"] = em
     yaz(veri, yol)
     html_yaz(html_yol)
-    return f"Harita: {notu} ({len(H)} hisse)"
+    return f"Harita: {notu} ({len(H)} hisse)" + (f"; {em_not}" if em_not else "")
 
 
 def html_yaz(yol=HARITA_HTML):

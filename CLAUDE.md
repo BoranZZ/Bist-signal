@@ -1206,3 +1206,22 @@ portföyde rastgele eklemeden iyi değil → sayfada YOK; 🌱 simgesi panoda SM
   Testler (`2026-11-19/harita/testler/`): t3 31/31, `t6_egitim.py` 28/28 (kenar durumları), `t7_temas_esit.py` (seviyeler 256/256 hisse ve süpürme 4.676/4.676 olay araştırmayla
   0 fark, 750 gün penceresi = tam veri); `node --check`; Playwright + sistem Chrome 1280/390 (THYAO, ADEL, ASELS, VESBE): JS hatası yok, taşma yok. Yenileme +~2,8 sn
   (8,5 → 11,3 sn, günde bir kez), canlı taramalar ~0,5 sn; harita.json 359 → 466 KB (+%30, gzip 145 KB).
+- **🥇 Altın, gümüş ve döviz bölümü (2026-11-28, dal `altin-harita`; SADECE BİLGİ — AL/SAT, Telegram, İşlem Odası, backtest DEĞİŞMEZ):** harita.html'de
+  'Bu sayfa ne?' kartının altında `#emtia` (`emCiz`/`kartEm`/`tbMetin`/`emDurum`, bir seferde tek varlık, çiplerle seçilir, `harita.html#ALTIN` ile açılır).
+  Varlıklar `harita.EMTIA`: ons altın GC=F (XAUUSD=X Yahoo'da yok), gram altın = GC=F × USDTRY=X ÷ 31,1035 (`gram_altin`; O/H/L/C o günün dolar kapanışıyla,
+  dolar en çok 5 gün ileri taşınır), ons gümüş SI=F, USDTRY=X, EURTRY=X, BTC-USD. Hesap = hisse kartıyla aynı (`hisse_kaydi`: kelepir, kutu, yön, seviyeler,
+  📚 eğitim katmanı, bariz destek/direnç) + **🧱 taban bölgesi** (`taban_bolgesi`, sabitler `TB_*`): kırılım haftasından geriye büyütülen en uzun pencere —
+  ≥8 hafta, en yüksek/en düşük ≤%25, her kapanış medyanın ±%8'i, log kapanış doğrusunun toplam eğimi ≤±%6; kırılım = kapanış penceredeki en yüksek gövdenin
+  üstünde; itki = sonraki 52 haftada bölge üstü × 1,40 görülmüş ve o zamana kadar bölge altında kapanış yok; en yeni uyan. Bölge = gövde bandının çekirdeği
+  (gövde altlarının %20'lik, üstlerinin %80'lik dilimi; tüm gövdeler `a0`/`u0` ayrıca), tavan `tv` = penceredeki en yüksek fitil ('kırılan eski tepe').
+  İlk deneme (yalnız ≤%25 genişlik + 'en uzun') altında Şubat–Ağustos 2025'i (2.846–3.516) veriyordu; yükselen merdiven de taban sayılıyordu → medyan ±%8 ve
+  eğim ≤%6 eklendi. Sonuç (28.11.2026): ons 11.04–29.08.2025, bölge 3.246–3.453 $, eski tepe 3.534 $ (eğitmenlerin 3.300–3.500'ü). Geriye dönük: taban
+  ancak itki görüldükten sonra bilinir (Aralık 2025 verisiyle 2025 tabanı henüz yok). Bölünme düzeltmesi YOK (`emtia_hazirla`; gümüş 30.01.2026 −%31,
+  BTC 12.03.2020 −%37 gerçek). Hisse kartlarındaki BIST oranları emtia metinlerine YAZILMAZ. Rozet `EGITIM_ROZET['taban']` (durum 't' = 🧪 test sürüyor;
+  sonuç `Documents/Bist-arastirma/2026-11-28/taban/RAPOR.md`ten gelince yalnız orayı güncelle).
+  **Veri:** `calistir` içinde `emtia_guncelle` en çok `EM_YENILE_DK` (30) dakikada bir ayrı tek `yf.download` (10y günlük, daemon iş parçacığı, `EM_ZAMAN` 20 sn;
+  ölçüm ilk 8,6 sn sonra ~3 sn + hesap 0,8 sn); başarısız denemeden sonra da 30 dk beklenir (`d`). Hata → eski bölüm `taze: false`, hiç yoksa `{'h': {}}` ve sayfada
+  bölüm gizli; istisna haritayı/taramayı bozmaz (`EMTIA_ACIK = False` kapatır). harita.json → `em` = {v, t, taze, sira, h{kod: kayıt + tb, ad, br, yf, g0, son}}
+  ~14 KB (518 → 532 KB). `SURUM` 4. **Workflow ve tarama.py değişmedi** (harita.json zaten `git add`'de; fork'lar *.py ile alır).
+  Testler `Documents/Bist-arastirma/2026-11-28/altin-harita/testler/` (`t9_altin.py` 49/49: ons tabanı, kesitler, yapay seriler, gram hesabı, veri yok/zaman aşımı/eksik
+  varlık/30 dk kısma, calistir hatası; eski t1/t3/t6/t7/t8 aynı; t2 main'de de bozuk: `spring_param` kaldırılmıştı). Playwright 1280/390 + koyu tema: JS hatası yok, taşma yok.
