@@ -14,8 +14,6 @@
     "FRIGO",
     "KCAER",
     "KLSER",
-    "METEN",
-    "MPARK",
     "PKART"
   ],
   "son": {
@@ -640,7 +638,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1703302,
+  "kap_son": 1703314,
   "tk_gonderilen": {
     "tarih": "2026-11-27",
     "kodlar": []
