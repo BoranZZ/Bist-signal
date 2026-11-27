@@ -15,7 +15,7 @@
     "HKTM",
     "KCAER",
     "KLSER",
-    "METEN",
+    "MPARK",
     "PENTA",
     "PKART",
     "VEYAS"
@@ -642,7 +642,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1703349,
+  "kap_son": 1703355,
   "tk_gonderilen": {
     "tarih": "2026-11-27",
     "kodlar": []
