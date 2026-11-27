@@ -12,6 +12,7 @@
     "ENERY",
     "ENTRA",
     "FRIGO",
+    "HKTM",
     "KCAER",
     "KLSER",
     "PKART"
@@ -638,7 +639,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1703314,
+  "kap_son": 1703316,
   "tk_gonderilen": {
     "tarih": "2026-11-27",
     "kodlar": []
