@@ -12,10 +12,11 @@
     "ENTRA",
     "FRIGO",
     "HKTM",
-    "KCAER",
     "KLSER",
+    "METEN",
     "PKART",
-    "TOASO"
+    "TOASO",
+    "ZGYO"
   ],
   "son": {
     "A1CAP": "SAT",
