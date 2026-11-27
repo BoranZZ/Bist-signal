@@ -9,6 +9,7 @@
     "FRIGO",
     "HKTM",
     "KCAER",
+    "PENTA",
     "PKART",
     "ZGYO"
   ],
@@ -634,9 +635,9 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1703098,
+  "kap_son": 1703115,
   "tk_gonderilen": {
-    "tarih": "2026-11-26",
+    "tarih": "2026-11-27",
     "kodlar": []
   },
   "mom_ay": {
@@ -653,21 +654,18 @@
     ]
   },
   "bs_gonderilen": {
-    "tarih": "2026-11-26",
+    "tarih": "2026-11-27",
     "kodlar": []
   },
   "d2_gonderilen": {
-    "tarih": "2026-11-26",
+    "tarih": "2026-11-27",
     "kodlar": []
   },
   "oa_tarih": "2026-11-26",
   "gunici": {
-    "tarih": "2026-11-26",
-    "g": [
-      "2dbde2427e1e7d50",
-      "d083b27138acdf3c"
-    ]
+    "tarih": "2026-11-27",
+    "g": []
   },
-  "sabah_tarih": "2026-11-26",
-  "makro_sabah": "2026-11-26"
+  "sabah_tarih": "2026-11-27",
+  "makro_sabah": "2026-11-27"
 }
