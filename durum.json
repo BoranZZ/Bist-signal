@@ -39,7 +39,7 @@
     "AKSA": "AL",
     "AKSEN": "SAT",
     "AKSUE": "SAT",
-    "ALARK": "SAT",
+    "ALARK": "AL",
     "ALBRK": "SAT",
     "ALBTN": "SAT",
     "ALCTL": "SAT",
@@ -82,7 +82,7 @@
     "BRLSM": "SAT",
     "BRSAN": "SAT",
     "BRYAT": "SAT",
-    "BSOKE": "SAT",
+    "BSOKE": "AL",
     "BTCIM": "SAT",
     "BUCIM": "SAT",
     "BULGS": "SAT",
@@ -93,7 +93,7 @@
     "CCOLA": "SAT",
     "CELHA": "AL",
     "CEMZY": "SAT",
-    "CGCAM": "SAT",
+    "CGCAM": "AL",
     "CIMSA": "SAT",
     "CITAS": "AL",
     "CRDFA": "SAT",
@@ -201,7 +201,7 @@
     "KGYO": "SAT",
     "KLKIM": "SAT",
     "KLRHO": "SAT",
-    "KLSER": "SAT",
+    "KLSER": "AL",
     "KLYPV": "SAT",
     "KMPUR": "SAT",
     "KOCMT": "SAT",
@@ -336,7 +336,7 @@
     "VBTYZ": "SAT",
     "VESBE": "SAT",
     "VESTL": "SAT",
-    "VEYAS": "NÖTR",
+    "VEYAS": "AL",
     "VSNMD": "SAT",
     "YEOTK": "SAT",
     "YIGIT": "SAT",
@@ -361,7 +361,33 @@
   "hafta_tarih": "2026-11-20",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {},
+  "on_sinyal": {
+    "ALARK": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-27"
+    },
+    "BSOKE": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-27"
+    },
+    "CGCAM": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-27"
+    },
+    "KLSER": {
+      "sinyal": "AL",
+      "onceki": "SAT",
+      "tarih": "2026-11-27"
+    },
+    "VEYAS": {
+      "sinyal": "AL",
+      "onceki": "NÖTR",
+      "tarih": "2026-11-27"
+    }
+  },
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
