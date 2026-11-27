@@ -16,10 +16,10 @@
     "KCAER",
     "KLSER",
     "METEN",
-    "PENTA",
+    "MPARK",
     "PKART",
     "QUICK",
-    "TGSAS",
+    "TAVHL",
     "VEYAS"
   ],
   "son": {
@@ -282,7 +282,7 @@
     "RYSAS": "SAT",
     "SAFKR": "SAT",
     "SAHOL": "SAT",
-    "SANFM": "AL",
+    "SANFM": "SAT",
     "SARAE": "SAT",
     "SARKY": "SAT",
     "SASA": "SAT",
@@ -309,13 +309,13 @@
     "TCKRC": "SAT",
     "TEHOL": "SAT",
     "TERA": "SAT",
-    "TGSAS": "AL",
+    "TGSAS": "SAT",
     "THYAO": "AL",
     "TKFEN": "SAT",
     "TKNKA": "SAT",
     "TMPOL": "SAT",
     "TNZTP": "SAT",
-    "TOASO": "AL",
+    "TOASO": "SAT",
     "TRALT": "SAT",
     "TRENJ": "SAT",
     "TRGYO": "SAT",
@@ -360,57 +360,11 @@
     "ed52d36b8529c244",
     "fc9a269fa7f1b36a"
   ],
-  "ozet_tarih": "2026-11-26",
-  "hafta_tarih": "2026-11-20",
+  "ozet_tarih": "2026-11-27",
+  "hafta_tarih": "2026-11-27",
   "karar_kirilim_g": [],
   "alarm_tetik": [],
-  "on_sinyal": {
-    "ALARK": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-11-27"
-    },
-    "ARFYE": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-11-27"
-    },
-    "BSOKE": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-11-27"
-    },
-    "CGCAM": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-11-27"
-    },
-    "KLSER": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-11-27"
-    },
-    "SANFM": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-11-27"
-    },
-    "TGSAS": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-11-27"
-    },
-    "TOASO": {
-      "sinyal": "AL",
-      "onceki": "SAT",
-      "tarih": "2026-11-27"
-    },
-    "VEYAS": {
-      "sinyal": "AL",
-      "onceki": "NÖTR",
-      "tarih": "2026-11-27"
-    }
-  },
+  "on_sinyal": {},
   "uv_son": {
     "A1CAP": "SAT",
     "ADEL": "SAT",
@@ -690,7 +644,7 @@
     "YKBNK": "SAT",
     "ZOREN": "SAT"
   },
-  "kap_son": 1703409,
+  "kap_son": 1703420,
   "tk_gonderilen": {
     "tarih": "2026-11-27",
     "kodlar": []
@@ -714,7 +668,9 @@
   },
   "d2_gonderilen": {
     "tarih": "2026-11-27",
-    "kodlar": []
+    "kodlar": [
+      "THYAO"
+    ]
   },
   "oa_tarih": "2026-11-27",
   "gunici": {

@@ -90,8 +90,8 @@
       "giris_fiyat": 44.34,
       "stop": 39.2,
       "durum": "açık",
-      "guncel": 42.32,
-      "anlik": -4.6,
+      "guncel": 42.22,
+      "anlik": -4.8,
       "tepe": 49.0
     },
     {
@@ -156,9 +156,26 @@
       "giris_fiyat": 429.0,
       "stop": 343.2,
       "durum": "açık",
-      "guncel": 370.5,
+      "guncel": 370.75,
       "anlik": -13.6,
       "tepe": 429.0
+    },
+    {
+      "kod": "THYAO",
+      "giris_tarih": "2026-11-27",
+      "giris_fiyat": 314.0,
+      "stop": 251.2,
+      "tepe": 314.0,
+      "durum": "açık",
+      "guncel": 314.0,
+      "anlik": 0.0,
+      "sinyal_tarih": "2026-11-27",
+      "kural": "sma200",
+      "kar_kilit": [
+        0.08,
+        0.05
+      ],
+      "piyasa": "zayıf"
     }
   ]
 }
