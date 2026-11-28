@@ -1227,3 +1227,6 @@ portföyde rastgele eklemeden iyi değil → sayfada YOK; 🌱 simgesi panoda SM
   ~14 KB (518 → 532 KB). `SURUM` 4. **Workflow ve tarama.py değişmedi** (harita.json zaten `git add`'de; fork'lar *.py ile alır).
   Testler `Documents/Bist-arastirma/2026-11-28/altin-harita/testler/` (`t9_altin.py` 49/49: ons tabanı, kesitler, yapay seriler, gram hesabı, veri yok/zaman aşımı/eksik
   varlık/30 dk kısma, calistir hatası; eski t1/t3/t6/t7/t8 aynı; t2 main'de de bozuk: `spring_param` kaldırılmıştı). Playwright 1280/390 + koyu tema: JS hatası yok, taşma yok.
+- **🔎 Rozet denetimi (2026-11-28, dal `altin-harita`; SADECE METİN):** "aynı hisse + aynı yıl" kıyası kriz haftalarına yığılan olayları şişiriyordu; aynı hafta benzer koşu+derinlik
+  kıyasıyla (`Documents/Bist-arastirma/2026-11-28/denetim/RAPOR.md`) `EGITIM_ROZET` durak s/s, tepe s/**y**(ABD), kutu r/r, dipara r/r, supurme r/r; sayfada kelepir 🟡, ucuz ▼, 📏 kıyas notu. `SURUM` 5.
+  **Açık soru (kilit):** 🔴 "kilit üstünde haftalık kapanışta al rastgeleden iyi değil" metni yeni kıyasla çelişiyor (taban içi kilit üstü benzer hisselerden 52 haftada +15 ▲ BIST 25 y, +34 ▲ 10 y, +5 ▲ ABD; medyan farkı eksi) — dokunulmadı, ayrı inceleme bekliyor.

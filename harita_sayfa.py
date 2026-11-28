@@ -93,7 +93,7 @@ o parçaları gösterir: büyük tepe ve dip, kutu, değer alanı, kelepir band�
 <div class="suz"><input id="ara" type="search" placeholder="Hisse ara (ör. THYAO)" autocomplete="off" autocapitalize="characters">
 <select id="suzgec">
 <option value="one">Öne çıkanlar</option><option value="hepsi">Tüm hisseler</option>
-<option value="kelepir">🟢 Kelepir bandı</option><option value="ucuz">Ucuz bandı</option><option value="kutu">📦 Kutu alt bölgesi</option>
+<option value="kelepir">🟡 Kelepir bandı</option><option value="ucuz">Ucuz bandı</option><option value="kutu">📦 Kutu alt bölgesi</option>
 <option value="dusus">Büyük düşüş sonrası</option><option value="ucuzyari">Tepe-dip aralığının alt yarısı</option>
 <option value="pahaliyari">Tepe-dip aralığının üst yarısı</option><option value="tdestek">📚 Çok temaslı desteğe yakın</option><option value="supurme">📚 Son dip süpürmesi</option><option value="dipara">📚 Dip arası takip bölgesinde</option><option value="ana">Ana liste (BIST 100 + ek)</option><option value="kucuk">Küçük hisseler</option>
 </select><button type="button" class="cip egbtn" id="egbtn" aria-pressed="true">📚 Eğitim çizgileri: açık</button><span class="say" id="say"></span></div>
@@ -101,19 +101,18 @@ o parçaları gösterir: büyük tepe ve dip, kutu, değer alanı, kelepir band�
 <div class="kart durust"><h2>📊 Dürüstlük notu</h2>
 <p>Eğitmenin iddiaları 2000-2026 haftalık verisinde (MANIPULE listesindeki 32 hisse hariç, ~256 hisse) test edildi. Kısaca:</p>
 <ul>
-<li><span class="oky">▲</span> <b>Kelepir bandı:</b> gerçekten nadir (haftada ortalama 1-2 hisse) ve sonrası iyi: 25 yılda 101 olay, 12 ayda aynı hissenin sıradan haftasından
-+35 puan, 36 ayda +55 puan iyi. <span class="okk">▼</span> Ama "8-10 kat" abartı: medyan en yüksek nokta 3,3 kat, 8 katı ancak 10 olaydan 1'i gördü; ilk yılda medyan −%22 ara düşüş. Ayrıca aynı hafta başka bir BIST hissesi almakla kıyaslanınca avantaj kalmıyor (12 ayda −2,5 puan): getirinin çoğu kriz haftalarında almaktan geliyor. ABD'de (S&P 500 / 600) kelepir yine iyi, ama orada da batan şirketler veride yok.</li>
-<li><span class="oky">▲</span> <b>Ucuz bandı:</b> 12 ayda rastgeleden +15 puan; kelepirden zayıf.</li>
-<li><b>Büyük düşüş sonrası evre:</b> ilk tepkide alanların %40'ı bir yıl içinde yeni dip gördü (doğru). Ama ana tepenin üstünde haftalık kapanışı beklemek getiriyi
-<span class="okk">▼</span> düşürdü (52 haftada rastgeleden −9 puan). Risk bilgisidir, "bekle" tavsiyesi değil.</li>
-<li><span class="oky">▲</span> <b>Kutu alt bölgesi:</b> kutunun alt üçte birinde almak, kutu kırılımını beklemekten iyiydi (rastgeleye göre ~+6 puan, iki dönemde de).</li>
+<li>📏 <b>Kıyas notu (28.11):</b> eski ölçümler "aynı hisse + aynı yıl rastgele hafta" ile yapılmıştı. Olaylar kriz haftalarına yığıldığı için bu kıyas onları şişiriyordu (kriz haftasında alınan her şey iyi gitti). 28.11'de aynı hafta benzer düşmüş başka hisselerle yeniden ölçüldü: kelepir, ucuz, kutu altı, dip yakını, dip arası ve süpürmenin avantajı kayboldu; ana tepeyi beklemek ise kaybettirmedi. Aşağıdaki sayılar yeni kıyasla.</li>
+<li>🟡 <b>Kelepir bandı:</b> gerçekten nadir (haftada ortalama 1-2 hisse): 25 yılda 101 olay, 12 ayda ortalama +%50. Ama aynı hafta benzer ralli ve düşüş yaşamış, bantta olmayan BIST hisselerinden iyi değil (12 ayda −4, 3 yılda −53 puan): kazanç kriz haftasından ve derin düşüşten, tabanın kendisinden değil. <span class="okk">▼</span> "8-10 kat" abartı: medyan en yüksek nokta 3,3 kat, 8 katı ancak 10 olaydan 1'i gördü; ilk yılda medyan −%22 ara düşüş. ABD'de (S&P 500 / 600) de benzer düşmüş hisselerden farksız (0 puan).</li>
+<li><span class="okk">▼</span> <b>Ucuz bandı:</b> benzer düşmüş hisselerden 12 ayda −13 puan kötü; kelepirden zayıf.</li>
+<li><b>Büyük düşüş sonrası evre:</b> ilk tepkide alanların %40'ı bir yıl içinde yeni dip gördü (doğru). Ama ana tepenin üstünde haftalık kapanışı beklemek, benzer düşmüş hisselere göre getiriyi düşürmedi (+11 puan; eski '−9' kriz zamanlamasıydı). Risk bilgisidir, "bekle" tavsiyesi değil.</li>
+<li><span class="okk">▼</span> <b>Kutu alt bölgesi:</b> benzer düşmüş hisselerden iyi değil (+2, anlamsız); kırılımla farkı yok.</li>
 <li><span class="okk">▼</span> <b>Seviyeler:</b> eğitmenin seviye hesabı çözülemedi. "Kutu üst kenarı" onun "kilit" seviyelerine en yakın basit tanım, ama
 kilitlerin ancak 4'te 1'i ile yarısını tutturuyor; "üstünde haftalık kapanışta al" kuralı rastgele alımdan iyi değil. "Maliyet vekili" doğrulanmadı.
 Tepe-dip aralığının ucuz/pahalı yarısı AL'lere filtre olarak değer katmadı. Uzun taban büyük ralli getirmedi.</li>
-<li><span class="okk">▼</span> <b>Yalnız 📚 Eğitim katmanında (rozetli):</b> "trend çizgisine 3. temasta kırarlar" (yazı-tura çıktı), "kâr/zarar oranı 1:4" (sonucu ayırmadı), iki durak, kilit, dip süpürmesi, dip arası takip bölgesi (bölgede almak iyi ama yapıdan değil 3 yılın dibine yakınlıktan; "üstünde tutunursa" teyidini beklemek kazancı düşürdü), ekmek kırıntısı (rastgele seviyeden farksız); yukarıdaki durum metinlerine karışmaz.
+<li><span class="okk">▼</span> <b>Yalnız 📚 Eğitim katmanında (rozetli):</b> "trend çizgisine 3. temasta kırarlar" (yazı-tura çıktı), "kâr/zarar oranı 1:4" (sonucu ayırmadı), iki durak, kilit, dip süpürmesi, dip arası takip bölgesi (benzer düşmüş hisselerden iyi değil; "üstünde tutunursa" teyidi de), ekmek kırıntısı (rastgele seviyeden farksız); yukarıdaki durum metinlerine karışmaz.
 Haftalık Wyckoff "spring" (aralığın dibini süpürüp geri dönme) da test edildi: portföyde rastgele eklemeden iyi değil. Yabancı payı değişimi de test edildi; sonrasını öngörmüyor.</li>
-<li><b>Manipülasyon yüzünden mi tutmadı?</b> Hayır: tutmayan kurallar büyük ve likit hisselerde (hacimce ilk 30/50) ve şişirme hisseleri çıkarılmış listede de tutmadı; tutanlar (kelepir, ilk tepkide yeni dip riski) her alt kümede tuttu (20.11 araştırması).</li>
-<li><b>Türkiye'ye mi özgü?</b> Hayır: aynı kurallar ABD'de (S&P 500 ve S&P 600, 2000-2026) de denendi; 12 iddianın hepsi iki piyasada aynı yöne çıktı. Kâr/zarar oranı ABD'de tersine bile çalışıyor (yüksek oran = daha kötü sonuç).</li>
+<li><b>Manipülasyon yüzünden mi tutmadı?</b> Hayır: tutmayan kurallar büyük ve likit hisselerde (hacimce ilk 30/50) ve şişirme hisseleri çıkarılmış listede de tutmadı; ilk tepkide yeni dip riski her alt kümede tuttu (20.11 araştırması); kelepir ve diğer "dipten al" sonuçlarının avantajı, aynı hafta benzer düşmüş hisselerle kıyaslanınca kalmadı (28.11).</li>
+<li><b>Türkiye'ye mi özgü?</b> Hayır: aynı kurallar ABD'de (S&P 500 ve S&P 600, 2000-2026) de denendi; iddiaların çoğu iki piyasada aynı yöne çıktı. Kâr/zarar oranı ABD'de tersine bile çalışıyor (yüksek oran = daha kötü sonuç).</li>
 <li><span class="okk">▼</span> <b>Hayatta kalan yanlılığı:</b> veride yalnız bugün borsada olan şirketler var. Tabanına dönüp batan ya da borsadan çıkan şirketler yok. Kelepir
 tam da onların bulunacağı yer: gerçek sonuç tablodakinden <b>kötüdür</b>, ne kadar kötü olduğu ölçülemiyor. 2025-26'nın şişirme rallileri (20-30 kat) geçmişte bu kadar yoktu.</li>
 <li><b>Bu bir al-sat önerisi değildir.</b> Geçmiş ortalamalar tek hissede ne olacağını söylemez. Kararı sen verirsin; stop ve pozisyon büyüklüğünü unutma.</li>
@@ -134,29 +133,29 @@ function oky(){return '<span class="oky">▲</span>';}function okk(){return '<sp
 function kelMetin(k,kod){var e=k.kel,d=k.d||{},f=k.f,h="";if(!e)return "";
  if(d.kel==="kelepir"){
   h+="<p>📊 <b>Kelepir bandında</b> — "+yil(e.T_t)+"'de "+sayi(e.T)+" TL'den başlayan ralli "+yil(e.P_t)+"'de "+sayi(e.P)+" TL'ye çıkmıştı ("+sayi(e.kat,1)+" kat). Fiyat şimdi "+sayi(f)+" TL: rallinin başladığı tabana dönmüş (bant "+sayi(e.kel_alt)+" – "+sayi(e.kel_ust)+").</p>";
-  h+="<p>"+oky()+" Geçmişte (2000-2026, 101 olay) bu durumdan sonra 12 ayda ortalama +%50 (medyan +%30): aynı hissenin sıradan haftasından +35 puan, BIST 100'den +15 puan iyi. 36 ayda medyan +%96. <span class=\"okk\">▼</span> Ama aynı hafta başka bir BIST hissesi almaktan iyi değil (12 ayda −2,5 puan): avantajın çoğu kriz haftalarında almaktan geliyor.</p>";
+  h+="<p>🟡 Geçmişte (2000-2026, 101 olay) 12 ayda ort. +%50 (medyan +%34). Ama aynı hafta benzer ralli ve düşüş yaşamış, bantta olmayan BIST hisselerinden iyi değil (12 ayda −4, 3 yılda −53 puan): kazanç kriz haftasından ve derin düşüşten, tabanın kendisinden değil.</p>";
   h+="<p>"+okk()+" Yolu sert: ilk yılda medyan −%22 ara düşüş, her 4 olaydan biri −%40'tan kötü. \"8-10 kat\" sadece 10'da 1 olayda görüldü (medyan en yüksek 3,3 kat).</p>";
   h+='<p class="not">⚠️ Veride batan / borsadan çıkan şirketler yok: gerçek sonuç bundan kötüdür.</p>';
  }else if(d.kel==="ucuz"){
   h+="<p>📊 <b>Ucuz bandında</b> — "+yil(e.T_t)+" tabanı "+sayi(e.T)+" → "+yil(e.P_t)+" tepesi "+sayi(e.P)+" ("+sayi(e.kat,1)+" kat). Fiyat "+sayi(f)+": rallinin büyük kısmını geri vermiş, kelepir bandının üstünde (ucuz bandı "+sayi(e.kel_ust)+" – "+sayi(e.ucuz_ust)+").</p>";
-  h+="<p>"+oky()+" Geçmişte (292 olay) 12 ayda ortalama +%29 (medyan +%13): sıradan haftadan +15 puan iyi, ama BIST 100'den farksız (−2). Kelepirden zayıf.</p>";
+  h+="<p>"+okk()+" Geçmişte (2000-2026, 297 olay) 12 ayda ort. +%30. Ama aynı hafta benzer ralli ve düşüş yaşamış, bantta olmayan BIST hisselerinden kötü (12 ayda −13 puan): eski '+15 puan' kriz zamanlamasıydı. Kelepirden de zayıf.</p>";
   h+='<p class="not">⚠️ Veride batan şirketler yok: gerçek sonuç bundan kötüdür.</p>';
  }else if(d.kel==="altinda"){
   h+="<p>📊 <b>Ralli tabanının da altında</b> — taban "+sayi(e.T)+" ("+yil(e.T_t)+"), fiyat "+sayi(f)+" (tabanın "+fark(f,e.T)+"). Kelepir tanımı tabanın %70'ine kadar; bunun altı araştırmada sayılmadı.</p>";
  }else{if(e.kat<4)return "";
   return '<p class="not">Kelepir / ucuz bandında değil: son 5 yılın büyük rallisi '+sayi(e.T)+" ("+yil(e.T_t)+") → "+sayi(e.P)+" ("+yil(e.P_t)+"), "+sayi(e.kat,1)+" kat. Ucuz bandı "+sayi(e.ucuz_ust)+" altında başlar (fiyatın "+fark(e.ucuz_ust,f)+"), kelepir bandı "+sayi(e.kel_ust)+" altında. Fiyatlar bölünme/bedelsiz düzeltmeli: eski grafikteki sayılardan farklı görünebilir.</p>";}
- if(e.hizli)h+='<p class="not">'+okk()+" Ralli hızlıydı ("+e.rh+" haftada "+sayi(e.kat,1)+" kat, 1 yıldan kısa): şişirme tipi rallilerin tabanında geçmişteki fark küçük ve anlamsızdı (+12 puan). Taban güvenilmez.</p>";
+ if(e.hizli)h+='<p class="not">'+okk()+" Ralli hızlıydı ("+e.rh+" haftada "+sayi(e.kat,1)+" kat, 1 yıldan kısa): şişirme tipi rallilerin tabanı, benzer düşmüş hisselerden de kötü gitti (−9 puan, az olay). Taban güvenilmez.</p>";
  if(k.dk)h+='<p class="not">⚠️ Bu hissede panoda manipülasyon / şişme uyarısı var: dikkat.</p>';
  return h;}
 function yonMetin(k){var y=k.yon,f=k.f,h="";if(!y)return "";
- if(y.asildi!=null){return "<p>📊 <b>Yön durumu</b> — büyük düşüşten (zirve "+sayi(y.zirve)+", dip "+sayi(y.dip)+", −%"+Math.round(y.dusus*100)+") sonra ana tepe "+sayi(y.ana_tepe)+" "+(y.asildi===0?"bu hafta":y.asildi+" hafta önce")+" haftalık kapanışla aşıldı: bölüm bitti.</p><p class=\"not\">Geçmişte bu noktada fiyat dipten ortalama +%73 yukarıdaydı ve sonraki 52 haftada rastgele haftadan 9 puan geride kaldı. Yeni dip görme oranı ise %15'e indi.</p>";}
+ if(y.asildi!=null){return "<p>📊 <b>Yön durumu</b> — büyük düşüşten (zirve "+sayi(y.zirve)+", dip "+sayi(y.dip)+", −%"+Math.round(y.dusus*100)+") sonra ana tepe "+sayi(y.ana_tepe)+" "+(y.asildi===0?"bu hafta":y.asildi+" hafta önce")+" haftalık kapanışla aşıldı: bölüm bitti.</p><p class=\"not\">Geçmişte bu noktada fiyat dipten ortalama +%73 yukarıdaydı; sonraki 52 haftada benzer düşmüş başka hisselerden +11 puan iyi gitti. Yeni dip görme oranı %15'e indi.</p>";}
  h+="<p>📊 <b>Yön durumu</b> — 104 haftalık zirveden ("+sayi(y.zirve)+", "+tr(y.zirve_t)+") −%"+Math.round(y.dusus*100)+" düştü. Dip "+sayi(y.dip)+" (haftalık kapanışla, "+(y.dip_yas===0?"bu hafta":y.dip_yas+" hafta önce")+"), ana tepe "+sayi(y.ana_tepe)+(y.tepecik?", tepecik "+sayi(y.tepecik)+(y.tgec?" (geçildi ✓)":""):"")+".</p>";
  if(!y.ilk)h+="<p>Dip arayışı: dipten henüz +%20 haftalık tepki yok.</p>";
- else h+="<p>İlk tepki evresi: geçmişte bu evrede alanların %40'ı bir yıl içinde yeni dip gördü (ana tepe kırılımından sonra alanlarda %15). Ama ana tepeyi beklemek ortalamada kazancı düşürdü: o noktada fiyat dipten ortalama +%73 yukarıdaydı ve 52 haftada rastgele haftadan 9 puan geride kaldı.</p>";
- if(f&&y.dip_yas>=4&&f<=y.dip*1.10&&f>=y.dip)h+="<p>Dip yakını: dip 4+ haftadır korunuyor, fiyat dibin en çok %10 üstünde. Geçmişte buradan 52 hafta tutmak sıradan haftadan +21 puan iyiydi, ama %79'u bir yıl içinde dibin altını gördü.</p>";
+ else h+="<p>İlk tepki evresi: geçmişte bu evrede alanların %40'ı bir yıl içinde yeni dip gördü (ana tepe kırılımından sonra alanlarda %15). Ana tepeyi beklemek kazancı düşürmedi: o noktada fiyat dipten ortalama +%73 yukarıdaydı, ama sonraki 52 haftada benzer düşmüş hisselerden +11 puan iyi gitti (ilk tepkide almak +3).</p>";
+ if(f&&y.dip_yas>=4&&f<=y.dip*1.10&&f>=y.dip)h+="<p>Dip yakını: dip 4+ haftadır korunuyor, fiyat dibin en çok %10 üstünde. Geçmişte buradan 52 hafta tutmak benzer düşmüş başka hisselerden iyi değildi (−4 puan; eski '+21' kriz zamanlamasıydı) ve %79'u bir yıl içinde dibin altını gördü.</p>";
  return h+'<p class="not">Risk bilgisi; "bekle" ya da "al" tavsiyesi değil. Son tamamlanan hafta: '+tr(y.son_hafta)+".</p>";}
 function kutuMetin(k){var b=k.kutu,d=k.d||{};if(!b||!d.kutu)return "";
- return "<p>📦 <b>Kutunun alt bölgesinde</b> — tepeden ("+sayi(b.tepe)+") %"+Math.round((1-b.ust/b.tepe)*100)+"+ çekilip 8 haftadır "+sayi(b.alt)+" – "+sayi(b.ust)+" kutusunda; fiyat "+sayi(k.f)+" kutunun alt üçte birinde ("+sayi(b.ucte)+" altı).</p><p>"+oky()+" Geçmişte kutu içi alt bölge alımı, kutu kırılımını beklemekten iyi sonuç verdi (rastgeleye göre ~+6 puan, iki dönemde de). Kutu dibinin %3 altına inen hafta kutu bozulmuş sayılır ("+sayi(b.alt*0.97)+").</p>";}
+ return "<p>📦 <b>Kutunun alt bölgesinde</b> — tepeden ("+sayi(b.tepe)+") %"+Math.round((1-b.ust/b.tepe)*100)+"+ çekilip 8 haftadır "+sayi(b.alt)+" – "+sayi(b.ust)+" kutusunda; fiyat "+sayi(k.f)+" kutunun alt üçte birinde ("+sayi(b.ucte)+" altı).</p><p>➖ Geçmişte kutu içi alt bölge alımı, benzer düşmüş başka hisselerden iyi sonuç vermedi (52 haftada +2 puan, anlamsız); kutu kırılımı da aynı (+2). Kutu dibinin %3 altına inen hafta kutu bozulmuş sayılır ("+sayi(b.alt*0.97)+").</p>";}
 function svMetin(k){var s=k.sv,d=k.d||{},h="";if(!s)return "";
  if(d.konum!=null){var u=d.konum<0.5;h+="<p>"+(u?oky()+" Tepe-dip aralığının <b>alt (ucuz) yarısında</b>":okk()+" Tepe-dip aralığının <b>üst (pahalı) yarısında</b>")+": fiyat aralığın %"+Math.round(Math.max(0,Math.min(1,d.konum))*100)+"'inde (orta "+sayi(s.orta)+"). <span class=\"not\">Filtre olarak değer katmadı.</span></p>";}
  if(k.f&&k.f<s.dip)h+="<p>"+okk()+" Fiyat büyük dibin ("+sayi(s.dip)+") altında: dip yenileniyor.</p>";
@@ -291,7 +290,7 @@ function tbMetin(k){var t=k.tb,f=k.f,h;
  return '<div class="tbp">'+h+rozet("taban")+tbrMetin()+"</div>";}
 function tbrMetin(){var r=D&&D.tbr;if(!r)return "";var z=RZ[r[0]]||RZ.o;return '<div class="rz"><b>'+"Emtia/dövizde ölçüldü: "+z[0]+" "+z[1]+"</b> "+esc(r[1])+"</div>";}
 function emDurum(k){var e=k.kel,d=k.d||{},f=k.f,y=k.yon,s=k.sv,h="";
- if(e&&d.kel==="kelepir")h+="<p>🟢 <b>Kelepir bandında</b>: "+yil(e.T_t)+" tabanı "+emF(k,e.T)+" → "+yil(e.P_t)+" tepesi "+emF(k,e.P)+" ("+sayi(e.kat,1)+" kat); bant "+sayi(e.kel_alt)+" – "+sayi(e.kel_ust)+".</p>";
+ if(e&&d.kel==="kelepir")h+="<p>🟡 <b>Kelepir bandında</b>: "+yil(e.T_t)+" tabanı "+emF(k,e.T)+" → "+yil(e.P_t)+" tepesi "+emF(k,e.P)+" ("+sayi(e.kat,1)+" kat); bant "+sayi(e.kel_alt)+" – "+sayi(e.kel_ust)+".</p>";
  else if(e&&d.kel==="ucuz")h+="<p><b>Ucuz bandında</b>: "+yil(e.T_t)+" tabanı "+emF(k,e.T)+" → "+yil(e.P_t)+" tepesi "+emF(k,e.P)+" ("+sayi(e.kat,1)+" kat); ucuz bandı "+sayi(e.kel_ust)+" – "+sayi(e.ucuz_ust)+".</p>";
  else if(e&&d.kel==="altinda")h+="<p>Ralli tabanının ("+emF(k,e.T)+", "+yil(e.T_t)+") da altında.</p>";
  else if(e&&e.kat>=4)h+='<p class="not">Kelepir / ucuz bandında değil: son 5 yılın büyük rallisi '+emF(k,e.T)+" ("+yil(e.T_t)+") → "+emF(k,e.P)+" ("+yil(e.P_t)+"), "+sayi(e.kat,1)+" kat. Ucuz bandı "+sayi(e.ucuz_ust)+" altında başlar ("+fark(e.ucuz_ust,f)+").</p>";
@@ -300,7 +299,7 @@ function emDurum(k){var e=k.kel,d=k.d||{},f=k.f,y=k.yon,s=k.sv,h="";
  if(y){if(y.asildi!=null)h+="<p>📊 Büyük düşüş (zirve "+sayi(y.zirve)+", dip "+sayi(y.dip)+", −%"+Math.round(y.dusus*100)+") bitti: ana tepe "+sayi(y.ana_tepe)+" haftalık kapanışla aşıldı.</p>";
   else h+="<p>📊 <b>Büyük düşüş sonrası</b>: 104 haftalık zirveden ("+sayi(y.zirve)+") −%"+Math.round(y.dusus*100)+"; dip "+sayi(y.dip)+" ("+(y.dip_yas===0?"bu hafta":y.dip_yas+" hafta önce")+"), ana tepe "+sayi(y.ana_tepe)+(y.tepecik?", tepecik "+sayi(y.tepecik)+(y.tgec?" (geçildi)":""):"")+". "+(y.ilk?"İlk tepki (+%20) geldi.":"Dipten henüz +%20 tepki yok.")+"</p>";}
  if(d.konum!=null&&s)h+="<p>Son 3 yılın tepe-dip aralığının <b>%"+Math.round(Math.max(0,Math.min(1,d.konum))*100)+"</b>'inde (tepe "+sayi(s.tepe)+", dip "+sayi(s.dip)+", orta "+sayi(s.orta)+").</p>";
- return h+'<p class="not">Hisse kartlarındaki geçmiş oranlar (ör. "kelepirden sonra +35 puan") BIST hisselerinden ölçüldü; altın, gümüş, döviz ve Bitcoin için ölçülmedi, bu yüzden burada yazılmadı.</p>';}
+ return h+'<p class="not">Hisse kartlarındaki geçmiş oranlar (ör. kelepirin 12 ay ortalaması +%50) BIST hisselerinden ölçüldü; altın, gümüş, döviz ve Bitcoin için ölçülmedi, bu yüzden burada yazılmadı.</p>';}
 function kartEm(kod){var E=D.em,k=E.h[kod];if(!k)return "";
  return '<div class="hk" id="h_'+esc(kod)+'"><div class="bas"><b class="kod">'+esc(k.ad)+'</b><span class="fy">'+emF(k,k.f)+'</span><span class="etk">'+esc(k.yf)+'</span><span class="m">son veri '+tr(k.son)+" · bilgi amaçlı, AL/SAT değil</span></div>"+
   '<div class="izg"><div class="dur">'+tbMetin(k)+emDurum(k)+"</div><div>"+grafik(k)+tablo(k)+"</div></div>"+egMetin(k,"Rozetler BIST (ve ABD) hisselerindeki ölçümdür; altın, döviz ve Bitcoin için ayrıca ölçülmedi.")+"</div>";}
@@ -318,7 +317,7 @@ function kart(kod){var k=H[kod];if(!k)return "";var d=k.d||{};
 function cip(kod,ek){return '<button class="cip" onclick="sec(\''+esc(kod)+'\')">'+esc(kod)+(ek?" <small>"+ek+"</small>":"")+"</button>";}
 function listeler(){var L=D.liste||{},h="";
  function kutu(baslik,aciklama,dizi,ek){h+='<div class="kart"><h2>'+baslik+'</h2><div class="bos" style="margin-bottom:6px">'+aciklama+'</div><div class="cips">'+(dizi&&dizi.length?dizi.map(function(k){return cip(k,ek(k));}).join("")+'<span class="bos"> ('+dizi.length+' hisse)</span>':'<span class="bos">Şu an yok.</span>')+"</div></div>";}
- kutu("🟢 Şu an kelepir bandında","Büyük (≥4 kat) rallinin başladığı tabana dönenler. Yanındaki sayı: fiyat ÷ taban. ×1,2 civarı = banda yeni girmiş (üst uç) · ×1,0 civarı = taban test ediliyor · 1’in altı (ör. ×0,84) = taban kırılmış: daha ucuz ama taban tutmamış, daha riskli. Hangi değerin daha iyi olduğu 25 yıllık veride kesin ayrışmadı (taban civarı 3 yılda biraz iyi görünüyor, az olay).",L.kelepir,function(k){return "×"+sayi(H[k].f/H[k].kel.T,2);});
+ kutu("🟡 Şu an kelepir bandında","Büyük (≥4 kat) rallinin başladığı tabana dönenler. Yanındaki sayı: fiyat ÷ taban. ×1,2 civarı = banda yeni girmiş (üst uç) · ×1,0 civarı = taban test ediliyor · 1’in altı (ör. ×0,84) = taban kırılmış: daha ucuz ama taban tutmamış, daha riskli. Hangi değerin daha iyi olduğu 25 yıllık veride kesin ayrışmadı (taban civarı 3 yılda biraz iyi görünüyor, az olay).",L.kelepir,function(k){return "×"+sayi(H[k].f/H[k].kel.T,2);});
  kutu("📦 Kutu alt bölgesinde","Tepeden çekilip 8 haftalık dar kutuya giren, fiyatı kutunun alt üçte birinde olanlar.",L.kutu,function(k){return "";});
  kutu("Ucuz bandında","Rallinin büyük kısmını geri vermiş, kelepirin bir üstündeki bant.",L.ucuz,function(k){return "×"+sayi(H[k].f/H[k].kel.T,1);});
  kutu("📚 Çok temaslı desteğe yakın","Eğitim katmanı: fiyat 3+ temaslı yatay desteğin en çok %3 üstünde (eğitmene göre stoplar altında birikir). BIST ölçümü: "+rzKisa("yatay")+". AL/SAT değil.",L.tdestek,function(k){var z=egYakin(H[k].eg,-1,1);return z?"+%"+sayi((H[k].f/z[0]-1)*100,1):"";});
