@@ -276,7 +276,7 @@ function egSeviye(k){var e=k.eg,f=k.f,L=[];if(!e||!EG_ACIK)return L;var C="var(-
  return L;}
 function emF(k,v){return v==null?"—":sayi(v)+" "+k.br;}
 function tbMetin(k){var t=k.tb,f=k.f,h;
- if(!t)return '<div class="tbp"><p>🧱 <b>Taban bölgesi:</b> son 10 yılda tanıma uyan taban yok (en az 8 hafta yatay, ardından bir yıl içinde %40+ yükseliş).</p>'+rozet("taban")+"</div>";
+ if(!t)return '<div class="tbp"><p>🧱 <b>Taban bölgesi:</b> son 10 yılda tanıma uyan taban yok (en az 8 hafta yatay, ardından bir yıl içinde %40+ yükseliş).</p>'+rozet("taban")+tbrMetin()+"</div>";
  h="<p>🧱 <b>Taban bölgesi</b> (son büyük yükselişin kalktığı yatay taban): "+tr(t.bt)+" – "+tr(t.bs)+" ("+t.n+" hafta). Bölge <b>"+emF(k,t.a)+" – "+emF(k,t.u)+"</b> (gövdelerin yoğunlaştığı bant; tüm gövdeler "+sayi(t.a0)+" – "+sayi(t.u0)+"). Tabanın tavanı = <b>kırılan eski tepe "+emF(k,t.tv)+"</b>. "+tr(t.kt)+" haftasında yukarı kırıldı, en yüksek "+emF(k,t.tp)+" ("+tr(t.tpt)+", bölge üstünden +%"+Math.round(t.it*100)+").</p>";
  if(f>t.tv)h+="<p>Fiyat "+emF(k,f)+": kırılan eski tepenin <b>"+fark(f,t.tv)+"</b> üstünde · bölge üst kenarı "+fark(t.u,f)+" · bölge alt kenarı "+fark(t.a,f)+".</p>";
  else if(f>t.u)h+="<p>Fiyat "+emF(k,f)+": <b>eski tepe ile bölge arasında</b> (eski tepe "+fark(t.tv,f)+", bölge üst kenarı "+fark(t.u,f)+").</p>";
@@ -284,7 +284,8 @@ function tbMetin(k){var t=k.tb,f=k.f,h;
  else h+="<p>Fiyat "+emF(k,f)+": <b>bölgenin altında</b> (alt kenar "+fark(t.a,f)+" yukarıda): taban bozulmuş.</p>";
  h+='<p class="not">'+(t.gr?"Zirveden sonra fiyat bölgenin üst kenarına ilk kez "+tr(t.gr)+" haftasında indi.":"Zirveden sonra fiyat bölgeye henüz dönmedi.")+" Eğitmenlerin anlatımında burası \"talep bölgesi\": büyük paranın topladığı, dönüşte yeniden alıcı beklenen yer. Bölge geriye dönük çizilir (taban ancak yükseliş görüldükten sonra bilinir); AL/SAT değil.</p>";
  if(/^(USD|EUR)TRY=X$/.test(k.yf||""))h+='<p class="not">'+okk()+" Kur yıllardır sürekli yükseldiği için taban/kelepir mantığı dövizde zayıf: eski tabana dönüş pek beklenmez.</p>";
- return '<div class="tbp">'+h+rozet("taban")+"</div>";}
+ return '<div class="tbp">'+h+rozet("taban")+tbrMetin()+"</div>";}
+function tbrMetin(){var r=D&&D.tbr;if(!r)return "";var z=RZ[r[0]]||RZ.o;return '<div class="rz"><b>'+"Emtia/dövizde ölçüldü: "+z[0]+" "+z[1]+"</b> "+esc(r[1])+"</div>";}
 function emDurum(k){var e=k.kel,d=k.d||{},f=k.f,y=k.yon,s=k.sv,h="";
  if(e&&d.kel==="kelepir")h+="<p>🟢 <b>Kelepir bandında</b>: "+yil(e.T_t)+" tabanı "+emF(k,e.T)+" → "+yil(e.P_t)+" tepesi "+emF(k,e.P)+" ("+sayi(e.kat,1)+" kat); bant "+sayi(e.kel_alt)+" – "+sayi(e.kel_ust)+".</p>";
  else if(e&&d.kel==="ucuz")h+="<p><b>Ucuz bandında</b>: "+yil(e.T_t)+" tabanı "+emF(k,e.T)+" → "+yil(e.P_t)+" tepesi "+emF(k,e.P)+" ("+sayi(e.kat,1)+" kat); ucuz bandı "+sayi(e.kel_ust)+" – "+sayi(e.ucuz_ust)+".</p>";

@@ -282,9 +282,11 @@ EGITIM_ROZET = {   # kavram: [durum, BIST'te tek satır, ABD sonucu (None = test
     "kilit": ["r", "Eğitmenin formülü çözülemedi (kutu üst kenarı kilitlerin ancak 4'te 1 ile yarısını tutturuyor); 'kilit üstünde haftalık kapanışta al' rastgeleden iyi değil.", ["r", "ABD'de de 'kilit üstünde haftalık kapanışta al' rastgeleden iyi değil."]],
     "dipara": ["s", "Bölgeye inince almak 52 haftada rastgele haftadan +29 puan iyi (25 yılda +22); ama yükselen dip şartı olmadan 3 yılın dibine aynı yakınlıkta almak da +30 (+19): avantaj dibe yakınlıktan, yapıdan değil. 'Üstünde tutunursa' teyidini beklemek kazancı +21'e (+10) düşürüyor; kırılım sonrası az olay, sonuç belirsiz.", None],
     "kirinti": ["r", "Yükselişteki ara diplere düşüşte dokununca 26 haftada önce +%15 gelme %61; tepeye aynı uzaklıktaki rastgele seviyede %64: seviyeler özel değil, tutma oranını yalnız tepeden uzaklık belirliyor.", None],
-    "taban": ["t", "Rallinin kalktığı tabana dönüş kuralı BIST, ABD, emtia ve dövizde test ediliyor (28.11.2026 taban araştırması); sonuç gelince bu satır güncellenecek.", None],
+    "taban": ["r", "Bölgeye dönen hisse, aynı hafta benzer düşmüş başka hisselerden belirgin iyi değil (2018 sonrası hafif +, öncesi −); kademeli alım getiriyi artırmadı, bölge altı stop düşürdü (28.11 taban araştırması).", ["r", "S&P 500 + 600'de aynı hafta benzer hisselere göre fark yok (−4 puan)."]],
     "supurme": ["s", "3+ temaslı destek süpürülüp geri alınınca 120 günde rastgeleden +7 puan; ama süpürmesiz tepki de +5, kırılıp geri alınmayan +12: süpürmeye özgü değil, genel 'düşüş sonrası alım' etkisi.", ["s", "Wyckoff spring ABD'de de aynı hissenin sıradan haftasından +8-10 puan iyi, ama aynı hafta başka hisse almaktan iyi değil."]],
 }
+# 🧱 taban bölgesinin emtia/döviz sonucu (EGITIM_ROZET 3 alanlı kalsın diye ayrı; json 'tbr', yalnız 🥇 kartlarında). Kaynak 2026-11-28/taban/RAPOR.md
+TABAN_EMTIA = ["r", "1970'ten beri 21 emtiada ve 46 emtia/endeks/döviz serisinde bölge, aynı derinlikteki rastgele bir seviyeden daha sık kırıldı (52 haftada tutma %58'e karşı %69); bölgeye dönüş benzer düşmüş başka varlıklardan iyi gitmedi. Altında 1970'ten 8 olay: 12 ayda ort. +%11, karışık (1976 ve 2008 iyi, 2013 2-3 yıl düz)."]
 EG_PIVOT = 2           # haftalık dönüş noktası: iki yanındaki 2 haftanın en düşüğü/en yükseği (test1 B ana tanımı)
 EG_TOL = 0.5           # temas toleransı = 0,5 haftalık ATR (test1 B ana tanımı)
 EG_PENCERE = 104       # trend çizgisi ve yatay seviyeler: son 2 yıl
@@ -1108,7 +1110,7 @@ def calistir(data, simdi, kapanis_zamani, ana, kucuk, manip=(), dikkat=(), yol=H
             em, em_not = None, f"🥇 hesaplanamadı ({type(e).__name__})"
     veri = {"v": SURUM, "anahtar": anahtar_yaz, "uretim": uretim, "guncel": simdi.strftime("%Y-%m-%d %H:%M"),
             "taze": taze or bool(eski and eski.get("anahtar") == anahtar),
-            "hafta": hs_str, "tamam": tamam, "bayrak": {"yabanci": YABANCI_ACIK}, "egr": EGITIM_ROZET,
+            "hafta": hs_str, "tamam": tamam, "bayrak": {"yabanci": YABANCI_ACIK}, "egr": EGITIM_ROZET, "tbr": TABAN_EMTIA,
             "g0": _g(pd.date_range(end=hafta_son, periods=GRAFIK_HAFTA + 1, freq="W-FRI")[0]),
             "liste": listeler(H), "h": H}
     if em:

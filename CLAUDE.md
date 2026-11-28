@@ -1217,8 +1217,10 @@ portföyde rastgele eklemeden iyi değil → sayfada YOK; 🌱 simgesi panoda SM
   İlk deneme (yalnız ≤%25 genişlik + 'en uzun') altında Şubat–Ağustos 2025'i (2.846–3.516) veriyordu; yükselen merdiven de taban sayılıyordu → medyan ±%8 ve
   eğim ≤%6 eklendi. Sonuç (28.11.2026): ons 11.04–29.08.2025, bölge 3.246–3.453 $, eski tepe 3.534 $ (eğitmenlerin 3.300–3.500'ü). Geriye dönük: taban
   ancak itki görüldükten sonra bilinir (Aralık 2025 verisiyle 2025 tabanı henüz yok). Bölünme düzeltmesi YOK (`emtia_hazirla`; gümüş 30.01.2026 −%31,
-  BTC 12.03.2020 −%37 gerçek). Hisse kartlarındaki BIST oranları emtia metinlerine YAZILMAZ. Rozet `EGITIM_ROZET['taban']` (durum 't' = 🧪 test sürüyor;
-  sonuç `Documents/Bist-arastirma/2026-11-28/taban/RAPOR.md`ten gelince yalnız orayı güncelle).
+  BTC 12.03.2020 −%37 gerçek). Hisse kartlarındaki BIST oranları emtia metinlerine YAZILMAZ. Rozet `EGITIM_ROZET['taban']` = 🔴 tutmadı (BIST: benzer düşmüş hisselerden
+  belirgin iyi değil, yalnız 2018 sonrası hafif +; ABD −4 puan) + `TABAN_EMTIA` (json `tbr`, yalnız 🥇 kartlarında: emtiada bölge rastgele seviyeden daha sık
+  kırıldı, tutma %58 vs %69; altında 1970'ten 8 olay ort. +%11, karışık) — kaynak `Documents/Bist-arastirma/2026-11-28/taban/RAPOR.md` (tekrar araştırma).
+  JS rozet durumu 't' (🧪 test sürüyor) da destekli.
   **Veri:** `calistir` içinde `emtia_guncelle` en çok `EM_YENILE_DK` (30) dakikada bir ayrı tek `yf.download` (10y günlük, daemon iş parçacığı, `EM_ZAMAN` 20 sn;
   ölçüm ilk 8,6 sn sonra ~3 sn + hesap 0,8 sn); başarısız denemeden sonra da 30 dk beklenir (`d`). Hata → eski bölüm `taze: false`, hiç yoksa `{'h': {}}` ve sayfada
   bölüm gizli; istisna haritayı/taramayı bozmaz (`EMTIA_ACIK = False` kapatır). harita.json → `em` = {v, t, taze, sira, h{kod: kayıt + tb, ad, br, yf, g0, son}}
