@@ -47,9 +47,10 @@ NOT = {
            "AL sebebi değil."),
     "risk": RISK_NOTU,
     "sk": ("200 günlük ortalamanın altında, son 2 haftadır oynaklığı çok daralmış hisse dar bandını yukarı kırdı — v3 kırılımından önceki "
-           f"aşama olabilir. {OKY} Geçmişte (sinyal2/erken, ana liste 2017-26, ~990 işlem; ertesi açılışta alıp %15 iz stop) aynı hissenin "
-           "rastgele gününe göre +12 / +7,5 puan (2017-21 / 2022-26); isabet %42-49 — çok sayıda küçük zarar, az sayıda büyük kazanç. "
-           f"{OKK} 2022-26'da BIST 100'ü geçmedi; AL sinyali olarak elendi, sadece bilgi (Telegram'a gelmez)."),
+           f"aşama olabilir. Geçmişte (sinyal2/erken, ana liste 2017-26, ~990 işlem; ertesi açılışta alıp %15 iz stop) aynı hissenin "
+           "sıradan gününe göre iyi görünüyordu (+12 / +7,5 puan), ama bu kıyas sonucu şişiriyordu: aynı gün benzer durumdaki hisselerle "
+           "kıyaslayınca fark yok (−1 puan). İsabet %42-49 — çok sayıda küçük zarar, az sayıda büyük kazanç. "
+           f"{OKK} Aynı gün sıradan bir hisseden 3-6 ayda biraz kötü (−4 / −5 puan; 28.11); 2022-26'da BIST 100'ü geçmedi; AL sinyali olarak elendi, sadece bilgi (Telegram'a gelmez)."),
     "cokus": ("Büyük çöküşlerin çoğu (2017-26'da %61-77'si) hiçbir rozet yanmadan gelir; bunların çoğu piyasa genelindeki düşüşlerdir "
               "(Covid 2020, seçim öncesi 2023, Mart 2025, Eylül 2026). Tek hisseye bakan rozetler bunu önceden göremez. 🚀 pozisyonlarda "
               "koruma %20 iz stop + 🔐 kâr kilidi + piyasa filtresidir."),
@@ -61,7 +62,7 @@ BASLIK = {
     "ko": "120 günde 2 katın üstü + 60 günlük oynaklık %4+: geçmişte 20 günde %25+ çakılma ~%14 (benzer günlerde %5); ama ~%13'ü %50+ daha yükseldi. Risk notu, SAT değil",
     "tv": "🚀 AL'den önceki 20 günde 2+ tavan: geçmişte bu AL'lerin %45'i zararla kapandı (diğerleri %29); ortalama yine artı. Not, filtre değil",
     "uc_e": "Sektörüne ve kârlılığına göre ucuz: geçmişte 12 ayda %60'ı sektörünü geçti (rastgele %50). Bilgi, AL sinyali değil",
-    "sk": "SMA200 altında, oynaklığı daralmış hisse dar bandını yukarı kırdı (v3'ten önceki aşama olabilir). Geçmişte rastgele güne göre +12 / +7,5 puan, isabet %42-49; 2022-26'da BIST 100'ü geçmedi. Bilgi, AL değil",
+    "sk": "SMA200 altında, oynaklığı daralmış hisse dar bandını yukarı kırdı (v3'ten önceki aşama olabilir). Aynı gün benzer durumdaki hisselerden farkı yok (eski '+12 puan' şişirici kıyastı), isabet %42-49; 2022-26'da BIST 100'ü geçmedi. Bilgi, AL değil",
     "uc_t": "Ucuz görünüyor ama tuzak işareti var (manipülasyon / şişme / bedelli artırım): geçmişte yalnız %47'si endeksi geçti. Bilgi",
 }
 TV_TG = "🪤 🔴▼ Son 20 günde {n} tavan: bu tür AL'lerin %45'i zararla bitti (normal %29). AL iptal değil; küçük pozisyon."

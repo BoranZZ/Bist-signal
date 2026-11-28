@@ -627,11 +627,16 @@ def erken_kirilim(d, xu_ust=None):
 BANT_GUN, BANT_DOKUNUS, BANT_GENISLIK, BANT_GERI_GUN, BANT_BOLGE, BANT_DERIN, BANT_ORTA_GUN = 60, 2, 0.30, 3, 0.25, 0.5, 10
 BANT_GOSTER_GUN = 60    # panoda son 🧲 işlemi: sinyali son 60 işlem gününde olan ya da açık olan (index.html şişmesin)
 # Araştırma sayıları (pano kartı + Telegram metni TEK kaynak; G2 + C2, ana liste + küçükler, 2017-11 → 2026-11, MANIPULE hariç):
-# 156 işlem, isabet %77 / %71 (~%73), işlem başı +%23,6 / +%18,9 (~+%20), aynı hissede rastgele güne aynı çıkışla girişten
-# +11,8 / +10,8 puan (~+10), son 1 yılda 39 işlem, işlem başı +%1,3 (isabet %56); sinyallerin %45'i piyasa zayıfken.
-BANT_NOT = {"n": 156, "isabet": 73, "ort": 20, "ikiz": 10, "son1y": "1,3", "zayif": 45,
-            "iyi": "Geçmişte (2017-2026, 156 işlem) bu kurgudan sonra v3 çıkışıyla ortalama +%20, isabet %73; aynı hissede rastgele güne göre +10 puan.",
-            "kotu": "Son 1 yılda kazanç küçük: işlem başı +%1,3 (isabet %56). Az sinyal; tek tek ayarlar istatistik düzeltmesinden geçmiyor — kanıt komşu ayarların tutarlılığından.",
+# 28.11 sıkı kıyas (Documents/Bist-arastirma/2026-11-28/canli-sinyal/RAPOR.md, canlı kodla 164 işlem): ortalama +%22, isabet %74.
+# 14.11'deki "aynı hissede rastgele güne göre +10 puan" ŞİŞİRİCİ kıyastı (aynı hisse + aynı yılın sıradan günü). Doğru kıyas: aynı gün,
+# benzer durumdaki (SMA200'e uzaklık/eğim, zirveden düşüş, 60/120 gün getirisi, oynaklık) sinyalsiz hisseler → fark +1,2 puan (anlamsız),
+# isabet %75 / %76 (benzer). Son 1 yılda 39 işlem, işlem başı +%1,3 (isabet %56); sinyallerin %45'i piyasa zayıfken. AL kuralı DEĞİŞMEDİ.
+BANT_NOT = {"n": 164, "isabet": 74, "benzer": 76, "ort": 22, "son1y": "1,3", "zayif": 45,
+            "iyi": "Geçmişte (2017-2026, 164 işlem) v3 çıkışıyla ortalama +%22, isabet %74. Ama aynı gün benzer durumdaki sinyalsiz hisseler "
+                   "(200 günlük ortalamaya uzaklığı, zirveden düşüşü, son 3-6 ay getirisi ve oynaklığı benzer) aynı çıkışla aşağı yukarı aynı "
+                   "kazancı ve %76 isabeti verdi: fark +1 puan, anlamlı değil. Yani sinyalin ek avantajı kanıtlanmadı. (Eski '+10 puan' aynı "
+                   "hissenin sıradan günüyle yapılan, sonucu şişiren kıyastı; 28.11.)",
+            "kotu": "Son 1 yılda kazanç küçük: işlem başı +%1,3 (isabet %56); 2024'ten beri benzer hisselerin gerisinde. Az sinyal; tek tek ayarlar istatistik düzeltmesinden geçmiyor.",
             "ek": "v3 (🚀) AL'i değil; ek sinyal. Piyasa filtresi yok (sinyallerin ~%45'i BIST 100 50 günlük ortalamasının altındayken geldi)."}
 
 
@@ -813,9 +818,14 @@ def bant_supurme(d, ilk=0):
 # gün aralığının üst %30'unda → AL (ertesi açılış). Çıkış v3 ile aynı (%20 iz + 🔐 A4 + kilitli taban). Açık 🧲 SMA200 pozisyonu varken
 # (kapanışla tetiklenen çıkış gününe kadar) yeni AL yok — araştırmanın zinciri. Piyasa filtresi YOK.
 D200_TOL, D200_UST_PAY, D200_EGIM = 0.02, 0.7, 20
-D200_NOT = {"n": 737, "isabet": 71, "ort": 19, "ikiz": 7,
-            "iyi": "Geçmişte (2017-2026, ana liste + küçükler, 737 işlem) bu kurgudan sonra v3 çıkışıyla ortalama +%19, isabet %71; aynı hissede rastgele güne göre +7 puan (ana listede +9). Piyasa zayıfken de çalıştı.",
-            "kotu": "Son 1 yılda kötü: işlem başı −%2,0 (isabet %55), aynı hissede rastgele günden 1,3 puan geride. Son 2 ayda bu alımlar nakitte beklemekten kötüydü.",
+# 28.11 sıkı kıyas (canli-sinyal/RAPOR.md, 743 işlem): eski "rastgele güne göre +7 puan" şişiriciydi; aynı gün benzer durumdaki
+# hisselere göre fark +0,8 puan (anlamsız), isabet %72 / %73 (benzer). AL kuralı DEĞİŞMEDİ, yalnız metin.
+D200_NOT = {"n": 743, "isabet": 71, "benzer": 73, "ort": 19,
+            "iyi": "Geçmişte (2017-2026, ana liste + küçükler, 743 işlem) v3 çıkışıyla ortalama +%19, isabet %71. Ama aynı gün 200 günlük "
+                   "ortalamaya benzer uzaklıkta, benzer eğimde ve zirveden benzer düşmüş sinyalsiz hisseler de aynı çıkışla aynı kazancı (+%19) ve "
+                   "%73 isabeti verdi: fark +1 puan, anlamlı değil; piyasa zayıfken de fark yok. Yani sinyalin ek avantajı kanıtlanmadı. (Eski "
+                   "'+7 puan' aynı hissenin sıradan günüyle yapılan, sonucu şişiren kıyastı; 28.11.)",
+            "kotu": "Son 1 yılda kötü: işlem başı −%2,0 (isabet %55). Son 2 ayda bu alımlar nakitte beklemekten kötüydü.",
             "ek": "Piyasa zayıfken de AL verir (v3 vermez). Düşen piyasada risk daha yüksek."}
 
 
@@ -2026,7 +2036,8 @@ def bilgi_fiyat(d, tk=None, bolunme=None):
 
 # (3) 🗜️ Sıkışma kırılımı (sinyal2/erken 'sikisma', K=10, U=60, oran 0,35, trend 'alt'): kapanış ≤ SMA200 iken önceki 10 günün aralığı
 # (en yüksek − en düşük) önceki 60 günün aralığının ≤ %35'i ve kapanış önceki 10 günün en yükseğini İLK kez aşıyor. BİLGİ rozeti (son 5 gün):
-# işlem başı rastgele güne göre +12 / +7,5 puan, isabet %42-49 (az sayıda büyük kazanç), 2022-26'da BIST 100'ü geçmedi → AL olarak elendi.
+# eski "rastgele güne göre +12 / +7,5 puan" şişirici kıyastı (28.11 canli-sinyal/RAPOR.md): aynı gün benzer hisselere göre −0,8 puan,
+# sıradan hisseye göre 60 / 120 günde −3,6 / −5,4 puan; isabet %42-49, 2022-26'da BIST 100'ü geçmedi → AL olarak elendi.
 SIK_K, SIK_U, SIK_ORAN, SIK_GUN, SIK_MIN = 10, 60, 0.35, 5, 260
 
 

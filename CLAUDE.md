@@ -974,6 +974,7 @@ Tamamı istemci JS (`pano.py` şablonunda `df*` fonksiyonları), portföyün alt
 renklenemediği için `🟢▲` / `🔴▼`; panoda `<span class=oky>▲</span>` / `<span class=okk>▼</span>` (CSS `.oky`/`.okk`, --pos/--neg).
 🔺 (kırmızı ama "direnç aşıldı" = iyi) ve 📈 (çoğu cihazda kırmızı çizgi) kafa karıştırdığı için iyi/kötü anlamında KULLANILMAZ.
 Endeksle kıyas ve BIST 100 bugün satırı sonuca göre ▲/▼ alır. Robot adlarındaki 📈/📉 (Momentumcu, Daralan iz) isimdir, dokunulmadı.
+28.11: avantajı sıkı kıyasta kanıtlanmamış sinyal (🧲 Bant / 🧲 SMA200) yeşil ▲ almaz → **🟡** (Telegram ve panoda aynı emoji).
 
 ## 🌍 Dünya ve makro · 📅 Ekonomik takvim (2026-11-14, dal `makro-takvim`; SADECE BİLGİ — AL/SAT, iz stop, 🔐, piyasa filtresi, backtest, İşlem Odası DEĞİŞMEZ)
 Araştırmalar: `Documents/Bist-arastirma/2026-11-14/makro/RAPOR.md` ve `.../takvim/RAPOR.md`. **İkisi de AL/SAT filtresi olarak GEÇMEDİ** (makro rejim
@@ -1022,6 +1023,14 @@ Kaynak: dc_akademi 'Altın ne olur abi' likidite avı videosu + kullanıcının 
 fikri. Araştırma arşivi `Documents/Bist-arastirma/2026-11-14/sinyal2/bant/RAPOR.md` (kural, 1 hafta/1 ay/3 ay kıyası) ve `.../sinyal2/birlesik/RAPOR.md`
 (kanonik oda motoruyla kıyas). **Tekrar araştırma.** 1 hafta / 1 aylık bant süpürmeleri rastgele günden KÖTÜ; bant üstü süpürmesi uyarı/çıkış olarak işe
 yaramıyor; bant içi al-sat komisyonu karşılamıyor → bunlar eklenmedi.
+- **⚠️ 28.11.2026 dürüstlük düzeltmesi (dal `sinyal-durustluk`; araştırma `Documents/Bist-arastirma/2026-11-28/canli-sinyal/RAPOR.md`, uygulama
+  `.../2026-11-28/durustluk/RAPOR.md`):** 14.11'deki "aynı hisse + aynı yıl, rastgele gün" kıyası ŞİŞİRİCİ (o günü, aynı hissenin o yılki sıradan
+  gününe göre ölçer; bu hisselerin sıradan günü zaten piyasadan kötü). **Doğru kıyas: aynı gün, benzer durumdaki** (SMA200'e uzaklık/eğim, zirveden
+  düşüş, 60/120 gün getirisi, oynaklık) sinyalsiz hisse. Bu kıyasta 🧲 Bant +1,2 puan (137 olay, isabet %75 / benzer %76), 🧲 SMA200 +0,8 puan (607 olay,
+  %72 / %73), 🗜️ sıkışma −0,8 (sıradan hisseye göre 60/120 g −3,6 / −5,4) — hepsi anlamsız. "Rastgele güne göre +10 / +7 / +12 puan" metinleri ve 🟢▲ /
+  yeşil ▲ işaretleri kaldırıldı; yerine 🟡 "geçmiş isabet %X (N işlem); aynı gün benzer durumdaki hisseler de %Y: sinyalin ek avantajı kanıtlanmadı".
+  `BANT_NOT` / `D200_NOT`: `ikiz` alanı kalktı, `benzer` geldi (n 164 / 743). **AL kuralları, listeler, Telegram gönderimi, İşlem Odası robotları DEĞİŞMEDİ**
+  (yalnız metin; kullanıcı: "sadece metinleri düzelt, listeden çıkartma"). Yeni araştırmada kıyas her zaman "aynı gün benzer hisse" ile yapılmalı.
 - **Kural (`sinyal.bant_olaylar` / `bant_zincir` / `bant_supurme`, sabitler `BANT_*`):** bant = bugün hariç son 60 işlem gününün en yüksek High / en düşük
   Low'u; alt/üst %25 bölge arasında en az 2 gidiş-geliş; genişlik ≤ %30 (ortaya göre). Low bant altını kırar (bant o gün dondurulur), en geç 3. günün
   kapanışında kapanış yeniden bant altının üstünde (süpürme dibi bant genişliğinin yarısından derine inerse iptal); geri almadan sonra en çok 10 gün içinde
@@ -1036,11 +1045,11 @@ yaramıyor; bant içi al-sat komisyonu karşılamıyor → bunlar eklenmedi.
   `iz`'i o girişten kurar (`iz.kaynak = 'bant'`, `al_tarih` = 🧲 sinyal günü) → mevcut portföy planı, 'iz stop kırıldı' Telegram'ı, tablo Stop sütunu aynen
   çalışır (v3'ün `tk` override'ı gibi; 🧲 Bant ile 🧲 SMA200'den en yeni giriş; `iz.kaynak` 'bant'|'sma200'). Açık 🚀 v3 pozisyonunda iz ASLA 🧲'den gelmez
   (test). 16.11'de 257 hissenin 36'sında portföy iz'i 🧲'den (34'ü SMA200) — yalnız o hisse portföydeyse görünür.
-- **Pano:** tablo rozetleri `.bsb` (▲ 🧲 AL / 🧲 AL Ng önce / 🧲 bantta · Ng / 🧲 ortaya %x), hisse penceresinde 🚀 kutusunun altında `bsHtml` (bant alt/orta/üst,
-  süpürme dibi = stop fikri, ilk hedef bant üstü, çıkış A4 + %20 iz, piyasa zayıfsa not, 🟢▲ geçmiş istatistik, 🔴▼ son 1 yıl dürüstlük satırı, son 🧲
+- **Pano:** tablo rozetleri `.bsb` (🟡 🧲 AL / 🧲 AL Ng önce / 🧲 bantta · Ng / 🧲 ortaya %x), hisse penceresinde 🚀 kutusunun altında `bsHtml` (bant alt/orta/üst,
+  süpürme dibi = stop fikri, ilk hedef bant üstü, çıkış A4 + %20 iz, piyasa zayıfsa not, 🟡 geçmiş istatistik (28.11), 🔴▼ son 1 yıl dürüstlük satırı, son 🧲
   işlemleri), 'Bugün ne var?' kartında '🧲 Bant süpürme dönüşü (son 5 gün)' + '👀 🧲 Ortaya dönüş bekleyen' satırları, favorilerde 🧲, sözlükte 3 madde.
   `DATA[k].bs` sadece son/izle olan hissede (16.11'de 11 hisse; index.html +~13 KB).
-- **Telegram:** v3 AL'lerinden AYRI bölüm '🟢▲ 🧲 AL — Bant süpürme dönüşü (n)' (`tarama.bant_bolumu`/`bant_satiri`), SADECE kesin kapanıştan sonra (18:30+;
+- **Telegram:** v3 AL'lerinden AYRI bölüm '🟡 🧲 AL — Bant süpürme dönüşü (n)' (28.11'e kadar 🟢▲) (`tarama.bant_bolumu`/`bant_satiri`), SADECE kesin kapanıştan sonra (18:30+;
   kapanıştan önce gönderilmediği için iptal mesajı yok), günde bir kez (`durum.json` → `bs_gonderilen` {tarih, kodlar}; portföy bilgisi yok), 🎈/🔒/taban
   serisinde mesaj yok. /hisse cevabında 🧲 satırı. v3 AL'i, v3 piyasa filtresi, backtest.py DEĞİŞMEDİ.
 - **🏢 3 DENEME robotu (2026-11-17; birlesik/RAPOR.md bölüm 7; salon köşesi '🧲 DESTEK DÖNÜŞÜ · DENEME' [1,0 / 3,7 / 6,4, 15,6] — yapay zekâ hayalet
@@ -1054,10 +1063,10 @@ yaramıyor; bant içi al-sat komisyonu karşılamıyor → bunlar eklenmedi.
   `d200_zincir` / `sma200_donus` → `analiz_et` `d2` (Bant ile aynı düzen: bugun, son, poz, g; grafik için `s2` = son 130 günün SMA200'ü). Kural: SMA200 20
   günde yükselmiş; önceki 10 günün kapanışları SMA200 × 1,02'nin üstünde; dün düşük ≤ SMA200 × 1,02 ve kapanış ≥ SMA200 × 0,98 (dokunuş); bugün kapanış dünden
   yüksek ve gün aralığının üst %30'unda → AL (ertesi açılış). Çıkış %20 iz + 🔐 + kilitli taban; zincir: kapanışla tetiklenen çıkış gününden SONRA yeni AL
-  (araştırmanın motoru; Bant'ta gerçekçi çıkış günü). Piyasa filtresi yok. Evren `BANT_EVREN`. Metin `sinyal.D200_NOT` (737 işlem, ort +%19, isabet %71,
-  rastgeleye göre +7 puan; 🔴▼ son 1 yılda işlem başı −%2,0, isabet %55). Pano: rozet '▲ 🧲 SMA200' / '🧲 SMA200 Ng önce', `d2Html` kutusu (açıklama +
+  (araştırmanın motoru; Bant'ta gerçekçi çıkış günü). Piyasa filtresi yok. Evren `BANT_EVREN`. Metin `sinyal.D200_NOT` (28.11: 743 işlem, ort +%19, isabet %71,
+  benzer hisseler %73 — ek avantaj kanıtlanmadı; 🔴▼ son 1 yılda işlem başı −%2,0, isabet %55). Pano: rozet '🟡 🧲 SMA200' / '🧲 SMA200 Ng önce', `d2Html` kutusu (açıklama +
   'Piyasa zayıfken de AL verir (v3 vermez). Düşen piyasada risk daha yüksek.' + istatistik + dürüst satır), 'Bugün ne var?' satırı, favoriler, sözlük. Telegram
-  ayrı bölüm '🟢▲ 🧲 AL — SMA200'den dönüş (n)' (`d2_bolumu`/`d2_satiri`, kesin kapanış sonrası, `durum.json` → `d2_gonderilen`), /hisse satırı.
+  ayrı bölüm '🟡 🧲 AL — SMA200'den dönüş (n)' (`d2_bolumu`/`d2_satiri`, kesin kapanış sonrası, `durum.json` → `d2_gonderilen`), /hisse satırı.
 - **Canlı karne (gecmis.json/gecmis.html) — 🧲 ayrı tür:** `tarama.DESTEK_KURAL` = {'bant': 'bs', 'sma200': 'd2'}; kesin kapanışta `bugun` olan 🧲 sinyali
   `kural: 'bant'|'sma200'` kaydı açar (taban serisi hariç; aynı hissede aynı türde açık kayıt yoksa; 🚀 kaydından bağımsız), kapanış mevcut genel döngüyle
   (%20 iz + 🔐). Kartlar ve 'eski kural' özeti, `KOTU_GUN` kıyası, haftalık özet yalnız eski düzen (v3 / eski); 🧲 kayıtlar tabloda `.bskb` '🧲 bant' /
@@ -1116,8 +1125,9 @@ Testler scratchpad `433930d7…/scratchpad/paket/` (`t_birim.py`, `t_dogrula.py`
   0 fark. **Telegram 🚀 AL satırına tek satır** (`bilgi.TV_TG`; raporun önerisi) — AL gönderimi değişmez.
 - **🗜️ sıkışma kırılımı (`sk`, kullanıcı özellikle istedi):** kapanış ≤ SMA200, önceki 10 günün aralığı önceki 60 günün ≤ %35'i, kapanış önceki 10 günün
   en yükseğini İLK kez aşıyor (`sinyal.sikisma_seri`, ≥260 gün), son 5 işlem günü rozet. Araştırma (`sinyal2/erken/sinyaller.sikisma`) ile vektörel 0 fark,
-  6.894 kesilmiş hisse-günde 0 fark, araştırma motoruyla (zincir, %15 iz) `sinyaller_sikisma.csv` 1.894/1.894 işlem birebir. Metin: rastgele güne göre
-  +12 / +7,5 puan, isabet %42-49; 🔴▼ 2022-26'da BIST 100'ü geçmedi, AL olarak elendi. Telegram'a, İşlem Odası'na girmez.
+  6.894 kesilmiş hisse-günde 0 fark, araştırma motoruyla (zincir, %15 iz) `sinyaller_sikisma.csv` 1.894/1.894 işlem birebir. Metin (28.11 düzeltildi):
+  eski "rastgele güne göre +12 / +7,5 puan" şişiriciydi, aynı gün benzer hisselere göre fark yok (−0,8), isabet %42-49; 🔴▼ sıradan hisseye göre 3-6 ayda
+  −4 / −5 puan, 2022-26'da BIST 100'ü geçmedi, AL olarak elendi. Telegram'a, İşlem Odası'na girmez.
 - **💎 kalitesine göre ucuz (`uc`):** her taramada log(PD/DD) = değerleme grubu sabiti + ROE (finans ayrı eğim, ROE −0,5…1 kırpılı) `lstsq`, kalıntı sırası
   c ≥ 0,8 + son 4 çeyrek kârlı (sanayi/hizmet, holding) ya da GYO'da grup içi B/P ≥ 0,8; tuzak (⚠️ MANIP2, 🎈, bedelli) varsa '🪤 ucuz ama dikkat' ('t');
   c ≤ 0,2 'p' pahalı satırı; banka/finans 'b' (rozet yok). Gruplar = KIYAS_GRUP → `bilgi.BIRLESTIR` → `ELLE` (araştırmanın ortak.py'si). <40 hisse

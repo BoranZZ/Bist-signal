@@ -876,11 +876,13 @@ ROBOT_EK = {
                              "almadan önce canlı karne için odada."},
     "kirilim_destek": {"renk": "#86EFAC", "kisa": "Kırılım+destek",
                        "not": "DENEME / izleme (2026-11-17): kanonik oda motoruyla 2017-26 ana listede (10 başlangıç gününün medyanı) v3 tek başına "
-                              "+%105 / +%955 (2017-21 / 2022-26); v3 + 🧲 Bant + 🧲 SMA200 +%306 / +%1.136, en büyük düşüş −%32 / −%25; 🎲 aynı günlerde "
-                              "rastgele ek girişin %98 / %98'inden iyi. Son 12 ayda katkı ~0; son 2 ayda bu alımlar nakitten kötüydü. 2-3 ay izlenecek."},
+                              "+%105 / +%955 (2017-21 / 2022-26); v3 + 🧲 Bant + 🧲 SMA200 +%306 / +%1.136, en büyük düşüş −%32 / −%25; 🎲 aynı gün herhangi "
+                              "bir hisseyle ek girişin %98 / %88'inden, benzer durumdaki hisseyle ek girişin %98 / %75'inden iyi (28.11 sıkı "
+                              "kıyas; tek tek işlemlerde 🧲 AL'lerin benzer hisseden farkı yok). Son 12 ayda katkı ~0; son 2 ayda bu alımlar nakitten kötüydü. 2-3 ay izlenecek."},
     "destek_donus": {"renk": "#5EEAD4", "kisa": "Destek dönüşçü",
                      "not": "DENEME / izleme (2026-11-17): v3'ten bağımsız; araştırmada ana listede tek başına +%158 / +%1.120 (2017-21 / 2022-26; v3 "
-                            "+%105 / +%955), isabet %71, düşüş −%31 / −%22; 🎲 %96 / %100. Piyasa zayıfken de alım yapar. Son 12 ayda ~0."},
+                            "+%105 / +%955), isabet %71, düşüş −%31 / −%22; 🎲 herhangi bir hisseye göre %96 / %100, benzer durumdaki hisseye göre "
+                            "%73 / %90 (28.11). Piyasa zayıfken de alım yapar. Son 12 ayda ~0."},
     "tuzak_geri": {"renk": "#FDBA74", "kisa": "Tuzak sonrası",
                    "not": "DENEME (2026-11-17): tüm evrende (ana + küçük) v3'e denk (+%181 / +%1.377, 2017-21 / 2022-26) ve 🎲 %98; AMA ana listede "
                           "rastgele girişten kötü (%12) — kazanç küçük hisselerden; düşüş −%39 / −%31. Canlıda doğrulanması için odada; panoda AL yok."},

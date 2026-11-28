@@ -1317,8 +1317,9 @@ def bant_bolumu(bant_al, pf, piyasa=None):
     """🧲 bölümü: ayrı başlık, v3 AL'leriyle karışmaz. Sıra: portföydekiler, sonra son 20 günde az yükselen."""
     sirali = sorted(bant_al, key=lambda x: (x["kod"] not in pf, x["mom20"] if x.get("mom20") is not None else 0))
     gos = [s for s in sirali if s["kod"] in pf] + [s for s in sirali if s["kod"] not in pf][:MAX_AL_SATIR]
-    bas = (f"🟢▲ 🧲 <b>AL — Bant süpürme dönüşü ({len(bant_al)})</b>\n<i>{BANT_NOT['ek']}</i>\n"
-           f"🟢▲ <i>Geçmiş isabet %{BANT_NOT['isabet']} ({BANT_NOT['n']} işlem), rastgele güne göre +{BANT_NOT['ikiz']} puan.</i>\n"
+    bas = (f"🟡 🧲 <b>AL — Bant süpürme dönüşü ({len(bant_al)})</b>\n<i>{BANT_NOT['ek']}</i>\n"
+           f"🟡 <i>Geçmiş isabet %{BANT_NOT['isabet']} ({BANT_NOT['n']} işlem); aynı gün benzer durumdaki hisseler de "
+           f"%{BANT_NOT['benzer']}: sinyalin ek avantajı kanıtlanmadı.</i>\n"
            f"🔴▼ <i>Son 1 yılda kazanç küçük (işlem başı +%{BANT_NOT['son1y']}). Giriş ertesi gün açılış.</i>")
     if piyasa and piyasa.get("zayif"):
         bas += "\n⚠️ <i>Piyasa zayıf (BIST 100 &lt; 50 günlük ortalama): 🚀 AL gelmez; bu sinyal yine verilir — temkinli ol.</i>"
@@ -1346,8 +1347,9 @@ def d2_bolumu(d2_al, pf, piyasa=None):
     """🧲 SMA200 bölümü (v3 ve 🧲 Bant'tan ayrı başlık)."""
     sirali = sorted(d2_al, key=lambda x: (x["kod"] not in pf, x["mom20"] if x.get("mom20") is not None else 0))
     gos = [s for s in sirali if s["kod"] in pf] + [s for s in sirali if s["kod"] not in pf][:MAX_AL_SATIR]
-    bas = (f"🟢▲ 🧲 <b>AL — SMA200'den dönüş ({len(d2_al)})</b>\n<i>v3 (🚀) AL'i değil; ek sinyal. {D200_NOT['ek']}</i>\n"
-           f"🟢▲ <i>Geçmiş isabet %{D200_NOT['isabet']} ({D200_NOT['n']} işlem), rastgele güne göre +{D200_NOT['ikiz']} puan.</i>\n"
+    bas = (f"🟡 🧲 <b>AL — SMA200'den dönüş ({len(d2_al)})</b>\n<i>v3 (🚀) AL'i değil; ek sinyal. {D200_NOT['ek']}</i>\n"
+           f"🟡 <i>Geçmiş isabet %{D200_NOT['isabet']} ({D200_NOT['n']} işlem); aynı gün benzer durumdaki hisseler de "
+           f"%{D200_NOT['benzer']}: sinyalin ek avantajı kanıtlanmadı.</i>\n"
            f"🔴▼ <i>Son 1 yılda kötü (işlem başı −%2,0). Giriş ertesi gün açılış.</i>")
     if piyasa and piyasa.get("zayif"):
         bas += "\n⚠️ <i>Piyasa zayıf (BIST 100 &lt; 50 günlük ortalama): 🚀 AL gelmez; bu sinyal yine verilir — temkinli ol.</i>"
@@ -1892,7 +1894,7 @@ def hisse_metni(s, p=None):
     bs = s.get("bs") or {}
     bb, bz = bs.get("son") or {}, bs.get("izle")
     if bs.get("bugun"):
-        sat.append(f"🟢▲ 🧲 <b>Bugün bant süpürme dönüşü AL</b> (ikinci tür) · bant {_sayi(bb['alt'])}–{_sayi(bb['ust'])}, "
+        sat.append(f"🟡 🧲 <b>Bugün bant süpürme dönüşü AL</b> (ikinci tür) · bant {_sayi(bb['alt'])}–{_sayi(bb['ust'])}, "
                    f"stop fikri {_sayi(bb['dip'])} altı kapanış")
     elif bb.get("durum") == "AL" and bb.get("stop") is not None:
         sat.append(f"🧲 bant dönüşü AL {bb['gun']} gün önce ({_tt(bb['t'])}), o günden beri {_yzd(bb.get('degisim'))} · "
@@ -1902,7 +1904,7 @@ def hisse_metni(s, p=None):
     d2 = s.get("d2") or {}
     dd = d2.get("son") or {}
     if d2.get("bugun"):
-        sat.append(f"🟢▲ 🧲 <b>Bugün SMA200'den dönüş AL</b> (ikinci tür) · 200 günlük ortalama {_sayi(dd['s200'])}")
+        sat.append(f"🟡 🧲 <b>Bugün SMA200'den dönüş AL</b> (ikinci tür) · 200 günlük ortalama {_sayi(dd['s200'])}")
     elif dd.get("durum") == "AL" and dd.get("stop") is not None:
         sat.append(f"🧲 SMA200 dönüşü AL {dd['gun']} gün önce ({_tt(dd['t'])}), o günden beri {_yzd(dd.get('degisim'))} · "
                    f"📍 iz stop <b>{dd['stop']} TL</b>")
