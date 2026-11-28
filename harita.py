@@ -25,7 +25,7 @@ import pandas as pd
 
 HARITA_JSON = "harita.json"
 HARITA_HTML = "harita.html"
-SURUM = 5              # 2: 📚 eğitim katmanı (eg); 3: dip arası bölge + ekmek kırıntısı; 4: 🥇 altın/gümüş/döviz bölümü (em); 5: 28.11 rozet denetimi (egr metinleri) → ilk taramada yeniden hesaplanır
+SURUM = 6              # 6: ⚖️ arz-talep bölgeleri (at); 2: 📚 eğitim katmanı (eg); 3: dip arası bölge + ekmek kırıntısı; 4: 🥇 altın/gümüş/döviz bölümü (em); 5: 28.11 rozet denetimi (egr metinleri) → ilk taramada yeniden hesaplanır
 YABANCI_ACIK = False   # yabancı payı satırı: test OLUMSUZ (2026-11-19/yabanci/RAPOR.md); kullanıcı karar verene kadar kapalı, sayfada görünmez
 INDIRME_DONEM = "10y"
 ZAMAN_ASIMI = 45       # sn: uzun geçmiş indirmesi bundan uzun sürerse eski harita kalır, tarama devam eder
@@ -284,6 +284,7 @@ EGITIM_ROZET = {   # kavram: [durum, BIST'te tek satır, ABD sonucu (None = test
     "dipara": ["r", "Bölgeye inince almak, aynı hafta benzer ralli ve düşüş yaşamış başka hisseden iyi değil (52 haftada −11 puan; 25 yılda ve 10 yılda); eski +29 / +22 puan kriz zamanlamasıydı. 'Üstünde tutunursa' teyidini beklemek de iyi değil (−8); kırılım sonrası almak kötü (−37, az olay).", ["r", "ABD'de de bölgede almak benzer hisselerden farksız (+2 puan), teyit beklemek de (+3); kırılım sonrası almak +23 puan iyi: 'kırarsa düşer' ABD'de ters."]],
     "kirinti": ["r", "Yükselişteki ara diplere düşüşte dokununca 26 haftada önce +%15 gelme %61; tepeye aynı uzaklıktaki rastgele seviyede %64: seviyeler özel değil, tutma oranını yalnız tepeden uzaklık belirliyor.", None],
     "taban": ["r", "Bölgeye dönen hisse, aynı hafta benzer düşmüş başka hisselerden belirgin iyi değil (2018 sonrası hafif +, öncesi −); kademeli alım getiriyi artırmadı, bölge altı stop düşürdü (28.11 taban araştırması).", ["r", "S&P 500 + 600'de aynı hafta benzer hisselere göre fark yok (−4 puan)."]],
+    "arztalep": ["r", "2000-2026 BIST'te taze talep bölgesine ilk dokunuş, aynı gün benzer düşmüş hisselerden iyi değil: 26 haftada 4-7 puan kötü (haftalık ana ayar; günlükte 2-4). 'Taze' (hiç dokunulmamış) ya da 'ucuz yarıda' olması fark yaratmadı. Bilgi, AL değil (28.11 SMC testi).", ["r", "ABD'de (S&P 500 + 600) ve 46 emtia/endeks/döviz serisinde de fark yok (ABD'de 1-13 haftada +1 puandan küçük artı, aynı artı taze olmayan ve pahalı yarıdaki bölgelerde de var)."]],
     "supurme": ["r", "3+ temaslı destek süpürülüp geri alınınca, aynı gün benzer düşmüş başka hisseden iyi değil (60 günde 0, 126 günde −1 puan); eski '+7 puan' kriz zamanlamasıydı. Süpürmesiz tepki de farksız (−2).", ["r", "Wyckoff spring ABD'de benzer ralli ve düşüş yaşamış başka hisseden iyi değil, biraz kötü (52 haftada −4 puan)."]],
 }
 # 🧱 taban bölgesinin emtia/döviz sonucu (EGITIM_ROZET 3 alanlı kalsın diye ayrı; json 'tbr', yalnız 🥇 kartlarında). Kaynak 2026-11-28/taban/RAPOR.md
@@ -636,6 +637,199 @@ def egitim_destek(eg, en_az=3):
     return tuple(max(alt, key=lambda z: z[0])) if alt else None
 
 
+# ============================================================ ⚖️ arz-talep bölgeleri (SADECE BİLGİ; 2026-11-28, dal `altin-harita`)
+# ICT/SMC "taze talep bölgesi / emir bloğu" — Ahmet Emin'in kuralı. Tanım 28.11 testinin ANA AYARIYLA BİREBİR (Bist-arastirma/2026-11-28/smc,
+# smc_ortak.atr14/bars/itkiler/bolge, ayar 'taban' + 'a3'): test sonucu 🔴 (EGITIM_ROZET['arztalep']); AL/SAT, Telegram, İşlem Odası, backtest DEĞİŞMEZ.
+#  * İTKİ (hızlı hareket): s mumundan başlayan 1-3 mumda kapanış, s−1 kapanışının ≥ 3 × ATR14[s−1] üstünde (en kısa; arama itkinin bitişinden sürer).
+#  * TALEP BÖLGESİ: itkiden hemen önceki 2-8 mumluk dar taban (en yüksek − en düşük ≤ 2 ATR, en uzunu); bölge = [en düşük, en yüksek].
+#    Bölge yüksekliği tavanın %25'inden büyükse ya da itki bölgenin üstüne kapanmadıysa atılır.
+#  * DOKUNUŞ: itki bittikten en az 3 mum sonra en düşüğün bölge tavanına değmesi (taze = hiç değmemiş). Sonraki dokunuş, fiyat bölgeden ≥ 1 ATR
+#    uzaklaştıktan sonra yeniden değerse sayılır (testteki 'ikinci dokunuş'). Bölge dibinin altında kapanış = bölge kırıldı (gösterilmez).
+#  * UCUZ YARI: bölgenin ortası, (ilk dokunuştan / dokunulmadıysa bugünden) önceki 120 günün / 52 haftanın aralığının ortasının altında.
+#  * Bölge, itki son AT_OMUR mum içinde bittiyse gösterilir (testteki taze dokunuş penceresi: günlük 500 gün, haftalık 104 hafta).
+#  * ARZ BÖLGESİ = aynısının aynası (videolar/: 'düşüşten önceki dar tepe'; test yalnız talebi ölçtü): ≥ 3 ATR düşüşten hemen önceki dar taban,
+#    dokunuş = en yüksek bölge dibine değer, kırılma = bölge tavanının üstünde kapanış, 'pahalı yarı' = ortası aralığın ortasının üstünde.
+# Günlük (G) ve haftalık (H; W-FRI, süren hafta dahil). Günde bir kez `yenile` içinde hesaplanır; fiyata uzaklık sayfada anlık fiyatla.
+AT_K = 3.0             # itki eşiği: ≥ 3 ATR14 ('a3', testin ana ayarı)
+AT_TABAN_ATR = 2.0     # dar taban: en yüksek − en düşük ≤ 2 ATR
+AT_YUK = 0.25          # bölge yüksekliği tavanın en çok %25'i
+AT_OMUR = {"G": 500, "H": 104}
+AT_LB = {"G": 120, "H": 52}
+AT_UZAK = 0.40         # fiyatın en çok %40 uzağındaki bölgeler
+AT_ADET = 2            # her yönde, her zaman diliminde en yakın 2 bölge
+AT_YENI_GUN = 10       # 'taze talep bölgesinde' listesi: ilk dokunuş son 10 işlem günündeyse hâlâ 'ilk dokunuş' sayılır
+
+
+def _at_atr14(h, l, c):
+    """smc_ortak.atr14 ile aynı (ewm alfa 1/14, ilk 14 mumda NaN)."""
+    pc = np.r_[np.nan, c[:-1]]
+    tr = np.nanmax(np.vstack([h - l, np.abs(h - pc), np.abs(l - pc)]), axis=0)
+    return pd.Series(tr).ewm(alpha=1 / 14, adjust=False, min_periods=14).mean().values
+
+
+def _at_mumlar(d, tf):
+    """smc_ortak.bars ile aynı: günlük ya da W-FRI haftalık mumlar (süren hafta dahil) + ATR14; ilk/son = mumun günlük indeksleri."""
+    O, H, L, C = (d[k].values.astype(float) for k in ("Open", "High", "Low", "Close"))
+    if tf == "G":
+        ix = np.arange(len(C))
+        return {"o": O, "h": H, "l": L, "c": C, "ilk": ix, "son": ix, "atr": _at_atr14(H, L, C)}
+    wk = d.index.to_period("W-FRI")
+    s = pd.Series(np.arange(len(d))).groupby(np.asarray(wk.astype(str))).agg(["min", "max"]).sort_values("min")
+    ilk, son = s["min"].values, s["max"].values
+    b = {"ilk": ilk, "son": son, "o": O[ilk], "h": np.maximum.reduceat(H, ilk), "l": np.minimum.reduceat(L, ilk), "c": C[son]}
+    b["atr"] = _at_atr14(b["h"], b["l"], b["c"])
+    return b
+
+
+def _at_itkiler(c, a, yon=1, k=AT_K):
+    """smc_ortak.itkiler ('a3'): yon=1 yükseliş, yon=−1 düşüş (ayna). Döner [(s, e), ...]. Koşul vektörel, yürüyüş aynı sırayla
+    (s'de itki varsa en kısa m alınır ve arama e+1'den sürer, yoksa s+1)."""
+    c, a = np.asarray(c, float), np.asarray(a, float)
+    n = len(c)
+    if n < 2:
+        return []
+    ilk_m = np.zeros(n, dtype=int)
+    s_ix = np.arange(1, n)
+    base, ab = c[s_ix - 1], a[s_ix - 1]
+    gecerli = (ab == ab) & (base > 0)
+    for m in (3, 2, 1):                                # küçük m en son yazılır → en kısa itki
+        e = s_ix + m - 1
+        ic = e < n
+        kos = np.zeros(len(s_ix), dtype=bool)
+        kos[ic] = gecerli[ic] & (yon * (c[e[ic]] - base[ic]) >= k * ab[ic])
+        ilk_m[s_ix[kos]] = m
+    aday = np.nonzero(ilk_m)[0]
+    out, s, q = [], 1, 0
+    while q < len(aday):
+        if aday[q] < s:
+            q = int(np.searchsorted(aday, s))
+            continue
+        s0 = int(aday[q])
+        e0 = s0 + int(ilk_m[s0]) - 1
+        out.append((s0, e0))
+        s = e0 + 1
+        q += 1
+    return out
+
+
+def _at_taban(h, l, a, s):
+    """smc_ortak.bolge(tip='taban'): itkiden hemen önceki 2-8 mumluk, en yüksek − en düşük ≤ 2 ATR olan en uzun pencere."""
+    for n in range(8, 1, -1):
+        j = s - n
+        if j < 0:
+            continue
+        if h[j:s].max() - l[j:s].min() <= AT_TABAN_ATR * a[s - 1]:
+            return float(l[j:s].min()), float(h[j:s].max()), j
+    return None
+
+
+def arz_talep_tf(d, tf, yon):
+    """Tek zaman dilimi, tek yön (1 talep, −1 arz). Döner canlı (kırılmamış, ömrü dolmamış) bölgeler listesi:
+    {a, u, j (taban ilk mumu), e (itki son mumu), n (dokunuş sayısı), t1 (ilk dokunuş GÜNÜ indeksi | None), y (ucuz/pahalı yarı), son (son dokunuş günü)}."""
+    b = _at_mumlar(d, tf)
+    o, h, l, c, a, ilk, son = b["o"], b["h"], b["l"], b["c"], b["atr"], b["ilk"], b["son"]
+    Ld, Hd = d["Low"].values.astype(float), d["High"].values.astype(float)
+    n = len(c)
+    out = []
+    for s, e in _at_itkiler(c, a, yon):
+        if e < n - 1 - AT_OMUR[tf]:
+            continue
+        z = _at_taban(h, l, a, s)
+        if z is None:
+            continue
+        zb, zt, j = z
+        if zb <= 0 or (zt - zb) / zt > AT_YUK:
+            continue
+        if (yon > 0 and zt >= c[e]) or (yon < 0 and zb <= c[e]):
+            continue                                  # itki bölgenin dışına kapanmadı
+        # kırıldı mı? (itkiden sonra bölgenin öbür yanında kapanış)
+        sonra = c[e + 1:]
+        if len(sonra) and ((yon > 0 and (sonra < zb).any()) or (yon < 0 and (sonra > zt).any())):
+            continue
+        # dokunuşlar (itkiden ≥ 3 mum sonra); sonraki dokunuş için önce ≥ 1 ATR uzaklaşma
+        deg = (l <= zt) if yon > 0 else (h >= zb)
+        dok = []
+        q = np.nonzero(deg[e + 3:])[0]
+        if len(q):
+            dok.append(e + 3 + int(q[0]))
+            while True:                                # sonraki dokunuş: önce ≥ 1 ATR uzaklaşma (dokunuşun ATR'si), sonra ≥ 3 mum sonra yeniden değme
+                t = dok[-1]
+                ai = a[t] if a[t] == a[t] else 0.0
+                uz = (h[t + 1:] >= zt + ai) if yon > 0 else (l[t + 1:] <= zb - ai)
+                r = np.nonzero(uz)[0]
+                if not len(r):
+                    break
+                b0 = max(t + 1 + int(r[0]) + 1, t + 3)
+                r2 = np.nonzero(deg[b0:])[0]
+                if not len(r2):
+                    break
+                dok.append(b0 + int(r2[0]))
+        gun = []
+        for tt in dok:                                 # dokunuşun GÜNÜ (haftalık bölgede günlük veriden)
+            d0, d1 = ilk[tt], son[tt]
+            q = np.nonzero((Ld[d0:d1 + 1] <= zt) if yon > 0 else (Hd[d0:d1 + 1] >= zb))[0]
+            gun.append(int(d0 + q[0]) if len(q) else int(d1))
+        ref = dok[0] if dok else n
+        lb0 = max(0, ref - AT_LB[tf])
+        if yon > 0:
+            uc = float(h[s:ref].max()) if ref > s else zt
+            rh = max(float(h[lb0:ref].max()) if ref > lb0 else uc, uc)
+            rl = min(float(l[lb0:ref].min()) if ref > lb0 else zb, zb)
+            yari = (zt + zb) / 2 <= (rh + rl) / 2
+        else:
+            uc = float(l[s:ref].min()) if ref > s else zb
+            rl = min(float(l[lb0:ref].min()) if ref > lb0 else uc, uc)
+            rh = max(float(h[lb0:ref].max()) if ref > lb0 else zt, zt)
+            yari = (zt + zb) / 2 >= (rh + rl) / 2
+        out.append({"a": zb, "u": zt, "j": int(ilk[j]), "e": int(son[e]), "n": len(dok), "t1": gun[0] if gun else None,
+                    "son": gun[-1] if gun else None, "y": bool(yari)})
+    return out
+
+
+def arz_talep(d):
+    """⚖️ Kart alanı 'at': {'tg','ag','th','ah'} (talep/arz × günlük/haftalık), her biri fiyata en yakın AT_ADET bölge:
+    [alt, üst, taban başlangıç tarihi, dokunuş sayısı (0 = taze), ilk dokunuş tarihi | None, ucuz(talep)/pahalı(arz) yarı 0/1,
+     yeni (ilk ve tek dokunuş son AT_YENI_GUN işlem gününde) 0/1]. Kesişen bölgelerden yalnız fiyata en yakını alınır."""
+    if d is None or len(d) < 30:
+        return {}
+    f = float(d["Close"].iloc[-1])
+    nd = len(d)
+    tarih = d.index
+    sonuc = {}
+    for tf, kt in (("G", "g"), ("H", "h")):
+        for yon, ky in ((1, "t"), (-1, "a")):
+            Z = arz_talep_tf(d, tf, yon)
+            if yon > 0:
+                Z = [z for z in Z if z["a"] <= f and z["u"] >= f * (1 - AT_UZAK)]
+                Z.sort(key=lambda z: -z["u"])
+            else:
+                Z = [z for z in Z if z["u"] >= f and z["a"] <= f * (1 + AT_UZAK)]
+                Z.sort(key=lambda z: z["a"])
+            sec = []
+            for z in Z:
+                if any(z["a"] <= x["u"] and x["a"] <= z["u"] for x in sec):
+                    continue
+                sec.append(z)
+                if len(sec) >= AT_ADET:
+                    break
+            if sec:
+                sonuc[ky + kt] = [[_r(z["a"]), _r(z["u"]), _g(tarih[z["j"]]), z["n"], _g(tarih[z["t1"]]) if z["t1"] is not None else None,
+                                   int(z["y"]), int(z["n"] == 1 and z["t1"] is not None and z["t1"] >= nd - AT_YENI_GUN)] for z in sec]
+    return sonuc
+
+
+def at_taze_talep(at, f):
+    """'⚖️ Taze talep bölgesinde' listesi: fiyat bir talep bölgesinin İÇİNDE ve bu bölgeye ilk dokunuş (taze ya da ilk dokunuş son 10 işlem günü).
+    Döner ilk uyan (tf, bölge) — önce haftalık — ya da None."""
+    if not at or not f:
+        return None
+    for tf in ("h", "g"):
+        for z in at.get("t" + tf) or []:
+            if z[0] <= f <= z[1] and (z[3] == 0 or z[6]):
+                return tf, z
+    return None
+
+
 # ============================================================ tek hisse kaydı
 def _r(v, sig=5):
     if v is None or not np.isfinite(v):
@@ -709,6 +903,13 @@ def hisse_kaydi(d, hafta_son, tamam, grup):
             kayit["eg"] = eg
     except Exception as e:
         print(f"Harita: eğitim katmanı hesaplanamadı ({type(e).__name__}).")
+    # ⚖️ arz-talep bölgeleri (hata olursa yalnız bu alan düşer)
+    try:
+        at = arz_talep(d)
+        if at:
+            kayit["at"] = at
+    except Exception as e:
+        print(f"Harita: arz-talep bölgeleri hesaplanamadı ({type(e).__name__}).")
     return kayit
 
 
@@ -733,7 +934,7 @@ def canli(kayit, x, wl):
 
 
 def listeler(H):
-    L = {"kelepir": [], "ucuz": [], "kutu": [], "dusus": [], "tdestek": [], "supurme": [], "dipara": []}
+    L = {"kelepir": [], "ucuz": [], "kutu": [], "dusus": [], "tdestek": [], "supurme": [], "dipara": [], "taze_talep": []}
     for kod, k in H.items():
         d = k.get("d") or {}
         if d.get("kel") == "kelepir":
@@ -755,6 +956,8 @@ def listeler(H):
             da = eg.get("da")
             if da and da["y"] == 1 and k.get("f") and da["a"] <= k["f"] <= da["u"]:
                 L["dipara"].append(kod)
+        if at_taze_talep(k.get("at"), k.get("f")):
+            L["taze_talep"].append(kod)
     f = lambda kod: (H[kod].get("f") or 0) / (H[kod]["kel"]["T"] or 1)
     L["kelepir"].sort(key=f)
     L["ucuz"].sort(key=f)
@@ -762,6 +965,7 @@ def listeler(H):
     L["dusus"].sort(key=lambda kod: -H[kod]["yon"]["dusus"])
     L["tdestek"].sort(key=lambda kod: H[kod]["f"] / egitim_destek(H[kod]["eg"])[0])
     L["supurme"].sort(key=lambda kod: (H[kod]["eg"]["sp"]["h"], kod))
+    L["taze_talep"].sort(key=lambda kod: (0 if at_taze_talep(H[kod]["at"], H[kod]["f"])[0] == "h" else 1, kod))
     L["dipara"].sort(key=lambda kod: (H[kod]["f"] - H[kod]["eg"]["da"]["a"]) / (H[kod]["eg"]["da"]["u"] - H[kod]["eg"]["da"]["a"]))
     return L
 

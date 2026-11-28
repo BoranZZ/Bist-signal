@@ -1230,3 +1230,16 @@ portföyde rastgele eklemeden iyi değil → sayfada YOK; 🌱 simgesi panoda SM
 - **🔎 Rozet denetimi (2026-11-28, dal `altin-harita`; SADECE METİN):** "aynı hisse + aynı yıl" kıyası kriz haftalarına yığılan olayları şişiriyordu; aynı hafta benzer koşu+derinlik
   kıyasıyla (`Documents/Bist-arastirma/2026-11-28/denetim/RAPOR.md`) `EGITIM_ROZET` durak s/s, tepe s/**y**(ABD), kutu r/r, dipara r/r, supurme r/r; sayfada kelepir 🟡, ucuz ▼, 📏 kıyas notu. `SURUM` 5.
   **Açık soru (kilit):** 🔴 "kilit üstünde haftalık kapanışta al rastgeleden iyi değil" metni yeni kıyasla çelişiyor (taban içi kilit üstü benzer hisselerden 52 haftada +15 ▲ BIST 25 y, +34 ▲ 10 y, +5 ▲ ABD; medyan farkı eksi) — dokunulmadı, ayrı inceleme bekliyor.
+- **⚖️ Arz-talep bölgeleri (2026-11-28, dal `altin-harita`; SADECE BİLGİ — AL/SAT, Telegram, İşlem Odası, backtest DEĞİŞMEZ):** kullanıcı "arz talep çizgileri ve
+  bölgesi" istedi. Kural = 28.11 SMC testinin ana ayarı (`Documents/Bist-arastirma/2026-11-28/smc/RAPOR.md`, `smc_ortak.atr14/bars/itkiler/bolge`, 'taban' + 'a3'):
+  itki = 1-3 mumda kapanış ≥ 3 ATR14 yukarı; talep bölgesi = itkiden hemen önceki 2-8 mumluk dar taban (≤ 2 ATR, en uzunu), yükseklik ≤ %25, itki bölge üstüne
+  kapanmalı; dokunuş = itkiden ≥3 mum sonra en düşük bölge tavanına değer (sonraki dokunuş ≥1 ATR uzaklaşıp dönünce); bölge dibinin altında kapanış = kırıldı
+  (gösterilmez); ucuz yarı = test tanımı; itki son 500 gün / 104 hafta içinde. **Arz = aynası** (test yalnız talebi ölçtü). G ve H (W-FRI, süren hafta dahil);
+  her yönde fiyatın %40 içinde en yakın 2, kesişmeyen. Kod `harita.arz_talep` / `arz_talep_tf` / `at_taze_talep` (sabitler `AT_*`), `hisse_kaydi` içinde (hisse +
+  🥇 kartları; günde bir kez / emtia 30 dk), hata → yalnız `at` düşer. json `h[kod].at` = {tg, ag, th, ah: [[alt, üst, taban başı, dokunuş sayısı, ilk dokunuş, ucuz/pahalı
+  yarı, yeni]]}, liste `taze_talep` (fiyat bölgenin içinde ve taze ya da ilk dokunuş son 10 işlem günü). Sayfa: kartta `atMetin` kutusu (+ rozet + kural), grafikte
+  turkuaz/kırmızı çerçeveli kutular (oluştuğu haftadan bugüne; H dolu, G kesikli çerçeve; sarı 🧱 ve yeşil kelepir şeridinden ayrı), tabloda satır (`atSeviye`),
+  '⚖️ Taze talep bölgesinde' listesi + süzgeç. Rozet `EGITIM_ROZET['arztalep']` 🔴 (BIST 26 haftada 4-7 puan kötü; ABD ve 46 varlıkta fark yok). `SURUM` 6.
+  Doğrulama (`Documents/Bist-arastirma/2026-11-28/altin-harita/testler/t10_arztalep.py` 25/25): smc_ortak ile 60 hissede bölge/ilk dokunuş/dokunuş sayısı 0 fark, altın
+  G 3.396,1–3.452,5 (25.11 ilk dokunuş) = smc b1; arz = aynalanmış serinin talebi; kenar durumları. Süre: 256 hisse 10 yıl ~1,2 sn (vektörel), gerçek yenilemede hesap
+  7,1 → 7,3 sn; harita.json 534 → 552 KB (+%3,2, gzip +5 KB). Rapor `Documents/Bist-arastirma/2026-11-28/arztalep/RAPOR.md`.

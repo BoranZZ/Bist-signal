@@ -6,9 +6,9 @@ SAYFA = r"""<!doctype html><html lang="tr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1"><title>Tahtacı Haritası</title>
 <style>
 :root{--bg:#F4F1FB;--panel:#FFFFFF;--ink:#1D1530;--muted:#6E6488;--line:#E3DCF2;--accent:#6D3FD8;--pos:#1B8A52;--neg:#C2412F;
---chip:#EFE9FB;--kel:#1B8A52;--kutu:#2F6FD8;--mal:#D9822B;--kilit:#8B3FD8;--gri:#8C84A3;--eg:#B4530A;--tb:#A8740A}
+--chip:#EFE9FB;--kel:#1B8A52;--kutu:#2F6FD8;--mal:#D9822B;--kilit:#8B3FD8;--gri:#8C84A3;--eg:#B4530A;--tb:#A8740A;--tal:#0E9F76;--arz:#D1435B}
 @media (prefers-color-scheme:dark){:root{--bg:#0F0A1E;--panel:#19122E;--ink:#ECE7FA;--muted:#A79BC8;--line:#2E2450;--accent:#B596FF;
---pos:#5BD69A;--neg:#FF7A6B;--chip:#241A40;--kel:#5BD69A;--kutu:#7FA8FF;--mal:#F2A65A;--kilit:#C59BFF;--gri:#8E86A8;--eg:#F5A524;--tb:#E8C15A}}
+--pos:#5BD69A;--neg:#FF7A6B;--chip:#241A40;--kel:#5BD69A;--kutu:#7FA8FF;--mal:#F2A65A;--kilit:#C59BFF;--gri:#8E86A8;--eg:#F5A524;--tb:#E8C15A;--tal:#4FD1A5;--arz:#FF8095}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
 font-feature-settings:"tnum" 1;-webkit-font-smoothing:antialiased;line-height:1.45}
@@ -68,6 +68,9 @@ table.sv tr.fy td{font-weight:700;background:var(--chip)}
 .cip.sec{background:var(--tb);border-color:var(--tb);color:var(--bg)}.cip.sec small{color:var(--bg);opacity:.9}
 .tbp{background:var(--chip);border-radius:10px;padding:8px 10px;margin:0 0 8px;border-left:3px solid var(--tb)}
 .tbp p{margin:0 0 6px}
+.atp{background:var(--chip);border-radius:10px;padding:8px 10px;margin:0 0 8px;border-left:3px solid var(--tal);font-size:13px}
+.atp p{margin:0 0 5px}.atp ul{margin:2px 0 6px;padding-left:18px}.atp li{margin:0 0 3px;overflow-wrap:anywhere}
+.atp .tl{color:var(--tal);font-weight:700}.atp .az{color:var(--arz);font-weight:700}.atp details{font-size:12px;color:var(--muted)}.atp details summary{cursor:pointer}
 .durust{font-size:13.5px}
 .durust li{margin-bottom:5px}
 @media(max-width:560px){.ana{padding:12px 10px 30px}.ust{padding:12px}.hk{padding:10px}.listeler{grid-template-columns:minmax(0,1fr)}.eg ul{grid-template-columns:minmax(0,1fr)}}
@@ -95,7 +98,7 @@ o parçaları gösterir: büyük tepe ve dip, kutu, değer alanı, kelepir band�
 <option value="one">Öne çıkanlar</option><option value="hepsi">Tüm hisseler</option>
 <option value="kelepir">🟡 Kelepir bandı</option><option value="ucuz">Ucuz bandı</option><option value="kutu">📦 Kutu alt bölgesi</option>
 <option value="dusus">Büyük düşüş sonrası</option><option value="ucuzyari">Tepe-dip aralığının alt yarısı</option>
-<option value="pahaliyari">Tepe-dip aralığının üst yarısı</option><option value="tdestek">📚 Çok temaslı desteğe yakın</option><option value="supurme">📚 Son dip süpürmesi</option><option value="dipara">📚 Dip arası takip bölgesinde</option><option value="ana">Ana liste (BIST 100 + ek)</option><option value="kucuk">Küçük hisseler</option>
+<option value="pahaliyari">Tepe-dip aralığının üst yarısı</option><option value="tdestek">📚 Çok temaslı desteğe yakın</option><option value="supurme">📚 Son dip süpürmesi</option><option value="dipara">📚 Dip arası takip bölgesinde</option><option value="taze_talep">⚖️ Taze talep bölgesinde</option><option value="ana">Ana liste (BIST 100 + ek)</option><option value="kucuk">Küçük hisseler</option>
 </select><button type="button" class="cip egbtn" id="egbtn" aria-pressed="true">📚 Eğitim çizgileri: açık</button><span class="say" id="say"></span></div>
 <div id="kartlar"></div>
 <div class="kart durust"><h2>📊 Dürüstlük notu</h2>
@@ -179,6 +182,7 @@ function seviyeListesi(k){var L=[],s=k.sv,e=k.kel,y=k.yon,b=k.kutu&&(k.d||{}).ku
  var t=k.tb;if(t){L.push(["Kırılan tepe","🧱 tabanın tavanı = kırılan eski tepe (en yüksek fitil)",t.tv,"var(--tb)","6 3",1.3]);
   L.push(["Taban üstü","🧱 taban bölgesi · "+tr(t.bt)+" – "+tr(t.bs)+" · "+t.n+" hafta",t.u,"var(--tb)","",1.5]);
   L.push(["Taban altı","🧱 taban bölgesi · gövdelerin yoğunlaştığı bant",t.a,"var(--tb)","",1.5]);}
+ L=L.concat(atSeviye(k));
  if(e&&e.kat>=4){L.push(["Ralli tepesi",tr(e.P_t)+" · "+sayi(e.kat,1)+" kat",e.P,"var(--kel)","4 3",0.9,0,s&&Math.abs(e.P/s.tepe-1)<0.03?1:0]);
   L.push(["Ucuz bandı üstü","taban + rallinin %21,4'ü",e.ucuz_ust,"var(--kel)","4 3",1]);
   L.push(["Kelepir bandı üstü","taban +%30",e.kel_ust,"var(--kel)","",1.2,0,1]);
@@ -195,14 +199,19 @@ function grafik(k){var s=k.s||[],n=s.length;if(n<10)return "";var W=Math.max(300
  var L=seviyeListesi(k).concat(egSeviye(k)),ic=[],dis=[];L.forEach(function(r){if(r[7])return;if(r[2]>0&&r[2]>=lo/1.7&&r[2]<=hi*1.7)ic.push(r);else if(r[2]>0)dis.push(r);});
  ic.forEach(function(r){lo=Math.min(lo,r[2]);hi=Math.max(hi,r[2]);});
  var tc=EG_ACIK&&k.eg&&k.eg.tc&&k.eg.tc.a,ta=null;if(tc&&tc[1]>0&&tc[3]>0&&tc[1]>=lo/1.7&&tc[1]<=hi*1.7&&tc[3]>=lo/1.7&&tc[3]<=hi*1.7){ta=tc;lo=Math.min(lo,tc[1],tc[3]);hi=Math.max(hi,tc[1],tc[3]);}
+ var AT=[];atListe(k,"t").forEach(function(z){z.tip="t";AT.push(z);});atListe(k,"a").forEach(function(z){z.tip="a";AT.push(z);});AT=AT.filter(function(z){return z.a>=lo/1.7&&z.u<=hi*1.7;});AT.forEach(function(z){lo=Math.min(lo,z.a);hi=Math.max(hi,z.u);});
  var a=Math.log(lo/1.03),b=Math.log(hi*1.03);function Y(p){return mt+ph*(1-(Math.log(p)-a)/(b-a));}function X(i){return ml+pw*i/(n-1);}
  var g='<svg class="graf" viewBox="0 0 '+W+" "+Hh+'" role="img" width="100%" aria-label="Haftalık kapanış grafiği ve seviyeler">';
  var e=k.kel;if(e&&e.kat>=4&&e.kel_ust>=lo&&e.kel_alt<=hi){var y1=Y(Math.min(e.kel_ust,hi*1.03)),y2=Y(Math.max(e.kel_alt,lo/1.03));g+='<rect x="'+ml+'" y="'+y1+'" width="'+pw+'" height="'+Math.max(1,y2-y1)+'" fill="var(--kel)" opacity=".12"/>';}
  var da=EG_ACIK&&k.eg&&k.eg.da;if(da&&da.y>0&&da.u>=lo&&da.a<=hi){var y5=Y(Math.min(da.u,hi*1.03)),y6=Y(Math.max(da.a,lo/1.03));g+='<rect x="'+ml+'" y="'+y5+'" width="'+pw+'" height="'+Math.max(1,y6-y5)+'" fill="var(--eg)" opacity=".14"/>';}
  var tb=k.tb;if(tb&&tb.u>=lo&&tb.a<=hi){var gx=new Date((k.g0||D.g0)+"T00:00:00").getTime(),i0=Math.max(0,Math.round((new Date(tb.bt+"T00:00:00").getTime()-gx)/(7*864e5))),y7=Y(Math.min(tb.u,hi*1.03)),y8=Y(Math.max(tb.a,lo/1.03));if(i0<n-1)g+='<rect x="'+X(i0)+'" y="'+y7+'" width="'+(X(n-1)-X(i0))+'" height="'+Math.max(1,y8-y7)+'" fill="var(--tb)" opacity=".2"/>';}
+ var gxa=new Date((k.g0||D.g0)+"T00:00:00").getTime(),atL=[],atE={};AT.forEach(function(z){var i0=Math.max(0,Math.min(n-2,Math.round((new Date(z.t+"T00:00:00").getTime()-gxa)/(7*864e5)))),y1=Y(z.u),y2=Y(z.a),c=z.tip==="t"?"var(--tal)":"var(--arz)",hw=z.tf==="h",x0=Math.min(X(i0),X(n-1)-10),w=X(n-1)-x0,hh=Math.max(1.5,y2-y1);
+  g+='<rect x="'+x0+'" y="'+y1+'" width="'+w+'" height="'+hh+'" fill="'+c+'" opacity="'+(hw?".24":".15")+'"/><rect x="'+x0+'" y="'+y1+'" width="'+w+'" height="'+hh+'" fill="none" stroke="'+c+'" stroke-width="'+(hw?1.1:0.9)+'"'+(hw?"":' stroke-dasharray="3 2"')+' opacity=".95"/>';
+  var ak=z.tip+z.tf;if(!atE[ak]){atE[ak]=1;atL.push([Y((z.a+z.u)/2),(z.tip==="t"?"Talep ":"Arz ")+(hw?"H":"G"),c]);}});
  var sv=k.sv;if(sv&&sv.vah&&sv.val){var y3=Y(Math.min(sv.vah,hi*1.03)),y4=Y(Math.max(sv.val,lo/1.03));g+='<rect x="'+ml+'" y="'+y3+'" width="'+pw+'" height="'+Math.max(1,y4-y3)+'" fill="var(--kutu)" opacity=".07"/>';}
  var g0=new Date((k.g0||D.g0)+"T00:00:00"),son=-1;for(var i=0;i<n;i++){var dt=new Date(g0.getTime()+i*7*864e5);var yl=dt.getFullYear();if(son>=0&&yl!==son){g+='<line x1="'+X(i)+'" x2="'+X(i)+'" y1="'+mt+'" y2="'+(mt+ph)+'" stroke="var(--line)"/><text x="'+(X(i)+3)+'" y="'+(Hh-6)+'">'+yl+"</text>";}son=yl;}
  var et=[];ic.forEach(function(r){var y=Y(r[2]);g+='<line x1="'+ml+'" x2="'+(ml+pw)+'" y1="'+y+'" y2="'+y+'" stroke="'+r[3]+'" stroke-width="'+(r[5]||1)+'"'+(r[4]?' stroke-dasharray="'+r[4]+'"':"")+(r[5]?"":' opacity=".7"')+"/>";et.push([y,r[0],r[3]]);});
+ atL.forEach(function(q){et.push(q);});
  if(ta){g+='<line x1="'+X(ta[0])+'" x2="'+X(ta[2])+'" y1="'+Y(ta[1])+'" y2="'+Y(ta[3])+'" stroke="var(--eg)" stroke-width="1.4" stroke-dasharray="8 3"/>';et.push([Y(ta[3]),(k.eg.tc.y>0?"↗":"↘")+" Trend ×"+k.eg.tc.n,"var(--eg)"]);}
  var p="",acik=false;for(i=0;i<n;i++){if(s[i]==null||!(s[i]>0)){acik=false;continue;}p+=(acik?"L":"M")+X(i).toFixed(1)+" "+Y(s[i]).toFixed(1)+" ";acik=true;}
  g+='<path d="'+p+'" fill="none" stroke="var(--ink)" stroke-width="1.6"/>';
@@ -211,7 +220,7 @@ function grafik(k){var s=k.s||[],n=s.length;if(n<10)return "";var W=Math.max(300
  var asl=mt+ph+6;for(i=et.length-1;i>=0;i--){if(et[i][3]>asl)et[i][3]=asl;asl=et[i][3]-13;}
  et.forEach(function(q){g+='<text x="'+(ml+pw+4)+'" y="'+q[3]+'" style="fill:'+q[2]+'">'+esc(q[1].length>16?q[1].slice(0,15)+"…":q[1])+"</text>";});
  g+="</svg>";if(dis.length)g+='<div class="bos" style="font-size:11.5px">Grafiğin dışında kalan: '+dis.map(function(r){return esc(r[0])+" "+sayi(r[2]);}).join(" · ")+"</div>";
- return g+'<div class="bos" style="font-size:11.5px">Son 3 yıl, haftalık kapanış (log ölçek). '+(k.tb?'Sarı şerit = 🧱 taban bölgesi (tabanın başladığı haftadan bugüne). ':'')+'Yeşil şerit = kelepir bandı, mavi şerit = değer alanı. Son nokta = anlık fiyat. Tüm seviyeler tabloda.'+(EG_ACIK&&k.eg?' Turuncu = 📚 eğitim katmanı (yaklaşık; rozetlere bak), turuncu şerit = dip arası takip bölgesi.':'')+'</div>';}
+ return g+'<div class="bos" style="font-size:11.5px">Son 3 yıl, haftalık kapanış (log ölçek). '+(k.tb?'Sarı şerit = 🧱 taban bölgesi (tabanın başladığı haftadan bugüne). ':'')+'Yeşil şerit = kelepir bandı, mavi şerit = değer alanı.'+(AT.length?' Çerçeveli kutular = ⚖️ talep (turkuaz) / arz (kırmızı) bölgeleri, oluştuğu yerden bugüne (dolu çerçeve = haftalık, kesikli = günlük).':'')+' Son nokta = anlık fiyat. Tüm seviyeler tabloda.'+(EG_ACIK&&k.eg?' Turuncu = 📚 eğitim katmanı (yaklaşık; rozetlere bak), turuncu şerit = dip arası takip bölgesi.':'')+'</div>';}
 function rozet(ad){var r=((D&&D.egr)||{})[ad];if(!r)return "";var z=RZ[r[0]]||RZ.o,h='<div class="rz"><b>'+(r[0]==="t"?"Ölçüm: ":"BIST'te ölçüldü: ")+z[0]+" "+z[1]+"</b> "+esc(r[1])+"</div>";
  if(r[2]&&r[2].length){var u=RZ[r[2][0]]||RZ.o;h+='<div class="rz"><b>'+"ABD'de ölçüldü: "+u[0]+" "+u[1]+"</b> "+esc(r[2][1])+"</div>";}return h;}
 function rzKisa(ad){var r=((D&&D.egr)||{})[ad];if(!r)return "—";var z=RZ[r[0]]||RZ.o;return z[0]+" "+z[1];}
@@ -277,6 +286,24 @@ function egSeviye(k){var e=k.eg,f=k.f,L=[];if(!e||!EG_ACIK)return L;var C="var(-
  if(e.kl)L.push(["Kilit ≈","",e.kl.v,C,"2 2",1.2]);
  if(e.tp&&e.tp.k==="zz"&&!e.tp.g)L.push(["Ana tepe (son dip)","",e.tp.at,C,"5 3",1]);
  return L;}
+function atListe(k,tip){var a=k.at||{},o=[];["h","g"].forEach(function(tf){(a[tip+tf]||[]).forEach(function(z){o.push({tf:tf,a:z[0],u:z[1],t:z[2],n:z[3],t1:z[4],y:z[5],yeni:z[6]});});});return o;}
+function atDurum(z,tip,f){var h;
+ if(tip==="t"){if(f>z.u)h="üst kenarı "+fark(z.u,f);else if(f>=z.a)h="<b>fiyat bölgenin içinde</b>";else h="<b>fiyat bölgenin altında</b> (kırılıyor; kapanışta kesinleşir)";}
+ else{if(f<z.a)h="alt kenarı "+fark(z.a,f);else if(f<=z.u)h="<b>fiyat bölgenin içinde</b>";else h="<b>fiyat bölgenin üstünde</b> (aşılıyor; kapanışta kesinleşir)";}
+ return h;}
+function atSatir(z,tip,f,br){var dok=z.n===0?"🆕 taze (hiç dokunulmadı)":z.n===1?"1 kez dokunuldu ("+tr(z.t1)+")":z.n+" kez dokunuldu (ilki "+tr(z.t1)+")";
+ return "<li><b>"+(z.tf==="h"?"H":"G")+"</b> · <b>"+sayi(z.a)+" – "+sayi(z.u)+(br?" "+esc(br):"")+"</b> · oluştu "+tr(z.t)+" · "+dok+(z.y?" · "+(tip==="t"?"salınımın ucuz yarısında":"salınımın pahalı yarısında"):"")+" · "+atDurum(z,tip,f)+"</li>";}
+function atMetin(k){var f=k.f;if(!f)return "";var T=atListe(k,"t"),A=atListe(k,"a"),br=k.br||"";
+ var h='<div class="atp"><p>⚖️ <b>Arz-talep bölgeleri</b> <span class="bos">(ICT/SMC kuralı; H = haftalık, G = günlük mum)</span></p>';
+ h+='<p class="tl">Talep (fiyatın altında, turkuaz kutu)</p>'+(T.length?"<ul>"+T.map(function(z){return atSatir(z,"t",f,br);}).join("")+"</ul>":'<p class="bos">Fiyatın %40 altına kadar kırılmamış talep bölgesi yok.</p>');
+ h+='<p class="az">Arz (fiyatın üstünde, kırmızı kutu)</p>'+(A.length?"<ul>"+A.map(function(z){return atSatir(z,"a",f,br);}).join("")+"</ul>":'<p class="bos">Fiyatın %40 üstüne kadar kırılmamış arz bölgesi yok.</p>');
+ h+=rozet("arztalep");
+ h+="<details><summary>Kural (nasıl çizildi?)</summary><p><b>İtki:</b> 1-3 mumda kapanış, önceki kapanışın en az 3 ATR(14) üstüne çıkıyor (arz için altına iniyor). <b>Talep bölgesi:</b> itkiden hemen önceki 2-8 mumluk dar taban (en yüksek − en düşük ≤ 2 ATR, en uzunu); bölge = o tabanın en düşüğü – en yükseği; yüksekliği %25'i geçen ya da itkinin üstüne kapanmadığı tabanlar atılır. <b>Dokunuş:</b> itkiden en az 3 mum sonra en düşüğün bölge üst kenarına değmesi; sonraki dokunuş fiyat bölgeden 1 ATR uzaklaşıp geri gelince sayılır. <b>Taze</b> = hiç dokunulmamış. Bölge dibinin altında kapanış = bölge kırıldı, gösterilmez. <b>Ucuz yarı:</b> bölgenin ortası son 120 günün / 52 haftanın aralığının ortasının altında. Günlükte son 500 gün, haftalıkta son 104 hafta içindeki itkiler; fiyatın %40 uzağına kadar, her yönde en yakın 2 bölge (kesişenlerden fiyata yakın olan). <b>Arz bölgesi</b> aynı kuralın aynası: sert düşüşten hemen önceki dar tepe; dokunuş = en yüksek bölge alt kenarına değer, kırılma = bölge üstünde kapanış (test yalnız talep tarafını ölçtü). Tanım 28.11 SMC testinin ana ayarıyla (dar taban, 3 ATR) aynı. Bölgeler günde bir kez hesaplanır; uzaklık anlık fiyatla.</p></details>";
+ return h+"</div>";}
+function atSeviye(k){var L=[],f=k.f;if(!f)return L;
+ atListe(k,"t").forEach(function(z){L.push(["⚖️ Talep "+(z.tf==="h"?"H":"G"),"üst kenar · bölge "+sayi(z.a)+" – "+sayi(z.u)+" · "+tr(z.t)+" · "+(z.n===0?"taze":z.n+" dokunuş"),z.u,"var(--tal)","",1,0,1]);});
+ atListe(k,"a").forEach(function(z){L.push(["⚖️ Arz "+(z.tf==="h"?"H":"G"),"alt kenar · bölge "+sayi(z.a)+" – "+sayi(z.u)+" · "+tr(z.t)+" · "+(z.n===0?"taze":z.n+" dokunuş"),z.a,"var(--arz)","",1,0,1]);});
+ return L;}
 function emF(k,v){return v==null?"—":sayi(v)+" "+k.br;}
 function tbMetin(k){var t=k.tb,f=k.f,h;
  if(!t)return '<div class="tbp"><p>🧱 <b>Taban bölgesi:</b> son 10 yılda tanıma uyan taban yok (en az 8 hafta yatay, ardından bir yıl içinde %40+ yükseliş).</p>'+rozet("taban")+tbrMetin()+"</div>";
@@ -302,7 +329,7 @@ function emDurum(k){var e=k.kel,d=k.d||{},f=k.f,y=k.yon,s=k.sv,h="";
  return h+'<p class="not">Hisse kartlarındaki geçmiş oranlar (ör. kelepirin 12 ay ortalaması +%50) BIST hisselerinden ölçüldü; altın, gümüş, döviz ve Bitcoin için ölçülmedi, bu yüzden burada yazılmadı.</p>';}
 function kartEm(kod){var E=D.em,k=E.h[kod];if(!k)return "";
  return '<div class="hk" id="h_'+esc(kod)+'"><div class="bas"><b class="kod">'+esc(k.ad)+'</b><span class="fy">'+emF(k,k.f)+'</span><span class="etk">'+esc(k.yf)+'</span><span class="m">son veri '+tr(k.son)+" · bilgi amaçlı, AL/SAT değil</span></div>"+
-  '<div class="izg"><div class="dur">'+tbMetin(k)+emDurum(k)+"</div><div>"+grafik(k)+tablo(k)+"</div></div>"+egMetin(k,"Rozetler BIST (ve ABD) hisselerindeki ölçümdür; altın, döviz ve Bitcoin için ayrıca ölçülmedi.")+"</div>";}
+  '<div class="izg"><div class="dur">'+tbMetin(k)+atMetin(k)+emDurum(k)+"</div><div>"+grafik(k)+tablo(k)+"</div></div>"+egMetin(k,"Rozetler BIST (ve ABD) hisselerindeki ölçümdür; altın, döviz ve Bitcoin için ayrıca ölçülmedi.")+"</div>";}
 function emCip(kod){var k=D.em.h[kod],t=k.tb,ek="";if(t&&k.f)ek=k.f>t.u?"tabana %"+sayi(Math.abs(t.u/k.f-1)*100,1):k.f>=t.a?"🧱 tabanda":"taban altında";
  return '<button class="cip'+(kod===EMS?" sec":"")+'" onclick="emSec(\''+esc(kod)+'\')">'+esc(k.ad)+" "+emF(k,k.f)+(ek?" <small>"+ek+"</small>":"")+"</button>";}
 function emCiz(){var el=document.getElementById("emtia"),E=D&&D.em;if(!el)return;if(!E||!E.h||!Object.keys(E.h).length){el.innerHTML="";return;}
@@ -313,7 +340,7 @@ function kart(kod){var k=H[kod];if(!k)return "";var d=k.d||{};
  var dur=kelMetin(k,kod)+kutuMetin(k)+yonMetin(k)+svMetin(k)+yabMetin(k);
  if(!dur)dur='<p class="bos">Bu hisse için öne çıkan durum yok.</p>';
  return '<div class="hk" id="h_'+esc(kod)+'"><div class="bas"><b class="kod">'+esc(kod)+'</b><span class="fy">'+sayi(k.f)+' TL</span><span class="etk">'+(k.g==="ana"?"ana liste":"küçük hisse")+"</span>"+(k.dk?'<span class="etk dk">⚠️ panoda risk uyarısı</span>':"")+'<span class="m">bilgi amaçlı, AL/SAT değil</span></div>'+
-  '<div class="izg"><div class="dur">'+dur+'</div><div>'+grafik(k)+tablo(k)+"</div></div>"+egMetin(k)+"</div>";}
+  '<div class="izg"><div class="dur">'+dur+atMetin(k)+'</div><div>'+grafik(k)+tablo(k)+"</div></div>"+egMetin(k)+"</div>";}
 function cip(kod,ek){return '<button class="cip" onclick="sec(\''+esc(kod)+'\')">'+esc(kod)+(ek?" <small>"+ek+"</small>":"")+"</button>";}
 function listeler(){var L=D.liste||{},h="";
  function kutu(baslik,aciklama,dizi,ek){h+='<div class="kart"><h2>'+baslik+'</h2><div class="bos" style="margin-bottom:6px">'+aciklama+'</div><div class="cips">'+(dizi&&dizi.length?dizi.map(function(k){return cip(k,ek(k));}).join("")+'<span class="bos"> ('+dizi.length+' hisse)</span>':'<span class="bos">Şu an yok.</span>')+"</div></div>";}
@@ -322,6 +349,7 @@ function listeler(){var L=D.liste||{},h="";
  kutu("Ucuz bandında","Rallinin büyük kısmını geri vermiş, kelepirin bir üstündeki bant.",L.ucuz,function(k){return "×"+sayi(H[k].f/H[k].kel.T,1);});
  kutu("📚 Çok temaslı desteğe yakın","Eğitim katmanı: fiyat 3+ temaslı yatay desteğin en çok %3 üstünde (eğitmene göre stoplar altında birikir). BIST ölçümü: "+rzKisa("yatay")+". AL/SAT değil.",L.tdestek,function(k){var z=egYakin(H[k].eg,-1,1);return z?"+%"+sayi((H[k].f/z[0]-1)*100,1):"";});
  kutu("📚 Dip arası takip bölgesinde","Eğitim katmanı: son 3 yılın ana dibinden sonra daha yüksek bir dip oluşmuş ve fiyat ikisinin arasında. Eğitmen: \"takip edilecek yer\". Yanındaki sayı: bölgedeki yeri (%0 = önceki dip, %100 = yukarıdaki dip). BIST ölçümü: "+rzKisa("dipara")+" (bölgeye özgü değil). AL/SAT değil.",L.dipara,function(k){var q=H[k].eg.da;return "%"+Math.round((H[k].f-q.a)/(q.u-q.a)*100);});
+ kutu("⚖️ Taze talep bölgesinde","Fiyat, kuralın çizdiği bir talep bölgesinin içinde ve bölgeye ilk kez dokunuyor (taze ya da ilk dokunuş son 10 işlem gününde). H = haftalık, G = günlük bölge. BIST ölçümü: "+rzKisa("arztalep")+" (benzer düşmüş hisselerden iyi değil). AL/SAT değil.",L.taze_talep,function(k){var o="";["h","g"].some(function(tf){return ((H[k].at||{})["t"+tf]||[]).some(function(z){if(z[0]<=H[k].f&&H[k].f<=z[1]&&(z[3]===0||z[6])){o=(tf==="h"?"H":"G")+" · "+(z[3]===0?"taze":"1. dokunuş");return true;}return false;});});return o;});
  kutu("📚 Son dip süpürmesi","Eğitim katmanı: son ~4 haftada (20 işlem günü) 3+ temaslı desteğin altında kapanıp 5 gün içinde geri alanlar. BIST ölçümü: "+rzKisa("supurme")+". AL/SAT değil.",L.supurme,function(k){var h=H[k].eg.sp.h;return h===0?"bugün":h+" gün önce";});
  document.getElementById("listeler").innerHTML=h;}
 function suz(){var q=document.getElementById("ara").value.trim().toUpperCase(),s=document.getElementById("suzgec").value,L=D.liste||{};
@@ -330,7 +358,7 @@ function suz(){var q=document.getElementById("ara").value.trim().toUpperCase(),s
  if(s==="hepsi")return KODLAR;
  if(s==="kelepir"||s==="ucuz"||s==="kutu")return L[s]||[];
  if(s==="dusus")return L.dusus||[];
- if(s==="tdestek"||s==="supurme"||s==="dipara")return L[s]||[];
+ if(s==="tdestek"||s==="supurme"||s==="dipara"||s==="taze_talep")return L[s]||[];
  if(s==="ana"||s==="kucuk")return KODLAR.filter(function(k){return H[k].g===s;});
  return KODLAR.filter(function(k){var c=(H[k].d||{}).konum;return c!=null&&(s==="ucuzyari"?c<0.5:c>=0.5);}).sort(function(a,b){return (H[a].d.konum-H[b].d.konum)*(s==="ucuzyari"?1:-1);});}
 function ciz(){var L=suz(),h=L.slice(0,GOSTER).map(kart).join("");if(!L.length)h='<div class="kart bos">Eşleşen hisse yok.</div>';
